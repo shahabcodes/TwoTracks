@@ -68,12 +68,8 @@ jobs:
           cp app/build/outputs/apk/debug/*.apk "dist/TwoTracks_${APP_VERSION_NAME}.apk"
           ls -la dist
 
-      - name: Upload APK as workflow artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: TwoTracks_${{ env.APP_VERSION_NAME }}
-          path: dist/TwoTracks_${{ env.APP_VERSION_NAME }}.apk
-
+      # APKs are delivered through GitHub Releases (below), not Actions artifacts:
+      # the account's Actions artifact storage quota is already used up.
       - name: Extract changelog section
         if: github.event_name != 'pull_request'
         run: |

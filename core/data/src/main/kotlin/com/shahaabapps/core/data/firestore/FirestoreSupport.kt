@@ -6,8 +6,10 @@ import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
 import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.retryWhen
 
 /** Firestore layout: everything lives under couples/{coupleId}/{collection}. */
 object Paths {
@@ -34,27 +36,37 @@ fun FirebaseFirestore.couple(coupleId: String): DocumentReference =
 fun FirebaseFirestore.sub(coupleId: String, name: String): CollectionReference =
     couple(coupleId).collection(name)
 
-/** Live list of mapped documents; errors emit an empty list rather than closing the flow. */
+/**
+ * Live list of mapped documents. A listener error (for example PERMISSION_DENIED
+ * while a just-created couple document is still propagating) re-registers the
+ * listener with a short backoff instead of leaving the flow silently stale.
+ */
 fun <T> Query.asFlow(mapper: (DocumentSnapshot) -> T?): Flow<List<T>> = callbackFlow {
     val registration = addSnapshotListener { snapshot, error ->
         if (error != null) {
-            trySend(emptyList())
+            close(error)
             return@addSnapshotListener
         }
         trySend(snapshot?.documents?.mapNotNull { runCatching { mapper(it) }.getOrNull() }.orEmpty())
     }
     awaitClose { registration.remove() }
+}.retryWhen { _, attempt ->
+    delay(minOf(1_000L * (attempt + 1), 10_000L))
+    true
 }
 
 fun <T> DocumentReference.asFlow(mapper: (DocumentSnapshot) -> T?): Flow<T?> = callbackFlow {
     val registration = addSnapshotListener { snapshot, error ->
         if (error != null) {
-            trySend(null)
+            close(error)
             return@addSnapshotListener
         }
         trySend(snapshot?.takeIf { it.exists() }?.let { runCatching { mapper(it) }.getOrNull() })
     }
     awaitClose { registration.remove() }
+}.retryWhen { _, attempt ->
+    delay(minOf(1_000L * (attempt + 1), 10_000L))
+    true
 }
 
 // ---- small typed getters ----
