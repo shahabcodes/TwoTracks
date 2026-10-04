@@ -43,7 +43,7 @@ fun Hero(
             .clip(Shapes.hero)
             .background(Brand.accentGradient)
             .statusBarsPadding()
-            .padding(start = Spacing.lg, end = Spacing.lg, top = Spacing.md, bottom = Spacing.lg + 4.dp),
+            .padding(start = Spacing.listHorizontal, end = Spacing.listHorizontal, top = Spacing.md, bottom = Spacing.lg + 4.dp),
         verticalArrangement = Arrangement.spacedBy(Spacing.sm),
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {

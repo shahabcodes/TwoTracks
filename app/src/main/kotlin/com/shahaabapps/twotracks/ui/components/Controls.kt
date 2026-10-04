@@ -127,14 +127,14 @@ fun StatTile(label: String, value: String, modifier: Modifier = Modifier, valueC
         modifier = modifier
             .clip(Shapes.card)
             .background(AppTheme.colors.card)
-            .padding(horizontal = 14.dp, vertical = 12.dp),
+            .padding(horizontal = Spacing.md, vertical = 12.dp),
     ) {
         Text(label, style = MaterialTheme.typography.bodySmall, color = AppTheme.colors.secondaryLabel)
         Text(value, style = MaterialTheme.typography.headlineMedium, color = valueColor)
     }
 }
 
-/** Compact timezone picker: a value row that opens a list of common zones plus the device default. */
+/** Compact timezone picker: a value field that opens a list of common zones plus the device default. */
 @Composable
 fun TimezonePicker(selected: String, onSelect: (String) -> Unit) {
     var open by remember { mutableStateOf(false) }
@@ -148,7 +148,13 @@ fun TimezonePicker(selected: String, onSelect: (String) -> Unit) {
             .clickable { open = true }
             .padding(horizontal = 16.dp, vertical = 14.dp),
     )
-    if (open) {
+    if (open) TimezoneDialog(selected = selected, onSelect = onSelect, onDismiss = { open = false })
+}
+
+/** The timezone list as a dialog, for use behind a settings row. */
+@Composable
+fun TimezoneDialog(selected: String, onSelect: (String) -> Unit, onDismiss: () -> Unit) {
+    run {
         val zones = remember {
             (listOf(java.time.ZoneId.systemDefault().id) + listOf(
                 "Asia/Qatar", "Asia/Karachi", "Asia/Dubai", "Asia/Kolkata", "Asia/Riyadh", "Europe/Berlin", "Europe/Dublin",
@@ -157,8 +163,8 @@ fun TimezonePicker(selected: String, onSelect: (String) -> Unit) {
             )).distinct()
         }
         AlertDialog(
-            onDismissRequest = { open = false },
-            confirmButton = { TextButton(onClick = { open = false }) { Text("Close") } },
+            onDismissRequest = onDismiss,
+            confirmButton = { TextButton(onClick = onDismiss) { Text("Close") } },
             title = { Text("Timezone") },
             text = {
                 Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
@@ -169,7 +175,7 @@ fun TimezonePicker(selected: String, onSelect: (String) -> Unit) {
                             color = if (z == selected) AppTheme.colors.accent else MaterialTheme.colorScheme.onSurface,
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .clickable { onSelect(z); open = false }
+                                .clickable { onSelect(z); onDismiss() }
                                 .padding(vertical = 10.dp),
                         )
                     }

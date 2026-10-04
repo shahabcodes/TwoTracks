@@ -88,14 +88,18 @@ class UsViewModel @Inject constructor(
 
 /** Tab 2: the two of you side by side, then Settings. */
 @Composable
-fun UsScreen(onNavigate: (String) -> Unit, viewModel: UsViewModel = hiltViewModel()) {
+fun UsScreen(onNavigate: (String) -> Unit, onOpenLevel: (String) -> Unit, viewModel: UsViewModel = hiltViewModel()) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val plan = state.plan
-    CupertinoScaffold(title = "Us") {
+    CupertinoScaffold(title = "US") {
         LazyColumn(verticalArrangement = Arrangement.spacedBy(Spacing.md), contentPadding = PaddingValues(bottom = Spacing.xl)) {
             if (plan != null) {
                 listOf(plan.me, plan.partner).forEach { person ->
-                    item { PersonCard(person, plan, state) }
+                    item {
+                        PersonCard(person, plan, state, onClick = {
+                            if (person.role == plan.me.role) person.current?.let { onOpenLevel(it.level.id) } else onNavigate(Routes.PARTNER)
+                        })
+                    }
                 }
             }
             item { SectionLabel("App") }
@@ -109,13 +113,16 @@ fun UsScreen(onNavigate: (String) -> Unit, viewModel: UsViewModel = hiltViewMode
 }
 
 @Composable
-private fun PersonCard(person: PersonPlan, plan: PlanSnapshot, state: UsUiState) {
+private fun PersonCard(person: PersonPlan, plan: PlanSnapshot, state: UsUiState, onClick: () -> Unit) {
     val profile = plan.session.profileFor(person.role)
-    CupertinoCard(modifier = Modifier.padding(horizontal = Spacing.listHorizontal)) {
+    CupertinoCard(modifier = Modifier.padding(horizontal = Spacing.listHorizontal), onClick = onClick) {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.md)) {
             Avatar(name = person.name, photoUrl = profile?.photoUrl, size = 44.dp)
             Column(modifier = Modifier.weight(1f)) {
-                Text(person.name, style = MaterialTheme.typography.headlineMedium)
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(person.name, style = MaterialTheme.typography.headlineMedium, modifier = Modifier.weight(1f))
+                    CupertinoDisclosure()
+                }
                 Text(
                     if (profile == null) "Not joined yet" else "${person.streak}-day streak · longest ${person.longestStreak} · %.0f h total".format(state.totalHours[person.role] ?: 0.0),
                     style = MaterialTheme.typography.bodySmall, color = AppTheme.colors.secondaryLabel,

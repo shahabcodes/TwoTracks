@@ -100,11 +100,15 @@ object LevelEngine {
         return progress.firstOrNull { it.level.number > cur.level.number }
     }
 
-    /** Goals the planner should schedule: goals of OPEN levels that are not passed and not complete. */
+    /**
+     * Goals the planner should schedule: required goals of OPEN levels that are
+     * not passed and not complete. Optional goals stay visible on the level but
+     * never take study slots away from the required ones.
+     */
     fun activeGoalIds(progress: List<LevelProgress>, goals: List<StudyGoal>, goalProgress: Map<String, GoalProgress>): Set<String> {
         val goalsById = goals.associateBy { it.id }
         return progress.filter { it.state == LevelState.OPEN }
-            .flatMap { it.goalIds }
+            .flatMap { lp -> lp.items.filter { it.item.required }.mapNotNull { it.item.goalId } }
             .filter { id -> goalsById[id]?.passed != true && goalProgress[id]?.isComplete != true }
             .toSet()
     }

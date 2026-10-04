@@ -32,16 +32,19 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.shahaabapps.core.ui.components.CupertinoDisclosure
 import com.shahaabapps.core.ui.components.CupertinoListRow
 import com.shahaabapps.core.ui.components.CupertinoListSection
+import com.shahaabapps.core.ui.components.CupertinoSwitch
 import com.shahaabapps.core.ui.components.CupertinoTextButton
 import com.shahaabapps.core.ui.components.CupertinoTextField
 import com.shahaabapps.core.ui.components.CupertinoValue
 import com.shahaabapps.core.ui.theme.IosColors
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CalendarMonth
+import androidx.compose.material.icons.filled.Fingerprint
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Link
 import androidx.compose.material.icons.filled.Mail
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Public
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Timeline
 import com.shahaabapps.core.ui.components.ThemeSettingsSection
@@ -50,7 +53,7 @@ import com.shahaabapps.core.ui.theme.Spacing
 import com.shahaabapps.twotracks.ui.ThemeViewModel
 import com.shahaabapps.twotracks.ui.components.Chip
 import com.shahaabapps.twotracks.ui.components.DetailScaffold
-import com.shahaabapps.twotracks.ui.components.TimezonePicker
+import com.shahaabapps.twotracks.ui.components.TimezoneDialog
 
 @Composable
 fun SettingsScreen(
@@ -65,6 +68,7 @@ fun SettingsScreen(
     val snackbar = remember { SnackbarHostState() }
     val clipboard = LocalClipboardManager.current
     var editName by remember { mutableStateOf(false) }
+    var editTimezone by remember { mutableStateOf(false) }
     var confirmReset by remember { mutableStateOf(false) }
     val notifPermission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { }
 
@@ -76,17 +80,17 @@ fun SettingsScreen(
     val s = state.session
     DetailScaffold(title = "Settings", onBack = onBack) {
         Box {
-            Column(modifier = Modifier.verticalScroll(rememberScrollState()).padding(bottom = Spacing.xl), verticalArrangement = Arrangement.spacedBy(Spacing.lg)) {
+            Column(modifier = Modifier.verticalScroll(rememberScrollState()).padding(bottom = Spacing.xl), verticalArrangement = Arrangement.spacedBy(Spacing.md)) {
                 if (s != null) {
                     CupertinoListSection(header = "Profile") {
                         CupertinoListRow("Name", leadingIcon = Icons.Filled.Person, iconColor = IosColors.Blue, onClick = { editName = true }, trailing = { CupertinoValue(s.me.name); CupertinoDisclosure() })
                         CupertinoListRow("Track", subtitle = viewModel.roleLabel(s.myRole), leadingIcon = Icons.Filled.Timeline, iconColor = IosColors.Indigo)
                         CupertinoListRow("Email", subtitle = state.email, leadingIcon = Icons.Filled.Mail, iconColor = IosColors.Gray)
-                        var tz by remember(s.me.timezone) { mutableStateOf(s.me.timezone) }
-                        Column(modifier = Modifier.padding(horizontal = Spacing.md, vertical = Spacing.sm)) {
-                            Text("Timezone", style = MaterialTheme.typography.bodyLarge)
-                            TimezonePicker(selected = tz, onSelect = { z -> tz = z; viewModel.saveProfile { p -> p.copy(timezone = z) } })
-                        }
+                        CupertinoListRow(
+                            "Timezone", leadingIcon = Icons.Filled.Public, iconColor = IosColors.Teal, showDivider = false,
+                            onClick = { editTimezone = true },
+                            trailing = { CupertinoValue(s.me.timezone); CupertinoDisclosure() },
+                        )
                     }
 
                     CupertinoListSection(
@@ -111,6 +115,17 @@ fun SettingsScreen(
                             leadingIcon = Icons.Filled.CalendarMonth, iconColor = IosColors.Orange,
                             subtitle = "$study study slots, $cls class slots, ${state.availability.weeklyStudyMinutes / 60}h ${state.availability.weeklyStudyMinutes % 60}m per week",
                             onClick = onOpenAvailability, trailing = { CupertinoDisclosure() }, showDivider = false,
+                        )
+                    }
+
+                    CupertinoListSection(
+                        header = "Privacy",
+                        footer = if (state.biometricAvailable) "Asks for your fingerprint, face or device PIN when the app opens and after it has been in the background for 30 seconds."
+                        else "Set up a fingerprint, face unlock or screen lock on this phone to use this.",
+                    ) {
+                        CupertinoListRow(
+                            "Unlock with biometrics", leadingIcon = Icons.Filled.Fingerprint, iconColor = IosColors.Green, showDivider = false,
+                            trailing = { CupertinoSwitch(checked = state.biometricEnabled, onCheckedChange = viewModel::setBiometricLock, enabled = state.biometricAvailable) },
                         )
                     }
 
@@ -144,6 +159,9 @@ fun SettingsScreen(
             title = { Text("Your name") },
             text = { CupertinoTextField(value = name, onValueChange = { name = it }, placeholder = "Name", modifier = Modifier.fillMaxWidth()) },
         )
+    }
+    if (editTimezone && s != null) {
+        TimezoneDialog(selected = s.me.timezone, onSelect = { z -> viewModel.saveProfile { p -> p.copy(timezone = z) } }, onDismiss = { editTimezone = false })
     }
     if (confirmReset) {
         AlertDialog(

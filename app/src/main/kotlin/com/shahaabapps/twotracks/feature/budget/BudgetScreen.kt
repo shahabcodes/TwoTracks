@@ -89,7 +89,7 @@ fun BudgetScreen(onBack: () -> Unit, viewModel: BudgetViewModel = hiltViewModel(
         title = "Budget", onBack = onBack,
         actions = { IconButton(onClick = { editing = BudgetItem(owner = viewModel.myRole(), order = 999) }) { Icon(Icons.Filled.Add, "Add", tint = AppTheme.colors.accent) } },
     ) {
-        LazyColumn(verticalArrangement = Arrangement.spacedBy(Spacing.lg), contentPadding = PaddingValues(bottom = Spacing.xl)) {
+        LazyColumn(verticalArrangement = Arrangement.spacedBy(Spacing.md), contentPadding = PaddingValues(bottom = Spacing.xl)) {
             item {
                 Row(horizontalArrangement = Arrangement.spacedBy(Spacing.sm), modifier = Modifier.padding(horizontal = Spacing.listHorizontal)) {
                     state.totalsByCurrency.take(3).forEach { (c, planned, spent) ->

@@ -108,8 +108,12 @@ fun WeekScreen(
                                     style = MaterialTheme.typography.bodySmall, color = AppTheme.colors.warn, modifier = Modifier.padding(top = Spacing.xs),
                                 )
                             }
-                            Row(horizontalArrangement = Arrangement.spacedBy(Spacing.sm), modifier = Modifier.padding(top = Spacing.sm)) {
-                                Chip(text = "Re-plan week", onClick = viewModel::replan)
+                            if (state.isMe) {
+                                Row(horizontalArrangement = Arrangement.spacedBy(Spacing.sm), modifier = Modifier.padding(top = Spacing.sm)) {
+                                    Chip(text = "Re-plan week", onClick = viewModel::replan)
+                                }
+                            } else {
+                                Text("View only. Only your partner can change their week.", style = MaterialTheme.typography.bodySmall, color = AppTheme.colors.secondaryLabel, modifier = Modifier.padding(top = Spacing.sm))
                             }
                         }
                     }
@@ -117,6 +121,7 @@ fun WeekScreen(
                 items(state.days, key = { it.date.toString() }) { day ->
                     DayCard(
                         day = day,
+                        editable = state.isMe,
                         onOpenGoal = onOpenGoal,
                         onAssign = { row -> assignRow = day to row },
                         onAddBlock = { addBlockFor = day },
@@ -156,7 +161,7 @@ fun WeekScreen(
 }
 
 @Composable
-private fun DayCard(day: DayPlan, onOpenGoal: (String) -> Unit, onAssign: (BlockRow) -> Unit, onAddBlock: () -> Unit) {
+private fun DayCard(day: DayPlan, editable: Boolean, onOpenGoal: (String) -> Unit, onAssign: (BlockRow) -> Unit, onAddBlock: () -> Unit) {
     CupertinoCard(modifier = Modifier.padding(horizontal = Spacing.listHorizontal)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(
@@ -166,7 +171,7 @@ private fun DayCard(day: DayPlan, onOpenGoal: (String) -> Unit, onAssign: (Block
                 fontWeight = if (day.isToday) FontWeight.Bold else FontWeight.SemiBold,
                 modifier = Modifier.weight(1f),
             )
-            Chip(text = "+ block", onClick = onAddBlock)
+            if (editable) Chip(text = "+ block", onClick = onAddBlock)
         }
         if (day.blocks.isEmpty()) {
             Text("Free day", style = MaterialTheme.typography.bodySmall, color = AppTheme.colors.secondaryLabel, modifier = Modifier.padding(top = Spacing.xs))
@@ -189,7 +194,7 @@ private fun DayCard(day: DayPlan, onOpenGoal: (String) -> Unit, onAssign: (Block
                     .clip(RoundedCornerShape(8.dp))
                     .background(color.copy(alpha = 0.10f))
                     .then(
-                        if (row.block.kind == BlockKind.STUDY) Modifier.clickable { onAssign(row) }
+                        if (row.block.kind == BlockKind.STUDY && editable) Modifier.clickable { onAssign(row) }
                         else if (row.goal != null) Modifier.clickable { onOpenGoal(row.goal.id) } else Modifier,
                     )
                     .padding(horizontal = Spacing.sm, vertical = 8.dp),

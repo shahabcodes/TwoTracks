@@ -15,6 +15,7 @@ import com.shahaabapps.core.model.StudyGoal
 import com.shahaabapps.core.seed.Seed
 import com.shahaabapps.twotracks.reminders.ReminderScheduler
 import com.shahaabapps.twotracks.reminders.SessionPlanning
+import com.shahaabapps.twotracks.session.AppLock
 import com.shahaabapps.twotracks.session.AppSession
 import com.shahaabapps.twotracks.session.Clock
 import com.shahaabapps.twotracks.session.CoupleDataStore
@@ -35,6 +36,8 @@ data class SettingsUiState(
     val myGoals: List<StudyGoal> = emptyList(),
     val seedOutdated: Boolean = false,
     val message: String? = null,
+    val biometricAvailable: Boolean = false,
+    val biometricEnabled: Boolean = false,
 )
 
 @HiltViewModel
@@ -46,19 +49,29 @@ class SettingsViewModel @Inject constructor(
     private val studyRepository: StudyRepository,
     private val sessionPlanning: SessionPlanning,
     private val reminderScheduler: ReminderScheduler,
+    private val appLock: AppLock,
 ) : ViewModel() {
 
     private val message = MutableStateFlow<String?>(null)
 
-    val uiState: StateFlow<SettingsUiState> = combine(sessionStore.session, dataStore.availability, dataStore.goals, message) { s, availability, goals, msg ->
+    val uiState: StateFlow<SettingsUiState> = combine(
+        sessionStore.session, dataStore.availability, dataStore.goals, message, appLock.enabled,
+    ) { s, availability, goals, msg, lockEnabled ->
         SettingsUiState(
             session = s, email = authRepository.currentEmailOrNull().orEmpty(),
             availability = s?.let { availability.forRole(it.myRole) } ?: Availability(),
             myGoals = goals.filter { it.owner == s?.myRole },
             seedOutdated = (s?.couple?.seededVersion ?: 0) < Seed.VERSION,
             message = msg,
+            biometricAvailable = appLock.isAvailable(),
+            biometricEnabled = lockEnabled,
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), SettingsUiState())
+
+    fun setBiometricLock(enabled: Boolean) {
+        appLock.setEnabled(enabled)
+        message.value = if (enabled) "The app will ask to unlock when you open it" else "Biometric lock off"
+    }
 
     fun saveProfile(update: (Profile) -> Profile) = viewModelScope.launch {
         val s = sessionStore.current() ?: return@launch

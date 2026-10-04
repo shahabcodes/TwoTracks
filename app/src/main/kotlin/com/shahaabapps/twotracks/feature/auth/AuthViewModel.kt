@@ -46,7 +46,8 @@ class AuthViewModel @Inject constructor(
                 authRepository.signInWithEmail(current.email, current.password)
             }
             when (result) {
-                is AppResult.Success -> _uiState.update { it.copy(isSubmitting = false) }
+                // Clear the form so the next person to sign in (after a sign-out) starts fresh.
+                is AppResult.Success -> _uiState.value = AuthUiState()
                 is AppResult.Failure -> _uiState.update {
                     it.copy(isSubmitting = false, errorMessage = result.error.message ?: "Authentication failed")
                 }

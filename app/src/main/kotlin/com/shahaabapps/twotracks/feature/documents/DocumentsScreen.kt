@@ -94,7 +94,7 @@ fun DocumentsScreen(onBack: () -> Unit, viewModel: DocumentsViewModel = hiltView
     var editing by remember { mutableStateOf<DocumentItem?>(null) }
 
     DetailScaffold(title = "Documents", onBack = onBack) {
-        LazyColumn(verticalArrangement = Arrangement.spacedBy(Spacing.lg), contentPadding = PaddingValues(bottom = Spacing.xl)) {
+        LazyColumn(verticalArrangement = Arrangement.spacedBy(Spacing.md), contentPadding = PaddingValues(bottom = Spacing.xl)) {
             item {
                 Column(modifier = Modifier.padding(horizontal = Spacing.listHorizontal), verticalArrangement = Arrangement.spacedBy(Spacing.sm)) {
                     SegmentedChoice(options = PersonRole.entries, selected = state.role, label = { state.names[it] ?: it.name }, onSelect = viewModel::setRole)

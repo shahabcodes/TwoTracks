@@ -5,6 +5,21 @@ build number is appended by CI (for example `0.1.0 (build 12)`).
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-10-04
+
+### Added
+- Partner page: tap your partner's card on Today or US to see everything about them read-only: today's plan, their level line, pace sentence, open goals with bars, counts, and their whole ladder. Their level, goal and week pages open in view mode.
+- Biometric lock (Settings, Privacy): unlock with fingerprint, face or device PIN on open and after 30 seconds in the background.
+
+### Changed
+- The Us tab is now "US".
+- Consistent spacing: 16dp screen inset everywhere, 16dp between sections, section headers inset a further 4dp.
+- Timezone is a proper settings row.
+- Optional goals on a level stay visible but no longer take study slots from required ones.
+
+### Fixed
+- Sign-in and onboarding forms kept the previous person's values after a sign-out.
+
 ## [0.4.0] - 2026-10-04
 
 ### Added

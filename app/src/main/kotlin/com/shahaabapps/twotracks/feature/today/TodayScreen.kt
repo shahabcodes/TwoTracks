@@ -62,6 +62,7 @@ import com.shahaabapps.twotracks.ui.components.ProgressBar
 @Composable
 fun TodayScreen(
     onOpenLevel: (String) -> Unit,
+    onOpenPartner: () -> Unit,
     onOpenGoal: (String) -> Unit,
     onOpenWeek: () -> Unit,
     viewModel: TodayViewModel = hiltViewModel(),
@@ -85,7 +86,7 @@ fun TodayScreen(
                                 .clip(Shapes.card)
                                 .background(Color.White.copy(alpha = 0.18f))
                                 .clickable { onOpenLevel(lvl.level.id) }
-                                .padding(horizontal = 14.dp, vertical = 12.dp),
+                                .padding(horizontal = Spacing.md, vertical = 12.dp),
                         ) {
                             Column(modifier = Modifier.weight(1f)) {
                                 Text("Level ${lvl.level.number} · ${lvl.level.name}", style = MaterialTheme.typography.titleMedium, color = Color.White)
@@ -147,7 +148,7 @@ fun TodayScreen(
                             .clip(Shapes.card)
                             .background(animateColorAsState(if (good) AppTheme.colors.allowedBackground else AppTheme.colors.warn.copy(alpha = 0.12f), label = "statusBg").value)
                             .clickable(onClick = onOpenWeek)
-                            .padding(horizontal = 14.dp, vertical = 12.dp),
+                            .padding(horizontal = Spacing.md, vertical = 12.dp),
                     ) {
                         Text(sentence, style = MaterialTheme.typography.bodyMedium, color = if (good) AppTheme.colors.success else AppTheme.colors.warn, modifier = Modifier.weight(1f))
                         CupertinoDisclosure()
@@ -158,14 +159,14 @@ fun TodayScreen(
             // Partner card
             state.partner?.let { p ->
                 item {
-                    CupertinoCard(modifier = Modifier.padding(horizontal = Spacing.listHorizontal)) {
+                    CupertinoCard(modifier = Modifier.padding(horizontal = Spacing.listHorizontal), onClick = if (p.profile != null) onOpenPartner else null) {
                         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.md)) {
                             Avatar(name = p.profile?.name ?: "?", photoUrl = p.profile?.photoUrl, size = 40.dp)
                             Column(modifier = Modifier.weight(1f)) {
                                 Text(p.profile?.name?.ifBlank { null } ?: "Partner", style = MaterialTheme.typography.labelMedium, color = AppTheme.colors.secondaryLabel)
                                 if (p.profile == null) {
                                     Text("Not joined yet", style = MaterialTheme.typography.titleMedium)
-                                    Text("Share the invite code from Us, then Settings", style = MaterialTheme.typography.bodySmall, color = AppTheme.colors.secondaryLabel)
+                                    Text("Share the invite code from US, then Settings", style = MaterialTheme.typography.bodySmall, color = AppTheme.colors.secondaryLabel)
                                 } else if (p.isRestDay) {
                                     Text("Rest day", style = MaterialTheme.typography.titleMedium)
                                     Text("${p.todayMinutes} min today · ${p.streak}-day streak · ${p.localTime} there", style = MaterialTheme.typography.bodySmall, color = AppTheme.colors.secondaryLabel)
@@ -179,6 +180,14 @@ fun TodayScreen(
                                 val done = p.sessions.any { it.session.status == SessionStatus.DONE }
                                 Icon(if (done) Icons.Filled.CheckCircle else Icons.Filled.RadioButtonUnchecked, contentDescription = null, tint = if (done) AppTheme.colors.success else AppTheme.colors.secondaryLabel)
                             }
+                            if (p.profile != null) CupertinoDisclosure()
+                        }
+                        state.partnerLevel?.let { lvl ->
+                            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = Spacing.sm)) {
+                                Text("Level ${lvl.level.number} · ${lvl.level.name}", style = MaterialTheme.typography.bodyMedium, modifier = Modifier.weight(1f))
+                                Text("${lvl.requiredDone} of ${lvl.requiredTotal}", style = MaterialTheme.typography.bodyMedium, color = AppTheme.colors.secondaryLabel)
+                            }
+                            ProgressBar(fraction = if (lvl.requiredTotal == 0) 0f else lvl.requiredDone.toFloat() / lvl.requiredTotal, height = 4.dp, modifier = Modifier.padding(top = 4.dp))
                         }
                     }
                 }

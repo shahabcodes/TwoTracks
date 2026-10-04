@@ -46,7 +46,7 @@ fun AuthScreen(
             .fillMaxSize()
             .systemBarsPadding()
             .verticalScroll(rememberScrollState())
-            .padding(horizontal = Spacing.lg),
+            .padding(horizontal = Spacing.listHorizontal),
         verticalArrangement = Arrangement.spacedBy(Spacing.md, Alignment.CenterVertically),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {

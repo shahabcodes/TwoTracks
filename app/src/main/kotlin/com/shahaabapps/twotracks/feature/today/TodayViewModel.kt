@@ -55,6 +55,7 @@ data class TodayUiState(
     val loading: Boolean = true,
     val today: LocalDate = LocalDate.now(),
     val level: LevelProgress? = null,
+    val partnerLevel: LevelProgress? = null,
     val me: PersonCard? = null,
     val partner: PersonCard? = null,
     val status: Pair<String, Boolean> = "" to true,
@@ -116,7 +117,7 @@ class TodayViewModel @Inject constructor(
             .filter { !it.second.isBefore(plan.me.today) }
             .minByOrNull { it.second }
         TodayUiState(
-            loading = false, today = plan.me.today, level = plan.me.current, me = card(plan.me), partner = card(plan.partner),
+            loading = false, today = plan.me.today, level = plan.me.current, partnerLevel = plan.partner.current, me = card(plan.me), partner = card(plan.partner),
             status = plan.me.statusSentence, goals = plan.me.goals, activeGoals = plan.me.activeGoals,
             nextDeadline = next?.first, daysToDeadline = next?.let { ChronoUnit.DAYS.between(plan.me.today, it.second) }, message = msg,
         )

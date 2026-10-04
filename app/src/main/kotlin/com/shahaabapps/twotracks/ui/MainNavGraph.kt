@@ -49,6 +49,7 @@ import com.shahaabapps.twotracks.feature.countries.CountryDetailScreen
 import com.shahaabapps.twotracks.feature.documents.DocumentsScreen
 import com.shahaabapps.twotracks.feature.levels.LevelScreen
 import com.shahaabapps.twotracks.feature.levels.LevelsScreen
+import com.shahaabapps.twotracks.feature.partner.PartnerScreen
 import com.shahaabapps.twotracks.feature.settings.AvailabilityScreen
 import com.shahaabapps.twotracks.feature.settings.SettingsScreen
 import com.shahaabapps.twotracks.feature.study.GoalDetailScreen
@@ -66,6 +67,7 @@ object Routes {
     const val LEVELS = "levels"
     const val LEVEL = "level/{levelId}"
     const val YOUR_WEEK = "yourweek"
+    const val PARTNER = "partner"
     const val WEEK = "week"
     const val GOAL_DETAIL = "goal/{goalId}"
     const val GOAL_EDIT = "goal/{goalId}/edit"
@@ -88,7 +90,7 @@ private data class Tab(val route: String, val label: String, val icon: ImageVect
 
 private val tabs = listOf(
     Tab(Routes.TODAY, "Today", Icons.Filled.Today),
-    Tab(Routes.US, "Us", Icons.Filled.Favorite),
+    Tab(Routes.US, "US", Icons.Filled.Favorite),
     Tab(Routes.LEVELS, "Levels", Icons.Filled.Flag),
 )
 
@@ -162,11 +164,21 @@ fun MainNavGraph(session: AppSession) {
             composable(Routes.TODAY) {
                 TodayScreen(
                     onOpenLevel = { navController.navigate(Routes.level(it)) },
+                    onOpenPartner = { navController.navigate(Routes.PARTNER) },
                     onOpenGoal = { navController.navigate(Routes.goalDetail(it)) },
                     onOpenWeek = { navController.navigate(Routes.YOUR_WEEK) },
                 )
             }
-            composable(Routes.US) { UsScreen(onNavigate = { navController.navigate(it) }) }
+            composable(Routes.US) {
+                UsScreen(onNavigate = { navController.navigate(it) }, onOpenLevel = { navController.navigate(Routes.level(it)) })
+            }
+            composable(Routes.PARTNER) {
+                PartnerScreen(
+                    onBack = { navController.popBackStack() },
+                    onOpenLevel = { navController.navigate(Routes.level(it)) },
+                    onOpenGoal = { navController.navigate(Routes.goalDetail(it)) },
+                )
+            }
             composable(Routes.LEVELS) {
                 LevelsScreen(onOpenLevel = { navController.navigate(Routes.level(it)) }, onNavigate = { navController.navigate(it) })
             }

@@ -62,7 +62,8 @@ class OnboardingViewModel @Inject constructor(
                 coupleRepository.joinCouple(uid, s.inviteCode, profile)
             }
             when (result) {
-                is AppResult.Success -> _uiState.update { it.copy(isSubmitting = false) }
+                // Reset so a later sign-in on this device starts from a clean form.
+                is AppResult.Success -> _uiState.value = OnboardingUiState()
                 is AppResult.Failure -> _uiState.update {
                     it.copy(isSubmitting = false, errorMessage = result.error.message ?: "Something went wrong")
                 }

@@ -55,7 +55,7 @@ fun AvailabilityScreen(onBack: () -> Unit, viewModel: SettingsViewModel = hiltVi
     val current = blocks ?: return
 
     DetailScaffold(title = "Weekly template", onBack = onBack) {
-        Column(modifier = Modifier.verticalScroll(rememberScrollState()).padding(bottom = Spacing.xl), verticalArrangement = Arrangement.spacedBy(Spacing.lg)) {
+        Column(modifier = Modifier.verticalScroll(rememberScrollState()).padding(bottom = Spacing.xl), verticalArrangement = Arrangement.spacedBy(Spacing.md)) {
             Text(
                 "Work blocks are unavailable. Study blocks get filled by the planner. Class blocks log time to a fixed goal. Times are in your timezone.",
                 style = MaterialTheme.typography.bodySmall, color = AppTheme.colors.secondaryLabel, modifier = Modifier.padding(horizontal = Spacing.listHorizontal),

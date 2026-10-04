@@ -26,6 +26,9 @@ firebaseBom = "33.8.0"
 # Media / imaging
 coil = "2.7.0"
 
+# Biometric unlock
+biometric = "1.1.0"
+
 # Coroutines
 coroutines = "1.9.0"
 
@@ -72,6 +75,9 @@ hilt-navigation-compose = { group = "androidx.hilt", name = "hilt-navigation-com
 firebase-bom = { group = "com.google.firebase", name = "firebase-bom", version.ref = "firebaseBom" }
 firebase-auth = { group = "com.google.firebase", name = "firebase-auth" }
 firebase-firestore = { group = "com.google.firebase", name = "firebase-firestore" }
+
+# --- Biometric ---
+androidx-biometric = { group = "androidx.biometric", name = "biometric", version.ref = "biometric" }
 
 # --- Imaging ---
 coil-compose = { group = "io.coil-kt", name = "coil-compose", version.ref = "coil" }

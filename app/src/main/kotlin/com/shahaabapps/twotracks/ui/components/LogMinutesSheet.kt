@@ -91,7 +91,7 @@ fun LogMinutesSheet(
             modifier = Modifier
                 .fillMaxWidth()
                 .verticalScroll(rememberScrollState())
-                .padding(horizontal = Spacing.lg)
+                .padding(horizontal = Spacing.listHorizontal)
                 .padding(bottom = Spacing.xl)
                 .navigationBarsPadding(),
             verticalArrangement = Arrangement.spacedBy(Spacing.md),

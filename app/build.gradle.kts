@@ -29,6 +29,7 @@ dependencies {
     implementation(libs.hilt.navigation.compose)
     implementation(libs.androidx.datastore.preferences)
     implementation(libs.coil.compose)
+    implementation(libs.androidx.biometric)
 
     testImplementation(libs.junit)
     testImplementation(libs.kotlinx.coroutines.test)
