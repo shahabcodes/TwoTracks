@@ -9,6 +9,7 @@ import com.shahaabapps.core.model.Deadline
 import com.shahaabapps.core.model.DocumentItem
 import com.shahaabapps.core.model.Habit
 import com.shahaabapps.core.model.HabitLog
+import com.shahaabapps.core.model.Level
 import com.shahaabapps.core.model.Milestone
 import com.shahaabapps.core.model.MockScore
 import com.shahaabapps.core.model.StudyGoal
@@ -47,6 +48,7 @@ class CoupleDataStore @Inject constructor(
             .stateIn(scope, SharingStarted.WhileSubscribed(10_000), emptyList())
 
     val goals: StateFlow<List<StudyGoal>> = shared { studyRepository.observeGoals(it) }
+    val levels: StateFlow<List<Level>> = shared { studyRepository.observeLevels(it) }
     val availability: StateFlow<List<Availability>> = shared { studyRepository.observeAvailability(it) }
     val logs: StateFlow<List<StudyLog>> = shared { studyRepository.observeLogs(it) }
     val mockScores: StateFlow<List<MockScore>> = shared { studyRepository.observeMockScores(it) }

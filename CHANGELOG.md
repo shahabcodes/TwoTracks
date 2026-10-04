@@ -5,6 +5,19 @@ build number is appended by CI (for example `0.1.0 (build 12)`).
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-10-04
+
+### Changed
+- The app is now organised as levels. Each person has a ladder of five levels from the guide's roadmap (Foundations, Launch applications, Widen the net, Land the offer, Checkpoint for the developer; Build the base, Take the test, Assessments, One year taught, Checkpoint for the teacher), each with a start-by and complete-by date and a checklist of goals, tasks and counts. A level completes when its required items are done; the next unlocks on its date or early on request.
+- Today shows one thing: the current level line, your card with a single Done button, your partner's card, one plain sentence about pace, and the next deadline. Depth is one tap away (level page, goal page, "Your week").
+- Three tabs instead of five: Today, Us (streaks, four weeks of dots, counts, Settings) and Levels (both ladders plus Countries, Tests, Documents and Budget).
+- Goals are scheduled automatically from the open levels; the active/inactive switches are gone. "Mark as passed" records an exam pass or level reached.
+- Goal page leads with a sentence and bars; history, mock scores and pace numbers sit behind Details.
+- Onboarding is three steps: name, Developer or Teacher, done. Names replace role labels throughout.
+
+### Removed
+- The study timer (log minutes instead), the Study, Progress, More and Roadmap screens, and the Week tab (now reachable from "Your week").
+
 ## [0.2.0] - 2026-10-04
 
 ### Changed

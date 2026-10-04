@@ -42,7 +42,7 @@ import com.shahaabapps.core.model.BlockKind
 import com.shahaabapps.core.model.SessionStatus
 import com.shahaabapps.core.planner.Dates
 import com.shahaabapps.core.ui.components.CupertinoCard
-import com.shahaabapps.core.ui.components.CupertinoScaffold
+import com.shahaabapps.twotracks.ui.components.DetailScaffold
 import com.shahaabapps.core.ui.theme.AppTheme
 import com.shahaabapps.core.ui.theme.Spacing
 import com.shahaabapps.twotracks.session.Clock
@@ -52,6 +52,7 @@ import com.shahaabapps.twotracks.ui.components.SegmentedChoice
 
 @Composable
 fun WeekScreen(
+    onBack: () -> Unit,
     onOpenGoal: (String) -> Unit,
     viewModel: WeekViewModel = hiltViewModel(),
 ) {
@@ -62,7 +63,7 @@ fun WeekScreen(
 
     LaunchedEffect(state.message) { state.message?.let { snackbar.showSnackbar(it); viewModel.clearMessage() } }
 
-    CupertinoScaffold(title = "Week") {
+    DetailScaffold(title = "This week's plan", onBack = onBack) {
         Box {
             LazyColumn(verticalArrangement = Arrangement.spacedBy(Spacing.md), contentPadding = PaddingValues(bottom = Spacing.xl)) {
                 item {

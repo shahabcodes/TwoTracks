@@ -5,6 +5,7 @@ import com.shahaabapps.core.common.AppResult
 import com.shahaabapps.core.common.runCatchingResult
 import com.shahaabapps.core.data.firestore.Mappers.toAvailability
 import com.shahaabapps.core.data.firestore.Mappers.toGoal
+import com.shahaabapps.core.data.firestore.Mappers.toLevel
 import com.shahaabapps.core.data.firestore.Mappers.toMap
 import com.shahaabapps.core.data.firestore.Mappers.toMockScore
 import com.shahaabapps.core.data.firestore.Mappers.toSession
@@ -13,6 +14,7 @@ import com.shahaabapps.core.data.firestore.Paths
 import com.shahaabapps.core.data.firestore.asFlow
 import com.shahaabapps.core.data.firestore.sub
 import com.shahaabapps.core.model.Availability
+import com.shahaabapps.core.model.Level
 import com.shahaabapps.core.model.MockScore
 import com.shahaabapps.core.model.PersonRole
 import com.shahaabapps.core.model.PlannedSession
@@ -28,6 +30,9 @@ interface StudyRepository {
     fun observeGoals(coupleId: String): Flow<List<StudyGoal>>
     suspend fun saveGoal(coupleId: String, goal: StudyGoal): AppResult<Unit>
     suspend fun deleteGoal(coupleId: String, goalId: String): AppResult<Unit>
+
+    fun observeLevels(coupleId: String): Flow<List<Level>>
+    suspend fun saveLevel(coupleId: String, level: Level): AppResult<Unit>
 
     fun observeAvailability(coupleId: String): Flow<List<Availability>>
     suspend fun saveAvailability(coupleId: String, availability: Availability): AppResult<Unit>
@@ -63,6 +68,14 @@ class FirebaseStudyRepository @Inject constructor(
 
     override suspend fun deleteGoal(coupleId: String, goalId: String): AppResult<Unit> = runCatchingResult {
         firestore.sub(coupleId, Paths.GOALS).document(goalId).delete().await()
+        Unit
+    }
+
+    override fun observeLevels(coupleId: String): Flow<List<Level>> =
+        firestore.sub(coupleId, Paths.LEVELS).asFlow { it.toLevel() }
+
+    override suspend fun saveLevel(coupleId: String, level: Level): AppResult<Unit> = runCatchingResult {
+        firestore.sub(coupleId, Paths.LEVELS).document(level.id).set(level.toMap()).await()
         Unit
     }
 

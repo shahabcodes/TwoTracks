@@ -48,6 +48,9 @@ data class StudyGoal(
     /** Optional group label, e.g. "German" to show A1/A2/B1 as one ladder. */
     val ladder: String? = null,
     val ladderStep: Int = 0,
+    /** Set when the user marks the goal achieved (exam passed, level reached). */
+    val passed: Boolean = false,
+    val passedAtIso: String? = null,
 ) {
     val totalHoursRequired: Double get() = components.sumOf { it.hoursRequired }
 }

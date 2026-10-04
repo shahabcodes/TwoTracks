@@ -28,7 +28,6 @@ import com.shahaabapps.core.ui.components.CupertinoTextField
 import com.shahaabapps.core.ui.theme.AppTheme
 import com.shahaabapps.core.ui.theme.Spacing
 import com.shahaabapps.twotracks.ui.components.SegmentedChoice
-import com.shahaabapps.twotracks.ui.components.TimezonePicker
 
 @Composable
 fun OnboardingScreen(
@@ -85,15 +84,17 @@ fun OnboardingScreen(
                         }
                         CupertinoTextField(value = state.name, onValueChange = viewModel::onNameChange, placeholder = "Your first name")
 
-                        Text("WHICH TRACK ARE YOU?", style = MaterialTheme.typography.bodySmall, color = AppTheme.colors.secondaryLabel)
+                        Text("I AM THE", style = MaterialTheme.typography.labelMedium, color = AppTheme.colors.secondaryLabel)
                         SegmentedChoice(
                             options = PersonRole.entries,
                             selected = state.role,
-                            label = { if (it == PersonRole.TECH) "Tech (Europe lead)" else "Teacher (CA / NZ lead)" },
+                            label = { if (it == PersonRole.TECH) "Developer" else "Teacher" },
                             onSelect = viewModel::onRoleChange,
                         )
-                        Text("YOUR TIMEZONE", style = MaterialTheme.typography.bodySmall, color = AppTheme.colors.secondaryLabel)
-                        TimezonePicker(selected = state.timezone, onSelect = viewModel::onTimezoneChange)
+                        Text(
+                            "Timezone ${state.timezone}. Change it later in Settings if needed.",
+                            style = MaterialTheme.typography.bodySmall, color = AppTheme.colors.secondaryLabel,
+                        )
 
                         state.errorMessage?.let { Text(it, color = AppTheme.colors.destructive, style = MaterialTheme.typography.bodySmall) }
 

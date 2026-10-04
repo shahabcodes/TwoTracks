@@ -37,5 +37,6 @@ object Clock {
     fun formatLong(date: LocalDate): String = date.format(longDate)
     fun formatDate(date: LocalDate): String = date.format(monthYear)
     fun formatDate(iso: String?): String = Dates.parseOrNull(iso)?.format(monthYear) ?: "-"
+    fun formatDateIso(date: LocalDate): String = Dates.format(date)
     fun formatTime(zdt: ZonedDateTime): String = zdt.format(time)
 }

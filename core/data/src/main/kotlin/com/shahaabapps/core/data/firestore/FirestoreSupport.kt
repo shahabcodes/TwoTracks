@@ -23,6 +23,7 @@ object Paths {
     const val HABITS = "habits"
     const val HABIT_LOGS = "habitLogs"
     const val MILESTONES = "milestones"
+    const val LEVELS = "levels"
     const val COUNTRIES = "countries"
     const val TESTS = "tests"
     const val DOCUMENTS = "documents"

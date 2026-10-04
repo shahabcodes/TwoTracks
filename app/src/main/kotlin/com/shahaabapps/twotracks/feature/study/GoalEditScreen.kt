@@ -26,7 +26,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.shahaabapps.core.model.GoalKind
 import com.shahaabapps.core.ui.components.CupertinoPrimaryButton
-import com.shahaabapps.core.ui.components.CupertinoSwitch
 import com.shahaabapps.core.ui.components.CupertinoTextButton
 import com.shahaabapps.core.ui.components.CupertinoTextField
 import com.shahaabapps.core.ui.theme.AppTheme
@@ -74,10 +73,6 @@ fun GoalEditScreen(
             }
             Text("Lower priority number is scheduled first.", style = MaterialTheme.typography.bodySmall, color = AppTheme.colors.secondaryLabel)
 
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text("Active (planner schedules it)", modifier = Modifier.weight(1f))
-                CupertinoSwitch(checked = s.active, onCheckedChange = viewModel::onActive)
-            }
 
             SectionLabel("Skills and hour budgets", modifier = Modifier.padding(horizontal = 0.dp))
             FlowRow(horizontalArrangement = Arrangement.spacedBy(Spacing.xs), verticalArrangement = Arrangement.spacedBy(Spacing.xs)) {

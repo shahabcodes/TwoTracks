@@ -2,6 +2,8 @@ package com.shahaabapps.twotracks.ui
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.shahaabapps.core.data.couple.CoupleRepository
+import com.shahaabapps.core.seed.Seed
 import com.shahaabapps.twotracks.reminders.ReminderScheduler
 import com.shahaabapps.twotracks.session.SessionState
 import com.shahaabapps.twotracks.session.SessionStore
@@ -16,14 +18,23 @@ import javax.inject.Inject
 class AppViewModel @Inject constructor(
     sessionStore: SessionStore,
     private val reminderScheduler: ReminderScheduler,
+    private val coupleRepository: CoupleRepository,
 ) : ViewModel() {
 
     val state: StateFlow<SessionState> = sessionStore.state
+    private var upgrading = false
 
     init {
-        // Keep the next-session alarm in sync whenever the session becomes ready.
         state.filterIsInstance<SessionState.Ready>()
-            .onEach { reminderScheduler.refresh() }
+            .onEach { ready ->
+                // Bring older spaces up to the current guide content (levels etc.); progress is preserved.
+                if (ready.session.couple.seededVersion < Seed.VERSION && !upgrading) {
+                    upgrading = true
+                    coupleRepository.resetSeedContent(ready.session.coupleId)
+                }
+                // Keep the next-session alarm in sync whenever the session becomes ready.
+                reminderScheduler.refresh()
+            }
             .launchIn(viewModelScope)
     }
 }

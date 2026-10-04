@@ -10,24 +10,24 @@ See [PLAN.md](PLAN.md) for the full product plan and the capacity analysis.
 
 ## What it does
 
-- **Today**: your planned sessions for the day with one-tap timer or minute logging,
-  count-based habits (applications per week, teaching days), your partner's day
-  in their timezone, the next deadline.
-- **Week**: your weekly template (work / class / study blocks) filled by the
-  planner; capacity needed versus available; re-plan, pin a slot to a goal, add
-  weekend blocks.
-- **Study**: goals per person with hours logged versus required, pace needed per
-  week, recent pace, forecast finish date and an on-track / tight / behind flag.
-  Goal detail shows per-skill bars, a 14-day history, mock scores and entries.
-  Switch a goal on to have the planner schedule it; certifications are seeded
-  switched off in tiers.
-- **Progress**: hours per week for the last eight weeks, streaks, all goals, counts
-  and countdowns.
-- **More**: roadmap by quarter, the six country tracks with checkable to-dos,
-  official test results against targets, document checklist, budget, settings.
-- **Reminders**: an exact alarm at the start of each planned study slot, 15
-  minutes before a class, and a post-class prompt to split the class time across
-  skills.
+- **Levels**: each person has a ladder of five levels taken from the guide's
+  roadmap, each with a start-by and complete-by date and a checklist of study
+  goals, tasks and counts. A level is done when its required items are done;
+  the next unlocks on its date or early on request. The planner schedules only
+  goals from open levels.
+- **Today**: the current level line, your card for today's study with one Done
+  button, your partner's card in their timezone, one plain sentence about pace,
+  and the next deadline. Tap anything to drill down.
+- **Us**: both streaks, four weeks of activity dots, counts (applications per
+  week, teaching days), and Settings.
+- **Levels tab**: both ladders, and under them the guide's reference material
+  (Countries, Tests and scores, Documents, Budget).
+- **Goal page**: a sentence, hours bar, per-skill bars, Log time and Mark as
+  passed; history, mock scores and pace numbers behind Details.
+- **Your week**: the time you have against what the open goals need, with the
+  three levers (weekend slot, move a date, see the week's plan).
+- **Reminders**: at the start of each planned study slot, before class, and
+  after class to log the class time.
 
 ## Module layout
 

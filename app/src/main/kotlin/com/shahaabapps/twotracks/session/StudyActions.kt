@@ -2,18 +2,19 @@ package com.shahaabapps.twotracks.session
 
 import com.shahaabapps.core.common.AppResult
 import com.shahaabapps.core.data.study.StudyRepository
+import com.shahaabapps.core.model.Level
 import com.shahaabapps.core.model.SessionStatus
 import com.shahaabapps.core.model.StudyLog
 import com.shahaabapps.twotracks.reminders.ReminderScheduler
+import kotlinx.coroutines.flow.first
 import javax.inject.Inject
 import javax.inject.Singleton
 
-/** Write-side helpers shared by Today, Week and Study screens. */
+/** Write-side helpers shared by Today, Level and Goal screens. */
 @Singleton
 class StudyActions @Inject constructor(
     private val sessionStore: SessionStore,
     private val studyRepository: StudyRepository,
-    private val timer: StudyTimer,
     private val reminderScheduler: ReminderScheduler,
 ) {
     /**
@@ -59,16 +60,39 @@ class StudyActions @Inject constructor(
         return (studyRepository.deleteLog(s.coupleId, logId) as? AppResult.Failure)?.error?.message
     }
 
-    fun startTimer(goalId: String, componentId: String, sessionId: String?) = timer.start(goalId, componentId, sessionId)
-
-    /** Stops the timer and logs the elapsed time (minimum 1 minute) on today's date. */
-    suspend fun stopTimerAndLog(todayIso: String): String? {
-        val t = timer.stop() ?: return null
-        val minutes = t.elapsedMinutes().coerceAtLeast(1)
-        return logMinutes(t.goalId, t.componentId, minutes, todayIso, sessionId = t.sessionId)
+    /** Marks a goal achieved (exam passed, level reached) or reopens it. */
+    suspend fun setGoalPassed(goalId: String, passed: Boolean): String? {
+        val s = sessionStore.current() ?: return "Not signed in"
+        val goal = studyRepository.observeGoals(s.coupleId).first().firstOrNull { it.id == goalId } ?: return "Goal not found"
+        val today = Clock.todayIso(s.me)
+        val r = studyRepository.saveGoal(s.coupleId, goal.copy(passed = passed, passedAtIso = if (passed) today else null))
+        reminderScheduler.refresh()
+        return (r as? AppResult.Failure)?.error?.message
     }
 
-    fun discardTimer() {
-        timer.stop()
+    suspend fun setTaskDone(level: Level, itemId: String, done: Boolean): String? {
+        val s = sessionStore.current() ?: return "Not signed in"
+        val today = Clock.todayIso(s.me)
+        val updated = level.copy(items = level.items.map { if (it.id == itemId) it.copy(done = done, doneAtIso = if (done) today else null) else it })
+        return (studyRepository.saveLevel(s.coupleId, updated) as? AppResult.Failure)?.error?.message
     }
+
+    suspend fun startLevelEarly(level: Level): String? {
+        val s = sessionStore.current() ?: return "Not signed in"
+        val r = studyRepository.saveLevel(s.coupleId, level.copy(startedEarly = true))
+        reminderScheduler.refresh()
+        return (r as? AppResult.Failure)?.error?.message
+    }
+
+    suspend fun chooseBranch(level: Level, branch: String): String? {
+        val s = sessionStore.current() ?: return "Not signed in"
+        return (studyRepository.saveLevel(s.coupleId, level.copy(branch = branch)) as? AppResult.Failure)?.error?.message
+    }
+
+    suspend fun saveLevel(level: Level): String? {
+        val s = sessionStore.current() ?: return "Not signed in"
+        return (studyRepository.saveLevel(s.coupleId, level) as? AppResult.Failure)?.error?.message
+    }
+
+    fun todayIso(): String = Clock.todayIso(sessionStore.current()?.me)
 }

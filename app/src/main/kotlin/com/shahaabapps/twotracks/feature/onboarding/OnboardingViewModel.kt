@@ -14,7 +14,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import java.time.ZoneId
 import javax.inject.Inject
 
 enum class OnboardingMode { CHOOSE, CREATE, JOIN }
@@ -23,7 +22,7 @@ data class OnboardingUiState(
     val mode: OnboardingMode = OnboardingMode.CHOOSE,
     val name: String = "",
     val role: PersonRole = PersonRole.TECH,
-    val timezone: String = ZoneId.systemDefault().id,
+    val timezone: String = SeedSchedule.defaultTimezone.getValue(PersonRole.TECH),
     val inviteCode: String = "",
     val isSubmitting: Boolean = false,
     val errorMessage: String? = null,
@@ -47,8 +46,7 @@ class OnboardingViewModel @Inject constructor(
     fun onTimezoneChange(v: String) = _uiState.update { it.copy(timezone = v) }
 
     fun onRoleChange(role: PersonRole) = _uiState.update {
-        val tzIsDefault = it.timezone == ZoneId.systemDefault().id || it.timezone in SeedSchedule.defaultTimezone.values
-        it.copy(role = role, timezone = if (tzIsDefault) SeedSchedule.defaultTimezone.getValue(role) else it.timezone)
+        it.copy(role = role, timezone = SeedSchedule.defaultTimezone.getValue(role))
     }
 
     fun submit() {

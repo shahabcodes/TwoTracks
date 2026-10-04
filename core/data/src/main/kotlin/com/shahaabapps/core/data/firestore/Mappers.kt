@@ -16,6 +16,9 @@ import com.shahaabapps.core.model.GoalComponent
 import com.shahaabapps.core.model.GoalKind
 import com.shahaabapps.core.model.Habit
 import com.shahaabapps.core.model.HabitLog
+import com.shahaabapps.core.model.Level
+import com.shahaabapps.core.model.LevelItem
+import com.shahaabapps.core.model.LevelItemKind
 import com.shahaabapps.core.model.Milestone
 import com.shahaabapps.core.model.MilestoneStatus
 import com.shahaabapps.core.model.MockScore
@@ -78,6 +81,7 @@ object Mappers {
         "priority" to priority, "targetDateIso" to targetDateIso, "active" to active,
         "components" to components.map { mapOf("id" to it.id, "name" to it.name, "hoursRequired" to it.hoursRequired, "targetScore" to it.targetScore) },
         "tier" to tier?.name, "feeUsd" to feeUsd, "defaultHours" to defaultHours, "ladder" to ladder, "ladderStep" to ladderStep,
+        "passed" to passed, "passedAtIso" to passedAtIso,
     )
 
     fun DocumentSnapshot.toGoal() = StudyGoal(
@@ -87,6 +91,7 @@ object Mappers {
         components = mapList("components").map { GoalComponent(it.s("id"), it.s("name"), it.d("hoursRequired"), it.sOrNull("targetScore")) },
         tier = enumOrNull<CertTier>("tier"), feeUsd = intOrNull("feeUsd"), defaultHours = bool("defaultHours", true),
         ladder = strOrNull("ladder"), ladderStep = int("ladderStep"),
+        passed = bool("passed"), passedAtIso = strOrNull("passedAtIso"),
     )
 
     fun StudyLog.toMap() = mapOf(
@@ -113,6 +118,32 @@ object Mappers {
     fun DocumentSnapshot.toSession() = PlannedSession(
         id = id, owner = enum("owner", PersonRole.TECH), dateIso = str("dateIso"), blockId = str("blockId"), startMinutes = int("startMinutes"),
         endMinutes = int("endMinutes"), goalId = str("goalId"), componentId = str("componentId"), status = enum("status", SessionStatus.PLANNED), isClass = bool("isClass"),
+    )
+
+    // ---------------- Levels ----------------
+    fun Level.toMap() = mapOf(
+        "owner" to owner.name, "number" to number, "name" to name, "summary" to summary,
+        "startDateIso" to startDateIso, "dueDateIso" to dueDateIso, "startedEarly" to startedEarly,
+        "completedAtIso" to completedAtIso, "branch" to branch,
+        "items" to items.map {
+            mapOf(
+                "id" to it.id, "kind" to it.kind.name, "title" to it.title, "detail" to it.detail, "goalId" to it.goalId,
+                "habitId" to it.habitId, "dueDateIso" to it.dueDateIso, "required" to it.required, "done" to it.done, "doneAtIso" to it.doneAtIso,
+            )
+        },
+    )
+
+    fun DocumentSnapshot.toLevel() = Level(
+        id = id, owner = enum("owner", PersonRole.TECH), number = int("number", 1), name = str("name"), summary = str("summary"),
+        startDateIso = str("startDateIso"), dueDateIso = str("dueDateIso"), startedEarly = bool("startedEarly"),
+        completedAtIso = strOrNull("completedAtIso"), branch = strOrNull("branch"),
+        items = mapList("items").map { m ->
+            LevelItem(
+                id = m.s("id"), kind = LevelItemKind.entries.firstOrNull { it.name == m.s("kind") } ?: LevelItemKind.TASK,
+                title = m.s("title"), detail = m.s("detail"), goalId = m.sOrNull("goalId"), habitId = m.sOrNull("habitId"),
+                dueDateIso = m.sOrNull("dueDateIso"), required = (m["required"] as? Boolean) ?: true, done = m.b("done"), doneAtIso = m.sOrNull("doneAtIso"),
+            )
+        },
     )
 
     // ---------------- Tracking ----------------
