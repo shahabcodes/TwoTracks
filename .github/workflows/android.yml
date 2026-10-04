@@ -83,13 +83,13 @@ jobs:
           printf '\nBuild %s from commit %s.\n' "${{ github.run_number }}" "${{ github.sha }}" >> dist/notes.md
 
       - name: Reset "latest" release so its date reflects this build
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        if: (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main'
         env:
           GH_TOKEN: ${{ github.token }}
         run: gh release delete latest --repo "${{ github.repository }}" --yes --cleanup-tag || true
 
       - name: Publish rolling "latest" pre-release
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        if: (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main'
         uses: softprops/action-gh-release@v2
         with:
           tag_name: latest
