@@ -7,27 +7,27 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 
 /**
- * Typography scaled to iOS text styles (Large Title, Title, Headline, Body, …).
- *
- * The default [FontFamily] is used so no font files need bundling; swap in an
- * SF-style family here (e.g. "Inter" or "SF Pro") when assets are added.
+ * Typography scaled to the browser app's iOS text sizes:
+ * large title 31sp bold, title 22sp bold, headline 17sp semibold,
+ * body 17sp, subhead 15sp, footnote 13sp, caption 12sp (uppercase, spaced).
  */
 private val CupertinoFontFamily = FontFamily.Default
 
 val CupertinoTypography = Typography(
-    // iOS "Large Title"
+    // iOS "Large Title" (Browse Safe settings title: 31sp bold)
     displayLarge = TextStyle(
         fontFamily = CupertinoFontFamily,
         fontWeight = FontWeight.Bold,
-        fontSize = 34.sp,
-        lineHeight = 41.sp,
+        fontSize = 31.sp,
+        lineHeight = 38.sp,
+        letterSpacing = (-0.2).sp,
     ),
     // "Title 1"
     headlineLarge = TextStyle(
         fontFamily = CupertinoFontFamily,
         fontWeight = FontWeight.Bold,
-        fontSize = 28.sp,
-        lineHeight = 34.sp,
+        fontSize = 26.sp,
+        lineHeight = 32.sp,
     ),
     // "Title 2"
     headlineMedium = TextStyle(
@@ -35,6 +35,13 @@ val CupertinoTypography = Typography(
         fontWeight = FontWeight.Bold,
         fontSize = 22.sp,
         lineHeight = 28.sp,
+    ),
+    // Nav bar title
+    titleLarge = TextStyle(
+        fontFamily = CupertinoFontFamily,
+        fontWeight = FontWeight.Bold,
+        fontSize = 17.sp,
+        lineHeight = 22.sp,
     ),
     // "Headline"
     titleMedium = TextStyle(
@@ -64,11 +71,19 @@ val CupertinoTypography = Typography(
         fontSize = 13.sp,
         lineHeight = 18.sp,
     ),
-    // "Caption"
+    // Section header / caption: 12sp, uppercase + letter-spaced where used
     labelMedium = TextStyle(
         fontFamily = CupertinoFontFamily,
         fontWeight = FontWeight.Medium,
         fontSize = 12.sp,
         lineHeight = 16.sp,
+        letterSpacing = 0.5.sp,
+    ),
+    // Tab bar labels
+    labelSmall = TextStyle(
+        fontFamily = CupertinoFontFamily,
+        fontWeight = FontWeight.Medium,
+        fontSize = 10.sp,
+        lineHeight = 12.sp,
     ),
 )

@@ -1,5 +1,6 @@
 package com.shahaabapps.twotracks.ui.components
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -8,9 +9,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.ChevronLeft
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -18,42 +18,67 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.shahaabapps.core.ui.theme.AppTheme
 import com.shahaabapps.core.ui.theme.Spacing
 
-/** Scaffold for pushed (non-tab) screens: back arrow + large title + optional trailing actions. */
+/**
+ * Scaffold for pushed screens, modelled on the browser app's SubNavBar:
+ * an accent "‹ Back" on the left, a centred 17sp bold title, and optional
+ * trailing actions (e.g. a bold accent "Done" or "+").
+ */
 @Composable
 fun DetailScaffold(
     title: String,
     onBack: () -> Unit,
     modifier: Modifier = Modifier,
+    backLabel: String = "Back",
     actions: @Composable () -> Unit = {},
     content: @Composable (PaddingValues) -> Unit,
 ) {
     Scaffold(modifier = modifier, containerColor = AppTheme.colors.groupedBackground) { inner ->
         Column(modifier = Modifier.fillMaxSize().padding(inner)) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
+            Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(start = 4.dp, end = Spacing.sm, top = Spacing.xs),
+                    .padding(horizontal = Spacing.sm, vertical = 10.dp),
             ) {
-                IconButton(onClick = onBack) {
-                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = AppTheme.colors.accent)
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier
+                        .align(Alignment.CenterStart)
+                        .clickable(onClick = onBack)
+                        .padding(end = 8.dp),
+                ) {
+                    Icon(Icons.Filled.ChevronLeft, contentDescription = "Back", tint = AppTheme.colors.accent)
+                    Text(backLabel, color = AppTheme.colors.accent, style = MaterialTheme.typography.bodyLarge)
                 }
                 Text(
                     text = title,
-                    style = MaterialTheme.typography.headlineMedium,
+                    style = MaterialTheme.typography.titleLarge,
                     color = MaterialTheme.colorScheme.onBackground,
-                    modifier = Modifier.weight(1f),
                     maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.align(Alignment.Center).padding(horizontal = 88.dp),
                 )
-                actions()
+                Row(modifier = Modifier.align(Alignment.CenterEnd)) { actions() }
             }
             content(PaddingValues(0.dp))
         }
     }
+}
+
+/** Bold accent text action for a nav bar (e.g. "Done", "Edit"). */
+@Composable
+fun NavAction(text: String, onClick: () -> Unit) {
+    Text(
+        text = text,
+        color = AppTheme.colors.accent,
+        style = MaterialTheme.typography.titleLarge,
+        modifier = Modifier.clickable(onClick = onClick).padding(horizontal = 8.dp, vertical = 4.dp),
+    )
 }
 
 @Composable

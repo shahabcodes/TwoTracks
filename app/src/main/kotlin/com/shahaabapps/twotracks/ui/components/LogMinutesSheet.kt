@@ -24,8 +24,31 @@ import androidx.compose.ui.text.input.KeyboardType
 import com.shahaabapps.core.model.StudyGoal
 import com.shahaabapps.core.ui.components.CupertinoPrimaryButton
 import com.shahaabapps.core.ui.components.CupertinoTextField
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.dp
 import com.shahaabapps.core.ui.theme.AppTheme
+import com.shahaabapps.core.ui.theme.Shapes
 import com.shahaabapps.core.ui.theme.Spacing
+
+/** iOS sheet grabber (Browse Safe bg_sheet_handle): 36x4dp bar in 30% gray. */
+@Composable
+fun SheetGrabber() {
+    Box(modifier = Modifier.fillMaxWidth().padding(top = 10.dp, bottom = 4.dp), contentAlignment = androidx.compose.ui.Alignment.Center) {
+        Box(
+            modifier = Modifier
+                .width(36.dp)
+                .height(4.dp)
+                .clip(RoundedCornerShape(2.5.dp))
+                .background(Color(0x4D787880)),
+        )
+    }
+}
 
 /** What the sheet starts with; goal/component are pre-selected when launched from a session. */
 data class LogTarget(
@@ -58,7 +81,12 @@ fun LogMinutesSheet(
     var split by remember { mutableStateOf(target.isClass) }
     val splitMinutes = remember { mutableStateOf(goal.components.associate { it.id to 0 }) }
 
-    ModalBottomSheet(onDismissRequest = onDismiss, containerColor = AppTheme.colors.groupedBackground) {
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        containerColor = AppTheme.colors.groupedBackground,
+        shape = Shapes.sheet,
+        dragHandle = { SheetGrabber() },
+    ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()

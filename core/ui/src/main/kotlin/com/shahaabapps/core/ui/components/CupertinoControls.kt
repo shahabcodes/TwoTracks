@@ -4,9 +4,9 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentHeight
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
@@ -16,12 +16,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.shahaabapps.core.ui.theme.AppTheme
 import com.shahaabapps.core.ui.theme.Shapes
 
-/** An iOS-green toggle. */
+/** An iOS-green toggle (Browse Safe Widget.FamilySafe.Switch). */
 @Composable
 fun CupertinoSwitch(
     checked: Boolean,
@@ -36,7 +37,8 @@ fun CupertinoSwitch(
         modifier = modifier,
         colors = SwitchDefaults.colors(
             checkedThumbColor = Color.White,
-            checkedTrackColor = AppTheme.colors.success,
+            checkedTrackColor = Color(0xFF34C759),
+            checkedBorderColor = Color.Transparent,
             uncheckedThumbColor = Color.White,
             uncheckedTrackColor = Color(0xFFE9E9EA),
             uncheckedBorderColor = Color.Transparent,
@@ -44,7 +46,7 @@ fun CupertinoSwitch(
     )
 }
 
-/** A filled, full-width iOS-style primary button with a subtle brand gradient. */
+/** A filled, full-width iOS-style primary button: solid accent, 12dp radius, 50dp tall. */
 @Composable
 fun CupertinoPrimaryButton(
     text: String,
@@ -52,19 +54,12 @@ fun CupertinoPrimaryButton(
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
 ) {
-    val shape = Shapes.button
     Box(
         modifier = modifier
             .fillMaxWidth()
-            .heightIn(min = 52.dp)
-            .clip(shape)
-            .then(
-                if (enabled) {
-                    Modifier.background(com.shahaabapps.core.ui.theme.Brand.accentGradient)
-                } else {
-                    Modifier.background(AppTheme.colors.accent.copy(alpha = 0.4f))
-                },
-            )
+            .heightIn(min = 50.dp)
+            .clip(Shapes.button)
+            .background(if (enabled) AppTheme.colors.accent else AppTheme.colors.accent.copy(alpha = 0.35f))
             .clickable(enabled = enabled, onClick = onClick)
             .padding(vertical = 14.dp),
         contentAlignment = Alignment.Center,
@@ -72,12 +67,40 @@ fun CupertinoPrimaryButton(
         Text(
             text = text,
             color = Color.White,
-            style = MaterialTheme.typography.titleMedium,
+            style = MaterialTheme.typography.bodyLarge,
+            fontWeight = FontWeight.SemiBold,
         )
     }
 }
 
-/** A borderless iOS-style text button (e.g. "Cancel", "Skip"). */
+/** A tonal secondary button: translucent gray fill with accent text. */
+@Composable
+fun CupertinoSecondaryButton(
+    text: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true,
+) {
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .heightIn(min = 50.dp)
+            .clip(Shapes.button)
+            .background(AppTheme.colors.fill)
+            .clickable(enabled = enabled, onClick = onClick)
+            .padding(vertical = 14.dp),
+        contentAlignment = Alignment.Center,
+    ) {
+        Text(
+            text = text,
+            color = AppTheme.colors.accent,
+            style = MaterialTheme.typography.bodyLarge,
+            fontWeight = FontWeight.SemiBold,
+        )
+    }
+}
+
+/** A borderless iOS-style text button (e.g. "Cancel", "Sign out"). */
 @Composable
 fun CupertinoTextButton(
     text: String,

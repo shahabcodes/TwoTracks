@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -20,6 +19,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
@@ -27,10 +27,11 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.shahaabapps.core.ui.theme.AccentPalette
 import com.shahaabapps.core.ui.theme.AppTheme
+import com.shahaabapps.core.ui.theme.Shapes
 import com.shahaabapps.core.ui.theme.Spacing
 import com.shahaabapps.core.ui.theme.ThemeMode
 
-/** The appearance + accent controls, shared by both apps' settings screens. */
+/** The appearance + accent controls, in the browser app's Appearance page style. */
 @Composable
 fun ThemeSettingsSection(
     mode: ThemeMode,
@@ -42,10 +43,11 @@ fun ThemeSettingsSection(
     Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(Spacing.md)) {
         Text(
             text = "APPEARANCE",
-            style = MaterialTheme.typography.bodySmall,
+            style = MaterialTheme.typography.labelMedium,
             color = AppTheme.colors.secondaryLabel,
+            modifier = Modifier.padding(start = Spacing.sectionStart),
         )
-        SegmentedControl(
+        CupertinoSegmentedControl(
             options = ThemeMode.entries,
             selected = mode,
             label = { it.name.lowercase().replaceFirstChar { c -> c.uppercase() } },
@@ -54,9 +56,9 @@ fun ThemeSettingsSection(
 
         Text(
             text = "ACCENT",
-            style = MaterialTheme.typography.bodySmall,
+            style = MaterialTheme.typography.labelMedium,
             color = AppTheme.colors.secondaryLabel,
-            modifier = Modifier.padding(top = Spacing.sm),
+            modifier = Modifier.padding(top = Spacing.sm, start = Spacing.sectionStart),
         )
         Row(horizontalArrangement = Arrangement.spacedBy(Spacing.md)) {
             AccentPalette.entries.forEach { option ->
@@ -70,8 +72,12 @@ fun ThemeSettingsSection(
     }
 }
 
+/**
+ * iOS segmented control (Browse Safe bg_segment_track + SegChip): translucent
+ * gray track, 12dp radius, white sliding thumb with a soft shadow, 13sp labels.
+ */
 @Composable
-private fun <T> SegmentedControl(
+fun <T> CupertinoSegmentedControl(
     options: List<T>,
     selected: T,
     label: (T) -> String,
@@ -81,10 +87,10 @@ private fun <T> SegmentedControl(
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(10.dp))
-            .background(MaterialTheme.colorScheme.surfaceVariant)
-            .padding(3.dp),
-        horizontalArrangement = Arrangement.spacedBy(3.dp),
+            .clip(Shapes.segment)
+            .background(AppTheme.colors.fill)
+            .padding(2.dp),
+        horizontalArrangement = Arrangement.spacedBy(2.dp),
     ) {
         options.forEach { option ->
             val isSelected = option == selected
@@ -95,22 +101,20 @@ private fun <T> SegmentedControl(
             Box(
                 modifier = Modifier
                     .weight(1f)
-                    .clip(RoundedCornerShape(8.dp))
+                    .then(if (isSelected) Modifier.shadow(1.dp, Shapes.segmentThumb) else Modifier)
+                    .clip(Shapes.segmentThumb)
                     .background(bg)
                     .clickable { onSelect(option) }
-                    .padding(vertical = 8.dp),
+                    .padding(vertical = 8.dp, horizontal = 4.dp),
                 contentAlignment = Alignment.Center,
             ) {
                 Text(
                     text = label(option),
-                    style = MaterialTheme.typography.bodyMedium,
+                    style = MaterialTheme.typography.bodySmall,
                     fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,
-                    color = if (isSelected) {
-                        MaterialTheme.colorScheme.onSurface
-                    } else {
-                        AppTheme.colors.secondaryLabel
-                    },
+                    color = if (isSelected) MaterialTheme.colorScheme.onSurface else AppTheme.colors.secondaryLabel,
                     textAlign = TextAlign.Center,
+                    maxLines = 2,
                 )
             }
         }

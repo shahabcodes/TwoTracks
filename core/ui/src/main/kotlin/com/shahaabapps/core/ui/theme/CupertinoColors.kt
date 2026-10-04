@@ -6,8 +6,9 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 
 /**
- * App-specific colors beyond Material3's ColorScheme: grouped backgrounds,
- * separators, the current accent + its hero gradient, and semantic status families.
+ * App-specific colours beyond Material3's ColorScheme: the grouped backdrop,
+ * card surface, hairline separators, the translucent field fill, the current
+ * accent + its hero gradient, and semantic status families.
  * Exposed via [LocalCupertinoColors]; read through [AppTheme.colors].
  */
 @Immutable
@@ -16,6 +17,8 @@ data class CupertinoColors(
     val card: Color,
     val secondaryLabel: Color,
     val separator: Color,
+    /** Translucent gray used for text fields, segmented tracks and idle pills. */
+    val fill: Color,
     val accent: Color,
     val gradient: List<Color>,
     val destructive: Color,
@@ -32,19 +35,20 @@ data class CupertinoColors(
 }
 
 val LocalCupertinoColors = staticCompositionLocalOf {
-    // Light Meadow defaults; always overridden by AppTheme.
+    // Light Blue defaults; always overridden by AppTheme.
     CupertinoColors(
-        groupedBackground = Palette.BackgroundLight,
+        groupedBackground = Palette.GroupedBackgroundLight,
         card = Palette.SurfaceLight,
         secondaryLabel = Palette.SecondaryLabelLight,
         separator = Palette.SeparatorLight,
-        accent = AccentPalette.MEADOW.accentLight,
-        gradient = AccentPalette.MEADOW.gradient,
-        destructive = Palette.BlockedLight,
+        fill = Palette.FillLight,
+        accent = AccentPalette.BLUE.accentLight,
+        gradient = AccentPalette.BLUE.gradient,
+        destructive = Palette.DestructiveLight,
         success = Palette.SuccessLight,
-        blocked = Palette.BlockedLight,
+        blocked = Palette.DestructiveLight,
         blockedBackground = Palette.BlockedBgLight,
-        allowed = Palette.AllowedLight,
+        allowed = Palette.SuccessLight,
         allowedBackground = Palette.AllowedBgLight,
         warn = Palette.WarnLight,
     )

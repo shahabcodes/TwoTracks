@@ -3,6 +3,7 @@ package com.shahaabapps.core.ui.components
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
@@ -10,7 +11,7 @@ import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -21,11 +22,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.shahaabapps.core.ui.theme.Brand
+import com.shahaabapps.core.ui.theme.Shapes
 import com.shahaabapps.core.ui.theme.Spacing
 
 /**
- * A gradient hero header with a rounded bottom edge — the app's signature banner.
- * Title and text render white over the current accent gradient.
+ * The gradient hero banner from the browser app (bg_hero): accent gradient
+ * with a 32dp rounded bottom edge; title and text render white.
  */
 @Composable
 fun Hero(
@@ -38,10 +40,10 @@ fun Hero(
     Column(
         modifier = modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(bottomStart = 28.dp, bottomEnd = 28.dp))
+            .clip(Shapes.hero)
             .background(Brand.accentGradient)
             .statusBarsPadding()
-            .padding(start = Spacing.lg, end = Spacing.lg, top = Spacing.md, bottom = Spacing.lg),
+            .padding(start = Spacing.lg, end = Spacing.lg, top = Spacing.md, bottom = Spacing.lg + 4.dp),
         verticalArrangement = Arrangement.spacedBy(Spacing.sm),
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -66,16 +68,16 @@ fun Hero(
     }
 }
 
-/** A circular translucent icon button for use inside a [Hero]'s actions. */
+/** A circular translucent icon button for use inside a [Hero]'s actions (bg_island_btn). */
 @Composable
 fun HeroIconButton(
     onClick: () -> Unit,
     content: @Composable () -> Unit,
 ) {
-    androidx.compose.foundation.layout.Box(
+    Box(
         modifier = Modifier
-            .clip(androidx.compose.foundation.shape.CircleShape)
-            .background(Color.White.copy(alpha = 0.22f))
+            .clip(CircleShape)
+            .background(Color.White.copy(alpha = 0.2f))
             .clickable(onClick = onClick)
             .padding(8.dp),
         contentAlignment = Alignment.Center,

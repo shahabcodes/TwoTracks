@@ -34,6 +34,16 @@ import com.shahaabapps.core.ui.components.CupertinoListRow
 import com.shahaabapps.core.ui.components.CupertinoListSection
 import com.shahaabapps.core.ui.components.CupertinoTextButton
 import com.shahaabapps.core.ui.components.CupertinoTextField
+import com.shahaabapps.core.ui.components.CupertinoValue
+import com.shahaabapps.core.ui.theme.IosColors
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CalendarMonth
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.Link
+import androidx.compose.material.icons.filled.Mail
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.Timeline
 import com.shahaabapps.core.ui.components.ThemeSettingsSection
 import com.shahaabapps.core.ui.theme.AppTheme
 import com.shahaabapps.core.ui.theme.Spacing
@@ -69,9 +79,9 @@ fun SettingsScreen(
             Column(modifier = Modifier.verticalScroll(rememberScrollState()).padding(bottom = Spacing.xl), verticalArrangement = Arrangement.spacedBy(Spacing.lg)) {
                 if (s != null) {
                     CupertinoListSection(header = "Profile") {
-                        CupertinoListRow("Name", subtitle = s.me.name, onClick = { editName = true }, trailing = { CupertinoDisclosure() })
-                        CupertinoListRow("Track", subtitle = viewModel.roleLabel(s.myRole))
-                        CupertinoListRow("Email", subtitle = state.email)
+                        CupertinoListRow("Name", leadingIcon = Icons.Filled.Person, iconColor = IosColors.Blue, onClick = { editName = true }, trailing = { CupertinoValue(s.me.name); CupertinoDisclosure() })
+                        CupertinoListRow("Track", subtitle = viewModel.roleLabel(s.myRole), leadingIcon = Icons.Filled.Timeline, iconColor = IosColors.Indigo)
+                        CupertinoListRow("Email", subtitle = state.email, leadingIcon = Icons.Filled.Mail, iconColor = IosColors.Gray)
                         var tz by remember(s.me.timezone) { mutableStateOf(s.me.timezone) }
                         Column(modifier = Modifier.padding(horizontal = Spacing.md, vertical = Spacing.sm)) {
                             Text("Timezone", style = MaterialTheme.typography.bodyLarge)
@@ -84,10 +94,10 @@ fun SettingsScreen(
                         footer = if (s.partner == null) "Share this code with your partner. They choose Join in the app and enter it." else "You are both in the same space.",
                     ) {
                         CupertinoListRow(
-                            "Invite code", subtitle = s.couple.inviteCode, showDivider = s.partner != null,
+                            "Invite code", subtitle = s.couple.inviteCode, leadingIcon = Icons.Filled.Link, iconColor = IosColors.Green, showDivider = s.partner != null,
                             trailing = { Chip(text = "Copy", onClick = { clipboard.setText(AnnotatedString(s.couple.inviteCode)) }) },
                         )
-                        s.partner?.let { p -> CupertinoListRow(p.name, subtitle = "${viewModel.roleLabel(p.role)}, ${p.timezone}", showDivider = false) }
+                        s.partner?.let { p -> CupertinoListRow(p.name, subtitle = "${viewModel.roleLabel(p.role)}, ${p.timezone}", leadingIcon = Icons.Filled.Favorite, iconColor = IosColors.Pink, showDivider = false) }
                     }
 
                     CupertinoListSection(
@@ -98,6 +108,7 @@ fun SettingsScreen(
                         val cls = state.availability.blocks.count { it.kind == com.shahaabapps.core.model.BlockKind.CLASS }
                         CupertinoListRow(
                             "Weekly template",
+                            leadingIcon = Icons.Filled.CalendarMonth, iconColor = IosColors.Orange,
                             subtitle = "$study study slots, $cls class slots, ${state.availability.weeklyStudyMinutes / 60}h ${state.availability.weeklyStudyMinutes % 60}m per week",
                             onClick = onOpenAvailability, trailing = { CupertinoDisclosure() }, showDivider = false,
                         )
@@ -113,6 +124,7 @@ fun SettingsScreen(
                     ) {
                         CupertinoListRow(
                             if (state.seedOutdated) "Update to the latest guide content" else "Reset guide content",
+                            leadingIcon = Icons.Filled.Refresh, iconColor = IosColors.Red,
                             onClick = { confirmReset = true }, showDivider = false, trailing = { CupertinoDisclosure() },
                         )
                     }

@@ -5,6 +5,12 @@ build number is appended by CI (for example `0.1.0 (build 12)`).
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-10-04
+
+### Changed
+- UI restyled to match the Browse Safe browser app's iOS design language: iOS blue accent with Pink and Meadow options, grouped gray backdrop (#F2F2F7 light, #121316 dark), flat white inset cards with hairline dividers, coloured icon tiles on settings rows, translucent gray fills for text fields, pills and segmented controls, 31sp large titles, centred-title nav bars with "Back", a flat tab bar with a hairline, 14dp dialogs and 16dp sheets with an iOS grabber, and the blue-violet edge-to-edge hero.
+- Default accent is now Blue.
+
 ## [0.1.0] - 2026-10-04
 
 ### Added

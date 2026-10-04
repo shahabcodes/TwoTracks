@@ -19,9 +19,11 @@ import com.shahaabapps.core.ui.components.CupertinoDisclosure
 import com.shahaabapps.core.ui.components.CupertinoListRow
 import com.shahaabapps.core.ui.components.CupertinoListSection
 import com.shahaabapps.core.ui.components.CupertinoScaffold
+import com.shahaabapps.core.ui.theme.IosColors
 import com.shahaabapps.core.ui.theme.Spacing
 import com.shahaabapps.twotracks.ui.Routes
 
+/** The iOS Settings-style hub: coloured icon tiles, labels and chevrons in grouped cards. */
 @Composable
 fun MoreScreen(onNavigate: (String) -> Unit) {
     CupertinoScaffold(title = "More") {
@@ -30,17 +32,17 @@ fun MoreScreen(onNavigate: (String) -> Unit) {
             verticalArrangement = Arrangement.spacedBy(Spacing.lg),
         ) {
             CupertinoListSection(header = "The plan") {
-                CupertinoListRow("Roadmap", subtitle = "Quarter by quarter to the Sep 2027 checkpoint", leadingIcon = Icons.Filled.Map, onClick = { onNavigate(Routes.ROADMAP) }, trailing = { CupertinoDisclosure() })
-                CupertinoListRow("Countries", subtitle = "Six tracks, who leads, what to do", leadingIcon = Icons.Filled.Public, onClick = { onNavigate(Routes.COUNTRIES) }, trailing = { CupertinoDisclosure() })
-                CupertinoListRow("Tests and scores", subtitle = "Official results against targets", leadingIcon = Icons.Filled.Verified, onClick = { onNavigate(Routes.TESTS) }, trailing = { CupertinoDisclosure() })
-                CupertinoListRow("Documents", subtitle = "Checklist per person", leadingIcon = Icons.Filled.Description, onClick = { onNavigate(Routes.DOCUMENTS) }, trailing = { CupertinoDisclosure() })
-                CupertinoListRow("Budget", subtitle = "Planned versus spent", leadingIcon = Icons.Filled.AccountBalanceWallet, showDivider = false, onClick = { onNavigate(Routes.BUDGET) }, trailing = { CupertinoDisclosure() })
+                CupertinoListRow("Roadmap", subtitle = "Quarter by quarter to the Sep 2027 checkpoint", leadingIcon = Icons.Filled.Map, iconColor = IosColors.Indigo, onClick = { onNavigate(Routes.ROADMAP) }, trailing = { CupertinoDisclosure() })
+                CupertinoListRow("Countries", subtitle = "Six tracks, who leads, what to do", leadingIcon = Icons.Filled.Public, iconColor = IosColors.Cyan, onClick = { onNavigate(Routes.COUNTRIES) }, trailing = { CupertinoDisclosure() })
+                CupertinoListRow("Tests and scores", subtitle = "Official results against targets", leadingIcon = Icons.Filled.Verified, iconColor = IosColors.Green, onClick = { onNavigate(Routes.TESTS) }, trailing = { CupertinoDisclosure() })
+                CupertinoListRow("Documents", subtitle = "Checklist per person", leadingIcon = Icons.Filled.Description, iconColor = IosColors.Orange, onClick = { onNavigate(Routes.DOCUMENTS) }, trailing = { CupertinoDisclosure() })
+                CupertinoListRow("Budget", subtitle = "Planned versus spent", leadingIcon = Icons.Filled.AccountBalanceWallet, iconColor = IosColors.Pink, showDivider = false, onClick = { onNavigate(Routes.BUDGET) }, trailing = { CupertinoDisclosure() })
             }
             CupertinoListSection(header = "App") {
-                CupertinoListRow("Settings", subtitle = "Profile, schedule, reminders, partner invite", leadingIcon = Icons.Filled.Settings, showDivider = false, onClick = { onNavigate(Routes.SETTINGS) }, trailing = { CupertinoDisclosure() })
+                CupertinoListRow("Settings", subtitle = "Profile, schedule, reminders, partner invite", leadingIcon = Icons.Filled.Settings, iconColor = IosColors.Gray, showDivider = false, onClick = { onNavigate(Routes.SETTINGS) }, trailing = { CupertinoDisclosure() })
             }
             CupertinoListSection(footer = "Rules in the guide were checked on 28 September 2026. Re-check official sites before paying fees or resigning.") {
-                CupertinoListRow("Guide", subtitle = "Moving Abroad as a Couple, September 2026", leadingIcon = Icons.Filled.Flag, showDivider = false)
+                CupertinoListRow("Guide", subtitle = "Moving Abroad as a Couple, September 2026", leadingIcon = Icons.Filled.Flag, iconColor = IosColors.Blue, showDivider = false)
             }
         }
     }
