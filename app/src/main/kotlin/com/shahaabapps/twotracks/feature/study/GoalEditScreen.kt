@@ -2,6 +2,8 @@ package com.shahaabapps.twotracks.feature.study
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -34,6 +36,7 @@ import com.shahaabapps.twotracks.ui.components.DetailScaffold
 import com.shahaabapps.twotracks.ui.components.SectionLabel
 import com.shahaabapps.twotracks.ui.components.SegmentedChoice
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun GoalEditScreen(
     goalId: String?,
@@ -77,7 +80,7 @@ fun GoalEditScreen(
             }
 
             SectionLabel("Skills and hour budgets", modifier = Modifier.padding(horizontal = 0.dp))
-            Row(horizontalArrangement = Arrangement.spacedBy(Spacing.xs)) {
+            FlowRow(horizontalArrangement = Arrangement.spacedBy(Spacing.xs), verticalArrangement = Arrangement.spacedBy(Spacing.xs)) {
                 Chip("IELTS 4 skills", onClick = { viewModel.applyPreset(listOf("Listening", "Reading", "Writing", "Speaking"), 40) })
                 Chip("Language", onClick = { viewModel.applyPreset(listOf("Vocabulary", "Grammar", "Listening", "Speaking"), 30) })
                 Chip("Exam domains", onClick = { viewModel.applyPreset(listOf("Domain 1", "Domain 2", "Domain 3", "Practice exams"), 15) })

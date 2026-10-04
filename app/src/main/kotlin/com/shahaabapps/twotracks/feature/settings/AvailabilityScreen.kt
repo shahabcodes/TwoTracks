@@ -2,6 +2,8 @@ package com.shahaabapps.twotracks.feature.settings
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -43,6 +45,7 @@ import java.time.format.TextStyle
 import java.util.Locale
 
 /** Edits the signed-in person's weekly template: work, class and study blocks per weekday. */
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun AvailabilityScreen(onBack: () -> Unit, viewModel: SettingsViewModel = hiltViewModel()) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
@@ -111,7 +114,7 @@ fun AvailabilityScreen(onBack: () -> Unit, viewModel: SettingsViewModel = hiltVi
                     CupertinoTextField(value = label, onValueChange = { label = it }, placeholder = "Label (optional)")
                     if (kind == BlockKind.CLASS) {
                         Text("Class counts toward", style = MaterialTheme.typography.bodySmall, color = AppTheme.colors.secondaryLabel)
-                        Row(horizontalArrangement = Arrangement.spacedBy(Spacing.xs)) {
+                        FlowRow(horizontalArrangement = Arrangement.spacedBy(Spacing.xs), verticalArrangement = Arrangement.spacedBy(Spacing.xs)) {
                             state.myGoals.take(4).forEach { g -> Chip(text = g.title.take(14), selected = g.id == goalId, onClick = { goalId = g.id }) }
                         }
                     }

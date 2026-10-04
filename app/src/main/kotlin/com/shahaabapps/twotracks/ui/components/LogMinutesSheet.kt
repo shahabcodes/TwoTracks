@@ -2,6 +2,8 @@ package com.shahaabapps.twotracks.ui.components
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBarsPadding
@@ -40,7 +42,7 @@ data class LogTarget(
  * sheet shows every component with its own minute field so a two-hour class
  * can be split across Listening / Reading / Writing / Speaking.
  */
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun LogMinutesSheet(
     target: LogTarget,
@@ -82,14 +84,14 @@ fun LogMinutesSheet(
             }
 
             if (!split) {
-                Row(horizontalArrangement = Arrangement.spacedBy(Spacing.sm), modifier = Modifier.fillMaxWidth()) {
+                FlowRow(horizontalArrangement = Arrangement.spacedBy(Spacing.sm), verticalArrangement = Arrangement.spacedBy(Spacing.sm), modifier = Modifier.fillMaxWidth()) {
                     goal.components.forEach { c ->
                         Chip(text = c.name, selected = c.id == componentId, onClick = { componentId = c.id })
                     }
                 }
-                Row(horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
+                FlowRow(horizontalArrangement = Arrangement.spacedBy(Spacing.sm), verticalArrangement = Arrangement.spacedBy(Spacing.sm)) {
                     listOf(15, 30, 45, 60, 90).forEach { m ->
-                        Chip(text = "$m", selected = minutesText == m.toString(), onClick = { minutesText = m.toString() })
+                        Chip(text = "$m min", selected = minutesText == m.toString(), onClick = { minutesText = m.toString() })
                     }
                 }
                 CupertinoTextField(

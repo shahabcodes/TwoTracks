@@ -6,6 +6,8 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -213,6 +215,7 @@ private fun DayCard(day: DayPlan, onOpenGoal: (String) -> Unit, onAssign: (Block
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun AddBlockDialog(dayLabel: String, onDismiss: () -> Unit, onAdd: (Int, Int) -> Unit) {
     var startHour by remember { mutableStateOf(9) }
@@ -226,11 +229,11 @@ private fun AddBlockDialog(dayLabel: String, onDismiss: () -> Unit, onAdd: (Int,
             Column(verticalArrangement = Arrangement.spacedBy(Spacing.sm)) {
                 Text("Repeats every week on this weekday.", style = MaterialTheme.typography.bodySmall, color = AppTheme.colors.secondaryLabel)
                 Text("Start", style = MaterialTheme.typography.bodySmall, color = AppTheme.colors.secondaryLabel)
-                Row(horizontalArrangement = Arrangement.spacedBy(Spacing.xs)) {
+                FlowRow(horizontalArrangement = Arrangement.spacedBy(Spacing.xs), verticalArrangement = Arrangement.spacedBy(Spacing.xs)) {
                     listOf(7, 9, 11, 15, 18, 20).forEach { h -> Chip(text = "%02d:00".format(h), selected = startHour == h, onClick = { startHour = h }) }
                 }
                 Text("Length", style = MaterialTheme.typography.bodySmall, color = AppTheme.colors.secondaryLabel)
-                Row(horizontalArrangement = Arrangement.spacedBy(Spacing.xs)) {
+                FlowRow(horizontalArrangement = Arrangement.spacedBy(Spacing.xs), verticalArrangement = Arrangement.spacedBy(Spacing.xs)) {
                     listOf(60, 90, 120, 180).forEach { m -> Chip(text = "$m min", selected = duration == m, onClick = { duration = m }) }
                 }
             }
