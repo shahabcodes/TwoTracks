@@ -1,0 +1,89 @@
+package com.shahaabapps.core.data.firestore
+
+import com.google.firebase.firestore.CollectionReference
+import com.google.firebase.firestore.DocumentReference
+import com.google.firebase.firestore.DocumentSnapshot
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.Query
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.callbackFlow
+
+/** Firestore layout: everything lives under couples/{coupleId}/{collection}. */
+object Paths {
+    const val COUPLES = "couples"
+    const val PROFILES = "profiles"
+    const val AVAILABILITY = "availability"
+    const val GOALS = "studyGoals"
+    const val STUDY_LOGS = "studyLogs"
+    const val MOCK_SCORES = "mockScores"
+    const val SESSIONS = "plannedSessions"
+    const val HABITS = "habits"
+    const val HABIT_LOGS = "habitLogs"
+    const val MILESTONES = "milestones"
+    const val COUNTRIES = "countries"
+    const val TESTS = "tests"
+    const val DOCUMENTS = "documents"
+    const val BUDGET = "budget"
+    const val DEADLINES = "deadlines"
+}
+
+fun FirebaseFirestore.couple(coupleId: String): DocumentReference =
+    collection(Paths.COUPLES).document(coupleId)
+
+fun FirebaseFirestore.sub(coupleId: String, name: String): CollectionReference =
+    couple(coupleId).collection(name)
+
+/** Live list of mapped documents; errors emit an empty list rather than closing the flow. */
+fun <T> Query.asFlow(mapper: (DocumentSnapshot) -> T?): Flow<List<T>> = callbackFlow {
+    val registration = addSnapshotListener { snapshot, error ->
+        if (error != null) {
+            trySend(emptyList())
+            return@addSnapshotListener
+        }
+        trySend(snapshot?.documents?.mapNotNull { runCatching { mapper(it) }.getOrNull() }.orEmpty())
+    }
+    awaitClose { registration.remove() }
+}
+
+fun <T> DocumentReference.asFlow(mapper: (DocumentSnapshot) -> T?): Flow<T?> = callbackFlow {
+    val registration = addSnapshotListener { snapshot, error ->
+        if (error != null) {
+            trySend(null)
+            return@addSnapshotListener
+        }
+        trySend(snapshot?.takeIf { it.exists() }?.let { runCatching { mapper(it) }.getOrNull() })
+    }
+    awaitClose { registration.remove() }
+}
+
+// ---- small typed getters ----
+fun DocumentSnapshot.str(field: String): String = getString(field).orEmpty()
+fun DocumentSnapshot.strOrNull(field: String): String? = getString(field)
+fun DocumentSnapshot.int(field: String, default: Int = 0): Int = getLong(field)?.toInt() ?: default
+fun DocumentSnapshot.intOrNull(field: String): Int? = getLong(field)?.toInt()
+fun DocumentSnapshot.dbl(field: String, default: Double = 0.0): Double = getDouble(field) ?: default
+fun DocumentSnapshot.bool(field: String, default: Boolean = false): Boolean = getBoolean(field) ?: default
+fun DocumentSnapshot.lng(field: String, default: Long = 0L): Long = getLong(field) ?: default
+
+@Suppress("UNCHECKED_CAST")
+fun DocumentSnapshot.stringList(field: String): List<String> = (get(field) as? List<String>).orEmpty()
+
+@Suppress("UNCHECKED_CAST")
+fun DocumentSnapshot.mapList(field: String): List<Map<String, Any?>> = (get(field) as? List<Map<String, Any?>>).orEmpty()
+
+@Suppress("UNCHECKED_CAST")
+fun DocumentSnapshot.stringMap(field: String): Map<String, String> =
+    (get(field) as? Map<String, Any?>)?.mapValues { it.value?.toString().orEmpty() }.orEmpty()
+
+inline fun <reified E : Enum<E>> DocumentSnapshot.enum(field: String, default: E): E =
+    getString(field)?.let { v -> enumValues<E>().firstOrNull { it.name == v } } ?: default
+
+inline fun <reified E : Enum<E>> DocumentSnapshot.enumOrNull(field: String): E? =
+    getString(field)?.let { v -> enumValues<E>().firstOrNull { it.name == v } }
+
+fun Map<String, Any?>.s(key: String): String = this[key]?.toString().orEmpty()
+fun Map<String, Any?>.sOrNull(key: String): String? = this[key]?.toString()
+fun Map<String, Any?>.d(key: String): Double = (this[key] as? Number)?.toDouble() ?: 0.0
+fun Map<String, Any?>.i(key: String): Int = (this[key] as? Number)?.toInt() ?: 0
+fun Map<String, Any?>.b(key: String): Boolean = this[key] as? Boolean ?: false

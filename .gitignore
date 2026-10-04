@@ -1,0 +1,31 @@
+*.iml
+.gradle/
+/local.properties
+/.idea/
+.DS_Store
+/build
+build/
+/captures
+.externalNativeBuild
+.cxx
+local.properties
+
+# Firebase config — each developer supplies their own
+**/google-services.json
+
+# Keystores / signing
+*.jks
+*.keystore
+keystore.properties
+# ...except the shared DEBUG keystore, committed so all builds share one signature.
+# (Standard debug credentials — never used for release/production signing.)
+!keystore/debug.keystore
+.firebase/
+firebase-debug.log
+firestore-debug.log
+ui-debug.log
+
+*.log
+
+# The source guide PDF stays local (personal details).
+*.pdf

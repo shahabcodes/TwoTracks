@@ -1,0 +1,40 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function isMember(coupleId) {
+      return signedIn()
+        && request.auth.uid in get(/databases/$(database)/documents/couples/$(coupleId)).data.members;
+    }
+
+    match /couples/{coupleId} {
+      // Any signed-in user may look up a couple by invite code (needed to join),
+      // and may create a new one that lists themselves as the only member.
+      allow read: if signedIn();
+      allow create: if signedIn()
+                    && request.resource.data.members.size() == 1
+                    && request.resource.data.members[0] == request.auth.uid;
+      // Members may update. A non-member may ONLY add themselves as the second member.
+      allow update: if signedIn() && (
+        request.auth.uid in resource.data.members
+        || (
+          resource.data.members.size() == 1
+          && request.resource.data.members.size() == 2
+          && request.resource.data.members[0] == resource.data.members[0]
+          && request.resource.data.members[1] == request.auth.uid
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['members'])
+        )
+      );
+      allow delete: if false;
+
+      // Everything inside the space is shared between the two members.
+      match /{collection}/{docId} {
+        allow read, write: if isMember(coupleId);
+      }
+    }
+  }
+}
