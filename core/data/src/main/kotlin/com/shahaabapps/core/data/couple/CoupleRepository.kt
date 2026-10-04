@@ -74,12 +74,14 @@ class FirebaseCoupleRepository @Inject constructor(
         val doc = snapshot.documents.firstOrNull() ?: throw IllegalArgumentException("No space found for that code")
         val couple = doc.toCouple()
         require(uid in couple.members || couple.members.size < 2) { "That space already has two members" }
-        val existingRoles = firestore.sub(couple.id, Paths.PROFILES).get().await().documents.map { it.toProfile() }
-        val taken = existingRoles.filter { it.uid != uid }.map { it.role }
-        val role = if (profile.role in taken) profile.role.other else profile.role
+        // Become a member first: the security rules only let members read the
+        // space's subcollections, and the join rule only permits adding yourself.
         if (uid !in couple.members) {
             doc.reference.update("members", couple.members + uid).await()
         }
+        val existingProfiles = firestore.sub(couple.id, Paths.PROFILES).get().await().documents.map { it.toProfile() }
+        val taken = existingProfiles.filter { it.uid != uid }.map { it.role }
+        val role = if (profile.role in taken) profile.role.other else profile.role
         firestore.sub(couple.id, Paths.PROFILES).document(uid).set(profile.copy(uid = uid, role = role).toMap()).await()
         couple.copy(members = (couple.members + uid).distinct())
     }
