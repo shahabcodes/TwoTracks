@@ -1,5 +1,11 @@
 package com.shahaabapps.twotracks.ui
 
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -136,7 +142,23 @@ fun MainNavGraph(session: AppSession) {
             }
         },
     ) { padding ->
-        NavHost(navController = navController, startDestination = Routes.TODAY, modifier = Modifier.padding(padding)) {
+        val tabRoutes = tabs.map { it.route }.toSet()
+        fun isTab(route: String?) = route in tabRoutes
+        NavHost(
+            navController = navController,
+            startDestination = Routes.TODAY,
+            modifier = Modifier.padding(padding),
+            enterTransition = {
+                if (isTab(initialState.destination.route) && isTab(targetState.destination.route)) fadeIn(tween(220))
+                else slideInHorizontally(tween(320, easing = FastOutSlowInEasing)) { it } + fadeIn(tween(200))
+            },
+            exitTransition = {
+                if (isTab(initialState.destination.route) && isTab(targetState.destination.route)) fadeOut(tween(220))
+                else slideOutHorizontally(tween(320, easing = FastOutSlowInEasing)) { -it / 4 } + fadeOut(tween(300))
+            },
+            popEnterTransition = { slideInHorizontally(tween(320, easing = FastOutSlowInEasing)) { -it / 4 } + fadeIn(tween(200)) },
+            popExitTransition = { slideOutHorizontally(tween(320, easing = FastOutSlowInEasing)) { it } + fadeOut(tween(200)) },
+        ) {
             composable(Routes.TODAY) {
                 TodayScreen(
                     onOpenLevel = { navController.navigate(Routes.level(it)) },

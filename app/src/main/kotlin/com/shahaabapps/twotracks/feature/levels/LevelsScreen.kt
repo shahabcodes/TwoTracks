@@ -1,5 +1,6 @@
 package com.shahaabapps.twotracks.feature.levels
 
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -51,7 +52,9 @@ import com.shahaabapps.twotracks.session.PersonPlan
 import com.shahaabapps.twotracks.session.PlanSnapshot
 import com.shahaabapps.twotracks.session.PlanStore
 import com.shahaabapps.twotracks.ui.Routes
+import com.shahaabapps.twotracks.ui.components.PopIn
 import com.shahaabapps.twotracks.ui.components.SectionLabel
+import com.shahaabapps.twotracks.ui.components.pulse
 import com.shahaabapps.twotracks.ui.components.SegmentedChoice
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -130,11 +133,12 @@ private fun LadderRow(lp: LevelProgress, last: Boolean, onClick: () -> Unit) {
     Row(modifier = Modifier.fillMaxWidth().clickable(onClick = onClick), verticalAlignment = Alignment.Top) {
         Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.width(36.dp)) {
             Box(
-                modifier = Modifier.size(30.dp).clip(CircleShape).background(if (lp.state == LevelState.LOCKED) AppTheme.colors.fill else color),
+                modifier = Modifier.pulse(enabled = lp.state == LevelState.OPEN && !lp.isOverdue).size(30.dp).clip(CircleShape)
+                    .background(animateColorAsState(if (lp.state == LevelState.LOCKED) AppTheme.colors.fill else color, label = "node").value),
                 contentAlignment = Alignment.Center,
             ) {
                 when (lp.state) {
-                    LevelState.DONE -> Icon(Icons.Filled.Check, contentDescription = null, tint = Color.White, modifier = Modifier.size(18.dp))
+                    LevelState.DONE -> PopIn { Icon(Icons.Filled.Check, contentDescription = null, tint = Color.White, modifier = Modifier.size(18.dp)) }
                     LevelState.LOCKED -> Icon(Icons.Filled.Lock, contentDescription = null, tint = AppTheme.colors.secondaryLabel, modifier = Modifier.size(15.dp))
                     LevelState.OPEN -> Text("${lp.level.number}", color = Color.White, fontWeight = FontWeight.Bold)
                 }

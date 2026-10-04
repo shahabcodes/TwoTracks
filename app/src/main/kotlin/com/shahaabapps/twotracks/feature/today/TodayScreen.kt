@@ -1,5 +1,8 @@
 package com.shahaabapps.twotracks.feature.today
 
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -26,6 +29,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
@@ -44,6 +49,7 @@ import com.shahaabapps.core.ui.theme.AppTheme
 import com.shahaabapps.core.ui.theme.Shapes
 import com.shahaabapps.core.ui.theme.Spacing
 import com.shahaabapps.twotracks.session.Clock
+import com.shahaabapps.twotracks.ui.components.AnimatedSwap
 import com.shahaabapps.twotracks.ui.components.Chip
 import com.shahaabapps.twotracks.ui.components.LogMinutesSheet
 import com.shahaabapps.twotracks.ui.components.LogTarget
@@ -139,7 +145,7 @@ fun TodayScreen(
                             .padding(horizontal = Spacing.listHorizontal)
                             .fillMaxWidth()
                             .clip(Shapes.card)
-                            .background(if (good) AppTheme.colors.allowedBackground else AppTheme.colors.warn.copy(alpha = 0.12f))
+                            .background(animateColorAsState(if (good) AppTheme.colors.allowedBackground else AppTheme.colors.warn.copy(alpha = 0.12f), label = "statusBg").value)
                             .clickable(onClick = onOpenWeek)
                             .padding(horizontal = 14.dp, vertical = 12.dp),
                     ) {
@@ -212,7 +218,8 @@ private fun SessionBlock(
 ) {
     val done = row.session.status == SessionStatus.DONE
     val skipped = row.session.status == SessionStatus.SKIPPED
-    Column(modifier = Modifier.padding(top = if (first) 2.dp else Spacing.md)) {
+    val haptic = LocalHapticFeedback.current
+    Column(modifier = Modifier.padding(top = if (first) 2.dp else Spacing.md).animateContentSize(spring(dampingRatio = 0.8f, stiffness = 400f))) {
         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.clickable { row.goal?.let { onOpenGoal(it.id) } }) {
             Column(modifier = Modifier.weight(1f)) {
                 Text(row.goal?.title ?: "Study", style = MaterialTheme.typography.headlineMedium)
@@ -221,14 +228,21 @@ private fun SessionBlock(
                     style = MaterialTheme.typography.bodyMedium, color = AppTheme.colors.secondaryLabel,
                 )
             }
-            when {
-                done -> StatusChip("Done", AppTheme.colors.success)
-                skipped -> StatusChip("Skipped", AppTheme.colors.warn)
-                row.session.isClass -> StatusChip("Class", AppTheme.colors.accent)
+            AnimatedSwap(row.session.status) { status ->
+                when {
+                    status == SessionStatus.DONE -> StatusChip("Done", AppTheme.colors.success)
+                    status == SessionStatus.SKIPPED -> StatusChip("Skipped", AppTheme.colors.warn)
+                    row.session.isClass -> StatusChip("Class", AppTheme.colors.accent)
+                    else -> Box {}
+                }
             }
         }
         if (!done && !skipped) {
-            CupertinoPrimaryButton(text = if (row.session.isClass) "Done, log class" else "Done", onClick = if (row.session.isClass) onLog else onDone, modifier = Modifier.padding(top = Spacing.sm))
+            CupertinoPrimaryButton(
+                text = if (row.session.isClass) "Done, log class" else "Done",
+                onClick = { haptic.performHapticFeedback(HapticFeedbackType.LongPress); if (row.session.isClass) onLog() else onDone() },
+                modifier = Modifier.padding(top = Spacing.sm),
+            )
             Row(horizontalArrangement = Arrangement.spacedBy(Spacing.sm), modifier = Modifier.padding(top = Spacing.xs)) {
                 Chip(text = "Different time", onClick = onLog)
                 Chip(text = "Skip today", onClick = onSkip)

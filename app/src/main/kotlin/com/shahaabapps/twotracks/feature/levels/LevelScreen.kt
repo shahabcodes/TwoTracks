@@ -27,6 +27,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -43,6 +45,8 @@ import com.shahaabapps.core.ui.components.StatusChip
 import com.shahaabapps.core.ui.theme.AppTheme
 import com.shahaabapps.core.ui.theme.Spacing
 import com.shahaabapps.twotracks.session.Clock
+import com.shahaabapps.twotracks.ui.components.AnimatedSwap
+import com.shahaabapps.twotracks.ui.components.PopIn
 import com.shahaabapps.twotracks.ui.components.Chip
 import com.shahaabapps.twotracks.ui.components.DetailScaffold
 import com.shahaabapps.twotracks.ui.components.ProgressBar
@@ -59,6 +63,7 @@ fun LevelScreen(
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val snackbar = remember { SnackbarHostState() }
+    val haptic = LocalHapticFeedback.current
     var confirmPass by remember { mutableStateOf<String?>(null) }
     var addTask by remember { mutableStateOf(false) }
     LaunchedEffect(state.message) { state.message?.let { snackbar.showSnackbar(it); viewModel.clearMessage() } }
@@ -113,17 +118,19 @@ fun LevelScreen(
                                 showDivider = i < items.lastIndex,
                                 onClick = when (item.kind) {
                                     LevelItemKind.GOAL -> goal?.let { g -> { onOpenGoal(g.id) } }
-                                    LevelItemKind.TASK -> if (state.isMine) ({ viewModel.toggleTask(item) }) else null
+                                    LevelItemKind.TASK -> if (state.isMine) ({ haptic.performHapticFeedback(HapticFeedbackType.LongPress); viewModel.toggleTask(item) }) else null
                                     LevelItemKind.COUNT -> null
                                 },
                                 trailing = {
                                     when (item.kind) {
-                                        LevelItemKind.TASK -> Icon(
-                                            if (ip.done) Icons.Filled.CheckBox else Icons.Filled.CheckBoxOutlineBlank, contentDescription = null,
-                                            tint = if (ip.done) AppTheme.colors.success else AppTheme.colors.secondaryLabel,
-                                        )
+                                        LevelItemKind.TASK -> AnimatedSwap(ip.done) { done ->
+                                            Icon(
+                                                if (done) Icons.Filled.CheckBox else Icons.Filled.CheckBoxOutlineBlank, contentDescription = null,
+                                                tint = if (done) AppTheme.colors.success else AppTheme.colors.secondaryLabel,
+                                            )
+                                        }
                                         LevelItemKind.GOAL -> if (ip.done) {
-                                            Icon(Icons.Filled.CheckCircle, contentDescription = "Passed", tint = AppTheme.colors.success)
+                                            PopIn { Icon(Icons.Filled.CheckCircle, contentDescription = "Passed", tint = AppTheme.colors.success) }
                                         } else if (state.isMine && goal != null) {
                                             Chip(text = "Passed?", onClick = { confirmPass = goal.id })
                                         } else {

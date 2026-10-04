@@ -1,5 +1,8 @@
 package com.shahaabapps.twotracks.ui.components
 
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -52,6 +55,11 @@ fun ProgressBar(
     height: Dp = 8.dp,
     color: Color = AppTheme.colors.accent,
 ) {
+    val animated by animateFloatAsState(
+        targetValue = fraction.coerceIn(0f, 1f),
+        animationSpec = tween(durationMillis = 700, easing = FastOutSlowInEasing),
+        label = "progress",
+    )
     Box(
         modifier = modifier
             .fillMaxWidth()
@@ -61,7 +69,7 @@ fun ProgressBar(
     ) {
         Box(
             modifier = Modifier
-                .fillMaxWidth(fraction.coerceIn(0f, 1f))
+                .fillMaxWidth(animated)
                 .height(height)
                 .clip(CircleShape)
                 .background(color),

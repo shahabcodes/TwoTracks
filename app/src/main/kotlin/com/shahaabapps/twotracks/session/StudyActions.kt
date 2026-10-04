@@ -55,6 +55,13 @@ class StudyActions @Inject constructor(
         return (studyRepository.setSessionStatus(s.coupleId, sessionId, SessionStatus.PLANNED) as? AppResult.Failure)?.error?.message
     }
 
+    /** Re-adds a deleted log (Undo). The entry gets a fresh id. */
+    suspend fun restoreLog(log: StudyLog): String? {
+        val s = sessionStore.current() ?: return "Not signed in"
+        val r = studyRepository.addLog(s.coupleId, log.copy(id = ""))
+        return (r as? AppResult.Failure)?.error?.message
+    }
+
     suspend fun deleteLog(logId: String): String? {
         val s = sessionStore.current() ?: return "Not signed in"
         return (studyRepository.deleteLog(s.coupleId, logId) as? AppResult.Failure)?.error?.message

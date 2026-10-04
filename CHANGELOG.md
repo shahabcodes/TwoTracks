@@ -5,6 +5,15 @@ build number is appended by CI (for example `0.1.0 (build 12)`).
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-10-04
+
+### Added
+- Swipe left to delete a study entry or a mock score on the goal page, with an Undo in the snackbar.
+- Animations: iOS-style push and pop between screens and a fade between tabs, progress bars that fill, the Done chip and ticks pop in with haptic feedback, the current level node breathes on the ladder, counters roll when they change, deleted rows slide out.
+
+### Changed
+- Goal page uses the same "Early days" sentence as Today until a few hours are logged.
+
 ## [0.3.0] - 2026-10-04
 
 ### Changed

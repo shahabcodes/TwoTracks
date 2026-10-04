@@ -12,15 +12,14 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -51,6 +50,7 @@ import com.shahaabapps.twotracks.ui.components.LogMinutesSheet
 import com.shahaabapps.twotracks.ui.components.LogTarget
 import com.shahaabapps.twotracks.ui.components.NavAction
 import com.shahaabapps.twotracks.ui.components.ProgressBar
+import com.shahaabapps.twotracks.ui.components.SwipeToDelete
 import com.shahaabapps.twotracks.ui.components.SectionLabel
 
 /** Level 2: one goal. Sentence, bar, per-skill bars, Log and Mark as passed. Everything else is behind Details. */
@@ -68,6 +68,20 @@ fun GoalDetailScreen(
     var showDetails by remember { mutableStateOf(false) }
     var confirmPass by remember { mutableStateOf(false) }
     LaunchedEffect(state.message) { state.message?.let { snackbar.showSnackbar(it); viewModel.clearMessage() } }
+    val undoLog by viewModel.undoLog.collectAsStateWithLifecycle()
+    val undoMock by viewModel.undoMock.collectAsStateWithLifecycle()
+    LaunchedEffect(undoLog) {
+        if (undoLog != null) {
+            val result = snackbar.showSnackbar("Entry deleted", actionLabel = "Undo", duration = SnackbarDuration.Short)
+            if (result == SnackbarResult.ActionPerformed) viewModel.undoDeleteLog() else viewModel.clearUndo()
+        }
+    }
+    LaunchedEffect(undoMock) {
+        if (undoMock != null) {
+            val result = snackbar.showSnackbar("Mock score deleted", actionLabel = "Undo", duration = SnackbarDuration.Short)
+            if (result == SnackbarResult.ActionPerformed) viewModel.undoDeleteMock() else viewModel.clearUndo()
+        }
+    }
 
     val goal = state.goal
     val p = state.progress
@@ -159,32 +173,35 @@ fun GoalDetailScreen(
                     if (state.mockScores.isEmpty()) {
                         item { Text("No practice-test results yet.", style = MaterialTheme.typography.bodySmall, color = AppTheme.colors.secondaryLabel, modifier = Modifier.padding(horizontal = Spacing.listHorizontal + Spacing.sectionStart)) }
                     } else {
-                        item {
-                            CupertinoListSection {
-                                state.mockScores.forEachIndexed { i, m ->
-                                    CupertinoListRow(
-                                        title = m.scores.entries.joinToString("  ") { (k, v) -> "${goal.components.firstOrNull { it.id == k }?.name?.take(1) ?: k} $v" },
-                                        subtitle = Clock.formatDate(m.dateIso) + if (m.note.isNotBlank()) ", ${m.note}" else "",
-                                        showDivider = i < state.mockScores.lastIndex,
-                                        trailing = { if (state.isMine) IconButton(onClick = { viewModel.deleteMockScore(m.id) }) { Icon(Icons.Filled.Delete, "Delete", tint = AppTheme.colors.secondaryLabel) } },
-                                    )
-                                }
+                        itemsIndexed(state.mockScores, key = { _, m -> "mock-" + m.id }) { i, m ->
+                            SwipeRow(
+                                index = i, last = state.mockScores.lastIndex, enabled = state.isMine,
+                                onDelete = { viewModel.deleteMockScore(m) },
+                                modifier = Modifier.animateItem(),
+                            ) {
+                                CupertinoListRow(
+                                    title = m.scores.entries.joinToString("  ") { (k, v) -> "${goal.components.firstOrNull { it.id == k }?.name?.take(1) ?: k} $v" },
+                                    subtitle = Clock.formatDate(m.dateIso) + if (m.note.isNotBlank()) ", ${m.note}" else "",
+                                    showDivider = i < state.mockScores.lastIndex,
+                                )
                             }
                         }
+                        if (state.isMine) item { Text("Swipe left on an entry to delete it.", style = MaterialTheme.typography.bodySmall, color = AppTheme.colors.secondaryLabel, modifier = Modifier.padding(horizontal = Spacing.listHorizontal + Spacing.sectionStart)) }
                     }
                     if (state.recentLogs.isNotEmpty()) {
                         item { SectionLabel("Recent entries") }
-                        item {
-                            CupertinoListSection {
-                                state.recentLogs.forEachIndexed { i, log ->
-                                    val name = goal.components.firstOrNull { it.id == log.componentId }?.name ?: log.componentId
-                                    CupertinoListRow(
-                                        title = "$name, ${log.minutes} min" + if (log.fromClass) " (class)" else "",
-                                        subtitle = Clock.formatDate(log.dateIso) + if (log.note.isNotBlank()) ", ${log.note}" else "",
-                                        showDivider = i < state.recentLogs.lastIndex,
-                                        trailing = { if (state.isMine) IconButton(onClick = { viewModel.deleteLog(log.id) }) { Icon(Icons.Filled.Delete, "Delete", tint = AppTheme.colors.secondaryLabel) } },
-                                    )
-                                }
+                        itemsIndexed(state.recentLogs, key = { _, log -> "log-" + log.id }) { i, log ->
+                            val name = goal.components.firstOrNull { it.id == log.componentId }?.name ?: log.componentId
+                            SwipeRow(
+                                index = i, last = state.recentLogs.lastIndex, enabled = state.isMine,
+                                onDelete = { viewModel.deleteLog(log) },
+                                modifier = Modifier.animateItem(),
+                            ) {
+                                CupertinoListRow(
+                                    title = "$name, ${log.minutes} min" + if (log.fromClass) " (class)" else "",
+                                    subtitle = Clock.formatDate(log.dateIso) + if (log.note.isNotBlank()) ", ${log.note}" else "",
+                                    showDivider = i < state.recentLogs.lastIndex,
+                                )
                             }
                         }
                     }
@@ -234,5 +251,34 @@ fun GoalDetailScreen(
                 }
             },
         )
+    }
+}
+
+/**
+ * One row of a grouped list rendered as its own LazyColumn item so it can be
+ * swiped away and animated. Rounds the first and last rows to keep the card look.
+ */
+@Composable
+private fun SwipeRow(
+    index: Int,
+    last: Int,
+    enabled: Boolean,
+    onDelete: () -> Unit,
+    modifier: Modifier = Modifier,
+    content: @Composable () -> Unit,
+) {
+    val r = 12.dp
+    val shape = RoundedCornerShape(
+        topStart = if (index == 0) r else 0.dp, topEnd = if (index == 0) r else 0.dp,
+        bottomStart = if (index == last) r else 0.dp, bottomEnd = if (index == last) r else 0.dp,
+    )
+    Box(modifier = modifier.padding(horizontal = Spacing.listHorizontal)) {
+        if (enabled) {
+            SwipeToDelete(onDelete = onDelete, shape = shape) {
+                Box(modifier = Modifier.background(AppTheme.colors.card)) { content() }
+            }
+        } else {
+            Box(modifier = Modifier.clip(shape).background(AppTheme.colors.card)) { content() }
+        }
     }
 }

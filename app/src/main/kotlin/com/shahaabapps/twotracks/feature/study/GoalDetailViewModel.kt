@@ -81,7 +81,9 @@ class GoalDetailViewModel @Inject constructor(
             com.shahaabapps.core.planner.Feasibility.TIGHT -> "Nearly on track. A little more each week keeps $due." to true
             com.shahaabapps.core.planner.Feasibility.DOES_NOT_FIT -> {
                 val forecast = p.forecastDate?.let { Clock.formatDate(it) }
-                if (forecast != null) "At this pace it finishes $forecast, not $due." to false
+                val need = p.weeklyNeedHours?.let { "About %.0f hours a week gets it done by $due.".format(it) } ?: ""
+                if (p.hoursLogged < 3.0) "Early days. $need".trim() to true
+                else if (forecast != null) "At this pace it finishes $forecast, not $due. $need".trim() to false
                 else "Nothing logged yet. The first session is the hardest." to false
             }
             com.shahaabapps.core.planner.Feasibility.NO_TARGET -> "No date set. Add one in Edit to get a pace." to true
@@ -98,7 +100,30 @@ class GoalDetailViewModel @Inject constructor(
         message.value = error ?: "Logged ${minutesByComponent.values.sum()} min"
     }
 
-    fun deleteLog(logId: String) = viewModelScope.launch { message.value = actions.deleteLog(logId) ?: "Entry removed" }
+    /** The most recently swiped-away entry, offered back through Undo. */
+    val undoLog = MutableStateFlow<StudyLog?>(null)
+    val undoMock = MutableStateFlow<MockScore?>(null)
+
+    fun deleteLog(log: StudyLog) = viewModelScope.launch {
+        val error = actions.deleteLog(log.id)
+        if (error == null) undoLog.value = log else message.value = error
+    }
+
+    fun undoDeleteLog() = viewModelScope.launch {
+        val log = undoLog.value ?: return@launch
+        undoLog.value = null
+        message.value = actions.restoreLog(log) ?: "Entry restored"
+    }
+
+    fun clearUndo() { undoLog.value = null; undoMock.value = null }
+
+    fun undoDeleteMock() = viewModelScope.launch {
+        val s = sessionStore.current() ?: return@launch
+        val m = undoMock.value ?: return@launch
+        undoMock.value = null
+        studyRepository.addMockScore(s.coupleId, m.copy(id = ""))
+        message.value = "Mock score restored"
+    }
 
     fun setPassed(passed: Boolean) = viewModelScope.launch {
         message.value = actions.setGoalPassed(goalId, passed) ?: if (passed) "Marked as passed" else "Reopened"
@@ -111,9 +136,10 @@ class GoalDetailViewModel @Inject constructor(
         message.value = "Mock score saved"
     }
 
-    fun deleteMockScore(id: String) = viewModelScope.launch {
+    fun deleteMockScore(m: MockScore) = viewModelScope.launch {
         val s = sessionStore.current() ?: return@launch
-        studyRepository.deleteMockScore(s.coupleId, id)
+        studyRepository.deleteMockScore(s.coupleId, m.id)
+        undoMock.value = m
     }
 
     fun clearMessage() { message.value = null }

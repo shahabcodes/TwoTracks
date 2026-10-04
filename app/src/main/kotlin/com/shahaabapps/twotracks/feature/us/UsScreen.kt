@@ -42,6 +42,7 @@ import com.shahaabapps.twotracks.session.PersonPlan
 import com.shahaabapps.twotracks.session.PlanSnapshot
 import com.shahaabapps.twotracks.session.PlanStore
 import com.shahaabapps.twotracks.ui.Routes
+import com.shahaabapps.twotracks.ui.components.AnimatedNumber
 import com.shahaabapps.twotracks.ui.components.SectionLabel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
@@ -137,8 +138,9 @@ private fun PersonCard(person: PersonPlan, plan: PlanSnapshot, state: UsUiState)
         state.counts[person.role]?.forEach { c ->
             Row(modifier = Modifier.padding(top = Spacing.xs)) {
                 Text(c.habit.name, style = MaterialTheme.typography.bodyMedium, color = AppTheme.colors.secondaryLabel, modifier = Modifier.weight(1f))
+                AnimatedNumber(value = c.habit.weeklyTarget?.let { c.thisWeek } ?: c.total, style = MaterialTheme.typography.bodyMedium)
                 Text(
-                    c.habit.weeklyTarget?.let { "${c.thisWeek} / $it this week" } ?: c.habit.totalTarget?.let { "${c.total} / $it" } ?: "${c.total}",
+                    c.habit.weeklyTarget?.let { " / $it this week" } ?: c.habit.totalTarget?.let { " / $it" } ?: "",
                     style = MaterialTheme.typography.bodyMedium,
                 )
             }
