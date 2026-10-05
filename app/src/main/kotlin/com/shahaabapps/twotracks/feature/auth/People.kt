@@ -198,8 +198,8 @@ private fun DrawScope.drawPerson(
         val handR = headR * 0.17f
         // When covering, hands land on the eyes; when peeking they part a little.
         val target = if (cover > 0.01f && jump <= 0.05f) {
-            val eyeX = headC.x + side * headR * 0.36f + side * peek * headR * 0.28f
-            val eyeY = headC.y - headR * 0.08f + peek * headR * 0.12f
+            val eyeX = faceCenterX(person, headC) + side * headR * 0.36f + side * peek * headR * 0.28f
+            val eyeY = faceCenterY(person, headC, headR) - headR * 0.08f + peek * headR * 0.12f
             Offset(sx + (eyeX - sx) * cover, shoulderY + (eyeY - shoulderY) * cover)
         } else Offset(ex, ey)
         val sleeve = if (person == Person.SANYA) look.top else look.top
@@ -207,59 +207,70 @@ private fun DrawScope.drawPerson(
         drawLine(look.skin, Offset(sx + (target.x - sx) * 0.45f, shoulderY + (target.y - shoulderY) * 0.45f), target, strokeWidth = headR * 0.22f, cap = StrokeCap.Round)
         drawCircle(look.skin, handR, target)
     }
-    // Head.
-    drawCircle(look.skin, headR, headC)
-    // Hair.
+    // Head: a sculpted face with cheekbones and a jawline instead of a plain circle.
+    // Sanya's face sits a little smaller inside the hijab; Usaid's jaw is squarer.
+    val faceR = if (person == Person.SANYA) headR * 0.86f else headR
+    val faceC = if (person == Person.SANYA) Offset(headC.x, headC.y + headR * 0.07f) else headC
+    val square = if (person == Person.USAID) 1f else 0f
+    val face = facePath(faceC, faceR, square)
     when (person) {
         Person.SANYA -> {
-            // Hijab: a smooth hood around the face with a fold at the crown and a pin.
+            // Hijab hood, then the face opening, then folds and a pin.
             val hood = Path().apply {
-                addOval(Rect(headC.x - headR * 1.2f, headC.y - headR * 1.2f, headC.x + headR * 1.2f, headC.y + headR * 1.25f))
+                addOval(Rect(headC.x - headR * 1.18f, headC.y - headR * 1.18f, headC.x + headR * 1.18f, headC.y + headR * 1.28f))
             }
             drawPath(hood, Brush.verticalGradient(listOf(accent, gradient.last()), startY = headC.y - headR * 1.2f, endY = headC.y + headR * 1.3f))
-            drawOval(look.skin, topLeft = Offset(headC.x - headR * 0.88f, headC.y - headR * 0.82f), size = Size(headR * 1.76f, headR * 1.86f))
-            drawArc(Color.White.copy(alpha = 0.3f), 200f, 70f, false, Offset(headC.x - headR * 1.05f, headC.y - headR * 1.05f), Size(headR * 2.1f, headR * 2.1f), style = Stroke(width = headR * 0.09f, cap = StrokeCap.Round))
-            drawArc(Color.Black.copy(alpha = 0.12f), 300f, 80f, false, Offset(headC.x - headR * 1.0f, headC.y - headR * 0.6f), Size(headR * 2.0f, headR * 1.9f), style = Stroke(width = headR * 0.06f, cap = StrokeCap.Round))
-            drawCircle(Color.White, headR * 0.07f, Offset(headC.x + headR * 0.95f, headC.y + headR * 0.55f))
-            // Fabric folds.
+            drawPath(face, look.skin)
+            // Soft shadow where the fabric meets the face, and a jaw contour.
+            drawPath(face, Color.Black.copy(alpha = 0.1f), style = Stroke(width = faceR * 0.06f))
+            drawArc(Color.White.copy(alpha = 0.3f), 200f, 70f, false, Offset(headC.x - headR * 1.03f, headC.y - headR * 1.03f), Size(headR * 2.06f, headR * 2.06f), style = Stroke(width = headR * 0.09f, cap = StrokeCap.Round))
             for (k in 0 until 3) {
-                drawArc(Color.Black.copy(alpha = 0.07f), 250f + k * 12f, 40f, false, Offset(headC.x - headR * (1.05f - k * 0.12f), headC.y - headR * (0.95f - k * 0.1f)), Size(headR * (2.1f - k * 0.24f), headR * (2.0f - k * 0.2f)), style = Stroke(width = headR * 0.04f, cap = StrokeCap.Round))
+                drawArc(Color.Black.copy(alpha = 0.07f), 250f + k * 12f, 40f, false, Offset(headC.x - headR * (1.03f - k * 0.12f), headC.y - headR * (0.93f - k * 0.1f)), Size(headR * (2.06f - k * 0.24f), headR * (1.96f - k * 0.2f)), style = Stroke(width = headR * 0.04f, cap = StrokeCap.Round))
             }
+            drawCircle(Color.White, headR * 0.07f, Offset(headC.x + headR * 0.95f, headC.y + headR * 0.55f))
+            // Cheekbone highlights.
+            listOf(-1f, 1f).forEach { side -> drawOval(Color.White.copy(alpha = 0.22f), topLeft = Offset(faceC.x + side * faceR * 0.62f - faceR * 0.16f, faceC.y + faceR * 0.02f), size = Size(faceR * 0.32f, faceR * 0.14f)) }
         }
         Person.USAID -> {
-            // Short textured crop with a swoosh up front.
-            val crop = Path().apply {
-                addArc(Rect(headC.x - headR * 1.05f, headC.y - headR * 1.05f, headC.x + headR * 1.05f, headC.y + headR * 1.05f), 190f, 160f)
-                lineTo(headC.x + headR * 0.95f, headC.y - headR * 0.2f)
-                quadraticTo(headC.x + headR * 0.3f, headC.y - headR * 0.55f, headC.x - headR * 0.2f, headC.y - headR * 0.35f)
-                quadraticTo(headC.x - headR * 0.7f, headC.y - headR * 0.2f, headC.x - headR * 0.95f, headC.y - headR * 0.15f)
+            listOf(-1f, 1f).forEach { side -> drawCircle(look.skin, headR * 0.14f, Offset(headC.x + side * headR * 0.98f, headC.y + headR * 0.05f)) }
+            drawPath(face, look.skin)
+            // Jaw contour and a faint stubble band along the jaw.
+            jawShade(faceC, faceR, square, ink.copy(alpha = 0.06f), faceR * 0.22f)
+            jawShade(faceC, faceR, square, ink.copy(alpha = 0.12f), faceR * 0.05f)
+            // Hair: volume on top, a swept fringe that lies on the forehead, side-parted.
+            val hair = Path().apply {
+                moveTo(headC.x - headR * 1.0f, headC.y - headR * 0.05f)
+                cubicTo(headC.x - headR * 1.08f, headC.y - headR * 0.75f, headC.x - headR * 0.6f, headC.y - headR * 1.22f, headC.x + headR * 0.05f, headC.y - headR * 1.2f)
+                cubicTo(headC.x + headR * 0.7f, headC.y - headR * 1.22f, headC.x + headR * 1.1f, headC.y - headR * 0.85f, headC.x + headR * 1.0f, headC.y - headR * 0.1f)
+                // Fringe: sweeps from the right temple down across the forehead and up to the left part.
+                cubicTo(headC.x + headR * 0.85f, headC.y - headR * 0.3f, headC.x + headR * 0.55f, headC.y - headR * 0.48f, headC.x + headR * 0.2f, headC.y - headR * 0.5f)
+                cubicTo(headC.x - headR * 0.15f, headC.y - headR * 0.52f, headC.x - headR * 0.45f, headC.y - headR * 0.6f, headC.x - headR * 0.62f, headC.y - headR * 0.72f)
+                cubicTo(headC.x - headR * 0.8f, headC.y - headR * 0.6f, headC.x - headR * 0.95f, headC.y - headR * 0.35f, headC.x - headR * 1.0f, headC.y - headR * 0.05f)
                 close()
             }
-            drawPath(crop, look.hair)
-            val swoosh = Path().apply {
-                moveTo(headC.x - headR * 0.15f, headC.y - headR * 0.95f)
-                quadraticTo(headC.x + headR * 0.35f, headC.y - headR * 1.45f, headC.x + headR * 0.75f, headC.y - headR * 1.0f)
-                quadraticTo(headC.x + headR * 0.35f, headC.y - headR * 1.05f, headC.x - headR * 0.15f, headC.y - headR * 0.95f)
+            drawPath(hair, Brush.verticalGradient(listOf(Color(0xFF3A322C), look.hair), startY = headC.y - headR * 1.2f, endY = headC.y - headR * 0.3f))
+            // Quiff with volume at the front.
+            val quiff = Path().apply {
+                moveTo(headC.x - headR * 0.3f, headC.y - headR * 1.05f)
+                cubicTo(headC.x + headR * 0.1f, headC.y - headR * 1.55f, headC.x + headR * 0.75f, headC.y - headR * 1.45f, headC.x + headR * 0.95f, headC.y - headR * 0.95f)
+                cubicTo(headC.x + headR * 0.6f, headC.y - headR * 1.15f, headC.x + headR * 0.1f, headC.y - headR * 1.2f, headC.x - headR * 0.3f, headC.y - headR * 1.05f)
                 close()
             }
-            drawPath(swoosh, look.hair)
-            drawArc(Color.White.copy(alpha = 0.2f), 205f, 50f, false, Offset(headC.x - headR * 0.9f, headC.y - headR * 0.9f), Size(headR * 1.8f, headR * 1.8f), style = Stroke(width = headR * 0.07f, cap = StrokeCap.Round))
+            drawPath(quiff, look.hair)
+            // Strand highlights.
+            drawArc(Color.White.copy(alpha = 0.18f), 215f, 45f, false, Offset(headC.x - headR * 0.85f, headC.y - headR * 1.1f), Size(headR * 1.7f, headR * 1.7f), style = Stroke(width = headR * 0.06f, cap = StrokeCap.Round))
+            drawLine(Color.White.copy(alpha = 0.12f), Offset(headC.x + headR * 0.1f, headC.y - headR * 1.3f), Offset(headC.x + headR * 0.6f, headC.y - headR * 1.15f), strokeWidth = headR * 0.05f, cap = StrokeCap.Round)
         }
     }
-    // Ears.
-    if (person == Person.USAID) listOf(-1f, 1f).forEach { side -> drawCircle(look.skin, headR * 0.14f, Offset(headC.x + side * headR * 0.98f, headC.y + headR * 0.05f)) }
-    // Face, drawn after the hair so the fringe never hides the eyes.
-    if (person == Person.USAID) {
-        drawArc(ink.copy(alpha = 0.07f), 20f, 140f, false, Offset(headC.x - headR * 0.92f, headC.y - headR * 0.92f), Size(headR * 1.84f, headR * 1.84f), style = Stroke(width = headR * 0.16f))
-    }
+    // Face, drawn after the hair; the brows sit just under the fringe.
     val lip = if (person == Person.SANYA) Color(0xFFD9607E) else null
-    drawExpression(headC, headR, accent, lookX, lookY, closed, peek, mood, suspicion = suspicion, lashes = person == Person.SANYA, lipTint = lip, browWeight = if (person == Person.USAID) 1.7f else 1f)
+    drawExpression(faceC, faceR, accent, lookX, lookY, closed, peek, mood, suspicion = suspicion, lashes = person == Person.SANYA, lipTint = lip, browWeight = if (person == Person.USAID) 1.8f else 1.1f)
     if (person == Person.USAID) {
         // Round glasses with a bridge and arms to the ears.
-        val gr = headR * 0.3f
-        val gy = headC.y - headR * 0.08f
+        val gr = faceR * 0.3f
+        val gy = faceC.y - faceR * 0.08f
         listOf(-1f, 1f).forEach { side ->
-            val gx = headC.x + side * headR * 0.36f
+            val gx = faceC.x + side * faceR * 0.36f
             drawCircle(Color(0xFFEAF3FF).copy(alpha = 0.25f), gr, Offset(gx, gy))
             drawCircle(ink, gr, Offset(gx, gy), style = Stroke(width = headR * 0.05f))
             drawLine(ink, Offset(gx + side * gr, gy - headR * 0.02f), Offset(headC.x + side * headR * 0.98f, gy - headR * 0.06f), strokeWidth = headR * 0.05f, cap = StrokeCap.Round)
@@ -269,8 +280,8 @@ private fun DrawScope.drawPerson(
     // Hands over the eyes are drawn last.
     if (cover > 0.01f && jump <= 0.05f) {
         listOf(-1f, 1f).forEach { side ->
-            val eyeX = headC.x + side * headR * 0.36f + side * peek * headR * 0.28f
-            val eyeY = headC.y - headR * 0.08f + peek * headR * 0.12f
+            val eyeX = faceCenterX(person, headC) + side * headR * 0.36f + side * peek * headR * 0.28f
+            val eyeY = faceCenterY(person, headC, headR) - headR * 0.08f + peek * headR * 0.12f
             val sx = cx + side * bodyW * 0.48f
             val hx = sx + (eyeX - sx) * cover
             val hy = shoulderY + (eyeY - shoulderY) * cover
@@ -281,3 +292,35 @@ private fun DrawScope.drawPerson(
         }
     }
 }
+
+/**
+ * Face outline: round crown, cheekbones, then a jaw that tapers to the chin.
+ * [square] 0 gives a soft V chin, 1 a broader, squarer jaw.
+ */
+private fun facePath(c: Offset, r: Float, square: Float): Path = Path().apply {
+    addArc(Rect(c.x - r, c.y - r, c.x + r, c.y + r), 180f, 180f)
+    val jawX = r * (0.66f + 0.16f * square)
+    val jawY = r * (0.74f + 0.08f * square)
+    val chinY = r * (1.06f - 0.1f * square)
+    cubicTo(c.x + r, c.y + r * 0.48f, c.x + jawX + r * 0.06f, c.y + jawY - r * 0.12f, c.x + jawX, c.y + jawY)
+    cubicTo(c.x + jawX * (0.55f + 0.2f * square), c.y + chinY, c.x - jawX * (0.55f + 0.2f * square), c.y + chinY, c.x - jawX, c.y + jawY)
+    cubicTo(c.x - jawX - r * 0.06f, c.y + jawY - r * 0.12f, c.x - r, c.y + r * 0.48f, c.x - r, c.y)
+    close()
+}
+
+/** A stroke along the jaw only (from one cheekbone round the chin to the other). */
+private fun DrawScope.jawShade(c: Offset, r: Float, square: Float, color: Color, width: Float) {
+    val jawX = r * (0.66f + 0.16f * square)
+    val jawY = r * (0.74f + 0.08f * square)
+    val chinY = r * (1.06f - 0.1f * square)
+    val p = Path().apply {
+        moveTo(c.x + r * 0.98f, c.y + r * 0.3f)
+        cubicTo(c.x + r, c.y + r * 0.48f, c.x + jawX + r * 0.06f, c.y + jawY - r * 0.12f, c.x + jawX, c.y + jawY)
+        cubicTo(c.x + jawX * (0.55f + 0.2f * square), c.y + chinY, c.x - jawX * (0.55f + 0.2f * square), c.y + chinY, c.x - jawX, c.y + jawY)
+        cubicTo(c.x - jawX - r * 0.06f, c.y + jawY - r * 0.12f, c.x - r, c.y + r * 0.48f, c.x - r * 0.98f, c.y + r * 0.3f)
+    }
+    drawPath(p, color, style = Stroke(width = width, cap = StrokeCap.Round))
+}
+
+private fun faceCenterX(person: Person, headC: Offset): Float = headC.x
+private fun faceCenterY(person: Person, headC: Offset, headR: Float): Float = if (person == Person.SANYA) headC.y + headR * 0.07f else headC.y

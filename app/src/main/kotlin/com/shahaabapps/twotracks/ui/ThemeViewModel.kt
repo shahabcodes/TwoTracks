@@ -28,8 +28,8 @@ class ThemeViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), AccentPalette.QATAR)
 
     val companion: StateFlow<CompanionKind> = themePreferences.companionName
-        .map { runCatching { CompanionKind.valueOf(it) }.getOrDefault(CompanionKind.BUDDY) }
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), CompanionKind.BUDDY)
+        .map { runCatching { CompanionKind.valueOf(it) }.getOrDefault(CompanionKind.SANYA) }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), CompanionKind.SANYA)
 
     fun setCompanion(kind: CompanionKind) {
         viewModelScope.launch { themePreferences.setCompanionName(kind.name) }
