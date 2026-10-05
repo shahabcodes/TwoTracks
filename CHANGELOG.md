@@ -5,6 +5,15 @@ build number is appended by CI (for example `0.1.0 (build 12)`).
 
 ## [Unreleased]
 
+## [0.10.0] - 2026-10-05
+
+### Added
+- Missed study days: on US, the last-4-weeks grid now shows studied (accent), missed (amber) and rest days, with a line on the impact: how many hours were not studied and how many days the plan slips unless they are made up. Free days in your weekly template and days before the plan started never count as missed.
+- Country notes can be cleared with one tap, and the page says where they live (with that country, shared with your partner).
+
+### Changed
+- Reset guide content restarts the plan from today: Level 1 starts on the day you reset and every later level, goal target and the checkpoint move with it. A new space starts on the day it is created. Real-world dates such as the marriage and birthdays stay fixed. Version upgrades keep your current start date.
+
 ## [0.9.0] - 2026-10-05
 
 ### Added

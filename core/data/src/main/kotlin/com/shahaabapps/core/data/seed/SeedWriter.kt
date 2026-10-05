@@ -25,17 +25,25 @@ class SeedWriter @Inject constructor(
 ) {
     val version: Int get() = Seed.VERSION
 
-    suspend fun seedAll(coupleId: String) {
+    /**
+     * @param rebaseToIso when given, Level 1 starts on this date and every
+     * plan-relative date shifts with it. When null the existing Level 1 start
+     * date is kept (version upgrades), falling back to today for a new space.
+     */
+    suspend fun seedAll(coupleId: String, rebaseToIso: String? = null) {
         val batches = BatchRunner(firestore)
-        Seed.goals.forEach { batches.merge(firestore.sub(coupleId, Paths.GOALS).document(it.id), it.toMap() - setOf("passed", "passedAtIso", "active")) }
+        val existingLevels = firestore.sub(coupleId, Paths.LEVELS).get().await().documents.associate { it.id to it.toLevel() }
+        val base = rebaseToIso
+            ?: existingLevels.values.filter { it.number == 1 }.minOfOrNull { it.startDateIso }
+            ?: java.time.LocalDate.now().toString()
+        Seed.goals(base).forEach { batches.merge(firestore.sub(coupleId, Paths.GOALS).document(it.id), it.toMap() - setOf("passed", "passedAtIso", "active")) }
         PersonRole.entries.forEach { role ->
             batches.set(firestore.sub(coupleId, Paths.AVAILABILITY).document(role.name), SeedSchedule.availabilityFor(role).toMap())
         }
-        Seed.habits.forEach { batches.set(firestore.sub(coupleId, Paths.HABITS).document(it.id), it.toMap()) }
-        Seed.deadlines.forEach { batches.set(firestore.sub(coupleId, Paths.DEADLINES).document(it.id), it.toMap()) }
+        Seed.habits(base).forEach { batches.set(firestore.sub(coupleId, Paths.HABITS).document(it.id), it.toMap()) }
+        Seed.deadlines(base).forEach { batches.set(firestore.sub(coupleId, Paths.DEADLINES).document(it.id), it.toMap()) }
         // Levels: keep each item's done state and the level's progress flags from the existing doc.
-        val existingLevels = firestore.sub(coupleId, Paths.LEVELS).get().await().documents.associate { it.id to it.toLevel() }
-        Seed.levels.forEach { seed ->
+        Seed.levels(base).forEach { seed ->
             val existing = existingLevels[seed.id]
             val items = seed.items.map { item ->
                 val old = existing?.items?.firstOrNull { it.id == item.id }

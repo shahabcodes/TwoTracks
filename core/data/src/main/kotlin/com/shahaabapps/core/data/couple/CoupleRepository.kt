@@ -32,8 +32,12 @@ interface CoupleRepository {
 
     suspend fun saveProfile(coupleId: String, profile: Profile): AppResult<Unit>
 
-    /** Re-writes all guide content; keeps logs and progress. */
-    suspend fun resetSeedContent(coupleId: String): AppResult<Unit>
+    /**
+     * Re-writes all guide content; keeps logs and progress. With [startIso]
+     * the plan restarts on that date (Level 1 starts then, later dates follow);
+     * without it the current start date is kept.
+     */
+    suspend fun resetSeedContent(coupleId: String, startIso: String? = null): AppResult<Unit>
 }
 
 @Singleton
@@ -63,7 +67,7 @@ class FirebaseCoupleRepository @Inject constructor(
         )
         ref.set(couple.toMap()).await()
         firestore.sub(ref.id, Paths.PROFILES).document(uid).set(profile.copy(uid = uid).toMap()).await()
-        seedWriter.seedAll(ref.id)
+        seedWriter.seedAll(ref.id, java.time.LocalDate.now().toString())
         couple.copy(seededVersion = seedWriter.version)
     }
 
@@ -91,8 +95,8 @@ class FirebaseCoupleRepository @Inject constructor(
         Unit
     }
 
-    override suspend fun resetSeedContent(coupleId: String): AppResult<Unit> = runCatchingResult {
-        seedWriter.seedAll(coupleId)
+    override suspend fun resetSeedContent(coupleId: String, startIso: String?): AppResult<Unit> = runCatchingResult {
+        seedWriter.seedAll(coupleId, startIso)
     }
 
     private fun generateInviteCode(): String {

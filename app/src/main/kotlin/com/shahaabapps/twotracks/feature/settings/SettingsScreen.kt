@@ -137,7 +137,7 @@ fun SettingsScreen(
 
                     CupertinoListSection(
                         header = "Guide content",
-                        footer = "Restores goals, roadmap, countries, tests, documents and budget from the guide (version ${com.shahaabapps.core.seed.Seed.VERSION}). Logged hours and statuses on your own entries are kept; edits to seeded items are overwritten.",
+                        footer = "Restores goals, roadmap, countries, tests, documents and budget from the guide (version ${com.shahaabapps.core.seed.Seed.VERSION}). Level 1 starts today and every later date moves with it. Logged hours and statuses on your own entries are kept; edits to seeded items are overwritten.",
                     ) {
                         CupertinoListRow(
                             if (state.seedOutdated) "Update to the latest guide content" else "Reset guide content",

@@ -71,6 +71,12 @@ class CountriesViewModel @Inject constructor(
         if (!todo.done) celebrations.saved("Done")
     }
 
+    fun clearNotes(c: CountryTrack) = viewModelScope.launch {
+        val s = sessionStore.current() ?: return@launch
+        trackingRepository.saveCountry(s.coupleId, c.copy(notes = ""))
+        celebrations.removed("Notes cleared")
+    }
+
     fun saveNotes(c: CountryTrack, notes: String) = viewModelScope.launch {
         val s = sessionStore.current() ?: return@launch
         trackingRepository.saveCountry(s.coupleId, c.copy(notes = notes))
@@ -161,7 +167,15 @@ fun CountryDetailScreen(code: String, onBack: () -> Unit, viewModel: CountriesVi
                 var text by androidx.compose.runtime.remember(c.code) { androidx.compose.runtime.mutableStateOf(c.notes) }
                 Column(modifier = Modifier.padding(horizontal = Spacing.listHorizontal)) {
                     CupertinoTextField(value = text, onValueChange = { text = it }, placeholder = "Your notes, e.g. recruiters, salary quotes", singleLine = false, modifier = Modifier.fillMaxWidth())
-                    com.shahaabapps.core.ui.components.CupertinoTextButton(text = "Save notes", onClick = { viewModel.saveNotes(c, text) })
+                    Row {
+                        com.shahaabapps.core.ui.components.CupertinoTextButton(text = "Save notes", onClick = { viewModel.saveNotes(c, text) }, modifier = Modifier.weight(1f))
+                        if (c.notes.isNotBlank()) {
+                            com.shahaabapps.core.ui.components.CupertinoTextButton(text = "Clear notes", destructive = true, onClick = { text = ""; viewModel.clearNotes(c) }, modifier = Modifier.weight(1f))
+                        }
+                    }
+                    if (c.notes.isNotBlank()) {
+                        Text("Saved with this country in your shared space. Both of you can read them here.", style = MaterialTheme.typography.bodySmall, color = AppTheme.colors.secondaryLabel)
+                    }
                 }
             }
         }

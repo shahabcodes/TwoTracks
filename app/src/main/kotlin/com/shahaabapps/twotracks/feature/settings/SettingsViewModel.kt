@@ -97,8 +97,8 @@ class SettingsViewModel @Inject constructor(
 
     fun resetSeed() = viewModelScope.launch {
         val s = sessionStore.current() ?: return@launch
-        when (val r = coupleRepository.resetSeedContent(s.coupleId)) {
-            is AppResult.Success -> message.value = "Guide content restored. Your logs are untouched."
+        when (val r = coupleRepository.resetSeedContent(s.coupleId, Clock.todayIso(s.me))) {
+            is AppResult.Success -> { message.value = "Guide content restored and the plan restarted from today. Your logs are untouched."; celebrations.saved("Plan restarted today") }
             is AppResult.Failure -> message.value = r.error.message
         }
     }

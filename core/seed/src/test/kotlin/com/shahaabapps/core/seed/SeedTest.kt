@@ -52,4 +52,16 @@ class SeedTest {
         assertEquals(5 * 120, SeedSchedule.teacherAvailability.weeklyStudyMinutes)
         assertTrue(Seed.goals.any { it.owner == PersonRole.TEACHER && it.active })
     }
+
+    @Test
+    fun `rebasing shifts plan dates but not real-world deadlines`() {
+        val levels = Seed.levels("2026-10-05")
+        assertEquals("2026-10-05", levels.first { it.id == "tech-1" }.startDateIso)
+        assertEquals("2027-04-04", levels.first { it.id == "tech-1" }.dueDateIso)
+        assertEquals("2026-12-31", Seed.goals.first { it.id == "de-a1" }.targetDateIso)
+        assertEquals("2027-01-04", Seed.goals("2026-10-05").first { it.id == "de-a1" }.targetDateIso)
+        assertEquals("2027-02-01", Seed.deadlines("2026-10-05").first { it.id == "marriage" }.dateIso)
+        assertEquals("2027-10-04", Seed.deadlines("2026-10-05").first { it.id == "checkpoint" }.dateIso)
+        assertEquals(Seed.levels, Seed.levels(Seed.ANCHOR_ISO))
+    }
 }

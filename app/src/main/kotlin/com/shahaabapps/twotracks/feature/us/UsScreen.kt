@@ -27,7 +27,9 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewModelScope
 import com.shahaabapps.core.model.Habit
 import com.shahaabapps.core.model.PersonRole
+import com.shahaabapps.core.data.study.forRole
 import com.shahaabapps.core.planner.Dates
+import com.shahaabapps.core.planner.MissedDays
 import com.shahaabapps.core.ui.components.Avatar
 import com.shahaabapps.core.ui.components.CupertinoCard
 import com.shahaabapps.core.ui.components.CupertinoDisclosure
@@ -56,8 +58,8 @@ data class CountRow(val habit: Habit, val thisWeek: Int, val total: Int)
 
 data class UsUiState(
     val plan: PlanSnapshot? = null,
-    /** Per role: the last 28 days, true where something was logged. */
-    val dots: Map<PersonRole, List<Pair<LocalDate, Boolean>>> = emptyMap(),
+    /** Per role: the last 28 days with studied / missed / rest / upcoming states and the impact of missed days. */
+    val dots: Map<PersonRole, MissedDays.Report> = emptyMap(),
     val counts: Map<PersonRole, List<CountRow>> = emptyMap(),
     val totalHours: Map<PersonRole, Double> = emptyMap(),
 )
@@ -67,12 +69,13 @@ class UsViewModel @Inject constructor(
     planStore: PlanStore,
     dataStore: CoupleDataStore,
 ) : ViewModel() {
-    val uiState: StateFlow<UsUiState> = combine(planStore.plan, dataStore.logs, dataStore.habits, dataStore.habitLogs) { plan, logs, habits, habitLogs ->
+    val uiState: StateFlow<UsUiState> = combine(planStore.plan, dataStore.logs, dataStore.habits, dataStore.habitLogs, dataStore.availability) { plan, logs, habits, habitLogs, availability ->
         if (plan == null) return@combine UsUiState()
         val dots = PersonRole.entries.associateWith { role ->
             val days = logs.filter { it.owner == role }.map { it.dateIso }.toSet()
-            val today = plan.forRole(role).today
-            (27L downTo 0L).map { off -> val d = today.minusDays(off); d to (Dates.format(d) in days) }
+            val person = plan.forRole(role)
+            val planStart = person.levels.minOfOrNull { it.level.startDateIso }
+            MissedDays.report(person.today, availability.forRole(role), days, planStart)
         }
         val counts = PersonRole.entries.associateWith { role ->
             val weekIso = Dates.format(Dates.weekStart(plan.forRole(role).today))
@@ -129,14 +132,32 @@ private fun PersonCard(person: PersonPlan, plan: PlanSnapshot, state: UsUiState,
                 )
             }
         }
-        state.dots[person.role]?.let { dots ->
+        state.dots[person.role]?.let { report ->
             Text("Last 4 weeks", style = MaterialTheme.typography.labelMedium, color = AppTheme.colors.secondaryLabel, modifier = Modifier.padding(top = Spacing.md, bottom = 6.dp))
-            dots.chunked(7).forEach { week ->
+            report.days.chunked(7).forEach { week ->
                 Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth().padding(horizontal = 6.dp, vertical = 4.dp)) {
-                    week.forEach { (_, logged) ->
-                        Box(modifier = Modifier.size(16.dp).clip(CircleShape).background(if (logged) AppTheme.colors.accent else AppTheme.colors.fill))
+                    week.forEach { day ->
+                        val color = when (day.state) {
+                            MissedDays.DayState.LOGGED -> AppTheme.colors.accent
+                            MissedDays.DayState.MISSED -> AppTheme.colors.warn
+                            MissedDays.DayState.REST -> AppTheme.colors.fill
+                            MissedDays.DayState.UPCOMING -> AppTheme.colors.fill.copy(alpha = AppTheme.colors.fill.alpha * 0.4f)
+                        }
+                        Box(modifier = Modifier.size(16.dp).clip(CircleShape).background(color))
                     }
                 }
+            }
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.sm), modifier = Modifier.padding(top = 2.dp)) {
+                Legend(AppTheme.colors.accent, "studied"); Legend(AppTheme.colors.warn, "missed"); Legend(AppTheme.colors.fill, "rest")
+            }
+            if (report.missedCount > 0) {
+                Text(
+                    "${report.missedCount} missed study day${if (report.missedCount == 1) "" else "s"} · %.1f h not studied · the plan lands about ${report.delayDays} day${if (report.delayDays == 1L) "" else "s"} later unless it is made up."
+                        .format(report.lostHours),
+                    style = MaterialTheme.typography.bodySmall, color = AppTheme.colors.warn, modifier = Modifier.padding(top = Spacing.xs),
+                )
+            } else if (report.days.any { it.state == MissedDays.DayState.LOGGED }) {
+                Text("No missed study days. Every planned day was used.", style = MaterialTheme.typography.bodySmall, color = AppTheme.colors.success, modifier = Modifier.padding(top = Spacing.xs))
             }
         }
         person.current?.let { lvl ->
@@ -152,5 +173,13 @@ private fun PersonCard(person: PersonPlan, plan: PlanSnapshot, state: UsUiState,
                 )
             }
         }
+    }
+}
+
+@Composable
+private fun Legend(color: androidx.compose.ui.graphics.Color, label: String) {
+    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+        Box(modifier = Modifier.size(8.dp).clip(CircleShape).background(color))
+        Text(label, style = MaterialTheme.typography.labelSmall, color = AppTheme.colors.secondaryLabel)
     }
 }
