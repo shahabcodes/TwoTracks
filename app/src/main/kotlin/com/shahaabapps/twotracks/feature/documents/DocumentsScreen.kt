@@ -1,12 +1,13 @@
 package com.shahaabapps.twotracks.feature.documents
 
+import com.shahaabapps.twotracks.ui.components.DialogButton
+import com.shahaabapps.twotracks.ui.components.CupertinoDialog
 import com.shahaabapps.twotracks.session.Celebrations
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -121,7 +122,7 @@ fun DocumentsScreen(onBack: () -> Unit, viewModel: DocumentsViewModel = hiltView
                                 onClick = { viewModel.cycle(d) },
                                 trailing = {
                                     StatusChip(label, color, modifier = Modifier.padding(end = Spacing.xs))
-                                    TextButton(onClick = { editing = d }) { Text("Edit") }
+                                    DialogButton(onClick = { editing = d }) { Text("Edit") }
                                 },
                             )
                         }
@@ -134,10 +135,10 @@ fun DocumentsScreen(onBack: () -> Unit, viewModel: DocumentsViewModel = hiltView
     editing?.let { d ->
         var note by remember(d.id) { mutableStateOf(d.note) }
         var expires by remember(d.id) { mutableStateOf(d.expiresOnIso.orEmpty()) }
-        AlertDialog(
+        CupertinoDialog(
             onDismissRequest = { editing = null },
-            confirmButton = { TextButton(onClick = { viewModel.save(d.copy(note = note, expiresOnIso = expires.ifBlank { null })); editing = null }) { Text("Save") } },
-            dismissButton = { TextButton(onClick = { editing = null }) { Text("Cancel") } },
+            confirmButton = { DialogButton(onClick = { viewModel.save(d.copy(note = note, expiresOnIso = expires.ifBlank { null })); editing = null }) { Text("Save") } },
+            dismissButton = { DialogButton(onClick = { editing = null }) { Text("Cancel") } },
             title = { Text(d.name) },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(Spacing.sm)) {

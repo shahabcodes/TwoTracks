@@ -1,5 +1,7 @@
 package com.shahaabapps.twotracks.feature.study
 
+import com.shahaabapps.twotracks.ui.components.DialogButton
+import com.shahaabapps.twotracks.ui.components.CupertinoDialog
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -14,7 +16,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarDuration
@@ -227,10 +228,10 @@ fun GoalDetailScreen(
     }
 
     if (confirmPass && goal != null) {
-        AlertDialog(
+        CupertinoDialog(
             onDismissRequest = { confirmPass = false },
-            confirmButton = { TextButton(onClick = { viewModel.setPassed(true); confirmPass = false }) { Text("Yes, passed") } },
-            dismissButton = { TextButton(onClick = { confirmPass = false }) { Text("Not yet") } },
+            confirmButton = { DialogButton(onClick = { viewModel.setPassed(true); confirmPass = false }) { Text("Yes, passed") } },
+            dismissButton = { DialogButton(onClick = { confirmPass = false }) { Text("Not yet") } },
             title = { Text("Mark ${goal.title} as passed?") },
             text = { Text("Use this when the exam is passed or the level is reached. Your hours stay in the history and the planner stops scheduling it.") },
         )
@@ -243,15 +244,15 @@ fun GoalDetailScreen(
         var skillId by remember { mutableStateOf(goal.components.first().id) }
         var single by remember { mutableStateOf("") }
         val canSave = if (fullTest) values.value.values.any { it.isNotBlank() } else single.isNotBlank()
-        AlertDialog(
+        CupertinoDialog(
             onDismissRequest = { showMock = false },
             confirmButton = {
-                TextButton(enabled = canSave, onClick = {
+                DialogButton(enabled = canSave, onClick = {
                     val scores = if (fullTest) values.value.filterValues { it.isNotBlank() } else mapOf(skillId to single.trim())
                     viewModel.addMockScore(scores, note); showMock = false
                 }) { Text("Save") }
             },
-            dismissButton = { TextButton(onClick = { showMock = false }) { Text("Cancel") } },
+            dismissButton = { DialogButton(onClick = { showMock = false }) { Text("Cancel") } },
             title = { Text("Practice result") },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(Spacing.sm)) {

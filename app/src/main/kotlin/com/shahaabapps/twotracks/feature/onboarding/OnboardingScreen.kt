@@ -1,5 +1,6 @@
 package com.shahaabapps.twotracks.feature.onboarding
 
+import com.shahaabapps.twotracks.ui.components.LoadingOverlay
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -35,6 +36,7 @@ fun OnboardingScreen(
     viewModel: OnboardingViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+    if (state.isSubmitting) LoadingOverlay("Setting up your space")
 
     CupertinoScaffold(title = "Your space", modifier = modifier) {
         Column(

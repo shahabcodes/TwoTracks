@@ -1,5 +1,7 @@
 package com.shahaabapps.twotracks.feature.levels
 
+import com.shahaabapps.twotracks.ui.components.DialogButton
+import com.shahaabapps.twotracks.ui.components.CupertinoDialog
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -13,7 +15,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckBox
 import androidx.compose.material.icons.filled.CheckBoxOutlineBlank
 import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarHost
@@ -217,20 +218,20 @@ fun LevelScreen(
 
     confirmPass?.let { goalId ->
         val title = state.goalsById[goalId]?.title ?: "this goal"
-        AlertDialog(
+        CupertinoDialog(
             onDismissRequest = { confirmPass = null },
-            confirmButton = { TextButton(onClick = { viewModel.setPassed(goalId, true); confirmPass = null }) { Text("Yes, passed") } },
-            dismissButton = { TextButton(onClick = { confirmPass = null }) { Text("Not yet") } },
+            confirmButton = { DialogButton(onClick = { viewModel.setPassed(goalId, true); confirmPass = null }) { Text("Yes, passed") } },
+            dismissButton = { DialogButton(onClick = { confirmPass = null }) { Text("Not yet") } },
             title = { Text("Mark $title as passed?") },
             text = { Text("Use this when the exam is passed or the level is reached. Hours studied stay in your history. You can reopen it from the goal page.") },
         )
     }
     confirmRemove?.let { item ->
         val isGoal = item.goalId?.startsWith("custom-") == true
-        AlertDialog(
+        CupertinoDialog(
             onDismissRequest = { confirmRemove = null },
-            confirmButton = { TextButton(onClick = { viewModel.removeItem(item); confirmRemove = null }) { Text("Remove", color = AppTheme.colors.destructive) } },
-            dismissButton = { TextButton(onClick = { confirmRemove = null; swipeReset++ }) { Text("Keep") } },
+            confirmButton = { DialogButton(onClick = { viewModel.removeItem(item); confirmRemove = null }, destructive = true) { Text("Remove") } },
+            dismissButton = { DialogButton(onClick = { confirmRemove = null; swipeReset++ }) { Text("Keep") } },
             title = { Text("Remove ${item.title}?") },
             text = { Text(if (isGoal) "The goal, its skills and its logged hours are deleted too." else "This takes the item off the level checklist.") },
         )
@@ -239,10 +240,10 @@ fun LevelScreen(
         var text by remember { mutableStateOf("") }
         var detail by remember { mutableStateOf("") }
         var required by remember { mutableStateOf(true) }
-        AlertDialog(
+        CupertinoDialog(
             onDismissRequest = { addTask = false },
-            confirmButton = { TextButton(enabled = text.isNotBlank(), onClick = { viewModel.addTask(text, detail, required); addTask = false }) { Text("Add") } },
-            dismissButton = { TextButton(onClick = { addTask = false }) { Text("Cancel") } },
+            confirmButton = { DialogButton(enabled = text.isNotBlank(), onClick = { viewModel.addTask(text, detail, required); addTask = false }) { Text("Add") } },
+            dismissButton = { DialogButton(onClick = { addTask = false }) { Text("Cancel") } },
             title = { Text("New checklist item") },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(Spacing.sm), modifier = Modifier.padding(top = 4.dp)) {

@@ -1,5 +1,6 @@
 package com.shahaabapps.twotracks.feature.study
 
+import com.shahaabapps.twotracks.ui.components.LoadingOverlay
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -44,6 +45,7 @@ fun GoalEditScreen(
     viewModel: GoalEditViewModel = hiltViewModel(),
 ) {
     val s by viewModel.uiState.collectAsStateWithLifecycle()
+    if (s.saving) LoadingOverlay("Saving")
 
     DetailScaffold(title = if (!s.isNew) "Edit goal" else if (s.levelId != null) "New goal for this level" else "New goal", onBack = onDone) {
         if (!s.loaded) return@DetailScaffold

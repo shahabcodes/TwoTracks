@@ -1,5 +1,7 @@
 package com.shahaabapps.twotracks.feature.tests
 
+import com.shahaabapps.twotracks.ui.components.DialogButton
+import com.shahaabapps.twotracks.ui.components.CupertinoDialog
 import com.shahaabapps.twotracks.session.Celebrations
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -10,7 +12,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -132,10 +133,10 @@ fun TestsScreen(onBack: () -> Unit, viewModel: TestsViewModel = hiltViewModel())
         val actual = remember(t.id) { mutableStateOf(t.targetBands.keys.associateWith { t.actualBands[it].orEmpty() }) }
         var taken by remember(t.id) { mutableStateOf(t.takenOnIso.orEmpty()) }
         var expires by remember(t.id) { mutableStateOf(t.expiresOnIso.orEmpty()) }
-        AlertDialog(
+        CupertinoDialog(
             onDismissRequest = { editing = null },
             confirmButton = {
-                TextButton(onClick = {
+                DialogButton(onClick = {
                     viewModel.save(
                         t.copy(
                             actualBands = actual.value.filterValues { it.isNotBlank() },
@@ -145,7 +146,7 @@ fun TestsScreen(onBack: () -> Unit, viewModel: TestsViewModel = hiltViewModel())
                     editing = null
                 }) { Text("Save") }
             },
-            dismissButton = { TextButton(onClick = { editing = null }) { Text("Cancel") } },
+            dismissButton = { DialogButton(onClick = { editing = null }) { Text("Cancel") } },
             title = { Text(t.name) },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(Spacing.sm)) {

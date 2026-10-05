@@ -84,7 +84,7 @@ class LevelViewModel @Inject constructor(
         message.value = if (goalId != null && goalId.startsWith("custom-")) {
             actions.deleteGoal(goalId) ?: "Removed"
         } else {
-            actions.saveLevel(level.copy(items = level.items.filterNot { it.id == item.id }), celebrateAs = "Removed from the level") ?: "Removed from the level"
+            actions.saveLevel(level.copy(items = level.items.filterNot { it.id == item.id }), celebrateAs = "Removed from the level", removal = true) ?: "Removed from the level"
         }
     }
 

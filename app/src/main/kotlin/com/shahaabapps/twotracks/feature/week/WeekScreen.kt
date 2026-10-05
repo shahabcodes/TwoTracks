@@ -1,5 +1,7 @@
 package com.shahaabapps.twotracks.feature.week
 
+import com.shahaabapps.twotracks.ui.components.DialogButton
+import com.shahaabapps.twotracks.ui.components.CupertinoDialog
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -17,7 +19,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -133,9 +134,9 @@ fun WeekScreen(
     }
 
     assignRow?.let { (day, row) ->
-        AlertDialog(
+        CupertinoDialog(
             onDismissRequest = { assignRow = null },
-            confirmButton = { TextButton(onClick = { assignRow = null }) { Text("Cancel") } },
+            confirmButton = { DialogButton(onClick = { assignRow = null }) { Text("Cancel") } },
             title = { Text("${Clock.formatDayMonth(day.date)} ${Dates.minutesToClock(row.block.startMinutes)}") },
             text = {
                 Column {
@@ -226,10 +227,10 @@ private fun DayCard(day: DayPlan, editable: Boolean, onOpenGoal: (String) -> Uni
 private fun AddBlockDialog(dayLabel: String, onDismiss: () -> Unit, onAdd: (Int, Int) -> Unit) {
     var startHour by remember { mutableStateOf(9) }
     var duration by remember { mutableStateOf(60) }
-    AlertDialog(
+    CupertinoDialog(
         onDismissRequest = onDismiss,
-        confirmButton = { TextButton(onClick = { onAdd(startHour * 60, startHour * 60 + duration) }) { Text("Add") } },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } },
+        confirmButton = { DialogButton(onClick = { onAdd(startHour * 60, startHour * 60 + duration) }) { Text("Add") } },
+        dismissButton = { DialogButton(onClick = onDismiss) { Text("Cancel") } },
         title = { Text("Extra study block, $dayLabel") },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(Spacing.sm)) {

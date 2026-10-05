@@ -203,10 +203,10 @@ class StudyActions @Inject constructor(
         return (r as? AppResult.Failure)?.error?.message ?: run { celebrations.removed("Goal removed"); null }
     }
 
-    suspend fun saveLevel(level: Level, celebrateAs: String? = null): String? {
+    suspend fun saveLevel(level: Level, celebrateAs: String? = null, removal: Boolean = false): String? {
         val s = sessionStore.current() ?: return "Not signed in"
         return (studyRepository.saveLevel(s.coupleId, level) as? AppResult.Failure)?.error?.message
-            ?: run { celebrations.saved(celebrateAs ?: "Saved"); null }
+            ?: run { if (removal) celebrations.removed(celebrateAs ?: "Removed") else celebrations.saved(celebrateAs ?: "Saved"); null }
     }
 
     fun todayIso(): String = Clock.todayIso(sessionStore.current()?.me)

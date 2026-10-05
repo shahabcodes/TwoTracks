@@ -1,5 +1,6 @@
 package com.shahaabapps.twotracks.feature.auth
 
+import com.shahaabapps.twotracks.ui.components.LoadingOverlay
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -40,6 +41,7 @@ fun AuthScreen(
     viewModel: AuthViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+    if (state.isSubmitting) LoadingOverlay("Signing you in")
 
     Column(
         modifier = modifier

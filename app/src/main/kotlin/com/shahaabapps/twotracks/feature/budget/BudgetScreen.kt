@@ -1,5 +1,7 @@
 package com.shahaabapps.twotracks.feature.budget
 
+import com.shahaabapps.twotracks.ui.components.DialogButton
+import com.shahaabapps.twotracks.ui.components.CupertinoDialog
 import com.shahaabapps.twotracks.session.Celebrations
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -9,7 +11,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -134,18 +135,18 @@ fun BudgetScreen(onBack: () -> Unit, viewModel: BudgetViewModel = hiltViewModel(
         var spent by remember(b.id) { mutableStateOf(if (b.spent > 0) "%.0f".format(b.spent) else "") }
         var currency by remember(b.id) { mutableStateOf(b.currency) }
         var paid by remember(b.id) { mutableStateOf(b.paidOnIso.orEmpty()) }
-        AlertDialog(
+        CupertinoDialog(
             onDismissRequest = { editing = null },
             confirmButton = {
-                TextButton(onClick = {
+                DialogButton(onClick = {
                     viewModel.save(b.copy(item = item.trim(), planned = planned.toDoubleOrNull() ?: 0.0, spent = spent.toDoubleOrNull() ?: 0.0, currency = currency.uppercase().ifBlank { "USD" }, paidOnIso = paid.ifBlank { null }))
                     editing = null
                 }, enabled = item.isNotBlank()) { Text("Save") }
             },
             dismissButton = {
                 Row {
-                    if (b.id.isNotBlank()) TextButton(onClick = { viewModel.delete(b.id); editing = null }) { Text("Delete", color = AppTheme.colors.destructive) }
-                    TextButton(onClick = { editing = null }) { Text("Cancel") }
+                    if (b.id.isNotBlank()) DialogButton(onClick = { viewModel.delete(b.id); editing = null }, destructive = true) { Text("Delete") }
+                    DialogButton(onClick = { editing = null }) { Text("Cancel") }
                 }
             },
             title = { Text(if (b.id.isBlank()) "New item" else "Edit item") },

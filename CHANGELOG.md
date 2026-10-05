@@ -5,6 +5,13 @@ build number is appended by CI (for example `0.1.0 (build 12)`).
 
 ## [Unreleased]
 
+## [0.12.0] - 2026-10-05
+
+### Changed
+- Celebrations are now drawn from the app icon: the two rising tracks with the marker at the head. Saves draw the tracks in and land the marker with a pulse; logs add a growing tick; a pass bursts into rings and sparks; a delete unravels the tracks and drops the marker. The flag and confetti are gone.
+- Every dialog is the app's own: a rounded card that springs in with a haptic tap, a filled full-width main action and soft secondary pills that press down. No platform dialogs remain.
+- Waiting states use the same tracks as a loader: opening your space, signing in, creating or joining a space, and saving a goal.
+
 ## [0.11.0] - 2026-10-05
 
 ### Added

@@ -1,5 +1,6 @@
 package com.shahaabapps.twotracks
 
+import com.shahaabapps.twotracks.ui.components.TracksLoader
 import android.os.Bundle
 import androidx.activity.compose.setContent
 import com.shahaabapps.core.ui.theme.ThemeMode
@@ -9,7 +10,6 @@ import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
@@ -92,7 +92,7 @@ private fun AppRoot(appLock: AppLock, viewModel: AppViewModel = hiltViewModel())
         return
     }
     when (val current = state) {
-        SessionState.Loading -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
+        SessionState.Loading -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { TracksLoader(label = "Opening your space") }
         SessionState.SignedOut -> AuthScreen()
         is SessionState.NoSpace -> OnboardingScreen()
         is SessionState.Ready -> MainNavGraph(session = current.session)

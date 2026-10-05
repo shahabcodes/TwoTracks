@@ -1,5 +1,7 @@
 package com.shahaabapps.twotracks.feature.settings
 
+import com.shahaabapps.twotracks.ui.components.DialogButton
+import com.shahaabapps.twotracks.ui.components.CupertinoDialog
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.material.icons.filled.Lock
 import android.Manifest
@@ -13,7 +15,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -164,10 +165,10 @@ fun SettingsScreen(
 
     if (editName && s != null) {
         var name by remember { mutableStateOf(s.me.name) }
-        AlertDialog(
+        CupertinoDialog(
             onDismissRequest = { editName = false },
-            confirmButton = { TextButton(onClick = { viewModel.saveProfile { it.copy(name = name.trim()) }; editName = false }, enabled = name.isNotBlank()) { Text("Save") } },
-            dismissButton = { TextButton(onClick = { editName = false }) { Text("Cancel") } },
+            confirmButton = { DialogButton(onClick = { viewModel.saveProfile { it.copy(name = name.trim()) }; editName = false }, enabled = name.isNotBlank()) { Text("Save") } },
+            dismissButton = { DialogButton(onClick = { editName = false }) { Text("Cancel") } },
             title = { Text("Your name") },
             text = { CupertinoTextField(value = name, onValueChange = { name = it }, placeholder = "Name", modifier = Modifier.fillMaxWidth()) },
         )
@@ -180,15 +181,15 @@ fun SettingsScreen(
         var new by remember { mutableStateOf("") }
         var again by remember { mutableStateOf("") }
         val mismatch = again.isNotEmpty() && new != again
-        AlertDialog(
+        CupertinoDialog(
             onDismissRequest = { changePassword = false },
             confirmButton = {
-                TextButton(
+                DialogButton(
                     onClick = { viewModel.changePassword(current, new); changePassword = false },
                     enabled = current.isNotEmpty() && new.length >= 6 && new == again,
                 ) { Text("Change") }
             },
-            dismissButton = { TextButton(onClick = { changePassword = false }) { Text("Cancel") } },
+            dismissButton = { DialogButton(onClick = { changePassword = false }) { Text("Cancel") } },
             title = { Text("Change password") },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(Spacing.sm)) {
@@ -203,10 +204,10 @@ fun SettingsScreen(
         )
     }
     if (confirmReset) {
-        AlertDialog(
+        CupertinoDialog(
             onDismissRequest = { confirmReset = false },
-            confirmButton = { TextButton(onClick = { viewModel.resetSeed(); confirmReset = false }) { Text("Reset", color = AppTheme.colors.destructive) } },
-            dismissButton = { TextButton(onClick = { confirmReset = false }) { Text("Cancel") } },
+            confirmButton = { DialogButton(onClick = { viewModel.resetSeed(); confirmReset = false }, destructive = true) { Text("Reset") } },
+            dismissButton = { DialogButton(onClick = { confirmReset = false }) { Text("Cancel") } },
             title = { Text("Reset guide content?") },
             text = { Text("Seeded goals, milestones, country to-dos, tests, documents and budget lines go back to the guide defaults. Study logs, mock scores and sessions are kept.") },
         )

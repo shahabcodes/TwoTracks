@@ -1,5 +1,7 @@
 package com.shahaabapps.twotracks.feature.settings
 
+import com.shahaabapps.twotracks.ui.components.DialogButton
+import com.shahaabapps.twotracks.ui.components.CupertinoDialog
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -11,7 +13,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -89,10 +90,10 @@ fun AvailabilityScreen(onBack: () -> Unit, viewModel: SettingsViewModel = hiltVi
         var goalId by remember { mutableStateOf(state.myGoals.firstOrNull { it.active }?.id) }
         fun parse(t: String): Int? = t.split(":").takeIf { it.size == 2 }?.let { (h, m) -> h.toIntOrNull()?.let { hh -> m.toIntOrNull()?.let { mm -> hh * 60 + mm } } }
         val valid = parse(start) != null && parse(end) != null && parse(end)!! > parse(start)!!
-        AlertDialog(
+        CupertinoDialog(
             onDismissRequest = { adding = null },
             confirmButton = {
-                TextButton(enabled = valid, onClick = {
+                DialogButton(enabled = valid, onClick = {
                     val s = parse(start)!!; val e = parse(end)!!
                     blocks = current + AvailabilityBlock(
                         id = "${kind.name.lowercase()}-$day-$s-${System.currentTimeMillis() % 100000}", dayOfWeek = day, startMinutes = s, endMinutes = e, kind = kind,
@@ -102,7 +103,7 @@ fun AvailabilityScreen(onBack: () -> Unit, viewModel: SettingsViewModel = hiltVi
                     adding = null
                 }) { Text("Add") }
             },
-            dismissButton = { TextButton(onClick = { adding = null }) { Text("Cancel") } },
+            dismissButton = { DialogButton(onClick = { adding = null }) { Text("Cancel") } },
             title = { Text(DayOfWeek.of(day).getDisplayName(TextStyle.FULL, Locale.ENGLISH)) },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(Spacing.sm)) {

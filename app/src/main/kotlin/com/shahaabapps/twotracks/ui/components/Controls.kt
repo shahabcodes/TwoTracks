@@ -14,7 +14,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -162,9 +161,9 @@ fun TimezoneDialog(selected: String, onSelect: (String) -> Unit, onDismiss: () -
                 "Australia/Perth", "Pacific/Auckland", "UTC",
             )).distinct()
         }
-        AlertDialog(
+        CupertinoDialog(
             onDismissRequest = onDismiss,
-            confirmButton = { TextButton(onClick = onDismiss) { Text("Close") } },
+            confirmButton = { DialogButton(onClick = onDismiss) { Text("Close") } },
             title = { Text("Timezone") },
             text = {
                 Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
