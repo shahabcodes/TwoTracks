@@ -18,6 +18,7 @@ enum class AuthMode { SIGN_IN, SIGN_UP, RESET }
 data class AuthUiState(
     val email: String = "",
     val password: String = "",
+    val confirmPassword: String = "",
     val mode: AuthMode = AuthMode.SIGN_IN,
     val isSubmitting: Boolean = false,
     val errorMessage: String? = null,
@@ -27,10 +28,12 @@ data class AuthUiState(
 ) {
     val isSignUp: Boolean get() = mode == AuthMode.SIGN_UP
     val emailValid: Boolean get() = email.contains("@") && email.substringAfter("@").contains(".")
+    val passwordsMatch: Boolean get() = confirmPassword == password
     val canSubmit: Boolean
         get() = !isSubmitting && when (mode) {
             AuthMode.RESET -> emailValid
-            else -> emailValid && password.length >= 6
+            AuthMode.SIGN_UP -> emailValid && password.length >= 6 && confirmPassword.isNotEmpty() && passwordsMatch
+            AuthMode.SIGN_IN -> emailValid && password.length >= 6
         }
 }
 
@@ -44,7 +47,8 @@ class AuthViewModel @Inject constructor(
 
     fun onEmailChange(value: String) = _uiState.update { it.copy(email = value.trim(), errorMessage = null, infoMessage = null) }
     fun onPasswordChange(value: String) = _uiState.update { it.copy(password = value, errorMessage = null, infoMessage = null) }
-    fun setMode(mode: AuthMode) = _uiState.update { it.copy(mode = mode, errorMessage = null, infoMessage = null) }
+    fun onConfirmChange(value: String) = _uiState.update { it.copy(confirmPassword = value, errorMessage = null, infoMessage = null) }
+    fun setMode(mode: AuthMode) = _uiState.update { it.copy(mode = mode, confirmPassword = "", errorMessage = null, infoMessage = null) }
     fun toggleMode() = setMode(if (_uiState.value.isSignUp) AuthMode.SIGN_IN else AuthMode.SIGN_UP)
 
     fun submit() {

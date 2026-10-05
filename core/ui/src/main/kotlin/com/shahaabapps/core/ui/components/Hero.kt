@@ -4,6 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
@@ -35,13 +36,15 @@ fun Hero(
     modifier: Modifier = Modifier,
     subtitle: String? = null,
     actions: @Composable RowScope.() -> Unit = {},
+    /** Drawn over the gradient and under the text, e.g. a moving light layer. */
+    backdrop: (@Composable BoxScope.() -> Unit)? = null,
     content: @Composable ColumnScope.() -> Unit = {},
 ) {
+    Box(modifier = modifier.fillMaxWidth().clip(Shapes.hero).background(Brand.accentGradient)) {
+    backdrop?.let { Box(modifier = Modifier.matchParentSize()) { it() } }
     Column(
-        modifier = modifier
+        modifier = Modifier
             .fillMaxWidth()
-            .clip(Shapes.hero)
-            .background(Brand.accentGradient)
             .statusBarsPadding()
             .padding(start = Spacing.listHorizontal, end = Spacing.listHorizontal, top = Spacing.md, bottom = Spacing.lg + 4.dp),
         verticalArrangement = Arrangement.spacedBy(Spacing.sm),
@@ -65,6 +68,7 @@ fun Hero(
             )
         }
         content()
+    }
     }
 }
 

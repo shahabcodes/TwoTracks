@@ -23,6 +23,7 @@ import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.Canvas
+import com.shahaabapps.twotracks.ui.components.AuroraLayer
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -51,6 +52,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowForward
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Mail
 import androidx.compose.material.icons.filled.Visibility
@@ -68,6 +70,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
@@ -98,7 +101,6 @@ import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.roundToInt
 import kotlin.math.sin
-import kotlin.random.Random
 
 /**
  * Sign in, sign up and reset in one place: a living aurora backdrop with the
@@ -119,12 +121,23 @@ fun AuthScreen(
         if (state.errorTick == 0) return@LaunchedEffect
         shake.animateTo(0f, keyframes { durationMillis = 420; 0f at 0; -14f at 60; 12f at 120; -8f at 180; 5f at 240; -2f at 300; 0f at 420 })
     }
+    var focus by remember { mutableStateOf(FieldFocus.NONE) }
+    var passwordShown by remember { mutableStateOf(false) }
+    val mood = when {
+        state.errorMessage != null -> -1f
+        state.mode == AuthMode.SIGN_UP && state.confirmPassword.isNotEmpty() && !state.passwordsMatch -> -1f
+        state.mode == AuthMode.SIGN_UP && state.confirmPassword.isNotEmpty() && state.passwordsMatch && state.password.length >= 6 -> 1f
+        state.emailValid && (state.mode == AuthMode.RESET || state.password.length >= 6) -> 1f
+        state.emailValid -> 0.6f
+        else -> 0.25f
+    }
+    val mascot = MascotState(focus = focus, lookX = emailLook(state.email), passwordShown = passwordShown, mood = mood)
     // Card rises in on first open.
     val enter = remember { Animatable(0f) }
     LaunchedEffect(Unit) { enter.animateTo(1f, tween(700, delayMillis = 250, easing = FastOutSlowInEasing)) }
 
     Box(modifier = modifier.fillMaxSize().background(AppTheme.colors.groupedBackground)) {
-        AuroraBackdrop(modifier = Modifier.fillMaxSize())
+        AuroraLayer(modifier = Modifier.fillMaxSize())
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -133,14 +146,17 @@ fun AuthScreen(
                 .verticalScroll(rememberScrollState()),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            Hero(mode = state.mode, modifier = Modifier.fillMaxWidth().height(300.dp))
+            // The hero folds away while a field has focus so the face stays above the keyboard.
+            val heroHeight by animateDpAsState(if (focus == FieldFocus.NONE) 280.dp else 0.dp, tween(360, easing = FastOutSlowInEasing), label = "hero")
+            Hero(mode = state.mode, modifier = Modifier.fillMaxWidth().height(heroHeight).clip(RoundedCornerShape(0.dp)))
             Box(
                 modifier = Modifier
                     .padding(horizontal = Spacing.listHorizontal)
+                    .padding(top = MascotSize / 2)
                     .offset { IntOffset(shake.value.roundToInt(), ((1f - enter.value) * 60).roundToInt()) }
                     .alpha(enter.value),
             ) {
-                GlassCard {
+                GlassCard(topInset = MascotSize / 2 + Spacing.xs) {
                     ModeTabs(mode = state.mode, onSelect = viewModel::setMode)
                     AnimatedContent(
                         targetState = state.mode,
@@ -172,9 +188,10 @@ fun AuthScreen(
                                 value = state.email, onValueChange = viewModel::onEmailChange, placeholder = "Email",
                                 icon = { Icon(Icons.Filled.Mail, null) }, keyboardType = KeyboardType.Email,
                                 valid = state.email.isEmpty() || state.emailValid,
+                                onFocusChange = { if (it) focus = FieldFocus.EMAIL else if (focus == FieldFocus.EMAIL) focus = FieldFocus.NONE },
                             )
                             if (mode != AuthMode.RESET) {
-                                var show by remember { mutableStateOf(false) }
+                                val show = passwordShown
                                 NeoField(
                                     value = state.password, onValueChange = viewModel::onPasswordChange,
                                     placeholder = if (mode == AuthMode.SIGN_UP) "Choose a password (6+ characters)" else "Password",
@@ -184,11 +201,30 @@ fun AuthScreen(
                                         Icon(
                                             if (show) Icons.Filled.VisibilityOff else Icons.Filled.Visibility, contentDescription = if (show) "Hide password" else "Show password",
                                             tint = AppTheme.colors.secondaryLabel,
-                                            modifier = Modifier.size(22.dp).clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) { show = !show },
+                                            modifier = Modifier.size(22.dp).clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) { passwordShown = !passwordShown },
                                         )
                                     },
+                                    onFocusChange = { if (it) focus = FieldFocus.PASSWORD else if (focus == FieldFocus.PASSWORD) focus = FieldFocus.NONE },
                                 )
-                                if (mode == AuthMode.SIGN_UP) StrengthMeter(state.password)
+                                if (mode == AuthMode.SIGN_UP) {
+                                    StrengthMeter(state.password)
+                                    val mismatch = state.confirmPassword.isNotEmpty() && !state.passwordsMatch
+                                    NeoField(
+                                        value = state.confirmPassword, onValueChange = viewModel::onConfirmChange, placeholder = "Confirm password",
+                                        icon = { Icon(Icons.Filled.Lock, null) }, keyboardType = KeyboardType.Password,
+                                        visualTransformation = if (show) VisualTransformation.None else PasswordVisualTransformation(),
+                                        valid = !mismatch,
+                                        trailing = {
+                                            AnimatedVisibility(visible = state.confirmPassword.isNotEmpty() && state.passwordsMatch, enter = fadeIn(), exit = fadeOut()) {
+                                                Icon(Icons.Filled.CheckCircle, contentDescription = "Passwords match", tint = AppTheme.colors.success, modifier = Modifier.size(22.dp))
+                                            }
+                                        },
+                                        onFocusChange = { if (it) focus = FieldFocus.CONFIRM else if (focus == FieldFocus.CONFIRM) focus = FieldFocus.NONE },
+                                    )
+                                    AnimatedVisibility(visible = mismatch, enter = expandVertically() + fadeIn(), exit = shrinkVertically() + fadeOut()) {
+                                        Text("The two passwords differ.", style = MaterialTheme.typography.labelSmall, color = AppTheme.colors.destructive)
+                                    }
+                                }
                             }
                         }
                     }
@@ -212,6 +248,13 @@ fun AuthScreen(
                     )
                     LinkRow(mode = state.mode, onSelect = viewModel::setMode)
                 }
+                Mascot(
+                    state = mascot,
+                    modifier = Modifier
+                        .align(Alignment.TopCenter)
+                        .offset(y = -MascotSize / 2 - 6.dp)
+                        .size(width = MascotWidth, height = MascotSize + 12.dp),
+                )
             }
             Spacer(Modifier.height(Spacing.xl))
         }
@@ -230,11 +273,11 @@ private fun Hero(mode: AuthMode, modifier: Modifier = Modifier) {
     val gradient = AppTheme.colors.gradient
     val accent = AppTheme.colors.accent
     Box(modifier = modifier) {
-        Canvas(modifier = Modifier.fillMaxSize()) {
+        Canvas(modifier = Modifier.fillMaxSize().clipToBounds()) {
             val t = draw.value
             val s = tracks(size.width * 0.56f, size.height * 0.44f + (drift - 0.5f) * 10f, size.width * 0.42f)
             // Glow halo under the tracks.
-            drawCircle(Brush.radialGradient(listOf(accent.copy(alpha = 0.35f), Color.Transparent), center = Offset(size.width * 0.58f, size.height * 0.5f), radius = size.width * 0.42f), radius = size.width * 0.42f, center = Offset(size.width * 0.58f, size.height * 0.5f))
+            if (size.height > 1f) drawCircle(Brush.radialGradient(listOf(accent.copy(alpha = 0.35f), accent.copy(alpha = 0f)), center = Offset(size.width * 0.58f, size.height * 0.5f), radius = size.width * 0.42f), radius = size.width * 0.42f, center = Offset(size.width * 0.58f, size.height * 0.5f))
             drawPath(segment(s.trailMeasure, 0f, (t * 1.1f - 0.1f).coerceIn(0f, 1f)), Color.White.copy(alpha = 0.55f), style = Stroke(width = s.stroke * 0.85f, cap = StrokeCap.Round))
             drawPath(segment(s.leadMeasure, 0f, t), Brush.linearGradient(listOf(Color.White, gradient.first()), start = Offset(0f, size.height), end = Offset(size.width, 0f)), style = Stroke(width = s.stroke, cap = StrokeCap.Round))
             val pos = s.leadMeasure.getPosition(t * s.leadMeasure.length)
@@ -283,62 +326,10 @@ private fun segment(measure: PathMeasure, from: Float, to: Float): Path {
     return out
 }
 
-// -------------------------------------------------------------- backdrop
-
-/**
- * Deep gradient sky with three aurora blobs on slow Lissajous paths, a field
- * of twinkling points and a faint perspective grid, all in the theme's
- * colours. The lower part fades to the grouped background so the card sits
- * on something calm.
- */
-@Composable
-private fun AuroraBackdrop(modifier: Modifier = Modifier) {
-    val transition = rememberInfiniteTransition(label = "aurora")
-    val t by transition.animateFloat(0f, 1f, infiniteRepeatable(tween(16000, easing = LinearEasing), RepeatMode.Restart), label = "t")
-    val twinkle by transition.animateFloat(0f, 1f, infiniteRepeatable(tween(2600, easing = LinearEasing), RepeatMode.Reverse), label = "tw")
-    val gradient = AppTheme.colors.gradient
-    val accent = AppTheme.colors.accent
-    val base = AppTheme.colors.groupedBackground
-    val stars = remember { val r = Random(7); List(70) { Triple(r.nextFloat(), r.nextFloat() * 0.6f, r.nextFloat()) } }
-    Canvas(modifier = modifier) {
-        val skyH = size.height * 0.62f
-        drawRect(Brush.verticalGradient(listOf(gradient.last(), gradient[gradient.size / 2], base), startY = 0f, endY = skyH * 1.15f))
-        // Aurora blobs.
-        val phase = t * 2f * PI.toFloat()
-        val blobs = listOf(
-            Triple(0.25f + 0.18f * sin(phase), 0.22f + 0.08f * cos(phase * 1.3f), gradient.first()),
-            Triple(0.75f + 0.15f * cos(phase * 0.8f), 0.35f + 0.1f * sin(phase * 1.1f), accent),
-            Triple(0.5f + 0.25f * sin(phase * 0.6f + 1f), 0.08f + 0.06f * cos(phase * 0.9f), Color.White),
-        )
-        blobs.forEachIndexed { i, (fx, fy, c) ->
-            val center = Offset(size.width * fx, skyH * fy)
-            val radius = size.width * (0.45f + 0.1f * i)
-            drawCircle(Brush.radialGradient(listOf(c.copy(alpha = if (i == 2) 0.18f else 0.42f), Color.Transparent), center = center, radius = radius), radius = radius, center = center)
-        }
-        // Perspective grid, drifting upward.
-        val lines = 9
-        for (i in 0..lines) {
-            val f = ((i.toFloat() / lines) + t) % 1f
-            val y = skyH * (0.35f + 0.65f * f * f)
-            drawLine(Color.White.copy(alpha = 0.06f * f), Offset(0f, y), Offset(size.width, y), strokeWidth = 1f)
-        }
-        for (i in 0..8) {
-            val x0 = size.width * (i / 8f)
-            val x1 = size.width * 0.5f + (x0 - size.width * 0.5f) * 0.25f
-            drawLine(Color.White.copy(alpha = 0.05f), Offset(x0, skyH), Offset(x1, skyH * 0.35f), strokeWidth = 1f)
-        }
-        // Stars.
-        stars.forEach { (fx, fy, seed) ->
-            val a = 0.25f + 0.75f * ((sin((twinkle + seed) * 2f * PI.toFloat())) * 0.5f + 0.5f)
-            drawCircle(Color.White.copy(alpha = a * 0.7f), 1.2f + seed * 1.6f, Offset(size.width * fx, skyH * fy))
-        }
-    }
-}
-
 // ----------------------------------------------------------------- card
 
 @Composable
-private fun GlassCard(content: @Composable androidx.compose.foundation.layout.ColumnScope.() -> Unit) {
+private fun GlassCard(topInset: Dp = 0.dp, content: @Composable androidx.compose.foundation.layout.ColumnScope.() -> Unit) {
     val border = Brush.linearGradient(listOf(Color.White.copy(alpha = 0.9f), AppTheme.colors.accent.copy(alpha = 0.35f), Color.White.copy(alpha = 0.2f)))
     Column(
         modifier = Modifier
@@ -347,7 +338,7 @@ private fun GlassCard(content: @Composable androidx.compose.foundation.layout.Co
             .clip(RoundedCornerShape(28.dp))
             .background(AppTheme.colors.card.copy(alpha = 0.94f))
             .border(1.dp, border, RoundedCornerShape(28.dp))
-            .padding(Spacing.lg),
+            .padding(start = Spacing.lg, end = Spacing.lg, bottom = Spacing.lg, top = Spacing.lg + topInset),
         verticalArrangement = Arrangement.spacedBy(Spacing.md),
     ) { content() }
 }
@@ -404,9 +395,11 @@ private fun NeoField(
     valid: Boolean = true,
     visualTransformation: VisualTransformation = VisualTransformation.None,
     trailing: (@Composable () -> Unit)? = null,
+    onFocusChange: (Boolean) -> Unit = {},
 ) {
     val interaction = remember { MutableInteractionSource() }
     val focused by interaction.collectIsFocusedAsState()
+    LaunchedEffect(focused) { onFocusChange(focused) }
     val accent = AppTheme.colors.accent
     val target = when {
         !valid -> AppTheme.colors.destructive

@@ -1,5 +1,7 @@
 package com.shahaabapps.twotracks.feature.today
 
+import androidx.compose.foundation.layout.fillMaxSize
+import com.shahaabapps.twotracks.ui.components.AuroraLayer
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.spring
@@ -78,7 +80,7 @@ fun TodayScreen(
     Box {
         LazyColumn(verticalArrangement = Arrangement.spacedBy(Spacing.md), contentPadding = PaddingValues(bottom = Spacing.xl)) {
             item {
-                Hero(title = "Today", subtitle = Clock.formatLong(state.today)) {
+                Hero(title = "Today", subtitle = Clock.formatLong(state.today), backdrop = { AuroraLayer(modifier = Modifier.fillMaxSize(), sky = false, grid = false, intensity = 0.8f, seed = 3) }) {
                     state.level?.let { lvl ->
                         Row(
                             verticalAlignment = Alignment.CenterVertically,

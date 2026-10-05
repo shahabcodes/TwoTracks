@@ -5,6 +5,16 @@ build number is appended by CI (for example `0.1.0 (build 12)`).
 
 ## [Unreleased]
 
+## [0.14.0] - 2026-10-05
+
+### Added
+- A flying companion on the sign-in screen: a small winged creature that hovers over the card, flies in on open, drifts toward the email as you type and follows it with its eyes, closes its eyes while a password is typed, winks when you reveal it, blinks now and then, and hops with a sparkle when everything is ready. It turns away for passwords and shows a small "o" when something is off.
+- Confirm password on sign-up with a green tick when the two match and a note when they differ; the account button stays off until they do.
+- The Today header is alive: soft light drifts across it and points twinkle, in the theme's colours.
+
+### Changed
+- On the sign-in screen the hero folds away while you type so the companion stays in view above the keyboard.
+
 ## [0.13.0] - 2026-10-05
 
 ### Changed
