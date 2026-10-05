@@ -5,6 +5,14 @@ build number is appended by CI (for example `0.1.0 (build 12)`).
 
 ## [Unreleased]
 
+## [0.13.0] - 2026-10-05
+
+### Changed
+- New sign-in, sign-up and reset screen: an aurora sky in the theme's colours with drifting light, twinkling points and a perspective grid; the app icon's two tracks draw themselves in with the marker pulsing at the head; a frosted card rises in and slides between the three modes with a tagline that changes with it.
+- Fields light up with a glow on focus, flag an invalid email in red, and the password field has a show/hide eye. Sign-up shows a four-step strength meter.
+- The main button carries a moving light sweep and presses down; a failed attempt shakes the card and shows a plain-English reason ("Email or password does not match", "That email already has an account").
+- Forgot password is its own mode with one field and a "Send reset link" button, and the confirmation says what to do next.
+
 ## [0.12.0] - 2026-10-05
 
 ### Changed
