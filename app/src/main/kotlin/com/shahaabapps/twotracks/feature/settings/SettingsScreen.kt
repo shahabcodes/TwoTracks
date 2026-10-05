@@ -149,8 +149,11 @@ fun SettingsScreen(
                         val companion by themeViewModel.companion.collectAsStateWithLifecycle()
                         Text("SIGN-IN COMPANION", style = MaterialTheme.typography.labelMedium, color = AppTheme.colors.secondaryLabel, modifier = Modifier.padding(top = Spacing.md, start = Spacing.sectionStart))
                         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.md), modifier = Modifier.padding(top = Spacing.sm)) {
-                            SegmentedChoice(options = CompanionKind.entries, selected = companion, label = { it.label }, onSelect = themeViewModel::setCompanion, modifier = Modifier.weight(1f))
-                            Box(modifier = Modifier.size(width = 120.dp, height = 64.dp)) {
+                            Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(Spacing.sm)) {
+                                SegmentedChoice(options = listOf(CompanionKind.BUDDY, CompanionKind.PLANE), selected = companion, label = { it.label }, onSelect = themeViewModel::setCompanion)
+                                SegmentedChoice(options = listOf(CompanionKind.SANYA, CompanionKind.USAID), selected = companion, label = { it.label }, onSelect = themeViewModel::setCompanion)
+                            }
+                            Box(modifier = Modifier.size(width = 120.dp, height = 110.dp), contentAlignment = Alignment.Center) {
                                 Companion(kind = companion, state = MascotState(mood = 0.8f), modifier = Modifier.fillMaxSize())
                             }
                         }

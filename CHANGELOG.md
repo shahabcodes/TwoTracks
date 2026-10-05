@@ -5,6 +5,12 @@ build number is appended by CI (for example `0.1.0 (build 12)`).
 
 ## [Unreleased]
 
+## [0.16.0] - 2026-10-05
+
+### Added
+- Two full-body sign-in companions, Sanya and Usaid. Sanya wears a hijab in the accent colour with a cream dress and accent hem; Usaid wears round glasses, a polo with collar and buttons, and baggy jeans with turned-up cuffs. Both wave on arrival, lean toward the email as it is typed and follow it with their eyes, cover their eyes with both hands for a password, peek between the fingers when it is shown, blink, and jump with arms up when the form is ready.
+- The companion picker in Settings now lists all four: Buddy, Plane, Sanya and Usaid, with a live preview.
+
 ## [0.15.0] - 2026-10-05
 
 ### Added

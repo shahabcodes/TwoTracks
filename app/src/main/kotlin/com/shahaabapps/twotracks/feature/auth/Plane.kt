@@ -33,7 +33,7 @@ import kotlin.math.cos
 import kotlin.math.sin
 
 /** The companions a person can pick for the sign-in screen. */
-enum class CompanionKind(val label: String) { BUDDY("Buddy"), PLANE("Plane") }
+enum class CompanionKind(val label: String) { BUDDY("Buddy"), PLANE("Plane"), SANYA("Sanya"), USAID("Usaid") }
 
 /** Picks the companion by [kind]; both react to the same [MascotState]. */
 @Composable
@@ -41,6 +41,8 @@ fun Companion(kind: CompanionKind, state: MascotState, modifier: Modifier = Modi
     when (kind) {
         CompanionKind.BUDDY -> Mascot(state, modifier)
         CompanionKind.PLANE -> PlaneCompanion(state, modifier)
+        CompanionKind.SANYA -> PersonCompanion(Person.SANYA, state, modifier)
+        CompanionKind.USAID -> PersonCompanion(Person.USAID, state, modifier)
     }
 }
 

@@ -155,11 +155,11 @@ fun AuthScreen(
             Box(
                 modifier = Modifier
                     .padding(horizontal = Spacing.listHorizontal)
-                    .padding(top = MascotSize / 2)
+                    .padding(top = companionHeight(companionKind) / 2)
                     .offset { IntOffset(shake.value.roundToInt(), ((1f - enter.value) * 60).roundToInt()) }
                     .alpha(enter.value),
             ) {
-                GlassCard(topInset = MascotSize / 2 + Spacing.xs) {
+                GlassCard(topInset = companionHeight(companionKind) / 2 + Spacing.xs) {
                     ModeTabs(mode = state.mode, onSelect = viewModel::setMode)
                     AnimatedContent(
                         targetState = state.mode,
@@ -256,8 +256,8 @@ fun AuthScreen(
                     state = mascot,
                     modifier = Modifier
                         .align(Alignment.TopCenter)
-                        .offset(y = -MascotSize / 2 - 6.dp)
-                        .size(width = MascotWidth, height = MascotSize + 12.dp),
+                        .offset(y = -companionHeight(companionKind) / 2 - 6.dp)
+                        .size(width = MascotWidth, height = companionHeight(companionKind) + 12.dp),
                 )
             }
             Spacer(Modifier.height(Spacing.xl))
@@ -535,4 +535,10 @@ private fun LinkText(text: String, onClick: () -> Unit) {
         text, style = MaterialTheme.typography.bodyMedium, color = AppTheme.colors.accent, fontWeight = FontWeight.Medium, textAlign = TextAlign.Center,
         modifier = Modifier.clickable(interactionSource = remember { MutableInteractionSource() }, indication = null, onClick = onClick).padding(8.dp),
     )
+}
+
+/** Full-body companions need more room than the floating ones. */
+private fun companionHeight(kind: CompanionKind): Dp = when (kind) {
+    CompanionKind.SANYA, CompanionKind.USAID -> 150.dp
+    else -> MascotSize
 }
