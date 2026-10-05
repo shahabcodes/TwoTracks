@@ -5,6 +5,11 @@ build number is appended by CI (for example `0.1.0 (build 12)`).
 
 ## [Unreleased]
 
+## [0.19.0] - 2026-10-05
+
+### Changed
+- Mascot update: oval faces with pointed chins, Usaid's swept-back hair.
+
 ## [0.18.0] - 2026-10-05
 
 ### Changed
