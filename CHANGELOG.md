@@ -5,6 +5,15 @@ build number is appended by CI (for example `0.1.0 (build 12)`).
 
 ## [Unreleased]
 
+## [0.8.0] - 2026-10-05
+
+### Added
+- Fit check when you add hours: saving a goal or skill that no longer fits the level by its due date opens a sheet with two computed ways out. "Extend the plan" moves the level's due date to the first week that holds all the hours and shifts later levels by the same number of days. "Study more each day" lengthens your study blocks by the minutes needed, in 5-minute steps, and warns when a day would pass 2.5 hours. "Save anyway" keeps everything as it is.
+- A goal created from a level page is due when the level is, unless you set another date.
+
+### Changed
+- Either choice replans this week and next and refreshes reminders straight away.
+
 ## [0.7.0] - 2026-10-05
 
 ### Added

@@ -106,4 +106,8 @@ fun GoalEditScreen(
             if (s.canDelete) CupertinoTextButton(text = "Delete goal", destructive = true, onClick = { viewModel.delete(onDone) })
         }
     }
+
+    s.fit?.let { fit ->
+        FitSheet(fit = fit, onChoose = { viewModel.choose(it, onDone) }, onDismiss = viewModel::dismissFit)
+    }
 }
