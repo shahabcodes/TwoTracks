@@ -31,6 +31,14 @@ class ThemePreferences @Inject constructor(
     val accentPaletteName: Flow<String> = context.themeDataStore.data
         .map { prefs -> prefs[KEY_ACCENT_PALETTE] ?: DEFAULT_PALETTE }
 
+    /** Sign-in companion: "BUDDY" or "PLANE". */
+    val companionName: Flow<String> = context.themeDataStore.data
+        .map { prefs -> prefs[KEY_COMPANION] ?: DEFAULT_COMPANION }
+
+    suspend fun setCompanionName(name: String) {
+        context.themeDataStore.edit { prefs -> prefs[KEY_COMPANION] = name }
+    }
+
     suspend fun setThemeModeName(name: String) {
         context.themeDataStore.edit { prefs -> prefs[KEY_THEME_MODE] = name }
     }
@@ -42,6 +50,8 @@ class ThemePreferences @Inject constructor(
     private companion object {
         val KEY_THEME_MODE = stringPreferencesKey("theme_mode")
         val KEY_ACCENT_PALETTE = stringPreferencesKey("accent_palette")
+        val KEY_COMPANION = stringPreferencesKey("companion")
+        const val DEFAULT_COMPANION = "BUDDY"
         const val DEFAULT_MODE = "LIGHT"
         const val DEFAULT_PALETTE = "QATAR"
     }

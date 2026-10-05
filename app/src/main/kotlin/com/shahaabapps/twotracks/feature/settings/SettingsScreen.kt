@@ -1,5 +1,13 @@
 package com.shahaabapps.twotracks.feature.settings
 
+import androidx.compose.ui.unit.dp
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.Row
+import com.shahaabapps.twotracks.ui.components.SegmentedChoice
+import com.shahaabapps.twotracks.feature.auth.MascotState
+import com.shahaabapps.twotracks.feature.auth.CompanionKind
+import com.shahaabapps.twotracks.feature.auth.Companion
 import com.shahaabapps.twotracks.ui.components.DialogButton
 import com.shahaabapps.twotracks.ui.components.CupertinoDialog
 import androidx.compose.ui.text.input.KeyboardType
@@ -138,6 +146,15 @@ fun SettingsScreen(
 
                     Column(modifier = Modifier.padding(horizontal = Spacing.listHorizontal)) {
                         ThemeSettingsSection(mode = mode, palette = palette, onModeChange = themeViewModel::setThemeMode, onPaletteChange = themeViewModel::setAccentPalette)
+                        val companion by themeViewModel.companion.collectAsStateWithLifecycle()
+                        Text("SIGN-IN COMPANION", style = MaterialTheme.typography.labelMedium, color = AppTheme.colors.secondaryLabel, modifier = Modifier.padding(top = Spacing.md, start = Spacing.sectionStart))
+                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.md), modifier = Modifier.padding(top = Spacing.sm)) {
+                            SegmentedChoice(options = CompanionKind.entries, selected = companion, label = { it.label }, onSelect = themeViewModel::setCompanion, modifier = Modifier.weight(1f))
+                            Box(modifier = Modifier.size(width = 120.dp, height = 64.dp)) {
+                                Companion(kind = companion, state = MascotState(mood = 0.8f), modifier = Modifier.fillMaxSize())
+                            }
+                        }
+                        Text("Lives on the sign-in screen and reacts to what you type.", style = MaterialTheme.typography.bodySmall, color = AppTheme.colors.secondaryLabel, modifier = Modifier.padding(top = Spacing.xs, start = Spacing.sectionStart))
                     }
 
                     CupertinoListSection(

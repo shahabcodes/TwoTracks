@@ -148,6 +148,14 @@ private fun DrawScope.drawFace(
     drawOval(Brush.radialGradient(listOf(Color.White, Color.White.copy(alpha = 0f)), center = Offset(c.x - r * 0.3f, c.y - r * 0.45f), radius = r * 0.8f), topLeft = body.topLeft, size = body.size)
     drawOval(accent.copy(alpha = 0.35f), topLeft = body.topLeft, size = body.size, style = Stroke(width = r * 0.045f))
 
+    drawExpression(c, r, accent, lookX, lookY, closed, peek, mood)
+}
+
+/** Eyes, cheeks, mouth and the happy sparkle, shared by every companion. */
+internal fun DrawScope.drawExpression(
+    c: Offset, r: Float, accent: Color,
+    lookX: Float, lookY: Float, closed: Float, peek: Float, mood: Float,
+) {
     val ink = Color(0xFF2A2630)
     val eyeDx = r * 0.36f
     val eyeY = c.y - r * 0.08f

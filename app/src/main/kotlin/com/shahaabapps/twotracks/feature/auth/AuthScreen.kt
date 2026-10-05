@@ -97,6 +97,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.shahaabapps.core.ui.theme.AppTheme
 import com.shahaabapps.core.ui.theme.Spacing
 import com.shahaabapps.twotracks.ui.components.LoadingOverlay
+import com.shahaabapps.twotracks.ui.ThemeViewModel
 import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.roundToInt
@@ -111,8 +112,10 @@ import kotlin.math.sin
 fun AuthScreen(
     modifier: Modifier = Modifier,
     viewModel: AuthViewModel = hiltViewModel(),
+    themeViewModel: ThemeViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+    val companionKind by themeViewModel.companion.collectAsStateWithLifecycle()
     if (state.isSubmitting) LoadingOverlay(if (state.mode == AuthMode.RESET) "Sending the link" else if (state.isSignUp) "Creating your account" else "Signing you in")
 
     // One shake per failure.
@@ -248,7 +251,8 @@ fun AuthScreen(
                     )
                     LinkRow(mode = state.mode, onSelect = viewModel::setMode)
                 }
-                Mascot(
+                Companion(
+                    kind = companionKind,
                     state = mascot,
                     modifier = Modifier
                         .align(Alignment.TopCenter)

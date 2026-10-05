@@ -5,6 +5,12 @@ build number is appended by CI (for example `0.1.0 (build 12)`).
 
 ## [Unreleased]
 
+## [0.15.0] - 2026-10-05
+
+### Added
+- A second sign-in companion: a cartoon plane with a face in the windshield and a spinning propeller. It flies in on open, banks toward the email as you type, closes its eyes and turns away for passwords, winks when you reveal one, blinks, and pulls a happy climb when the form is ready. A contrail of puffs trails behind it.
+- Settings, Appearance now has a "Sign-in companion" picker (Buddy or Plane) with a live animated preview. Buddy stays the default.
+
 ## [0.14.0] - 2026-10-05
 
 ### Added
