@@ -71,15 +71,21 @@ class LevelViewModel @Inject constructor(
         message.value = actions.chooseBranch(level, branch)
     }
 
-    fun addTask(title: String) = viewModelScope.launch {
+    fun addTask(title: String, detail: String, required: Boolean) = viewModelScope.launch {
         val level = uiState.value.progress?.level ?: return@launch
-        val item = LevelItem(id = "custom-${System.currentTimeMillis()}", kind = LevelItemKind.TASK, title = title.trim(), required = true)
-        message.value = actions.saveLevel(level.copy(items = level.items + item))
+        val item = LevelItem(id = "custom-${System.currentTimeMillis()}", kind = LevelItemKind.TASK, title = title.trim(), detail = detail.trim(), required = required)
+        message.value = actions.saveLevel(level.copy(items = level.items + item)) ?: "Added to Level ${level.number}"
     }
 
-    fun removeItem(itemId: String) = viewModelScope.launch {
+    /** Removes an item; a custom goal behind it is deleted too, seeded goals are only unlinked. */
+    fun removeItem(item: LevelItem) = viewModelScope.launch {
         val level = uiState.value.progress?.level ?: return@launch
-        message.value = actions.saveLevel(level.copy(items = level.items.filterNot { it.id == itemId }))
+        val goalId = item.goalId
+        message.value = if (goalId != null && goalId.startsWith("custom-")) {
+            actions.deleteGoal(goalId) ?: "Removed"
+        } else {
+            actions.saveLevel(level.copy(items = level.items.filterNot { it.id == item.id })) ?: "Removed from the level"
+        }
     }
 
     fun clearMessage() { message.value = null }

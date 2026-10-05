@@ -28,12 +28,12 @@ private fun lightColors(accent: Color, grouped: Color) = lightColorScheme(
     outline = Palette.OutlineLight,
 )
 
-private fun darkColors(accent: Color) = darkColorScheme(
+private fun darkColors(accent: Color, grouped: Color) = darkColorScheme(
     primary = accent,
     onPrimary = Color(0xFF0B1220),
     secondary = accent,
     error = Palette.DestructiveDark,
-    background = Palette.GroupedBackgroundDark,
+    background = grouped,
     onBackground = Palette.LabelDark,
     surface = Palette.SurfaceDark,
     onSurface = Palette.LabelDark,
@@ -43,7 +43,7 @@ private fun darkColors(accent: Color) = darkColorScheme(
 )
 
 private fun cupertinoColors(dark: Boolean, palette: AccentPalette) = CupertinoColors(
-    groupedBackground = if (dark) Palette.GroupedBackgroundDark else palette.groupedLight,
+    groupedBackground = if (dark) palette.groupedDark else palette.groupedLight,
     card = if (dark) Palette.SurfaceDark else Palette.SurfaceLight,
     secondaryLabel = if (dark) Palette.SecondaryLabelDark else Palette.SecondaryLabelLight,
     separator = if (dark) Palette.SeparatorDark else Palette.SeparatorLight,
@@ -79,7 +79,7 @@ private val CupertinoM3Shapes = M3Shapes(
 @Composable
 fun AppTheme(
     themeMode: ThemeMode = ThemeMode.SYSTEM,
-    accentPalette: AccentPalette = AccentPalette.BLUE,
+    accentPalette: AccentPalette = AccentPalette.QATAR,
     content: @Composable () -> Unit,
 ) {
     val dark = when (themeMode) {
@@ -91,7 +91,7 @@ fun AppTheme(
 
     CompositionLocalProvider(LocalCupertinoColors provides cupertinoColors(dark, accentPalette)) {
         MaterialTheme(
-            colorScheme = if (dark) darkColors(accent) else lightColors(accent, accentPalette.groupedLight),
+            colorScheme = if (dark) darkColors(accent, accentPalette.groupedDark) else lightColors(accent, accentPalette.groupedLight),
             typography = CupertinoTypography,
             shapes = CupertinoM3Shapes,
             content = content,

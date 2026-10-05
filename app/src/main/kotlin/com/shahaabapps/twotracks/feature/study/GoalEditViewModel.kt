@@ -10,6 +10,7 @@ import com.shahaabapps.core.model.GoalKind
 import com.shahaabapps.core.model.StudyGoal
 import com.shahaabapps.core.planner.Dates
 import com.shahaabapps.twotracks.session.CoupleDataStore
+import com.shahaabapps.twotracks.session.StudyActions
 import com.shahaabapps.twotracks.session.SessionStore
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -37,6 +38,9 @@ data class GoalEditUiState(
     val saving: Boolean = false,
     val error: String? = null,
     val canDelete: Boolean = false,
+    /** Set when creating from a level page: the goal becomes an item of that level. */
+    val levelId: String? = null,
+    val requiredForLevel: Boolean = true,
 ) {
     val canSave: Boolean
         get() = title.isNotBlank() && !saving && components.isNotEmpty() &&
@@ -50,12 +54,14 @@ class GoalEditViewModel @Inject constructor(
     private val sessionStore: SessionStore,
     private val dataStore: CoupleDataStore,
     private val studyRepository: StudyRepository,
+    private val actions: StudyActions,
 ) : ViewModel() {
 
     private val goalId: String? = savedStateHandle.get<String>("goalId")?.takeIf { it.isNotBlank() && it != "new" }
+    private val levelId: String? = savedStateHandle.get<String>("levelId")?.takeIf { it.isNotBlank() }
     private var original: StudyGoal? = null
 
-    private val _uiState = MutableStateFlow(GoalEditUiState(isNew = goalId == null))
+    private val _uiState = MutableStateFlow(GoalEditUiState(isNew = goalId == null, levelId = levelId))
     val uiState: StateFlow<GoalEditUiState> = _uiState.asStateFlow()
 
     init {
@@ -88,6 +94,7 @@ class GoalEditViewModel @Inject constructor(
     fun onPriority(v: String) = _uiState.update { it.copy(priority = v.filter { c -> c.isDigit() }.take(3)) }
     fun onTargetDate(v: String) = _uiState.update { it.copy(targetDateIso = v.trim()) }
     fun onActive(v: Boolean) = _uiState.update { it.copy(active = v) }
+    fun onRequiredForLevel(v: Boolean) = _uiState.update { it.copy(requiredForLevel = v) }
 
     fun onComponent(index: Int, name: String? = null, hours: String? = null, target: String? = null) = _uiState.update { s ->
         s.copy(components = s.components.mapIndexed { i, c ->
@@ -123,8 +130,14 @@ class GoalEditViewModel @Inject constructor(
                 },
                 defaultHours = false,
             )
-            when (val r = studyRepository.saveGoal(session.coupleId, goal)) {
-                is AppResult.Success -> { _uiState.update { it.copy(saving = false) }; onDone() }
+            val newId = if (goal.id.isBlank()) "custom-" + System.currentTimeMillis() else goal.id
+            when (val r = studyRepository.saveGoal(session.coupleId, goal.copy(id = newId))) {
+                is AppResult.Success -> {
+                    val lvl = s.levelId
+                    if (lvl != null && original == null) actions.addGoalItem(lvl, newId, goal.title, s.requiredForLevel, goal.targetDateIso)
+                    _uiState.update { it.copy(saving = false) }
+                    onDone()
+                }
                 is AppResult.Failure -> _uiState.update { it.copy(saving = false, error = r.error.message ?: "Could not save") }
             }
         }
@@ -134,7 +147,7 @@ class GoalEditViewModel @Inject constructor(
         val session = sessionStore.current() ?: return
         val id = goalId ?: return
         viewModelScope.launch {
-            studyRepository.deleteGoal(session.coupleId, id)
+            actions.deleteGoal(id)
             onDone()
         }
     }

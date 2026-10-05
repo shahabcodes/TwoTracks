@@ -35,15 +35,15 @@ data class CupertinoColors(
 }
 
 val LocalCupertinoColors = staticCompositionLocalOf {
-    // Light Blue defaults; always overridden by AppTheme.
+    // Light Qatar defaults; always overridden by AppTheme.
     CupertinoColors(
         groupedBackground = Palette.GroupedBackgroundLight,
         card = Palette.SurfaceLight,
         secondaryLabel = Palette.SecondaryLabelLight,
         separator = Palette.SeparatorLight,
         fill = Palette.FillLight,
-        accent = AccentPalette.BLUE.accentLight,
-        gradient = AccentPalette.BLUE.gradient,
+        accent = AccentPalette.QATAR.accentLight,
+        gradient = AccentPalette.QATAR.gradient,
         destructive = Palette.DestructiveLight,
         success = Palette.SuccessLight,
         blocked = Palette.DestructiveLight,

@@ -44,9 +44,9 @@ internal object Palette {
 }
 
 /**
- * Selectable accent: the iOS blue of the browser app by default, plus the
- * Pink and Meadow themes it offers. Each carries its hero gradient and, for
- * Pink, a blush-tinted grouped backdrop like Browse Safe's pink overlay.
+ * Selectable accent: Qatar maroon by default (the browser app's Qatar country
+ * theme), plus its iOS Blue, Pink and Meadow themes. Each carries its hero
+ * gradient and a tinted grouped backdrop for light and dark mode.
  */
 enum class AccentPalette(
     val accentLight: Color,
@@ -54,7 +54,17 @@ enum class AccentPalette(
     val gradient: List<Color>,
     val groupedLight: Color = Palette.GroupedBackgroundLight,
     val fillLight: Color = Palette.FillLight,
+    val groupedDark: Color = Palette.GroupedBackgroundDark,
 ) {
+    /** Qatar flag maroon (Browse Safe's Qatar country theme), the default. */
+    QATAR(
+        accentLight = Color(0xFF8A1538),
+        accentDark = Color(0xFFE08AA3),
+        gradient = listOf(Color(0xFFB4345F), Color(0xFF8A1538), Color(0xFF5C0D26)),
+        groupedLight = Color(0xFFF6EEF1),
+        fillLight = Color(0x248A1538),
+        groupedDark = Color(0xFF151012),
+    ),
     BLUE(
         accentLight = Color(0xFF007AFF),
         accentDark = Color(0xFF0A84FF),

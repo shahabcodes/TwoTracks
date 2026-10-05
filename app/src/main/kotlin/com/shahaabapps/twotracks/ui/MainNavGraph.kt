@@ -73,7 +73,7 @@ object Routes {
     const val WEEK = "week"
     const val GOAL_DETAIL = "goal/{goalId}"
     const val GOAL_EDIT = "goal/{goalId}/edit"
-    const val GOAL_NEW = "goal/new/edit"
+    const val GOAL_NEW = "goal/new/edit?levelId={levelId}"
     const val COUNTRIES = "countries"
     const val COUNTRY_DETAIL = "countries/{code}"
     const val TESTS = "tests"
@@ -85,6 +85,7 @@ object Routes {
     fun level(id: String) = "level/$id"
     fun goalDetail(id: String) = "goal/$id"
     fun goalEdit(id: String) = "goal/$id/edit"
+    fun newGoal(levelId: String? = null) = if (levelId == null) "goal/new/edit" else "goal/new/edit?levelId=$levelId"
     fun country(code: String) = "countries/$code"
 }
 
@@ -187,11 +188,13 @@ fun MainNavGraph(session: AppSession) {
                 LevelsScreen(onOpenLevel = { navController.navigate(Routes.level(it)) }, onNavigate = { navController.navigate(it) })
             }
             composable(Routes.LEVEL, arguments = listOf(navArgument("levelId") { type = NavType.StringType })) { entry ->
+                val lid = entry.arguments?.getString("levelId").orEmpty()
                 LevelScreen(
-                    levelId = entry.arguments?.getString("levelId").orEmpty(),
+                    levelId = lid,
                     onBack = { navController.popBackStack() },
                     onOpenGoal = { navController.navigate(Routes.goalDetail(it)) },
                     onOpenLevel = { navController.navigate(Routes.level(it)) },
+                    onNewGoal = { navController.navigate(Routes.newGoal(lid)) },
                 )
             }
             composable(Routes.YOUR_WEEK) {
@@ -202,7 +205,9 @@ fun MainNavGraph(session: AppSession) {
                 val goalId = entry.arguments?.getString("goalId").orEmpty()
                 GoalDetailScreen(goalId = goalId, onBack = { navController.popBackStack() }, onEdit = { navController.navigate(Routes.goalEdit(goalId)) })
             }
-            composable(Routes.GOAL_NEW) { GoalEditScreen(goalId = null, onDone = { navController.popBackStack() }) }
+            composable(Routes.GOAL_NEW, arguments = listOf(navArgument("levelId") { type = NavType.StringType; nullable = true; defaultValue = null })) {
+                GoalEditScreen(goalId = null, onDone = { navController.popBackStack() })
+            }
             composable(Routes.GOAL_EDIT, arguments = listOf(navArgument("goalId") { type = NavType.StringType })) { entry ->
                 GoalEditScreen(goalId = entry.arguments?.getString("goalId"), onDone = { navController.popBackStack() })
             }

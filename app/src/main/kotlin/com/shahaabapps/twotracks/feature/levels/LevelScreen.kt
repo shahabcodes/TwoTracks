@@ -1,5 +1,6 @@
 package com.shahaabapps.twotracks.feature.levels
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -22,6 +23,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -32,6 +34,7 @@ import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.shahaabapps.core.model.LevelItem
 import com.shahaabapps.core.model.LevelItemKind
 import com.shahaabapps.core.planner.LevelState
 import com.shahaabapps.core.ui.components.CupertinoCard
@@ -39,7 +42,7 @@ import com.shahaabapps.core.ui.components.CupertinoDisclosure
 import com.shahaabapps.core.ui.components.CupertinoListRow
 import com.shahaabapps.core.ui.components.CupertinoListSection
 import com.shahaabapps.core.ui.components.CupertinoSecondaryButton
-import com.shahaabapps.core.ui.components.CupertinoTextButton
+import com.shahaabapps.core.ui.components.CupertinoSwitch
 import com.shahaabapps.core.ui.components.CupertinoTextField
 import com.shahaabapps.core.ui.components.StatusChip
 import com.shahaabapps.core.ui.theme.AppTheme
@@ -51,6 +54,7 @@ import com.shahaabapps.twotracks.ui.components.Chip
 import com.shahaabapps.twotracks.ui.components.DetailScaffold
 import com.shahaabapps.twotracks.ui.components.ProgressBar
 import com.shahaabapps.twotracks.ui.components.SectionLabel
+import com.shahaabapps.twotracks.ui.components.SwipeToDelete
 
 /** Level 2 of the app: one level's checklist with dates, progress bars and "Mark as passed". */
 @Composable
@@ -59,6 +63,7 @@ fun LevelScreen(
     onBack: () -> Unit,
     onOpenGoal: (String) -> Unit,
     onOpenLevel: (String) -> Unit,
+    onNewGoal: () -> Unit = {},
     viewModel: LevelViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
@@ -66,6 +71,8 @@ fun LevelScreen(
     val haptic = LocalHapticFeedback.current
     var confirmPass by remember { mutableStateOf<String?>(null) }
     var addTask by remember { mutableStateOf(false) }
+    var confirmRemove by remember { mutableStateOf<LevelItem?>(null) }
+    var swipeReset by remember { mutableStateOf(0) }
     LaunchedEffect(state.message) { state.message?.let { snackbar.showSnackbar(it); viewModel.clearMessage() } }
 
     val p = state.progress
@@ -112,6 +119,8 @@ fun LevelScreen(
                                 if (!item.required) add("optional")
                                 if (item.detail.isNotBlank()) add(item.detail)
                             }.joinToString(" · ")
+                            val isCustom = item.id.startsWith("custom-")
+                            val row: @Composable () -> Unit = {
                             CupertinoListRow(
                                 title = item.title,
                                 subtitle = subtitle.ifBlank { null },
@@ -140,11 +149,29 @@ fun LevelScreen(
                                     }
                                 },
                             )
+                            }
+                            if (isCustom && state.isMine) {
+                                // Re-keying on swipeReset snaps the row back if the user taps "Keep".
+                                key(item.id, swipeReset) { SwipeToDelete(onDelete = { confirmRemove = item }) { Box(modifier = Modifier.background(AppTheme.colors.card)) { row() } } }
+                            } else {
+                                row()
+                            }
                         }
                     }
                 }
                 if (state.isMine) {
-                    item { CupertinoTextButton(text = "+ Add your own item", onClick = { addTask = true }) }
+                    item {
+                        Column(modifier = Modifier.padding(horizontal = Spacing.listHorizontal), verticalArrangement = Arrangement.spacedBy(Spacing.xs)) {
+                            Row(horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
+                                CupertinoSecondaryButton(text = "+ Checklist item", onClick = { addTask = true }, modifier = Modifier.weight(1f))
+                                CupertinoSecondaryButton(text = "+ Goal with skills", onClick = onNewGoal, modifier = Modifier.weight(1f))
+                            }
+                            Text(
+                                "A goal gets skills with hour budgets, like AZ-204 or German, shows up in your week and counts toward this level. Swipe your own items left to remove them.",
+                                style = MaterialTheme.typography.bodySmall, color = AppTheme.colors.secondaryLabel,
+                            )
+                        }
+                    }
                 }
 
                 if (p.level.number == 5 && state.isMine) {
@@ -198,14 +225,36 @@ fun LevelScreen(
             text = { Text("Use this when the exam is passed or the level is reached. Hours studied stay in your history. You can reopen it from the goal page.") },
         )
     }
+    confirmRemove?.let { item ->
+        val isGoal = item.goalId?.startsWith("custom-") == true
+        AlertDialog(
+            onDismissRequest = { confirmRemove = null },
+            confirmButton = { TextButton(onClick = { viewModel.removeItem(item); confirmRemove = null }) { Text("Remove", color = AppTheme.colors.destructive) } },
+            dismissButton = { TextButton(onClick = { confirmRemove = null; swipeReset++ }) { Text("Keep") } },
+            title = { Text("Remove ${item.title}?") },
+            text = { Text(if (isGoal) "The goal, its skills and its logged hours are deleted too." else "This takes the item off the level checklist.") },
+        )
+    }
     if (addTask) {
         var text by remember { mutableStateOf("") }
+        var detail by remember { mutableStateOf("") }
+        var required by remember { mutableStateOf(true) }
         AlertDialog(
             onDismissRequest = { addTask = false },
-            confirmButton = { TextButton(enabled = text.isNotBlank(), onClick = { viewModel.addTask(text); addTask = false }) { Text("Add") } },
+            confirmButton = { TextButton(enabled = text.isNotBlank(), onClick = { viewModel.addTask(text, detail, required); addTask = false }) { Text("Add") } },
             dismissButton = { TextButton(onClick = { addTask = false }) { Text("Cancel") } },
-            title = { Text("New item for this level") },
-            text = { CupertinoTextField(value = text, onValueChange = { text = it }, placeholder = "e.g. Book the IELTS test", modifier = Modifier.fillMaxWidth().padding(top = 4.dp)) },
+            title = { Text("New checklist item") },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(Spacing.sm), modifier = Modifier.padding(top = 4.dp)) {
+                    CupertinoTextField(value = text, onValueChange = { text = it }, placeholder = "e.g. Book the IELTS test", modifier = Modifier.fillMaxWidth())
+                    CupertinoTextField(value = detail, onValueChange = { detail = it }, placeholder = "Note (optional)", modifier = Modifier.fillMaxWidth())
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text("Required to finish the level", modifier = Modifier.weight(1f))
+                        CupertinoSwitch(checked = required, onCheckedChange = { required = it })
+                    }
+                    Text("Need hours and skills instead? Use \"Goal with skills\".", style = MaterialTheme.typography.bodySmall, color = AppTheme.colors.secondaryLabel)
+                }
+            },
         )
     }
 }

@@ -26,6 +26,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.shahaabapps.core.model.GoalKind
 import com.shahaabapps.core.ui.components.CupertinoPrimaryButton
+import com.shahaabapps.core.ui.components.CupertinoSwitch
 import com.shahaabapps.core.ui.components.CupertinoTextButton
 import com.shahaabapps.core.ui.components.CupertinoTextField
 import com.shahaabapps.core.ui.theme.AppTheme
@@ -44,7 +45,7 @@ fun GoalEditScreen(
 ) {
     val s by viewModel.uiState.collectAsStateWithLifecycle()
 
-    DetailScaffold(title = if (s.isNew) "New goal" else "Edit goal", onBack = onDone) {
+    DetailScaffold(title = if (!s.isNew) "Edit goal" else if (s.levelId != null) "New goal for this level" else "New goal", onBack = onDone) {
         if (!s.loaded) return@DetailScaffold
         Column(
             modifier = Modifier.verticalScroll(rememberScrollState()).padding(horizontal = Spacing.listHorizontal).padding(bottom = Spacing.xl),
@@ -73,6 +74,16 @@ fun GoalEditScreen(
             }
             Text("Lower priority number is scheduled first.", style = MaterialTheme.typography.bodySmall, color = AppTheme.colors.secondaryLabel)
 
+
+            if (s.levelId != null && s.isNew) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text("Required to finish the level")
+                        Text("Optional goals stay on the level but do not take study slots.", style = MaterialTheme.typography.bodySmall, color = AppTheme.colors.secondaryLabel)
+                    }
+                    CupertinoSwitch(checked = s.requiredForLevel, onCheckedChange = viewModel::onRequiredForLevel)
+                }
+            }
 
             SectionLabel("Skills and hour budgets", modifier = Modifier.padding(horizontal = 0.dp))
             FlowRow(horizontalArrangement = Arrangement.spacedBy(Spacing.xs), verticalArrangement = Arrangement.spacedBy(Spacing.xs)) {

@@ -5,6 +5,16 @@ build number is appended by CI (for example `0.1.0 (build 12)`).
 
 ## [Unreleased]
 
+## [0.7.0] - 2026-10-05
+
+### Added
+- Qatar theme: maroon accent with a soft blush backdrop in light mode and a warm near-black in dark mode. It is the default; Blue, Pink and Meadow stay available under Settings, Appearance.
+- Goals with skills from a level page: "+ Goal with skills" creates a goal like AZ-204 or German with your own skills, hour budgets and target date, adds it to the level and puts it into your weekly plan.
+- Custom checklist items can carry a note and be marked optional.
+
+### Changed
+- Your own level items can be removed: swipe left, confirm. Removing a custom goal also deletes its skills and logged hours.
+
 ## [0.6.0] - 2026-10-05
 
 ### Added

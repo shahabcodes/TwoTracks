@@ -3,6 +3,8 @@ package com.shahaabapps.twotracks.session
 import com.shahaabapps.core.common.AppResult
 import com.shahaabapps.core.data.study.StudyRepository
 import com.shahaabapps.core.model.Level
+import com.shahaabapps.core.model.LevelItem
+import com.shahaabapps.core.model.LevelItemKind
 import com.shahaabapps.core.model.SessionStatus
 import com.shahaabapps.core.model.StudyLog
 import com.shahaabapps.twotracks.reminders.ReminderScheduler
@@ -94,6 +96,28 @@ class StudyActions @Inject constructor(
     suspend fun chooseBranch(level: Level, branch: String): String? {
         val s = sessionStore.current() ?: return "Not signed in"
         return (studyRepository.saveLevel(s.coupleId, level.copy(branch = branch)) as? AppResult.Failure)?.error?.message
+    }
+
+    /** Appends a GOAL item for [goalId] to the level (used after creating a goal from a level page). */
+    suspend fun addGoalItem(levelId: String, goalId: String, title: String, required: Boolean, dueDateIso: String?): String? {
+        val s = sessionStore.current() ?: return "Not signed in"
+        val level = studyRepository.observeLevels(s.coupleId).first().firstOrNull { it.id == levelId } ?: return "Level not found"
+        if (level.items.any { it.goalId == goalId }) return null
+        val item = LevelItem(id = "custom-goal-$goalId", kind = LevelItemKind.GOAL, title = title, goalId = goalId, required = required, dueDateIso = dueDateIso)
+        val r = studyRepository.saveLevel(s.coupleId, level.copy(items = level.items + item))
+        reminderScheduler.refresh()
+        return (r as? AppResult.Failure)?.error?.message
+    }
+
+    /** Deletes a goal and removes every level item that pointed at it. */
+    suspend fun deleteGoal(goalId: String): String? {
+        val s = sessionStore.current() ?: return "Not signed in"
+        studyRepository.observeLevels(s.coupleId).first()
+            .filter { lvl -> lvl.items.any { it.goalId == goalId } }
+            .forEach { lvl -> studyRepository.saveLevel(s.coupleId, lvl.copy(items = lvl.items.filterNot { it.goalId == goalId })) }
+        val r = studyRepository.deleteGoal(s.coupleId, goalId)
+        reminderScheduler.refresh()
+        return (r as? AppResult.Failure)?.error?.message
     }
 
     suspend fun saveLevel(level: Level): String? {
