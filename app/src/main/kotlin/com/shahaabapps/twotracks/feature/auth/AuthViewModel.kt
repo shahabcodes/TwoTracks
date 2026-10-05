@@ -63,7 +63,7 @@ class AuthViewModel @Inject constructor(
         }
         viewModelScope.launch {
             when (val r = authRepository.sendPasswordReset(email)) {
-                is AppResult.Success -> _uiState.update { it.copy(infoMessage = "Password reset email sent") }
+                is AppResult.Success -> _uiState.update { it.copy(infoMessage = "Reset link sent to $email. Check your inbox and spam, choose a new password, then sign in here.") }
                 is AppResult.Failure -> _uiState.update { it.copy(errorMessage = r.error.message ?: "Could not send reset email") }
             }
         }

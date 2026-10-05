@@ -1,5 +1,6 @@
 package com.shahaabapps.core.data.auth
 
+import com.google.firebase.auth.EmailAuthProvider
 import com.google.firebase.auth.FirebaseAuth
 import com.shahaabapps.core.common.AppResult
 import com.shahaabapps.core.common.runCatchingResult
@@ -18,6 +19,8 @@ interface AuthRepository {
     suspend fun signUpWithEmail(email: String, password: String): AppResult<String>
     suspend fun signInWithEmail(email: String, password: String): AppResult<String>
     suspend fun sendPasswordReset(email: String): AppResult<Unit>
+    /** Re-authenticates with [currentPassword], then sets [newPassword]. */
+    suspend fun changePassword(currentPassword: String, newPassword: String): AppResult<Unit>
     fun signOut()
 }
 
@@ -50,6 +53,15 @@ class FirebaseAuthRepository @Inject constructor(
 
     override suspend fun sendPasswordReset(email: String): AppResult<Unit> =
         runCatchingResult { auth.sendPasswordResetEmail(email).await(); Unit }
+
+    override suspend fun changePassword(currentPassword: String, newPassword: String): AppResult<Unit> =
+        runCatchingResult {
+            val user = requireNotNull(auth.currentUser) { "Not signed in" }
+            val email = requireNotNull(user.email) { "No email on this account" }
+            user.reauthenticate(EmailAuthProvider.getCredential(email, currentPassword)).await()
+            user.updatePassword(newPassword).await()
+            Unit
+        }
 
     override fun signOut() = auth.signOut()
 }

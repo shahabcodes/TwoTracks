@@ -103,6 +103,31 @@ class SettingsViewModel @Inject constructor(
         }
     }
 
+    fun changePassword(current: String, new: String) = viewModelScope.launch {
+        if (new.length < 6) { message.value = "New password needs at least 6 characters"; return@launch }
+        when (val r = authRepository.changePassword(current, new)) {
+            is AppResult.Success -> { celebrations.saved("Password changed"); message.value = "Password changed" }
+            is AppResult.Failure -> message.value = friendlyAuthError(r.error.message)
+        }
+    }
+
+    /** Emails the Firebase reset link to the signed-in address. */
+    fun sendPasswordReset() = viewModelScope.launch {
+        val email = authRepository.currentEmailOrNull() ?: run { message.value = "No email on this account"; return@launch }
+        when (val r = authRepository.sendPasswordReset(email)) {
+            is AppResult.Success -> message.value = "Reset link sent to $email. Open it, choose a new password, then sign in again."
+            is AppResult.Failure -> message.value = r.error.message ?: "Could not send the reset email"
+        }
+    }
+
+    private fun friendlyAuthError(raw: String?): String = when {
+        raw == null -> "Could not change the password"
+        raw.contains("password is invalid", true) || raw.contains("INVALID_LOGIN_CREDENTIALS", true) || raw.contains("credential", true) -> "Current password is wrong"
+        raw.contains("weak", true) -> "New password is too weak"
+        raw.contains("network", true) -> "No connection. Try again when online."
+        else -> raw
+    }
+
     fun signOut() = authRepository.signOut()
 
     fun clearMessage() { message.value = null }

@@ -1,5 +1,7 @@
 package com.shahaabapps.twotracks.feature.settings
 
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.material.icons.filled.Lock
 import android.Manifest
 import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -72,6 +74,7 @@ fun SettingsScreen(
     var editName by remember { mutableStateOf(false) }
     var editTimezone by remember { mutableStateOf(false) }
     var confirmReset by remember { mutableStateOf(false) }
+    var changePassword by remember { mutableStateOf(false) }
     val notifPermission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { }
 
     LaunchedEffect(state.message) { state.message?.let { snackbar.showSnackbar(it); viewModel.clearMessage() } }
@@ -88,6 +91,7 @@ fun SettingsScreen(
                         CupertinoListRow("Name", leadingIcon = Icons.Filled.Person, iconColor = IosColors.Blue, onClick = { editName = true }, trailing = { CupertinoValue(s.me.name); CupertinoDisclosure() })
                         CupertinoListRow("Track", subtitle = viewModel.roleLabel(s.myRole), leadingIcon = Icons.Filled.Timeline, iconColor = IosColors.Indigo)
                         CupertinoListRow("Email", subtitle = state.email, leadingIcon = Icons.Filled.Mail, iconColor = IosColors.Gray)
+                        CupertinoListRow("Password", subtitle = "Change it here or get a reset link by email", leadingIcon = Icons.Filled.Lock, iconColor = IosColors.Orange, onClick = { changePassword = true }, trailing = { CupertinoDisclosure() })
                         CupertinoListRow(
                             "Timezone", leadingIcon = Icons.Filled.Public, iconColor = IosColors.Teal, showDivider = false,
                             onClick = { editTimezone = true },
@@ -170,6 +174,33 @@ fun SettingsScreen(
     }
     if (editTimezone && s != null) {
         TimezoneDialog(selected = s.me.timezone, onSelect = { z -> viewModel.saveProfile { p -> p.copy(timezone = z) } }, onDismiss = { editTimezone = false })
+    }
+    if (changePassword) {
+        var current by remember { mutableStateOf("") }
+        var new by remember { mutableStateOf("") }
+        var again by remember { mutableStateOf("") }
+        val mismatch = again.isNotEmpty() && new != again
+        AlertDialog(
+            onDismissRequest = { changePassword = false },
+            confirmButton = {
+                TextButton(
+                    onClick = { viewModel.changePassword(current, new); changePassword = false },
+                    enabled = current.isNotEmpty() && new.length >= 6 && new == again,
+                ) { Text("Change") }
+            },
+            dismissButton = { TextButton(onClick = { changePassword = false }) { Text("Cancel") } },
+            title = { Text("Change password") },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(Spacing.sm)) {
+                    CupertinoTextField(value = current, onValueChange = { current = it }, placeholder = "Current password", keyboardType = KeyboardType.Password, isPassword = true, modifier = Modifier.fillMaxWidth())
+                    CupertinoTextField(value = new, onValueChange = { new = it }, placeholder = "New password (6+ characters)", keyboardType = KeyboardType.Password, isPassword = true, modifier = Modifier.fillMaxWidth())
+                    CupertinoTextField(value = again, onValueChange = { again = it }, placeholder = "New password again", keyboardType = KeyboardType.Password, isPassword = true, modifier = Modifier.fillMaxWidth())
+                    if (mismatch) Text("The two new passwords differ.", color = AppTheme.colors.destructive, style = MaterialTheme.typography.bodySmall)
+                    Text("Forgot the current one? Get a reset link at ${state.email} instead.", style = MaterialTheme.typography.bodySmall, color = AppTheme.colors.secondaryLabel)
+                    CupertinoTextButton(text = "Email me a reset link", onClick = { viewModel.sendPasswordReset(); changePassword = false })
+                }
+            },
+        )
     }
     if (confirmReset) {
         AlertDialog(

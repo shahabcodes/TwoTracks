@@ -94,7 +94,7 @@ fun AuthScreen(
             onClick = viewModel::toggleMode,
         )
         if (!state.isSignUp) {
-            CupertinoTextButton(text = "Forgot password", onClick = viewModel::resetPassword)
+            CupertinoTextButton(text = "Forgot password? Email me a reset link", onClick = viewModel::resetPassword)
         }
     }
 }

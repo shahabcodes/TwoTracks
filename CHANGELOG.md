@@ -5,6 +5,14 @@ build number is appended by CI (for example `0.1.0 (build 12)`).
 
 ## [Unreleased]
 
+## [0.11.0] - 2026-10-05
+
+### Added
+- Change password from Settings, Profile: enter the current password and a new one, or ask for a reset link by email if the current one is forgotten.
+
+### Changed
+- "Forgot password?" on the sign-in screen now says that a reset link is emailed and what to do with it.
+
 ## [0.10.0] - 2026-10-05
 
 ### Added
