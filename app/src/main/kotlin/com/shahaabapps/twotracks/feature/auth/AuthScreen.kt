@@ -424,12 +424,10 @@ private fun NeoField(
         else -> Color.Transparent
     }
     val borderAlpha by animateFloatAsState(if (focused || !valid) 1f else 0f, tween(220), label = "b")
-    val glow by animateDpAsState(if (focused) 14.dp else 0.dp, tween(260), label = "g")
     val iconTint = androidx.compose.ui.graphics.lerp(AppTheme.colors.secondaryLabel, if (valid) accent else AppTheme.colors.destructive, borderAlpha)
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .shadow(glow, RoundedCornerShape(16.dp), ambientColor = accent.copy(alpha = 0.5f), spotColor = accent.copy(alpha = 0.5f))
             .clip(RoundedCornerShape(16.dp))
             .background(AppTheme.colors.fill)
             .border(1.5.dp, target.copy(alpha = target.alpha * borderAlpha), RoundedCornerShape(16.dp))

@@ -5,6 +5,11 @@ build number is appended by CI (for example `0.1.0 (build 12)`).
 
 ## [Unreleased]
 
+## [0.17.1] - 2026-10-05
+
+### Fixed
+- Flash inside the sign-in fields when tapped.
+
 ## [0.17.0] - 2026-10-05
 
 ### Changed
