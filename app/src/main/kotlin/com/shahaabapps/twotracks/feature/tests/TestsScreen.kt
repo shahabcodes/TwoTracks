@@ -1,5 +1,6 @@
 package com.shahaabapps.twotracks.feature.tests
 
+import com.shahaabapps.twotracks.session.Celebrations
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -57,6 +58,7 @@ class TestsViewModel @Inject constructor(
     private val sessionStore: SessionStore,
     dataStore: CoupleDataStore,
     private val trackingRepository: TrackingRepository,
+    private val celebrations: Celebrations,
 ) : ViewModel() {
     val uiState: StateFlow<TestsUiState> = combine(sessionStore.session, dataStore.tests) { session, tests ->
         val roles = listOfNotNull(session?.myRole, session?.partnerRole).ifEmpty { PersonRole.entries }
@@ -69,6 +71,7 @@ class TestsViewModel @Inject constructor(
     fun save(test: TestRecord) = viewModelScope.launch {
         val s = sessionStore.current() ?: return@launch
         trackingRepository.saveTest(s.coupleId, test)
+        celebrations.saved("Result saved")
     }
 }
 

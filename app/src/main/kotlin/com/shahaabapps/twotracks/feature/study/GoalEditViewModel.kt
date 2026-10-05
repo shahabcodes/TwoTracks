@@ -1,5 +1,6 @@
 package com.shahaabapps.twotracks.feature.study
 
+import com.shahaabapps.twotracks.session.Celebrations
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -72,6 +73,7 @@ class GoalEditViewModel @Inject constructor(
     private val studyRepository: StudyRepository,
     private val actions: StudyActions,
     private val planStore: PlanStore,
+    private val celebrations: Celebrations,
 ) : ViewModel() {
 
     private val goalId: String? = savedStateHandle.get<String>("goalId")?.takeIf { it.isNotBlank() && it != "new" }
@@ -201,6 +203,7 @@ class GoalEditViewModel @Inject constructor(
                 val lvl = s.levelId
                 if (lvl != null && original == null) actions.addGoalItem(lvl, newId, goal.title, s.requiredForLevel, goal.targetDateIso)
                 _uiState.update { it.copy(saving = false) }
+                celebrations.saved(if (original == null) "${goal.title} added" else "${goal.title} saved")
                 onDone()
             }
             is AppResult.Failure -> _uiState.update { it.copy(saving = false, error = r.error.message ?: "Could not save") }

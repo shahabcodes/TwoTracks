@@ -1,5 +1,6 @@
 package com.shahaabapps.twotracks.feature.settings
 
+import com.shahaabapps.twotracks.session.Celebrations
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.shahaabapps.core.common.AppResult
@@ -50,6 +51,7 @@ class SettingsViewModel @Inject constructor(
     private val sessionPlanning: SessionPlanning,
     private val reminderScheduler: ReminderScheduler,
     private val appLock: AppLock,
+    private val celebrations: Celebrations,
 ) : ViewModel() {
 
     private val message = MutableStateFlow<String?>(null)
@@ -76,7 +78,7 @@ class SettingsViewModel @Inject constructor(
     fun saveProfile(update: (Profile) -> Profile) = viewModelScope.launch {
         val s = sessionStore.current() ?: return@launch
         when (val r = coupleRepository.saveProfile(s.coupleId, update(s.me))) {
-            is AppResult.Success -> { message.value = "Saved"; reminderScheduler.refresh() }
+            is AppResult.Success -> { message.value = "Saved"; reminderScheduler.refresh(); celebrations.saved("Profile saved") }
             is AppResult.Failure -> message.value = r.error.message
         }
     }
@@ -89,6 +91,7 @@ class SettingsViewModel @Inject constructor(
         sessionPlanning.replan(week, s.myRole)
         sessionPlanning.replan(week.plusWeeks(1), s.myRole)
         reminderScheduler.refresh()
+        celebrations.saved("Week template saved")
         message.value = "Schedule saved and weeks re-planned"
     }
 

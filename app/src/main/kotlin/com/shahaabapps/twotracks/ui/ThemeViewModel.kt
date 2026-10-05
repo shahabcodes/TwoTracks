@@ -19,8 +19,8 @@ class ThemeViewModel @Inject constructor(
 ) : ViewModel() {
 
     val themeMode: StateFlow<ThemeMode> = themePreferences.themeModeName
-        .map { runCatching { ThemeMode.valueOf(it) }.getOrDefault(ThemeMode.SYSTEM) }
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), ThemeMode.SYSTEM)
+        .map { runCatching { ThemeMode.valueOf(it) }.getOrDefault(ThemeMode.LIGHT) }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), ThemeMode.LIGHT)
 
     val accentPalette: StateFlow<AccentPalette> = themePreferences.accentPaletteName
         .map { runCatching { AccentPalette.valueOf(it) }.getOrDefault(AccentPalette.QATAR) }

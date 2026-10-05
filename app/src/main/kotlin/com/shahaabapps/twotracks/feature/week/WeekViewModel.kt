@@ -1,5 +1,6 @@
 package com.shahaabapps.twotracks.feature.week
 
+import com.shahaabapps.twotracks.session.Celebrations
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.shahaabapps.core.data.study.StudyRepository
@@ -62,6 +63,7 @@ class WeekViewModel @Inject constructor(
     private val sessionPlanning: SessionPlanning,
     private val studyRepository: StudyRepository,
     private val reminderScheduler: ReminderScheduler,
+    private val celebrations: Celebrations,
 ) : ViewModel() {
 
     private val weekOffset = MutableStateFlow(0)
@@ -138,6 +140,7 @@ class WeekViewModel @Inject constructor(
         )
         studyRepository.saveAvailability(session.coupleId, current.copy(blocks = current.blocks + block))
         sessionPlanning.replan(uiState.value.weekStart, role)
+        celebrations.saved("Block added")
         message.value = "Block added"
     }
 }

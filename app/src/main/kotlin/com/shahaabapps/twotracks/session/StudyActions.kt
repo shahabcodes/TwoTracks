@@ -24,6 +24,7 @@ class StudyActions @Inject constructor(
     private val studyRepository: StudyRepository,
     private val reminderScheduler: ReminderScheduler,
     private val sessionPlanning: SessionPlanning,
+    private val celebrations: Celebrations,
 ) {
     /**
      * Logs minutes for a component on a date. When [sessionId] is given the
@@ -37,6 +38,7 @@ class StudyActions @Inject constructor(
         note: String = "",
         sessionId: String? = null,
         fromClass: Boolean = false,
+        quiet: Boolean = false,
     ): String? {
         val s = sessionStore.current() ?: return "Not signed in"
         if (minutes <= 0) return "Enter some minutes"
@@ -50,6 +52,7 @@ class StudyActions @Inject constructor(
         }
         if (sessionId != null) studyRepository.setSessionStatus(s.coupleId, sessionId, SessionStatus.DONE)
         reminderScheduler.refresh()
+        if (!quiet) celebrations.logged(if (sessionId != null) "Session done" else "$minutes min logged")
         return null
     }
 
@@ -67,12 +70,12 @@ class StudyActions @Inject constructor(
     suspend fun restoreLog(log: StudyLog): String? {
         val s = sessionStore.current() ?: return "Not signed in"
         val r = studyRepository.addLog(s.coupleId, log.copy(id = ""))
-        return (r as? AppResult.Failure)?.error?.message
+        return (r as? AppResult.Failure)?.error?.message ?: run { celebrations.saved("Entry restored"); null }
     }
 
     suspend fun deleteLog(logId: String): String? {
         val s = sessionStore.current() ?: return "Not signed in"
-        return (studyRepository.deleteLog(s.coupleId, logId) as? AppResult.Failure)?.error?.message
+        return (studyRepository.deleteLog(s.coupleId, logId) as? AppResult.Failure)?.error?.message ?: run { celebrations.removed("Entry removed"); null }
     }
 
     /** Marks a goal achieved (exam passed, level reached) or reopens it. */
@@ -82,7 +85,9 @@ class StudyActions @Inject constructor(
         val today = Clock.todayIso(s.me)
         val r = studyRepository.saveGoal(s.coupleId, goal.copy(passed = passed, passedAtIso = if (passed) today else null))
         reminderScheduler.refresh()
-        return (r as? AppResult.Failure)?.error?.message
+        return (r as? AppResult.Failure)?.error?.message ?: run {
+            if (passed) celebrations.passed("${goal.title} passed") else celebrations.saved("${goal.title} reopened"); null
+        }
     }
 
     suspend fun setTaskDone(level: Level, itemId: String, done: Boolean): String? {
@@ -90,11 +95,13 @@ class StudyActions @Inject constructor(
         val today = Clock.todayIso(s.me)
         val updated = level.copy(items = level.items.map { if (it.id == itemId) it.copy(done = done, doneAtIso = if (done) today else null) else it })
         return (studyRepository.saveLevel(s.coupleId, updated) as? AppResult.Failure)?.error?.message
+            ?: run { if (done) celebrations.saved("Done") ; null }
     }
 
     suspend fun startLevelEarly(level: Level): String? {
         val s = sessionStore.current() ?: return "Not signed in"
         val r = studyRepository.saveLevel(s.coupleId, level.copy(startedEarly = true))
+        if (r is AppResult.Success) celebrations.saved("Level ${level.number} started")
         reminderScheduler.refresh()
         return (r as? AppResult.Failure)?.error?.message
     }
@@ -102,6 +109,7 @@ class StudyActions @Inject constructor(
     suspend fun chooseBranch(level: Level, branch: String): String? {
         val s = sessionStore.current() ?: return "Not signed in"
         return (studyRepository.saveLevel(s.coupleId, level.copy(branch = branch)) as? AppResult.Failure)?.error?.message
+            ?: run { celebrations.saved("Branch chosen"); null }
     }
 
     /**
@@ -148,6 +156,7 @@ class StudyActions @Inject constructor(
             (studyRepository.saveGoal(s.coupleId, g) as? AppResult.Failure)?.let { return it.error.message }
         }
         replanFromToday()
+        celebrations.saved("Plan extended to ${Clock.formatDate(newDueIso)}")
         return null
     }
 
@@ -160,6 +169,7 @@ class StudyActions @Inject constructor(
         val updated = mine.copy(blocks = mine.blocks.map { byId[it.id] ?: it })
         (studyRepository.saveAvailability(s.coupleId, updated) as? AppResult.Failure)?.let { return it.error.message }
         replanFromToday()
+        celebrations.saved("More study time each day")
         return null
     }
 
@@ -190,12 +200,13 @@ class StudyActions @Inject constructor(
             .forEach { lvl -> studyRepository.saveLevel(s.coupleId, lvl.copy(items = lvl.items.filterNot { it.goalId == goalId })) }
         val r = studyRepository.deleteGoal(s.coupleId, goalId)
         reminderScheduler.refresh()
-        return (r as? AppResult.Failure)?.error?.message
+        return (r as? AppResult.Failure)?.error?.message ?: run { celebrations.removed("Goal removed"); null }
     }
 
-    suspend fun saveLevel(level: Level): String? {
+    suspend fun saveLevel(level: Level, celebrateAs: String? = null): String? {
         val s = sessionStore.current() ?: return "Not signed in"
         return (studyRepository.saveLevel(s.coupleId, level) as? AppResult.Failure)?.error?.message
+            ?: run { celebrations.saved(celebrateAs ?: "Saved"); null }
     }
 
     fun todayIso(): String = Clock.todayIso(sessionStore.current()?.me)

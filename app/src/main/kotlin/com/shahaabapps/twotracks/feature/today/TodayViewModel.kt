@@ -1,5 +1,6 @@
 package com.shahaabapps.twotracks.feature.today
 
+import com.shahaabapps.twotracks.session.Celebrations
 import android.content.Context
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.lifecycle.ViewModel
@@ -86,6 +87,7 @@ class TodayViewModel @Inject constructor(
     private val trackingRepository: TrackingRepository,
     private val changelog: ChangelogStore,
     @ApplicationContext context: Context,
+    private val celebrations: Celebrations,
 ) : ViewModel() {
 
     private val message = MutableStateFlow<String?>(null)
@@ -173,6 +175,7 @@ class TodayViewModel @Inject constructor(
     fun addHabit(habitId: String, value: Int) = viewModelScope.launch {
         val s = sessionStore.current() ?: return@launch
         trackingRepository.addHabitLog(s.coupleId, HabitLog(owner = s.myRole, habitId = habitId, dateIso = Clock.todayIso(s.me), value = value))
+        celebrations.logged("Counted")
     }
 
     fun clearMessage() { message.value = null }

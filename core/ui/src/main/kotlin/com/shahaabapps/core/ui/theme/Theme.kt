@@ -78,7 +78,7 @@ private val CupertinoM3Shapes = M3Shapes(
  */
 @Composable
 fun AppTheme(
-    themeMode: ThemeMode = ThemeMode.SYSTEM,
+    themeMode: ThemeMode = ThemeMode.LIGHT,
     accentPalette: AccentPalette = AccentPalette.QATAR,
     content: @Composable () -> Unit,
 ) {

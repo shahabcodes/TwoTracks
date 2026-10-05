@@ -2,6 +2,10 @@ package com.shahaabapps.twotracks
 
 import android.os.Bundle
 import androidx.activity.compose.setContent
+import com.shahaabapps.core.ui.theme.ThemeMode
+import androidx.core.view.WindowCompat
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -23,6 +27,8 @@ import com.shahaabapps.twotracks.session.AppLock
 import com.shahaabapps.twotracks.session.SessionState
 import com.shahaabapps.twotracks.ui.AppViewModel
 import com.shahaabapps.twotracks.ui.MainNavGraph
+import com.shahaabapps.twotracks.ui.components.CelebrationOverlay
+import com.shahaabapps.twotracks.session.Celebrations
 import com.shahaabapps.twotracks.ui.ThemeViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
@@ -32,6 +38,7 @@ import javax.inject.Inject
 class MainActivity : FragmentActivity() {
 
     @Inject lateinit var appLock: AppLock
+    @Inject lateinit var celebrations: Celebrations
 
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()
@@ -41,9 +48,24 @@ class MainActivity : FragmentActivity() {
             val themeMode by themeViewModel.themeMode.collectAsStateWithLifecycle()
             val accentPalette by themeViewModel.accentPalette.collectAsStateWithLifecycle()
 
+            // Status and navigation bar icons follow the app's own light/dark choice, not the system's.
+            val dark = when (themeMode) {
+                ThemeMode.SYSTEM -> isSystemInDarkTheme()
+                ThemeMode.LIGHT -> false
+                ThemeMode.DARK -> true
+            }
+            LaunchedEffect(dark) {
+                WindowCompat.getInsetsController(window, window.decorView).apply {
+                    isAppearanceLightStatusBars = !dark
+                    isAppearanceLightNavigationBars = !dark
+                }
+            }
             AppTheme(themeMode = themeMode, accentPalette = accentPalette) {
                 Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
-                    AppRoot(appLock)
+                    Box(Modifier.fillMaxSize()) {
+                        AppRoot(appLock)
+                        CelebrationOverlay(celebrations, accentPalette)
+                    }
                 }
             }
         }

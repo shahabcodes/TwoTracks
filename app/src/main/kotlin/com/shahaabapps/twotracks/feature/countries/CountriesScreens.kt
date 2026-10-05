@@ -1,5 +1,6 @@
 package com.shahaabapps.twotracks.feature.countries
 
+import com.shahaabapps.twotracks.session.Celebrations
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -54,6 +55,7 @@ class CountriesViewModel @Inject constructor(
     private val sessionStore: SessionStore,
     dataStore: CoupleDataStore,
     private val trackingRepository: TrackingRepository,
+    private val celebrations: Celebrations,
 ) : ViewModel() {
     private val code: String? = savedStateHandle.get<String>("code")
 
@@ -66,11 +68,13 @@ class CountriesViewModel @Inject constructor(
     fun toggleTodo(c: CountryTrack, todo: CountryTodo) = viewModelScope.launch {
         val s = sessionStore.current() ?: return@launch
         trackingRepository.saveCountry(s.coupleId, c.copy(todos = c.todos.map { if (it.id == todo.id) it.copy(done = !it.done) else it }))
+        if (!todo.done) celebrations.saved("Done")
     }
 
     fun saveNotes(c: CountryTrack, notes: String) = viewModelScope.launch {
         val s = sessionStore.current() ?: return@launch
         trackingRepository.saveCountry(s.coupleId, c.copy(notes = notes))
+        celebrations.saved("Notes saved")
     }
 }
 

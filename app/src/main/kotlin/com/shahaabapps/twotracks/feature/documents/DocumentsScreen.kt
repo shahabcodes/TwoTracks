@@ -1,5 +1,6 @@
 package com.shahaabapps.twotracks.feature.documents
 
+import com.shahaabapps.twotracks.session.Celebrations
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -56,6 +57,7 @@ class DocumentsViewModel @Inject constructor(
     private val sessionStore: SessionStore,
     dataStore: CoupleDataStore,
     private val trackingRepository: TrackingRepository,
+    private val celebrations: Celebrations,
 ) : ViewModel() {
     private val role = MutableStateFlow<PersonRole?>(null)
 
@@ -75,6 +77,7 @@ class DocumentsViewModel @Inject constructor(
     fun save(doc: DocumentItem) = viewModelScope.launch {
         val s = sessionStore.current() ?: return@launch
         trackingRepository.saveDocument(s.coupleId, doc)
+        celebrations.saved("Document updated")
     }
 
     fun cycle(doc: DocumentItem) = save(

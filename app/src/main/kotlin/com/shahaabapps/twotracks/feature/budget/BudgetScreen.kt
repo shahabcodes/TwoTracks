@@ -1,5 +1,6 @@
 package com.shahaabapps.twotracks.feature.budget
 
+import com.shahaabapps.twotracks.session.Celebrations
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -55,6 +56,7 @@ class BudgetViewModel @Inject constructor(
     private val sessionStore: SessionStore,
     dataStore: CoupleDataStore,
     private val trackingRepository: TrackingRepository,
+    private val celebrations: Celebrations,
 ) : ViewModel() {
     val uiState: StateFlow<BudgetUiState> = combine(sessionStore.session, dataStore.budget) { session, items ->
         val sorted = items.sortedBy { it.order }
@@ -70,11 +72,13 @@ class BudgetViewModel @Inject constructor(
     fun save(item: BudgetItem) = viewModelScope.launch {
         val s = sessionStore.current() ?: return@launch
         trackingRepository.saveBudget(s.coupleId, item)
+        celebrations.saved("Budget saved")
     }
 
     fun delete(id: String) = viewModelScope.launch {
         val s = sessionStore.current() ?: return@launch
         trackingRepository.deleteBudget(s.coupleId, id)
+        celebrations.removed("Budget item removed")
     }
 
     fun myRole(): PersonRole? = sessionStore.current()?.myRole

@@ -5,6 +5,17 @@ build number is appended by CI (for example `0.1.0 (build 12)`).
 
 ## [Unreleased]
 
+## [0.9.0] - 2026-10-05
+
+### Added
+- Full-screen celebration after every save, log, pass and delete. On the Qatar theme a maroon-and-white flag flies in and waves (and flies away on a delete); on Blue, Pink and Meadow a confetti burst in the theme's colours. Tap anywhere to skip it.
+
+### Changed
+- Today: the "Different time" and "Skip today" chips now sit a full step below the Done button, matching the spacing used everywhere else.
+- Toggles use the theme accent when on instead of iOS green.
+- Status and navigation bar icons follow the app's own Light or Dark choice.
+- The app opens in Light mode with the Qatar theme by default. System and Dark remain available under Settings, Appearance, and a choice you already made is kept.
+
 ## [0.8.0] - 2026-10-05
 
 ### Added

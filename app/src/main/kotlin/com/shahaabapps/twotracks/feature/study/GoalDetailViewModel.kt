@@ -1,5 +1,6 @@
 package com.shahaabapps.twotracks.feature.study
 
+import com.shahaabapps.twotracks.session.Celebrations
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -48,6 +49,7 @@ class GoalDetailViewModel @Inject constructor(
     private val dataStore: CoupleDataStore,
     private val studyRepository: StudyRepository,
     private val actions: StudyActions,
+    private val celebrations: Celebrations,
 ) : ViewModel() {
 
     private val goalId: String = savedStateHandle.get<String>("goalId").orEmpty()
@@ -122,6 +124,7 @@ class GoalDetailViewModel @Inject constructor(
         val m = undoMock.value ?: return@launch
         undoMock.value = null
         studyRepository.addMockScore(s.coupleId, m.copy(id = ""))
+        celebrations.saved("Score restored")
         message.value = "Mock score restored"
     }
 
@@ -133,12 +136,14 @@ class GoalDetailViewModel @Inject constructor(
         val s = sessionStore.current() ?: return@launch
         val goal = uiState.value.goal ?: return@launch
         studyRepository.addMockScore(s.coupleId, MockScore(owner = goal.owner, goalId = goal.id, dateIso = uiState.value.todayIso, scores = scores, note = note))
+        celebrations.saved("Score saved")
         message.value = "Mock score saved"
     }
 
     fun deleteMockScore(m: MockScore) = viewModelScope.launch {
         val s = sessionStore.current() ?: return@launch
         studyRepository.deleteMockScore(s.coupleId, m.id)
+        celebrations.removed("Score removed")
         undoMock.value = m
     }
 

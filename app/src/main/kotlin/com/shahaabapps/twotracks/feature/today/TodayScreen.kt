@@ -263,7 +263,7 @@ private fun SessionBlock(
                 onClick = { haptic.performHapticFeedback(HapticFeedbackType.LongPress); if (row.session.isClass) onLog() else onDone() },
                 modifier = Modifier.padding(top = Spacing.sm),
             )
-            Row(horizontalArrangement = Arrangement.spacedBy(Spacing.sm), modifier = Modifier.padding(top = Spacing.xs)) {
+            Row(horizontalArrangement = Arrangement.spacedBy(Spacing.sm), modifier = Modifier.padding(top = Spacing.md)) {
                 Chip(text = "Different time", onClick = onLog)
                 Chip(text = "Skip today", onClick = onSkip)
             }

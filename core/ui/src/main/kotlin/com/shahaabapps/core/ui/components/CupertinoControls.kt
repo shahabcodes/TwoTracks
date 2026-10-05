@@ -22,7 +22,7 @@ import androidx.compose.ui.unit.dp
 import com.shahaabapps.core.ui.theme.AppTheme
 import com.shahaabapps.core.ui.theme.Shapes
 
-/** An iOS-green toggle (Browse Safe Widget.FamilySafe.Switch). */
+/** An iOS-style toggle whose "on" track takes the current accent (maroon on the Qatar theme). */
 @Composable
 fun CupertinoSwitch(
     checked: Boolean,
@@ -37,11 +37,13 @@ fun CupertinoSwitch(
         modifier = modifier,
         colors = SwitchDefaults.colors(
             checkedThumbColor = Color.White,
-            checkedTrackColor = Color(0xFF34C759),
+            checkedTrackColor = AppTheme.colors.accent,
             checkedBorderColor = Color.Transparent,
             uncheckedThumbColor = Color.White,
-            uncheckedTrackColor = Color(0xFFE9E9EA),
+            uncheckedTrackColor = AppTheme.colors.fill,
             uncheckedBorderColor = Color.Transparent,
+            disabledCheckedTrackColor = AppTheme.colors.accent.copy(alpha = 0.4f),
+            disabledUncheckedTrackColor = AppTheme.colors.fill.copy(alpha = 0.5f),
         ),
     )
 }
