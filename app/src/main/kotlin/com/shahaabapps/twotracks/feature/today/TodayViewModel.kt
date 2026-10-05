@@ -1,13 +1,18 @@
 package com.shahaabapps.twotracks.feature.today
 
+import android.content.Context
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.shahaabapps.twotracks.changelog.ChangelogStore
+import com.shahaabapps.twotracks.changelog.Release
 import com.shahaabapps.core.data.tracking.TrackingRepository
 import com.shahaabapps.core.model.Deadline
 import com.shahaabapps.core.model.HabitLog
 import com.shahaabapps.core.model.PersonRole
 import com.shahaabapps.core.model.PlannedSession
 import com.shahaabapps.core.model.Profile
+import com.shahaabapps.core.model.SessionStatus
 import com.shahaabapps.core.model.StudyGoal
 import com.shahaabapps.core.planner.Dates
 import com.shahaabapps.core.planner.LevelProgress
@@ -18,6 +23,7 @@ import com.shahaabapps.twotracks.session.PersonPlan
 import com.shahaabapps.twotracks.session.PlanStore
 import com.shahaabapps.twotracks.session.SessionStore
 import com.shahaabapps.twotracks.session.StudyActions
+import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -64,6 +70,9 @@ data class TodayUiState(
     val nextDeadline: Deadline? = null,
     val daysToDeadline: Long? = null,
     val message: String? = null,
+    /** Set once a day on open; null after dismissal. */
+    val brief: DailyBrief? = null,
+    val whatsNew: Release? = null,
 )
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -75,9 +84,13 @@ class TodayViewModel @Inject constructor(
     private val sessionPlanning: SessionPlanning,
     private val actions: StudyActions,
     private val trackingRepository: TrackingRepository,
+    private val changelog: ChangelogStore,
+    @ApplicationContext context: Context,
 ) : ViewModel() {
 
     private val message = MutableStateFlow<String?>(null)
+    private val prefs = context.getSharedPreferences("daily_brief", Context.MODE_PRIVATE)
+    private val briefDismissed = MutableStateFlow(false)
 
     private val sessionsFlow = sessionStore.session.flatMapLatest { s ->
         if (s == null) flowOf(emptyList()) else {
@@ -92,7 +105,9 @@ class TodayViewModel @Inject constructor(
         }
     }
 
-    val uiState: StateFlow<TodayUiState> = combine(planStore.plan, sessionsFlow, dataStore.deadlines, message) { plan, sessions, deadlines, msg ->
+    val uiState: StateFlow<TodayUiState> = combine(
+        planStore.plan, sessionsFlow, dataStore.deadlines, message, combine(briefDismissed, changelog.unseen) { d, w -> d to w },
+    ) { plan, sessions, deadlines, msg, (dismissed, whatsNew) ->
         if (plan == null) return@combine TodayUiState(loading = true, message = msg)
         val goalsById = plan.me.goals.plus(plan.partner.goals).associateBy { it.id }
 
@@ -116,10 +131,15 @@ class TodayViewModel @Inject constructor(
         val next = deadlines.mapNotNull { d -> Dates.parseOrNull(d.dateIso)?.let { d to it } }
             .filter { !it.second.isBefore(plan.me.today) }
             .minByOrNull { it.second }
+        val myCard = card(plan.me)
+        val todayIso = Dates.format(plan.me.today)
+        val briefDue = !dismissed && prefs.getString("shown_on", null) != todayIso
         TodayUiState(
-            loading = false, today = plan.me.today, level = plan.me.current, partnerLevel = plan.partner.current, me = card(plan.me), partner = card(plan.partner),
+            loading = false, today = plan.me.today, level = plan.me.current, partnerLevel = plan.partner.current, me = myCard, partner = card(plan.partner),
             status = plan.me.statusSentence, goals = plan.me.goals, activeGoals = plan.me.activeGoals,
             nextDeadline = next?.first, daysToDeadline = next?.let { ChronoUnit.DAYS.between(plan.me.today, it.second) }, message = msg,
+            brief = if (briefDue) buildBrief(plan.me, myCard, next?.first, next?.let { ChronoUnit.DAYS.between(plan.me.today, it.second) }) else null,
+            whatsNew = whatsNew,
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), TodayUiState())
 
@@ -156,4 +176,61 @@ class TodayViewModel @Inject constructor(
     }
 
     fun clearMessage() { message.value = null }
+
+    fun dismissBrief() {
+        prefs.edit().putString("shown_on", Dates.format(Clock.today(sessionStore.current()?.me))).apply()
+        briefDismissed.value = true
+    }
+
+    fun dismissWhatsNew() = changelog.markSeen()
+
+    /** Today's one thing and three reasons it matters: this goal, this level, the move. */
+    private fun buildBrief(p: PersonPlan, card: PersonCard, deadline: Deadline?, deadlineDays: Long?): DailyBrief {
+        val hour = Clock.now(sessionStore.current()?.me).hour
+        val greeting = when {
+            hour < 12 -> "Good morning, ${p.name}"
+            hour < 18 -> "Good afternoon, ${p.name}"
+            else -> "Good evening, ${p.name}"
+        }
+        val first = card.sessions.firstOrNull { it.session.status == SessionStatus.PLANNED } ?: card.sessions.firstOrNull()
+        val goal = first?.goal
+        val gp = goal?.let { p.goalProgress[it.id] }
+        val level = p.current
+        val reasons = mutableListOf<Pair<ImageVector, String>>()
+        if (goal != null && gp != null) {
+            val due = gp.targetDate?.let { Clock.formatDate(it) }
+            val need = gp.weeklyNeedHours
+            reasons += BriefIcons.goal to buildString {
+                append("${goal.title}: %.0f of %.0f hours done".format(gp.hoursLogged, gp.hoursRequired))
+                if (due != null && need != null) append(". About %.0f hours a week keeps it on track for $due".format(need))
+                append(".")
+            }
+        } else if (p.activeGoals.isNotEmpty()) {
+            val g = p.activeGoals.first()
+            val gp2 = p.goalProgress[g.id]
+            reasons += BriefIcons.goal to "${g.title}: %.0f of %.0f hours done. A rest day keeps the streak honest; logging anything counts.".format(gp2?.hoursLogged ?: 0.0, gp2?.hoursRequired ?: 0.0)
+        }
+        if (level != null) {
+            val left = level.daysLeft?.let { if (it >= 0) "$it days left" else "${-it} days overdue" } ?: ""
+            reasons += BriefIcons.level to "Level ${level.level.number}, ${level.level.name}: ${level.requiredDone} of ${level.requiredTotal} done, $left. Finishing it unlocks Level ${level.level.number + 1} on time."
+        }
+        reasons += BriefIcons.move to when {
+            deadline != null && deadlineDays != null -> "${deadline.title} in $deadlineDays days. Every session now is one less to squeeze in later."
+            else -> "Every session now is one less to squeeze in later."
+        }
+        val streak = when (p.streak) {
+            0 -> "No streak yet. Today starts one."
+            1 -> "1-day streak. Make it two."
+            else -> "${p.streak}-day streak. Keep it alive."
+        }
+        return DailyBrief(
+            greeting = greeting,
+            dateLine = Clock.formatLong(p.today),
+            task = if (first == null) "Rest day" else (goal?.title ?: "Study"),
+            taskDetail = if (first == null) "No slot today. Log anything you study." else "${first.componentName} · ${first.session.durationMinutes} min · ${first.timeLabel}",
+            reasons = reasons,
+            streakLine = streak,
+            isRestDay = first == null,
+        )
+    }
 }

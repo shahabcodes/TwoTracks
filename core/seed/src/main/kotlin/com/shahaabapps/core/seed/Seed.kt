@@ -5,7 +5,7 @@ package com.shahaabapps.core.seed
  * when the seed content changes; the app re-seeds spaces that are behind.
  */
 object Seed {
-    const val VERSION = 2
+    const val VERSION = 3
 
     val goals get() = SeedGoals.all
     val levels get() = SeedLevels.all

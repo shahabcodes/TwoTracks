@@ -5,6 +5,16 @@ build number is appended by CI (for example `0.1.0 (build 12)`).
 
 ## [Unreleased]
 
+## [0.6.0] - 2026-10-05
+
+### Added
+- What's new popup after each update, showing the latest changes with a link to the full version history (also under Settings, About).
+- Daily brief on open: a sheet with today's one thing, when and for how long, and three lines on how it moves your goal, your level and the move forward.
+
+### Changed
+- Practice results can be logged for one skill (for example only Listening) or as a full test; single-skill results show the skill name in full.
+- Skills now follow the examining body's order and weights: IELTS Listening, Reading, Writing, Speaking; Goethe German with vocabulary and grammar then Hören, Lesen, Schreiben, Sprechen; TEF Canada's four modules; AZ-204, AZ-400, DP-300 and AI-102 skills measured; CKAD, AWS DVA-C02 and Java SE 21 domains. Hour budgets follow the published weights; your logged hours stay attached.
+
 ## [0.5.0] - 2026-10-04
 
 ### Added

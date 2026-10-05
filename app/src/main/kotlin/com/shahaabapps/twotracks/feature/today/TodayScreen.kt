@@ -48,6 +48,7 @@ import com.shahaabapps.core.ui.components.StatusChip
 import com.shahaabapps.core.ui.theme.AppTheme
 import com.shahaabapps.core.ui.theme.Shapes
 import com.shahaabapps.core.ui.theme.Spacing
+import com.shahaabapps.twotracks.changelog.WhatsNewDialog
 import com.shahaabapps.twotracks.session.Clock
 import com.shahaabapps.twotracks.ui.components.AnimatedSwap
 import com.shahaabapps.twotracks.ui.components.Chip
@@ -65,6 +66,7 @@ fun TodayScreen(
     onOpenPartner: () -> Unit,
     onOpenGoal: (String) -> Unit,
     onOpenWeek: () -> Unit,
+    onOpenChangelog: () -> Unit,
     viewModel: TodayViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
@@ -212,6 +214,15 @@ fun TodayScreen(
             onLog = { g, c, m, n -> viewModel.logMinutes(g, c, m, n, target.sessionId, target.isClass); logTarget = null },
             onLogSplit = { g, map, n -> viewModel.logSplit(g, map, n, target.sessionId); logTarget = null },
         )
+    }
+
+    // After an update, What's new comes first; the daily brief follows once it is dismissed.
+    val whatsNew = state.whatsNew
+    val brief = state.brief
+    if (whatsNew != null) {
+        WhatsNewDialog(release = whatsNew, onDismiss = viewModel::dismissWhatsNew, onViewMore = { viewModel.dismissWhatsNew(); onOpenChangelog() })
+    } else if (brief != null && !state.loading) {
+        DailyBriefSheet(brief = brief, onStart = viewModel::dismissBrief, onDismiss = viewModel::dismissBrief)
     }
 }
 

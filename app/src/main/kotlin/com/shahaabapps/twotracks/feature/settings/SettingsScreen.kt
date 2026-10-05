@@ -41,6 +41,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.Fingerprint
 import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Link
 import androidx.compose.material.icons.filled.Mail
 import androidx.compose.material.icons.filled.Person
@@ -59,6 +60,7 @@ import com.shahaabapps.twotracks.ui.components.TimezoneDialog
 fun SettingsScreen(
     onBack: () -> Unit,
     onOpenAvailability: () -> Unit,
+    onOpenChangelog: () -> Unit = {},
     viewModel: SettingsViewModel = hiltViewModel(),
     themeViewModel: ThemeViewModel = hiltViewModel(),
 ) {
@@ -143,6 +145,12 @@ fun SettingsScreen(
                             onClick = { confirmReset = true }, showDivider = false, trailing = { CupertinoDisclosure() },
                         )
                     }
+                }
+                CupertinoListSection(header = "About") {
+                    CupertinoListRow(
+                        "Version history", subtitle = "Version ${com.shahaabapps.twotracks.BuildConfig.VERSION_NAME}", leadingIcon = Icons.Filled.History, iconColor = IosColors.Indigo,
+                        showDivider = false, onClick = onOpenChangelog, trailing = { CupertinoDisclosure() },
+                    )
                 }
                 CupertinoTextButton(text = "Sign out", destructive = true, onClick = viewModel::signOut)
             }

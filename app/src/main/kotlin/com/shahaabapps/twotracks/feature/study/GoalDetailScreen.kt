@@ -44,6 +44,8 @@ import com.shahaabapps.core.ui.components.CupertinoTextField
 import com.shahaabapps.core.ui.theme.AppTheme
 import com.shahaabapps.core.ui.theme.Spacing
 import com.shahaabapps.twotracks.session.Clock
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import com.shahaabapps.twotracks.ui.components.Chip
 import com.shahaabapps.twotracks.ui.components.DetailScaffold
 import com.shahaabapps.twotracks.ui.components.LogMinutesSheet
@@ -51,9 +53,11 @@ import com.shahaabapps.twotracks.ui.components.LogTarget
 import com.shahaabapps.twotracks.ui.components.NavAction
 import com.shahaabapps.twotracks.ui.components.ProgressBar
 import com.shahaabapps.twotracks.ui.components.SwipeToDelete
+import com.shahaabapps.twotracks.ui.components.SegmentedChoice
 import com.shahaabapps.twotracks.ui.components.SectionLabel
 
 /** Level 2: one goal. Sentence, bar, per-skill bars, Log and Mark as passed. Everything else is behind Details. */
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun GoalDetailScreen(
     goalId: String,
@@ -180,7 +184,10 @@ fun GoalDetailScreen(
                                 modifier = Modifier.animateItem(),
                             ) {
                                 CupertinoListRow(
-                                    title = m.scores.entries.joinToString("  ") { (k, v) -> "${goal.components.firstOrNull { it.id == k }?.name?.take(1) ?: k} $v" },
+                                    title = m.scores.entries.joinToString(" · ") { (k, v) ->
+                                        val name = goal.components.firstOrNull { it.id == k }?.name?.substringBefore(" (") ?: k
+                                        if (m.scores.size == 1) "$name $v" else "${name.take(1)} $v"
+                                    },
                                     subtitle = Clock.formatDate(m.dateIso) + if (m.note.isNotBlank()) ", ${m.note}" else "",
                                     showDivider = i < state.mockScores.lastIndex,
                                 )
@@ -232,20 +239,41 @@ fun GoalDetailScreen(
     if (showMock && goal != null) {
         val values = remember { mutableStateOf(goal.components.associate { it.id to "" }) }
         var note by remember { mutableStateOf("") }
+        var fullTest by remember { mutableStateOf(goal.components.size == 1) }
+        var skillId by remember { mutableStateOf(goal.components.first().id) }
+        var single by remember { mutableStateOf("") }
+        val canSave = if (fullTest) values.value.values.any { it.isNotBlank() } else single.isNotBlank()
         AlertDialog(
             onDismissRequest = { showMock = false },
-            confirmButton = { TextButton(onClick = { viewModel.addMockScore(values.value.filterValues { it.isNotBlank() }, note); showMock = false }) { Text("Save") } },
+            confirmButton = {
+                TextButton(enabled = canSave, onClick = {
+                    val scores = if (fullTest) values.value.filterValues { it.isNotBlank() } else mapOf(skillId to single.trim())
+                    viewModel.addMockScore(scores, note); showMock = false
+                }) { Text("Save") }
+            },
             dismissButton = { TextButton(onClick = { showMock = false }) { Text("Cancel") } },
-            title = { Text("Mock test result") },
+            title = { Text("Practice result") },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(Spacing.sm)) {
-                    goal.components.forEach { c ->
-                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
-                            Text(c.name, modifier = Modifier.weight(1f))
-                            Box(modifier = Modifier.width(96.dp)) {
-                                CupertinoTextField(value = values.value[c.id].orEmpty(), onValueChange = { v -> values.value = values.value + (c.id to v) }, placeholder = c.targetScore ?: "score")
+                    if (goal.components.size > 1) {
+                        SegmentedChoice(options = listOf(false, true), selected = fullTest, label = { if (it) "Full test" else "One skill" }, onSelect = { fullTest = it })
+                    }
+                    if (!fullTest) {
+                        FlowRow(horizontalArrangement = Arrangement.spacedBy(Spacing.xs), verticalArrangement = Arrangement.spacedBy(Spacing.xs)) {
+                            goal.components.forEach { c -> Chip(text = c.name.substringBefore(" ("), selected = c.id == skillId, onClick = { skillId = c.id }) }
+                        }
+                        val target = goal.components.firstOrNull { it.id == skillId }?.targetScore
+                        CupertinoTextField(value = single, onValueChange = { single = it }, placeholder = target?.let { "Score (target $it)" } ?: "Score")
+                    } else {
+                        goal.components.forEach { c ->
+                            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
+                                Text(c.name.substringBefore(" ("), modifier = Modifier.weight(1f), style = MaterialTheme.typography.bodyMedium)
+                                Box(modifier = Modifier.width(96.dp)) {
+                                    CupertinoTextField(value = values.value[c.id].orEmpty(), onValueChange = { v -> values.value = values.value + (c.id to v) }, placeholder = c.targetScore ?: "score")
+                                }
                             }
                         }
+                        Text("Leave a skill blank if you did not sit it.", style = MaterialTheme.typography.bodySmall, color = AppTheme.colors.secondaryLabel)
                     }
                     CupertinoTextField(value = note, onValueChange = { note = it }, placeholder = "Note (e.g. Cambridge 18 test 2)")
                 }

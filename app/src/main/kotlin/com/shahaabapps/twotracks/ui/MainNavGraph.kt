@@ -43,6 +43,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.shahaabapps.core.ui.theme.AppTheme
+import com.shahaabapps.twotracks.changelog.ChangelogScreen
 import com.shahaabapps.twotracks.feature.budget.BudgetScreen
 import com.shahaabapps.twotracks.feature.countries.CountriesScreen
 import com.shahaabapps.twotracks.feature.countries.CountryDetailScreen
@@ -68,6 +69,7 @@ object Routes {
     const val LEVEL = "level/{levelId}"
     const val YOUR_WEEK = "yourweek"
     const val PARTNER = "partner"
+    const val CHANGELOG = "changelog"
     const val WEEK = "week"
     const val GOAL_DETAIL = "goal/{goalId}"
     const val GOAL_EDIT = "goal/{goalId}/edit"
@@ -167,8 +169,10 @@ fun MainNavGraph(session: AppSession) {
                     onOpenPartner = { navController.navigate(Routes.PARTNER) },
                     onOpenGoal = { navController.navigate(Routes.goalDetail(it)) },
                     onOpenWeek = { navController.navigate(Routes.YOUR_WEEK) },
+                    onOpenChangelog = { navController.navigate(Routes.CHANGELOG) },
                 )
             }
+            composable(Routes.CHANGELOG) { ChangelogScreen(onBack = { navController.popBackStack() }) }
             composable(Routes.US) {
                 UsScreen(onNavigate = { navController.navigate(it) }, onOpenLevel = { navController.navigate(Routes.level(it)) })
             }
@@ -212,7 +216,11 @@ fun MainNavGraph(session: AppSession) {
             composable(Routes.DOCUMENTS) { DocumentsScreen(onBack = { navController.popBackStack() }) }
             composable(Routes.BUDGET) { BudgetScreen(onBack = { navController.popBackStack() }) }
             composable(Routes.SETTINGS) {
-                SettingsScreen(onBack = { navController.popBackStack() }, onOpenAvailability = { navController.navigate(Routes.AVAILABILITY) })
+                SettingsScreen(
+                    onBack = { navController.popBackStack() },
+                    onOpenAvailability = { navController.navigate(Routes.AVAILABILITY) },
+                    onOpenChangelog = { navController.navigate(Routes.CHANGELOG) },
+                )
             }
             composable(Routes.AVAILABILITY) { AvailabilityScreen(onBack = { navController.popBackStack() }) }
         }
