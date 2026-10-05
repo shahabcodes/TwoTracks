@@ -5,6 +5,11 @@ build number is appended by CI (for example `0.1.0 (build 12)`).
 
 ## [Unreleased]
 
+## [0.20.0] - 2026-10-05
+
+### Changed
+- Mascot update: anime style with big hair, small faces and large eyes; Usaid in a hoodie.
+
 ## [0.19.0] - 2026-10-05
 
 ### Changed
