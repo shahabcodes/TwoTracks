@@ -60,6 +60,7 @@ fun PlaneCompanion(state: MascotState, modifier: Modifier = Modifier) {
     val lookX by animateFloatAsState(if (state.focus == FieldFocus.EMAIL) state.lookX else 0f, spring(dampingRatio = 0.7f, stiffness = Spring.StiffnessMediumLow), label = "lookX")
     val lookY by animateFloatAsState(if (state.focus == FieldFocus.NONE) 0f else 0.55f, spring(dampingRatio = 0.7f, stiffness = Spring.StiffnessMediumLow), label = "lookY")
     val mood by animateFloatAsState(state.mood, tween(350), label = "mood")
+    val suspicion by animateFloatAsState(if (state.suspicious) 1f else 0f, tween(400), label = "sus")
     // Banks with the gaze; pitches away a little while a password is typed.
     val bank by animateFloatAsState(if (secret && !state.passwordShown) -10f else lookX * 12f, spring(dampingRatio = 0.6f, stiffness = Spring.StiffnessLow), label = "bank")
     val driftX by animateFloatAsState(if (state.focus == FieldFocus.EMAIL) state.lookX * 0.45f else 0f, spring(dampingRatio = 0.6f, stiffness = Spring.StiffnessLow), label = "drift")
@@ -90,7 +91,7 @@ fun PlaneCompanion(state: MascotState, modifier: Modifier = Modifier) {
             drawContrail(c, r, hover, gradient.first())
             drawPlaneBody(c, r, gradient, prop)
             // Face lives in the windshield, slightly forward of centre.
-            drawExpression(Offset(c.x + r * 0.55f, c.y - r * 0.12f), r * 0.62f, gradient.first(), lookX, lookY, maxOf(closed, blink), peek, mood)
+            drawExpression(Offset(c.x + r * 0.55f, c.y - r * 0.12f), r * 0.62f, gradient.first(), lookX, lookY, maxOf(closed, blink), peek, mood, suspicion = suspicion)
         }
     }
 }

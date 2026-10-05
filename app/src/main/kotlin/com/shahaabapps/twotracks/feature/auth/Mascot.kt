@@ -46,6 +46,10 @@ data class MascotState(
     val lookX: Float = 0f,
     val passwordShown: Boolean = false,
     val mood: Float = 0f,
+    /** Nothing typed yet: narrowed eyes, one brow up, a smirk. */
+    val suspicious: Boolean = false,
+    /** The email field has focus: the companion comes down to the card and rests on the toggle. */
+    val near: Boolean = false,
 )
 
 /**
@@ -61,6 +65,7 @@ fun Mascot(state: MascotState, modifier: Modifier = Modifier) {
     val lookX by animateFloatAsState(if (state.focus == FieldFocus.EMAIL) state.lookX else 0f, spring(dampingRatio = 0.7f, stiffness = Spring.StiffnessMediumLow), label = "lookX")
     val lookY by animateFloatAsState(if (state.focus == FieldFocus.NONE) 0f else 0.55f, spring(dampingRatio = 0.7f, stiffness = Spring.StiffnessMediumLow), label = "lookY")
     val mood by animateFloatAsState(state.mood, tween(350), label = "mood")
+    val suspicion by animateFloatAsState(if (state.suspicious) 1f else 0f, tween(400), label = "sus")
     // Turns away a little while a password is typed, leans toward the email as it grows.
     val tilt by animateFloatAsState(if (secret && !state.passwordShown) 14f else lookX * 9f, spring(dampingRatio = 0.6f, stiffness = Spring.StiffnessLow), label = "tilt")
     val driftX by animateFloatAsState(if (state.focus == FieldFocus.EMAIL) state.lookX * 0.5f else 0f, spring(dampingRatio = 0.6f, stiffness = Spring.StiffnessLow), label = "drift")
@@ -93,7 +98,7 @@ fun Mascot(state: MascotState, modifier: Modifier = Modifier) {
         withTransform({ rotate(tilt, pivot = c) }) {
             drawWings(c, r, flapAngle, lid)
             drawTrail(c, r, hover, lid, tilt)
-            drawFace(c, r, gradient, lid, lookX, lookY, maxOf(closed, blink), peek, mood)
+            drawFace(c, r, gradient, lid, lookX, lookY, maxOf(closed, blink), peek, mood, suspicion)
             drawTuft(c, r, lid)
         }
     }
@@ -139,7 +144,7 @@ private fun DrawScope.drawTuft(c: Offset, r: Float, accent: Color) {
 
 private fun DrawScope.drawFace(
     c: Offset, r: Float, gradient: List<Color>, lid: Color,
-    lookX: Float, lookY: Float, closed: Float, peek: Float, mood: Float,
+    lookX: Float, lookY: Float, closed: Float, peek: Float, mood: Float, suspicion: Float = 0f,
 ) {
     val accent = gradient.first()
     val body = Rect(c.x - r, c.y - r * 0.94f, c.x + r, c.y + r * 0.98f)
@@ -148,19 +153,27 @@ private fun DrawScope.drawFace(
     drawOval(Brush.radialGradient(listOf(Color.White, Color.White.copy(alpha = 0f)), center = Offset(c.x - r * 0.3f, c.y - r * 0.45f), radius = r * 0.8f), topLeft = body.topLeft, size = body.size)
     drawOval(accent.copy(alpha = 0.35f), topLeft = body.topLeft, size = body.size, style = Stroke(width = r * 0.045f))
 
-    drawExpression(c, r, accent, lookX, lookY, closed, peek, mood)
+    drawExpression(c, r, accent, lookX, lookY, closed, peek, mood, suspicion = suspicion)
 }
 
-/** Eyes, cheeks, mouth and the happy sparkle, shared by every companion. */
+/**
+ * Eyes, brows, cheeks, mouth and the happy sparkle, shared by every companion.
+ * [suspicion] narrows the eyes, raises one brow, slides the gaze sideways and
+ * turns the mouth into a smirk. [lashes] and [lipTint] add a feminine finish;
+ * [browWeight] thickens the brows.
+ */
 internal fun DrawScope.drawExpression(
     c: Offset, r: Float, accent: Color,
     lookX: Float, lookY: Float, closed: Float, peek: Float, mood: Float,
+    suspicion: Float = 0f, lashes: Boolean = false, lipTint: Color? = null, browWeight: Float = 1f,
 ) {
     val ink = Color(0xFF2A2630)
     val eyeDx = r * 0.36f
     val eyeY = c.y - r * 0.08f
     val eyeR = r * (0.21f + 0.03f * mood.coerceAtLeast(0f) - 0.03f * (-mood).coerceAtLeast(0f))
-    val gazeX = lookX * r * 0.07f
+    // A sideways glance when suspicious and no other gaze is set.
+    val sideGlance = if (lookX == 0f) 0.65f * suspicion else 0f
+    val gazeX = (lookX + sideGlance) * r * 0.07f
     val gazeY = lookY * r * 0.06f
     listOf(-1f, 1f).forEachIndexed { i, side ->
         val ex = c.x + side * eyeDx + gazeX
@@ -170,13 +183,21 @@ internal fun DrawScope.drawExpression(
         if (thisClosed < 0.6f) {
             val open = 1f - thisClosed / 0.6f
             val rx = eyeR
-            val ry = eyeR * (0.35f + 0.65f * open)
+            // Narrowed when suspicious; the eye nearer the glance narrows more.
+            val squint = suspicion * (if (i == 1) 0.5f else 0.38f)
+            val ry = eyeR * (0.35f + 0.65f * open) * (1f - squint)
             drawOval(ink, topLeft = Offset(ex - rx, ey - ry), size = Size(rx * 2, ry * 2))
-            // Glossy highlights.
-            drawCircle(Color.White, eyeR * 0.36f, Offset(ex - eyeR * 0.3f, ey - ry * 0.35f))
-            drawCircle(Color.White.copy(alpha = 0.85f), eyeR * 0.14f, Offset(ex + eyeR * 0.35f, ey + ry * 0.3f))
+            drawCircle(Color.White, eyeR * 0.36f * (1f - 0.3f * suspicion), Offset(ex - eyeR * 0.3f + gazeX * 0.4f, ey - ry * 0.35f))
+            drawCircle(Color.White.copy(alpha = 0.85f), eyeR * 0.14f, Offset(ex + eyeR * 0.35f + gazeX * 0.4f, ey + ry * 0.3f))
+            if (lashes) {
+                for (k in 0 until 3) {
+                    val a = Math.toRadians((-70.0 + k * 22.0) * side + (if (side > 0) 0.0 else 0.0)).toFloat()
+                    val base = Offset(ex + side * rx * (0.6f + 0.15f * k), ey - ry * (0.95f - 0.25f * k))
+                    val tip = Offset(base.x + side * r * 0.11f, base.y - r * (0.1f - 0.025f * k))
+                    drawLine(ink, base, tip, strokeWidth = r * 0.035f, cap = StrokeCap.Round)
+                }
+            }
         } else {
-            // Happy closed eye: an upward arc like ^ with soft ends.
             val p = Path().apply {
                 moveTo(ex - eyeR, ey + eyeR * 0.25f)
                 quadraticTo(ex, ey - eyeR * 0.75f, ex + eyeR, ey + eyeR * 0.25f)
@@ -184,27 +205,48 @@ internal fun DrawScope.drawExpression(
             drawPath(p, ink, style = Stroke(width = r * 0.065f, cap = StrokeCap.Round))
         }
     }
-    // Cheeks: always a little rosy, more when happy.
+    // Brows: soft arcs; when suspicious the right one lifts and the left one drops in.
     listOf(-1f, 1f).forEach { side ->
-        val a = 0.18f + 0.22f * mood.coerceAtLeast(0f)
+        val bx = c.x + side * eyeDx + gazeX * 0.5f
+        val lift = if (side > 0) suspicion * r * 0.12f else -suspicion * r * 0.05f
+        val tiltIn = if (side < 0) suspicion * r * 0.08f else 0f
+        val by = eyeY - eyeR * 1.45f - lift - r * 0.04f * mood.coerceAtLeast(0f)
+        val p = Path().apply {
+            moveTo(bx - eyeR * 0.95f, by + r * 0.03f + (if (side < 0) 0f else tiltIn))
+            quadraticTo(bx, by - r * 0.06f * (1f - suspicion * 0.5f), bx + eyeR * 0.95f, by + r * 0.03f + (if (side < 0) tiltIn else 0f))
+        }
+        drawPath(p, ink.copy(alpha = 0.85f), style = Stroke(width = r * 0.045f * browWeight, cap = StrokeCap.Round))
+    }
+    // Cheeks.
+    listOf(-1f, 1f).forEach { side ->
+        val a = (0.18f + 0.22f * mood.coerceAtLeast(0f)) * (1f - 0.5f * suspicion)
         drawCircle(accent.copy(alpha = a), r * 0.13f, Offset(c.x + side * r * 0.56f, c.y + r * 0.24f))
     }
-    // Mouth: a gentle smile by default, wide when happy, a small "o" when something is off.
+    // Mouth.
     val my = c.y + r * 0.42f
     if (mood < -0.3f) {
         val k = (-mood).coerceIn(0f, 1f)
         drawOval(ink, topLeft = Offset(c.x - r * 0.08f * k - r * 0.02f, my - r * 0.09f * k), size = Size(r * 0.16f * k + r * 0.04f, r * 0.18f * k + r * 0.02f))
     } else {
-        val happy = mood.coerceIn(0f, 1f)
+        val happy = mood.coerceIn(0f, 1f) * (1f - suspicion)
         val mw = r * (0.16f + 0.2f * happy)
-        val curve = r * (0.08f + 0.22f * happy)
+        val curve = r * (0.08f + 0.22f * happy) * (1f - suspicion)
+        // Smirk: flat line with the right corner lifted.
+        val smirkLift = suspicion * r * 0.07f
         val mouth = Path().apply {
-            moveTo(c.x - mw, my - curve * 0.35f)
-            quadraticTo(c.x, my + curve, c.x + mw, my - curve * 0.35f)
+            moveTo(c.x - mw, my - curve * 0.35f + smirkLift * 0.3f)
+            quadraticTo(c.x + smirkLift, my + curve, c.x + mw, my - curve * 0.35f - smirkLift)
         }
         drawPath(mouth, ink, style = Stroke(width = r * 0.06f, cap = StrokeCap.Round))
+        lipTint?.let { tint ->
+            val lp = Path().apply {
+                moveTo(c.x - mw * 0.8f, my + curve * 0.25f + r * 0.02f)
+                quadraticTo(c.x, my + curve + r * 0.1f, c.x + mw * 0.8f, my + curve * 0.25f + r * 0.02f)
+                close()
+            }
+            drawPath(lp, tint.copy(alpha = 0.55f * (1f - suspicion * 0.4f)))
+        }
         if (happy > 0.6f) {
-            // Open smile: fill under the curve.
             val fill = Path().apply {
                 moveTo(c.x - mw * 0.8f, my)
                 quadraticTo(c.x, my + curve * 0.95f, c.x + mw * 0.8f, my)
@@ -213,8 +255,7 @@ internal fun DrawScope.drawExpression(
             drawPath(fill, ink.copy(alpha = (happy - 0.6f) / 0.4f))
         }
     }
-    // Sparkle when happy.
-    if (mood > 0.7f) {
+    if (mood > 0.7f && suspicion < 0.5f) {
         val k = (mood - 0.7f) / 0.3f
         val sx = c.x + r * 0.78f
         val sy = c.y - r * 0.72f

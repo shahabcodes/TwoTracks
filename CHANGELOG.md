@@ -5,6 +5,11 @@ build number is appended by CI (for example `0.1.0 (build 12)`).
 
 ## [Unreleased]
 
+## [0.17.0] - 2026-10-05
+
+### Changed
+- Mascot update: suspicious by default, comes close when you type your email, refreshed looks for Sanya and Usaid.
+
 ## [0.16.0] - 2026-10-05
 
 ### Added

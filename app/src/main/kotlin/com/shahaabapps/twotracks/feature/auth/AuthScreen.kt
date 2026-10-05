@@ -1,5 +1,7 @@
 package com.shahaabapps.twotracks.feature.auth
 
+import androidx.compose.ui.graphics.TransformOrigin
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Animatable
@@ -134,7 +136,11 @@ fun AuthScreen(
         state.emailValid -> 0.6f
         else -> 0.25f
     }
-    val mascot = MascotState(focus = focus, lookX = emailLook(state.email), passwordShown = passwordShown, mood = mood)
+    val suspicious = focus == FieldFocus.NONE && state.email.isEmpty() && state.password.isEmpty() && state.errorMessage == null && state.infoMessage == null
+    val mascot = MascotState(focus = focus, lookX = emailLook(state.email), passwordShown = passwordShown, mood = mood, suspicious = suspicious, near = focus == FieldFocus.EMAIL)
+    // Comes down onto the card and grows while the email has focus; drifts back up and away otherwise.
+    val near by animateFloatAsState(if (focus == FieldFocus.EMAIL) 1f else 0f, spring(dampingRatio = 0.7f, stiffness = Spring.StiffnessLow), label = "near")
+    val away by animateFloatAsState(if (focus == FieldFocus.NONE) 0f else if (focus == FieldFocus.EMAIL) 0f else 1f, tween(400), label = "away")
     // Card rises in on first open.
     val enter = remember { Animatable(0f) }
     LaunchedEffect(Unit) { enter.animateTo(1f, tween(700, delayMillis = 250, easing = FastOutSlowInEasing)) }
@@ -257,7 +263,14 @@ fun AuthScreen(
                     modifier = Modifier
                         .align(Alignment.TopCenter)
                         .offset(y = -companionHeight(companionKind) / 2 - 6.dp)
-                        .size(width = MascotWidth, height = companionHeight(companionKind) + 12.dp),
+                        .size(width = MascotWidth, height = companionHeight(companionKind) + 12.dp)
+                        .graphicsLayer {
+                            val drop = 26.dp.toPx() * near - 10.dp.toPx() * away
+                            translationY = drop
+                            val sc = 1f + 0.22f * near - 0.08f * away
+                            scaleX = sc; scaleY = sc
+                            transformOrigin = TransformOrigin(0.5f, 0.93f)
+                        },
                 )
             }
             Spacer(Modifier.height(Spacing.xl))
