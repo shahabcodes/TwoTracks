@@ -236,7 +236,7 @@ internal object Az204Storage2 {
 
     val quiz = Quiz(
         id = "az-storage-test", title = "Storage module test",
-        questions = listOf(
+        questions = B.spread(listOf(
             B.q("s1", "az-blob-basics", "Which redundancy option lets you read from the secondary region without a failover?", listOf("LRS", "GRS", "RA-GRS", "ZRS"), setOf(2), "RA-GRS adds read access to the geo-replicated secondary. GRS copies there but reads need a failover."),
             B.q("s2", "az-blob-basics", "A blob in the Archive tier must be read. What must happen first?", listOf("Nothing, read it", "Rehydrate it to Hot or Cool", "Delete the lifecycle rule", "Change the account to premium"), setOf(1), "Archive is offline. Rehydration takes hours on standard priority."),
             B.q("s3", "az-blob-basics", "Which blob type suits an application log that only grows?", listOf("Block", "Append", "Page", "Any"), setOf(1), "Append blobs are optimised for add-only writes."),
@@ -257,6 +257,6 @@ internal object Az204Storage2 {
             B.q("s18", "az-cosmos-sdk", "Which events are not delivered by the standard change feed?", listOf("Inserts", "Updates", "Deletes", "All are delivered"), setOf(2), "Deletes are absent in the latest-version mode; use a soft-delete flag or the all-versions-and-deletes mode."),
             B.q("s19", "az-blob-basics", "Which storage account kind supports access tiers?", listOf("Classic", "StorageV1", "StorageV2 (general-purpose v2)", "Any"), setOf(2), "Tiering is a general-purpose v2 (and blob storage) feature."),
             B.q("s20", "az-cosmos-model", "Which statement about partition keys is true?", listOf("It can be changed after creation", "It is set per database", "It cannot be changed; migrate to a new container", "It must be the id"), setOf(2), "The partition key is fixed per container at creation."),
-        ),
+        )),
     )
 }

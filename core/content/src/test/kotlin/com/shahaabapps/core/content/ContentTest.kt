@@ -14,8 +14,25 @@ class ContentTest {
             assertEquals(c.modules.size, c.modules.map { it.id }.toSet().size)
             val topics = c.modules.flatMap { it.topics }
             assertEquals(topics.size, topics.map { it.id }.toSet().size)
-            val questions = c.modules.mapNotNull { it.quiz }.flatMap { it.questions } + c.modules.flatMap { it.topics }.flatMap { it.blocks }.filterIsInstance<Block.Check>().map { it.question }
+            val questions = c.allQuestions
             assertEquals(questions.size, questions.map { it.id }.toSet().size)
+        }
+    }
+
+    @Test
+    fun `the mock exam covers every module and points at real topics`() {
+        val mock = Az204.course.mockExam!!
+        val topicIds = Az204.course.allTopics.map { it.id }.toSet()
+        assertTrue("mock has ${mock.questions.size}", mock.questions.size >= 50)
+        assertTrue(mock.timeLimitMinutes != null && !mock.instantFeedback)
+        mock.questions.forEach { q ->
+            assertTrue("${q.id} points at ${q.topicId}", q.topicId in topicIds)
+            assertTrue("${q.id} options", q.options.size >= 3 && q.correct.all { it in q.options.indices } && q.correct.isNotEmpty())
+            assertTrue("${q.id} explanation", q.explanation.length > 20)
+        }
+        Az204.course.modules.forEach { m ->
+            val ids = m.topics.map { it.id }.toSet()
+            assertTrue("mock has no question for ${m.id}", mock.questions.any { it.topicId in ids })
         }
     }
 

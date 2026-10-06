@@ -29,6 +29,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -51,6 +53,12 @@ data class CourseProgress(
         for (m in c.modules) m.topics.firstOrNull { it.id !in learnedTopicIds }?.let { return m to it }
         return null
     }
+    /** Module tests passed, leaving out the mock exam and review sittings. */
+    fun modulesPassed(c: Course): Int = c.modules.count { it.id in passedModuleIds }
+    /** The missed questions that still need a correct answer, in course order. */
+    fun reviewQuestions(c: Course): List<Question> = c.allQuestions.filter { it.id in missedQuestionIds }
+    val mockBest: Int? get() = bestPercentByModule[Courses.MOCK_MODULE_ID]
+    val mockPassed: Boolean get() = Courses.MOCK_MODULE_ID in passedModuleIds
 
     companion object {
         fun of(owner: PersonRole, courseId: String, progress: List<TopicProgress>, attempts: List<QuizAttempt>): CourseProgress {
@@ -58,10 +66,23 @@ data class CourseProgress(
             val att = attempts.filter { it.owner == owner && it.courseId == courseId }
             val passed = att.filter { it.passed }.map { it.moduleId }.toSet()
             val best = att.groupBy { it.moduleId }.mapValues { (_, a) -> a.maxOf { it.percent } }
-            // A question stays in the review set until a later attempt gets it right (it is absent from "missed").
-            val latestByModule = att.groupBy { it.moduleId }.mapValues { (_, a) -> a.maxByOrNull { it.dateIso + it.id } }
-            val missed = latestByModule.values.filterNotNull().flatMap { it.missed }.toSet()
+            // A question joins the review set when missed and leaves it when a later sitting
+            // (module test, mock exam or review) asks it again and gets it right.
+            val course = Courses.byId(courseId)
+            val missed = linkedSetOf<String>()
+            att.sortedWith(compareBy({ it.dateIso }, { it.at }, { it.id })).forEach { a ->
+                val asked = a.asked.ifEmpty { askedByDefault(course, a.moduleId) }
+                missed -= asked.toSet()
+                missed += a.missed
+            }
             return CourseProgress(mine.map { it.topicId }.toSet(), passed, best, missed)
+        }
+
+        /** Older attempts did not record what was asked: assume the whole test of that module. */
+        private fun askedByDefault(course: Course?, moduleId: String): List<String> = when (moduleId) {
+            Courses.MOCK_MODULE_ID -> course?.mockExam?.questions?.map { it.id }.orEmpty()
+            Courses.REVIEW_MODULE_ID -> emptyList()
+            else -> course?.modules?.firstOrNull { it.id == moduleId }?.quiz?.questions?.map { it.id }.orEmpty()
         }
     }
 }
@@ -123,14 +144,17 @@ class LearningActions @Inject constructor(
         val s = sessionStore.current() ?: return "Not signed in"
         val today = Clock.todayIso(s.me)
         val passed = score * 100 / quiz.questions.size >= quiz.passPercent
-        val r = learningRepository.addAttempt(
-            s.coupleId,
-            QuizAttempt(owner = s.myRole, courseId = course.id, moduleId = module.id, dateIso = today, score = score, total = quiz.questions.size, passed = passed, missed = missed),
-        )
+        val attempt = QuizAttempt(owner = s.myRole, courseId = course.id, moduleId = module.id, dateIso = today, score = score, total = quiz.questions.size, passed = passed, missed = missed, asked = quiz.questions.map { it.id }, at = System.currentTimeMillis())
+        val r = learningRepository.addAttempt(s.coupleId, attempt)
         if (r is AppResult.Failure) return r.error.message ?: "Could not save"
-        studyActions.logMinutes(myGoalId(course, s.myRole), module.componentId, minutes.coerceIn(2, 60), today, note = "Test: ${module.title}", quiet = true)
-        if (passed) celebrations.passed("${module.title} passed") else celebrations.logged("Test logged")
-        if (passed) autoPassIfFinished(course, s.myRole, extraAttempt = QuizAttempt(owner = s.myRole, courseId = course.id, moduleId = module.id, dateIso = today, score = score, total = quiz.questions.size, passed = true))
+        val cap = quiz.timeLimitMinutes ?: 60
+        studyActions.logMinutes(myGoalId(course, s.myRole), module.componentId, minutes.coerceIn(2, cap), today, note = "Test: ${module.title}", quiet = true)
+        when (module.id) {
+            Courses.REVIEW_MODULE_ID -> celebrations.logged("Review logged")
+            Courses.MOCK_MODULE_ID -> if (passed) celebrations.passed("Mock exam passed") else celebrations.logged("Mock exam logged")
+            else -> if (passed) celebrations.passed("${module.title} passed") else celebrations.logged("Test logged")
+        }
+        if (passed && module.id in course.modules.map { it.id }) autoPassIfFinished(course, s.myRole, extraAttempt = attempt)
         return null
     }
 }
@@ -217,17 +241,24 @@ class TopicViewModel @Inject constructor(
     fun clearMessage() { message.value = null }
 }
 
+/** Which kind of sitting the quiz screen is running. */
+enum class QuizKind { MODULE, MOCK, REVIEW }
+
 /** The quiz runs entirely in memory until the results page, then one attempt is written. */
 data class QuizUiState(
     val course: Course? = null,
     val module: Module? = null,
     val quiz: Quiz? = null,
+    val kind: QuizKind = QuizKind.MODULE,
     val index: Int = 0,
     val selected: Set<Int> = emptySet(),
     val revealed: Boolean = false,
     val answers: Map<String, Boolean> = emptyMap(),
     val finished: Boolean = false,
     val saved: Boolean = false,
+    /** Seconds left on a timed test, or null when untimed. */
+    val secondsLeft: Int? = null,
+    val timedOut: Boolean = false,
     val message: String? = null,
 ) {
     val question: Question? get() = quiz?.questions?.getOrNull(index)
@@ -235,12 +266,17 @@ data class QuizUiState(
     val total: Int get() = quiz?.questions?.size ?: 0
     val percent: Int get() = if (total == 0) 0 else correctCount * 100 / total
     val passed: Boolean get() = quiz != null && percent >= quiz.passPercent
-    val missedQuestions: List<Question> get() = quiz?.questions?.filter { answers[it.id] == false }.orEmpty()
+    /** Missed includes questions never reached when the clock ran out. */
+    val missedQuestions: List<Question> get() = quiz?.questions?.filter { answers[it.id] != true }.orEmpty()
+    val instant: Boolean get() = quiz?.instantFeedback != false
+    val clock: String? get() = secondsLeft?.let { "%d:%02d".format(it / 60, it % 60) }
 }
 
 @HiltViewModel
 class QuizViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
+    sessionStore: SessionStore,
+    dataStore: CoupleDataStore,
     private val actions: LearningActions,
 ) : ViewModel() {
     private val courseId: String = savedStateHandle.get<String>("courseId").orEmpty()
@@ -248,11 +284,40 @@ class QuizViewModel @Inject constructor(
     private val startedAt = System.currentTimeMillis()
     private val _uiState = MutableStateFlow(QuizUiState())
     val uiState: StateFlow<QuizUiState> = _uiState.asStateFlow()
+    private var timer: Job? = null
 
     init {
         val course = Courses.byId(courseId)
-        val module = course?.modules?.firstOrNull { it.id == moduleId }
-        _uiState.value = QuizUiState(course = course, module = module, quiz = module?.quiz)
+        val me = (sessionStore.state.value as? com.shahaabapps.twotracks.session.SessionState.Ready)?.session?.myRole
+        val (module, kind) = when (moduleId) {
+            Courses.MOCK_MODULE_ID -> course?.mockModule() to QuizKind.MOCK
+            Courses.REVIEW_MODULE_ID -> {
+                val missed = if (course != null && me != null) CourseProgress.of(me, course.id, dataStore.topicProgress.value, dataStore.quizAttempts.value).reviewQuestions(course) else emptyList()
+                course?.takeIf { missed.isNotEmpty() }?.reviewModule(missed) to QuizKind.REVIEW
+            }
+            else -> course?.modules?.firstOrNull { it.id == moduleId } to QuizKind.MODULE
+        }
+        _uiState.value = QuizUiState(course = course, module = module, quiz = module?.quiz, kind = kind, secondsLeft = module?.quiz?.timeLimitMinutes?.let { it * 60 })
+        startTimer()
+    }
+
+    private fun startTimer() {
+        timer?.cancel()
+        if (_uiState.value.secondsLeft == null) return
+        timer = viewModelScope.launch {
+            while (true) {
+                delay(1_000)
+                val s = _uiState.value
+                val left = s.secondsLeft ?: return@launch
+                if (s.finished) return@launch
+                if (left <= 1) {
+                    _uiState.update { it.copy(secondsLeft = 0, finished = true, timedOut = true) }
+                    save()
+                    return@launch
+                }
+                _uiState.update { it.copy(secondsLeft = left - 1) }
+            }
+        }
     }
 
     fun toggle(option: Int) = _uiState.update { s ->
@@ -262,10 +327,13 @@ class QuizViewModel @Inject constructor(
         s.copy(selected = next)
     }
 
-    fun check() = _uiState.update { s ->
-        val q = s.question ?: return@update s
-        if (s.selected.isEmpty()) return@update s
-        s.copy(revealed = true, answers = s.answers + (q.id to (s.selected == q.correct)))
+    /** Records the answer. With instant feedback the explanation shows; in exam mode the next question follows at once. */
+    fun check() {
+        val s = _uiState.value
+        val q = s.question ?: return
+        if (s.selected.isEmpty()) return
+        _uiState.update { it.copy(revealed = true, answers = it.answers + (q.id to (it.selected == q.correct))) }
+        if (!s.instant) next()
     }
 
     fun next() {
@@ -288,6 +356,7 @@ class QuizViewModel @Inject constructor(
     }
 
     fun retake() {
-        _uiState.update { QuizUiState(course = it.course, module = it.module, quiz = it.quiz) }
+        _uiState.update { QuizUiState(course = it.course, module = it.module, quiz = it.quiz, kind = it.kind, secondsLeft = it.quiz?.timeLimitMinutes?.let { m -> m * 60 }) }
+        startTimer()
     }
 }

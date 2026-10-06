@@ -58,8 +58,16 @@ fun QuizScreen(onBack: () -> Unit, onOpenTopic: (String, String) -> Unit, viewMo
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val module = state.module
     val quiz = state.quiz
-    DetailScaffold(title = module?.let { "${it.title} test" } ?: "Test", onBack = onBack, backLabel = "Exit") {
-        if (quiz == null || module == null || state.course == null) return@DetailScaffold
+    val title = when (state.kind) { QuizKind.MOCK -> "Mock exam"; QuizKind.REVIEW -> "Review"; QuizKind.MODULE -> module?.let { "${it.title} test" } ?: "Test" }
+    DetailScaffold(title = title, onBack = onBack, backLabel = "Exit") {
+        if (quiz == null || module == null || state.course == null) {
+            if (state.kind == QuizKind.REVIEW) Column(modifier = Modifier.padding(horizontal = Spacing.listHorizontal), verticalArrangement = Arrangement.spacedBy(Spacing.md)) {
+                Text("Nothing to review", style = MaterialTheme.typography.displayLarge, fontWeight = FontWeight.Bold)
+                Text("Every question you have missed has since been answered correctly. Take a module test or the mock exam to find new gaps.", style = MaterialTheme.typography.bodyMedium, color = AppTheme.colors.secondaryLabel)
+                CupertinoPrimaryButton(text = "Back", onClick = onBack)
+            }
+            return@DetailScaffold
+        }
         if (state.finished) {
             Results(state, onRetake = viewModel::retake, onOpenTopic = { onOpenTopic(state.course!!.id, it) }, onDone = onBack)
             return@DetailScaffold
@@ -69,8 +77,17 @@ fun QuizScreen(onBack: () -> Unit, onOpenTopic: (String, String) -> Unit, viewMo
             modifier = Modifier.verticalScroll(rememberScrollState()).padding(horizontal = Spacing.listHorizontal).padding(bottom = Spacing.xl),
             verticalArrangement = Arrangement.spacedBy(Spacing.md),
         ) {
-            Text("Question ${state.index + 1} of ${state.total}", style = MaterialTheme.typography.labelMedium, color = AppTheme.colors.secondaryLabel)
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text("Question ${state.index + 1} of ${state.total}", style = MaterialTheme.typography.labelMedium, color = AppTheme.colors.secondaryLabel, modifier = Modifier.weight(1f))
+                state.clock?.let { c ->
+                    val low = (state.secondsLeft ?: 0) < 300
+                    Text(c, style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold, color = if (low) AppTheme.colors.destructive else AppTheme.colors.secondaryLabel)
+                }
+            }
             ProgressBar(fraction = state.index.toFloat() / state.total)
+            if (state.kind == QuizKind.MOCK && state.index == 0 && !state.revealed) {
+                Text("Exam conditions: no explanations until the end, ${state.quiz?.timeLimitMinutes} minutes on the clock, pass at ${state.quiz?.passPercent}%.", style = MaterialTheme.typography.bodySmall, color = AppTheme.colors.secondaryLabel)
+            }
             AnimatedContent(
                 targetState = q,
                 transitionSpec = { (slideInHorizontally(tween(300)) { it / 3 } + fadeIn(tween(240))) togetherWith (slideOutHorizontally(tween(220)) { -it / 3 } + fadeOut(tween(160))) },
@@ -90,7 +107,7 @@ fun QuizScreen(onBack: () -> Unit, onOpenTopic: (String, String) -> Unit, viewMo
                     }
                 }
             }
-            AnimatedVisibility(visible = state.revealed, enter = expandVertically() + fadeIn()) {
+            AnimatedVisibility(visible = state.revealed && state.instant, enter = expandVertically() + fadeIn()) {
                 val right = state.answers[q.id] == true
                 Column(
                     modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(14.dp)).background((if (right) AppTheme.colors.success else AppTheme.colors.destructive).copy(alpha = 0.12f)).padding(Spacing.md),
@@ -100,10 +117,11 @@ fun QuizScreen(onBack: () -> Unit, onOpenTopic: (String, String) -> Unit, viewMo
                     Text(q.explanation, style = MaterialTheme.typography.bodyMedium, lineHeight = 22.sp)
                 }
             }
-            if (state.revealed) {
+            if (state.revealed && state.instant) {
                 CupertinoPrimaryButton(text = if (state.index + 1 >= state.total) "See results" else "Next question", onClick = viewModel::next)
             } else {
-                CupertinoPrimaryButton(text = "Check", enabled = state.selected.isNotEmpty(), onClick = viewModel::check)
+                val label = if (!state.instant) (if (state.index + 1 >= state.total) "Finish exam" else "Next") else "Check"
+                CupertinoPrimaryButton(text = label, enabled = state.selected.isNotEmpty(), onClick = viewModel::check)
             }
         }
     }
@@ -151,9 +169,20 @@ private fun Results(state: QuizUiState, onRetake: () -> Unit, onOpenTopic: (Stri
         modifier = Modifier.verticalScroll(rememberScrollState()).padding(horizontal = Spacing.listHorizontal).padding(bottom = Spacing.xl),
         verticalArrangement = Arrangement.spacedBy(Spacing.md),
     ) {
-        Text(if (state.passed) "Passed" else "Not yet", style = MaterialTheme.typography.displayLarge, fontWeight = FontWeight.Bold, color = if (state.passed) AppTheme.colors.success else AppTheme.colors.warn)
+        val headline = when {
+            state.kind == QuizKind.REVIEW -> "Review done"
+            state.timedOut -> "Time is up"
+            state.passed -> "Passed"
+            else -> "Not yet"
+        }
+        val tone = if (state.kind == QuizKind.REVIEW || state.passed) AppTheme.colors.success else AppTheme.colors.warn
+        Text(headline, style = MaterialTheme.typography.displayLarge, fontWeight = FontWeight.Bold, color = tone)
         Text(
-            if (state.passed) "${module.title} is ticked. The minutes are in your hours." else "You need ${state.quiz?.passPercent}%. Read the weak topics below and try again; retakes are unlimited.",
+            when (state.kind) {
+                QuizKind.REVIEW -> if (state.missedQuestions.isEmpty()) "Every missed question is now right. The review set is empty." else "${state.missedQuestions.size} still to get right; they stay in the review set and come back next time."
+                QuizKind.MOCK -> if (state.passed) "Above the ${state.quiz?.passPercent}% the real exam asks for. The minutes count as practice." else "The real exam needs ${state.quiz?.passPercent}%. The missed questions below are in your review set; reread their topics and sit it again."
+                QuizKind.MODULE -> if (state.passed) "${module.title} is ticked. The minutes are in your hours." else "You need ${state.quiz?.passPercent}%. Read the weak topics below and try again; retakes are unlimited."
+            },
             style = MaterialTheme.typography.bodyMedium, color = AppTheme.colors.secondaryLabel,
         )
         Row(horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
@@ -169,13 +198,17 @@ private fun Results(state: QuizUiState, onRetake: () -> Unit, onOpenTopic: (Stri
                 CupertinoCard(onClick = { onOpenTopic(topicId) }) {
                     Text(title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
                     Text("${qs.size} missed · tap to reread", style = MaterialTheme.typography.bodySmall, color = AppTheme.colors.secondaryLabel)
-                    qs.forEach { q -> Text("· ${q.prompt}", style = MaterialTheme.typography.bodySmall, modifier = Modifier.padding(top = 4.dp)) }
+                    qs.forEach { q ->
+                        Text("· ${q.prompt}", style = MaterialTheme.typography.bodySmall, modifier = Modifier.padding(top = 4.dp))
+                        if (!state.instant) Text("  ${q.options.filterIndexed { i, _ -> i in q.correct }.joinToString(", ")}. ${q.explanation}", style = MaterialTheme.typography.bodySmall, color = AppTheme.colors.secondaryLabel, modifier = Modifier.padding(start = 10.dp))
+                    }
                 }
             }
         }
         state.message?.let { Text(it, color = AppTheme.colors.destructive, style = MaterialTheme.typography.bodySmall) }
-        if (state.passed) CupertinoPrimaryButton(text = "Back to the course", onClick = onDone) else CupertinoPrimaryButton(text = "Try again", onClick = onRetake)
-        if (state.passed) CupertinoSecondaryButton(text = "Take it again", onClick = onRetake) else CupertinoTextButton(text = "Back to the course", onClick = onDone)
+        val done = state.passed || state.kind == QuizKind.REVIEW
+        if (done) CupertinoPrimaryButton(text = "Back to the course", onClick = onDone) else CupertinoPrimaryButton(text = "Try again", onClick = onRetake)
+        if (done) { if (state.kind != QuizKind.REVIEW) CupertinoSecondaryButton(text = "Take it again", onClick = onRetake) } else CupertinoTextButton(text = "Back to the course", onClick = onDone)
     }
 }
 

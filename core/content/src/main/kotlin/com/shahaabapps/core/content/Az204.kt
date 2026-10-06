@@ -14,6 +14,7 @@ object Az204 {
             title = "AZ-204 Azure Developer",
             subtitle = "Five modules, one test each, then a mock exam.",
             goalId = "az-204",
+        mockExam = Az204Mock.quiz,
             modules = listOf(
                 Module(
                     id = "az-compute", number = 1, title = "Compute",
@@ -34,12 +35,12 @@ object Az204 {
                 Module(
                     id = "az-monitor", number = 4, title = "Monitor and optimise",
                     summary = "Application Insights, caching and content delivery.",
-                    examWeight = "10 to 15 percent", componentId = "monitoring", topics = emptyList(), quiz = null,
+                    examWeight = "10 to 15 percent", componentId = "monitoring", topics = Az204Monitor.topics, quiz = Az204Monitor.quiz,
                 ),
                 Module(
                     id = "az-connect", number = 5, title = "Connect and consume",
                     summary = "API Management, events and messages between services.",
-                    examWeight = "20 to 25 percent", componentId = "connect", topics = emptyList(), quiz = null,
+                    examWeight = "20 to 25 percent", componentId = "connect", topics = Az204Connect.topics + Az204Connect2.topics, quiz = Az204Connect2.quiz,
                 ),
             ),
         )

@@ -50,9 +50,12 @@ data class SessionRow(
     val timeLabel: String,
     /** The next unread topic of this session's course module, when a course exists. */
     val nextTopic: NextTopic? = null,
+    /** Missed questions waiting in the course's review set, shown when the topics are all read or this is practice time. */
+    val review: ReviewSet? = null,
 )
 
 data class NextTopic(val courseId: String, val topicId: String, val title: String, val minutes: Int)
+data class ReviewSet(val courseId: String, val count: Int)
 
 /** One person's card on Today. */
 data class PersonCard(
@@ -131,6 +134,7 @@ class TodayViewModel @Inject constructor(
                     componentName = g?.components?.firstOrNull { it.id == s.componentId }?.name.orEmpty(),
                     timeLabel = "${Dates.minutesToClock(s.startMinutes)} to ${Dates.minutesToClock(s.endMinutes)}",
                     nextTopic = nextTopicFor(p.role, s.goalId, s.componentId, topicProgress),
+                    review = reviewFor(p.role, s.goalId, s.componentId, topicProgress),
                 )
             }
             return PersonCard(
@@ -206,6 +210,24 @@ class TodayViewModel @Inject constructor(
         return NextTopic(course.id, anywhere.id, anywhere.title.substringBefore(":"), anywhere.minutes)
     }
 
+    /** The review set for the course behind [goalId]; offered during practice sessions or once every topic is read. */
+    private fun reviewFor(role: PersonRole, goalId: String, componentId: String, progress: List<TopicProgress>): ReviewSet? {
+        val course = Courses.forGoal(goalId) ?: return null
+        val cp = CourseProgress.of(role, course.id, progress, dataStore.quizAttempts.value)
+        val count = cp.reviewQuestions(course).size
+        if (count == 0) return null
+        val moduleRead = course.modules.filter { it.componentId == componentId }.let { ms -> ms.isNotEmpty() && ms.all { m -> m.topics.all { it.id in cp.learnedTopicIds } } }
+        if (componentId != "practice" && !moduleRead && cp.nextTopic(course) != null) return null
+        return ReviewSet(course.id, count)
+    }
+
+    /** Missed questions across courses the person is working on. */
+    private fun reviewLine(p: PersonPlan): String? {
+        val total = Courses.all.filter { c -> p.activeGoalIds.any { c.feeds(it) } }.sumOf { c -> CourseProgress.of(p.role, c.id, dataStore.topicProgress.value, dataStore.quizAttempts.value).reviewQuestions(c).size }
+        if (total == 0) return null
+        return "Review: $total missed question${if (total == 1) "" else "s"} waiting on the course page. Getting them right clears them."
+    }
+
     /** Flashcards due today across language courses the person has started. */
     private fun wordsLine(p: PersonPlan): String? {
         val cards = dataStore.flashcards.value
@@ -253,6 +275,7 @@ class TodayViewModel @Inject constructor(
             reasons += BriefIcons.level to "Level ${level.level.number}, ${level.level.name}: ${level.requiredDone} of ${level.requiredTotal} done, $left. Finishing it unlocks Level ${level.level.number + 1} on time."
         }
         learnLine(p)?.let { reasons += BriefIcons.learn to it }
+        reviewLine(p)?.let { reasons += BriefIcons.learn to it }
         wordsLine(p)?.let { reasons += BriefIcons.learn to it }
         reasons += BriefIcons.move to when {
             deadline != null && deadlineDays != null -> "${deadline.title} in $deadlineDays days. Every session now is one less to squeeze in later."

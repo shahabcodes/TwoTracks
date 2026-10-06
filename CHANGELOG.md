@@ -5,6 +5,10 @@ build number is appended by CI (for example `0.1.0 (build 12)`).
 
 ## [Unreleased]
 
+## [0.25.0] - 2026-10-06
+### Added
+- AZ-204 complete: Storage, Security, Monitor and Connect modules, a timed 50-question mock exam, and a review set that keeps missed questions until you get them right.
+
 ## [0.24.0] - 2026-10-06
 
 ### Added

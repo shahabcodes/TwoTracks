@@ -188,6 +188,7 @@ fun MainNavGraph(session: AppSession) {
                     onOpenWeek = { navController.navigate(Routes.YOUR_WEEK) },
                     onOpenChangelog = { navController.navigate(Routes.CHANGELOG) },
                     onOpenTopic = { c, t -> navController.navigate(Routes.topic(c, t)) },
+                    onOpenQuiz = { c, m -> navController.navigate(Routes.quiz(c, m)) },
                 )
             }
             composable(Routes.CHANGELOG) { ChangelogScreen(onBack = { navController.popBackStack() }) }

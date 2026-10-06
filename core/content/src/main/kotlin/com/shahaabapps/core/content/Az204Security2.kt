@@ -204,7 +204,7 @@ internal object Az204Security2 {
 
     val quiz = Quiz(
         id = "az-security-test", title = "Security module test",
-        questions = listOf(
+        questions = B.spread(listOf(
             B.q("x1", "az-identity", "Which token should your API validate before serving a request?", listOf("The ID token", "The access token's aud and scp or roles", "The refresh token", "Any JWT"), setOf(1), "The access token carries the audience and permissions. ID tokens are for the client."),
             B.q("x2", "az-identity", "A nightly job with no signed-in user must read all users' calendars. Which permission type and consent?", listOf("Delegated, user consent", "Delegated, admin consent", "Application, admin consent", "Application, user consent"), setOf(2), "No user means application permissions, which always require admin consent."),
             B.q("x3", "az-identity", "Which flow should a single-page or mobile app use?", listOf("Implicit", "Authorization code with PKCE", "Client credentials", "Resource owner password"), setOf(1), "Auth code with PKCE is the recommended flow for public clients; implicit is deprecated."),
@@ -225,6 +225,6 @@ internal object Az204Security2 {
             B.q("x18", "az-appconfig", "A feature must be visible only to the Beta group of users. Which filter?", listOf("Percentage", "TimeWindow", "Targeting", "Custom"), setOf(2), "Targeting enables a flag for named users and groups."),
             B.q("x19", "az-appconfig", "Where should a database password live when using App Configuration?", listOf("As a plain key-value", "As a Key Vault reference in App Configuration", "In the label", "In a feature flag"), setOf(1), "App Configuration is not a secret store; point to Key Vault."),
             B.q("x20", "az-identity", "Which claim tells an API that a token was issued for it?", listOf("iss", "aud", "scp", "oid"), setOf(1), "aud is the audience: the resource the token is for."),
-        ),
+        )),
     )
 }

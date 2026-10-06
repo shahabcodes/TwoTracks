@@ -19,6 +19,7 @@ import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.MenuBook
 import androidx.compose.material.icons.filled.Quiz
+import androidx.compose.material.icons.filled.Replay
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -69,7 +70,7 @@ fun LearnScreen(onOpenCourse: (String) -> Unit, onOpenTopic: (String, String) ->
                         val done = p?.let { pr -> course.modules.sumOf { pr.moduleLearned(it) } } ?: 0
                         ProgressBar(fraction = p?.courseFraction(course) ?: 0f, modifier = Modifier.padding(top = Spacing.sm))
                         Text(
-                            "$done of ${course.topicCount} topics learned · ${p?.passedModuleIds?.size ?: 0} of ${course.modules.count { it.available }} tests passed",
+                            "$done of ${course.topicCount} topics learned · ${p?.modulesPassed(course) ?: 0} of ${course.modules.count { it.available }} tests passed",
                             style = MaterialTheme.typography.bodySmall, color = AppTheme.colors.secondaryLabel, modifier = Modifier.padding(top = Spacing.xs),
                         )
                         if (next != null) {
@@ -92,7 +93,7 @@ fun LearnScreen(onOpenCourse: (String) -> Unit, onOpenTopic: (String, String) ->
                         val partner = state.partnerProgress[course.id]
                         if (partner != null && partner.learnedTopicIds.isNotEmpty()) {
                             Text(
-                                "${state.partnerName}: ${course.modules.sumOf { partner.moduleLearned(it) }} topics, ${partner.passedModuleIds.size} tests passed",
+                                "${state.partnerName}: ${course.modules.sumOf { partner.moduleLearned(it) }} topics, ${partner.modulesPassed(course)} tests passed",
                                 style = MaterialTheme.typography.bodySmall, color = AppTheme.colors.secondaryLabel, modifier = Modifier.padding(top = Spacing.sm),
                             )
                         }
@@ -134,6 +135,41 @@ fun CourseScreen(
             course.modules.forEach { m ->
                 item { ModuleSection(course, m, p, onOpenTopic, onOpenQuiz) }
             }
+            if (course.mockExam != null) item { ExamPracticeSection(course, p, onOpenQuiz) }
+        }
+    }
+}
+
+/** The mock exam and the review set, after the modules. */
+@Composable
+private fun ExamPracticeSection(course: Course, p: CourseProgress?, onOpenQuiz: (String, String) -> Unit) {
+    val mock = course.mockExam ?: return
+    val review = p?.reviewQuestions(course).orEmpty()
+    val passedAll = p != null && p.modulesPassed(course) == course.modules.count { it.available }
+    Column {
+        Text("EXAM PRACTICE", style = MaterialTheme.typography.labelMedium, color = AppTheme.colors.secondaryLabel, modifier = Modifier.padding(start = Spacing.listHorizontal + Spacing.sectionStart, bottom = 6.dp))
+        CupertinoListSection(footer = "Questions you miss anywhere collect in the review set until you answer them correctly.") {
+            CupertinoListRow(
+                title = mock.title,
+                subtitle = when {
+                    p?.mockPassed == true -> "Passed, best ${p.mockBest}%"
+                    p?.mockBest != null -> "Best ${p.mockBest}%, need ${mock.passPercent}%"
+                    !passedAll -> "${mock.questions.size} questions, ${mock.timeLimitMinutes} min. Pass the module tests first for a fair reading"
+                    else -> "${mock.questions.size} questions, ${mock.timeLimitMinutes} min, pass at ${mock.passPercent}%"
+                },
+                leadingIcon = Icons.Filled.Quiz, iconColor = if (p?.mockPassed == true) AppTheme.colors.success else AppTheme.colors.accent,
+                showDivider = true,
+                onClick = { onOpenQuiz(course.id, Courses.MOCK_MODULE_ID) },
+                trailing = { if (p?.mockPassed == true) StatusChip("Passed", AppTheme.colors.success) else CupertinoDisclosure() },
+            )
+            CupertinoListRow(
+                title = "Review missed questions",
+                subtitle = if (review.isEmpty()) "Nothing waiting" else "${review.size} to get right · about ${(review.size * 1.5).toInt().coerceAtLeast(2)} min",
+                leadingIcon = Icons.Filled.Replay, iconColor = if (review.isEmpty()) AppTheme.colors.secondaryLabel else AppTheme.colors.warn,
+                showDivider = false,
+                onClick = if (review.isEmpty()) null else ({ onOpenQuiz(course.id, Courses.REVIEW_MODULE_ID) }),
+                trailing = { if (review.isNotEmpty()) CupertinoDisclosure() },
+            )
         }
     }
 }

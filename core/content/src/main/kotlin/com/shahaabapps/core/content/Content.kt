@@ -20,8 +20,22 @@ data class Course(
     val extraGoalIds: List<String> = emptyList(),
     /** BCP-47 tag for text-to-speech of the foreign-language blocks, or null for none. */
     val speechLanguage: String? = null,
+    /** A timed, course-wide practice exam, when the course has one. */
+    val mockExam: Quiz? = null,
 ) {
     val goalIds: List<String> get() = listOf(goalId) + extraGoalIds
+    val allTopics: List<Topic> get() = modules.flatMap { it.topics }
+    /** Every question in the course: module tests, the mock exam and the in-topic checks. */
+    val allQuestions: List<Question>
+        get() = modules.mapNotNull { it.quiz }.flatMap { it.questions } + (mockExam?.questions ?: emptyList()) +
+            allTopics.flatMap { it.blocks }.filterIsInstance<Block.Check>().map { it.question }
+
+    /** The mock exam wrapped as a module so the quiz screen can run it; logs to the practice component. */
+    fun mockModule(): Module? = mockExam?.let { Module(Courses.MOCK_MODULE_ID, 0, "Mock exam", "A timed practice exam across every module.", "", "practice", allTopics, it) }
+
+    /** A review test built from [questions] the person got wrong; also logs to practice. */
+    fun reviewModule(questions: List<Question>): Module =
+        Module(Courses.REVIEW_MODULE_ID, 0, "Review", "The questions you missed, until you get them right.", "", "practice", allTopics, Quiz(Courses.REVIEW_MODULE_ID, "Review missed questions", passPercent = 0, questions = questions))
     /** A readable name for a goal component id, for hints in the UI. */
     fun skillName(componentId: String): String = when (componentId) {
         "vocabulary" -> "Vocabulary"; "grammar" -> "Grammar"; "listening" -> "Listening"; "reading" -> "Reading"; "writing" -> "Writing"; "speaking" -> "Speaking"
@@ -172,6 +186,10 @@ data class Quiz(
     val title: String,
     val passPercent: Int = 80,
     val questions: List<Question>,
+    /** When set, the test is timed and ends itself when the clock runs out. */
+    val timeLimitMinutes: Int? = null,
+    /** False hides the explanation until the results page, like a real exam sitting. */
+    val instantFeedback: Boolean = true,
 )
 
 data class Question(
@@ -221,6 +239,16 @@ object B {
     fun diagram(caption: String, nodes: List<DNode>, edges: List<DEdge> = emptyList(), aspect: Float = 0.62f) =
         Block.Diagram(DiagramSpec(caption, nodes, edges, aspect))
     fun recap(vararg items: String) = Block.Recap(items.toList())
+    /**
+     * Rotates each question's options by its position so the right answer is
+     * not usually in the same slot. Explanations never mention letters, so
+     * the text stays correct.
+     */
+    fun spread(questions: List<Question>): List<Question> = questions.mapIndexed { i, q ->
+        val n = q.options.size
+        val r = i % n
+        q.copy(options = q.options.drop(r) + q.options.take(r), correct = q.correct.map { (it - r + n) % n }.toSet())
+    }
     fun q(id: String, topic: String, prompt: String, options: List<String>, correct: Set<Int>, explanation: String, scenario: String? = null) =
         Question(id, topic, prompt, scenario, options, correct, explanation.trimIndent().replace("\n", " ").trim())
 }
@@ -228,6 +256,9 @@ object B {
 /** All courses the app ships. */
 object Courses {
     const val VERSION = 1
+    /** Module ids the quiz route accepts besides real modules. */
+    const val MOCK_MODULE_ID = "mock-exam"
+    const val REVIEW_MODULE_ID = "review"
     val all: List<Course> get() = listOf(Az204.course, GermanA1.course)
     fun forGoal(goalId: String): Course? = all.firstOrNull { it.feeds(goalId) }
     /** Every vocabulary word in a course, in module order. */

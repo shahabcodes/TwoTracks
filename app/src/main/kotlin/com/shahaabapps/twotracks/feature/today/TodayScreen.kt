@@ -39,6 +39,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.shahaabapps.core.content.Courses
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.shahaabapps.core.model.SessionStatus
 import com.shahaabapps.core.ui.components.Avatar
@@ -71,6 +72,7 @@ fun TodayScreen(
     onOpenWeek: () -> Unit,
     onOpenChangelog: () -> Unit,
     onOpenTopic: (String, String) -> Unit = { _, _ -> },
+    onOpenQuiz: (String, String) -> Unit = { _, _ -> },
     viewModel: TodayViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
@@ -131,7 +133,7 @@ fun TodayScreen(
                                 }
                             }
                         }
-                        me.sessions.forEachIndexed { i, row -> SessionBlock(row, first = i == 0, onOpenGoal = onOpenGoal, onOpenTopic = onOpenTopic, onDone = { viewModel.done(row) }, onSkip = { viewModel.skip(row.session.id) }, onReopen = { viewModel.reopen(row.session.id) }, onLog = {
+                        me.sessions.forEachIndexed { i, row -> SessionBlock(row, first = i == 0, onOpenGoal = onOpenGoal, onOpenTopic = onOpenTopic, onOpenQuiz = onOpenQuiz, onDone = { viewModel.done(row) }, onSkip = { viewModel.skip(row.session.id) }, onReopen = { viewModel.reopen(row.session.id) }, onLog = {
                             logTarget = LogTarget(goalId = row.session.goalId, componentId = row.session.componentId, sessionId = row.session.id, defaultMinutes = row.session.durationMinutes, dateIso = row.session.dateIso, isClass = row.session.isClass)
                         }) }
                         Text(
@@ -236,6 +238,7 @@ private fun SessionBlock(
     first: Boolean,
     onOpenGoal: (String) -> Unit,
     onOpenTopic: (String, String) -> Unit,
+    onOpenQuiz: (String, String) -> Unit,
     onDone: () -> Unit,
     onSkip: () -> Unit,
     onReopen: () -> Unit,
@@ -270,6 +273,9 @@ private fun SessionBlock(
             )
             row.nextTopic?.let { t ->
                 CupertinoSecondaryButton(text = "Read: ${t.title} (${t.minutes} min)", onClick = { onOpenTopic(t.courseId, t.topicId) }, modifier = Modifier.padding(top = Spacing.sm))
+            }
+            row.review?.let { r ->
+                CupertinoSecondaryButton(text = "Review ${r.count} missed question${if (r.count == 1) "" else "s"}", onClick = { onOpenQuiz(r.courseId, Courses.REVIEW_MODULE_ID) }, modifier = Modifier.padding(top = Spacing.sm))
             }
             Row(horizontalArrangement = Arrangement.spacedBy(Spacing.sm), modifier = Modifier.padding(top = Spacing.md)) {
                 Chip(text = "Different time", onClick = onLog)

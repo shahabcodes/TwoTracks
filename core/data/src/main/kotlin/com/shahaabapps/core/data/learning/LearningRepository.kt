@@ -96,12 +96,12 @@ class FirebaseLearningRepository @Inject constructor(
 
     private fun QuizAttempt.toMap() = mapOf(
         "owner" to owner.name, "courseId" to courseId, "moduleId" to moduleId, "dateIso" to dateIso,
-        "score" to score, "total" to total, "passed" to passed, "missed" to missed,
+        "score" to score, "total" to total, "passed" to passed, "missed" to missed, "asked" to asked, "at" to at,
     )
 
     private fun DocumentSnapshot.toQuizAttempt() = QuizAttempt(
         id = id, owner = runCatching { PersonRole.valueOf(str("owner")) }.getOrDefault(PersonRole.TECH),
         courseId = str("courseId"), moduleId = str("moduleId"), dateIso = str("dateIso"),
-        score = int("score"), total = int("total"), passed = bool("passed"), missed = stringList("missed"),
+        score = int("score"), total = int("total"), passed = bool("passed"), missed = stringList("missed"), asked = stringList("asked"), at = getLong("at") ?: 0L,
     )
 }

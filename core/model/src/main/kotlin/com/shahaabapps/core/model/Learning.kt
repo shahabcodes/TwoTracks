@@ -22,6 +22,10 @@ data class QuizAttempt(
     val passed: Boolean = false,
     /** Ids of the questions answered wrongly, for the review deck. */
     val missed: List<String> = emptyList(),
+    /** Ids of every question in this sitting; empty for older attempts, which means the whole module test. */
+    val asked: List<String> = emptyList(),
+    /** Wall-clock millis when the sitting finished, so same-day attempts keep their order. */
+    val at: Long = 0L,
 ) {
     val percent: Int get() = if (total == 0) 0 else score * 100 / total
 }
