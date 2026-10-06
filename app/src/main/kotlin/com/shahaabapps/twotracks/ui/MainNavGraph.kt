@@ -1,5 +1,10 @@
 package com.shahaabapps.twotracks.ui
 
+import androidx.compose.material.icons.filled.MenuBook
+import com.shahaabapps.twotracks.feature.learn.CourseScreen
+import com.shahaabapps.twotracks.feature.learn.LearnScreen
+import com.shahaabapps.twotracks.feature.learn.QuizScreen
+import com.shahaabapps.twotracks.feature.learn.TopicScreen
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
@@ -66,6 +71,10 @@ object Routes {
     const val TODAY = "today"
     const val US = "us"
     const val LEVELS = "levels"
+    const val LEARN = "learn"
+    const val COURSE = "learn/{courseId}"
+    const val TOPIC = "learn/{courseId}/topic/{topicId}"
+    const val QUIZ = "learn/{courseId}/quiz/{moduleId}"
     const val LEVEL = "level/{levelId}"
     const val YOUR_WEEK = "yourweek"
     const val PARTNER = "partner"
@@ -83,6 +92,9 @@ object Routes {
     const val AVAILABILITY = "settings/availability"
 
     fun level(id: String) = "level/$id"
+    fun course(id: String) = "learn/$id"
+    fun topic(courseId: String, topicId: String) = "learn/$courseId/topic/$topicId"
+    fun quiz(courseId: String, moduleId: String) = "learn/$courseId/quiz/$moduleId"
     fun goalDetail(id: String) = "goal/$id"
     fun goalEdit(id: String) = "goal/$id/edit"
     fun newGoal(levelId: String? = null) = if (levelId == null) "goal/new/edit" else "goal/new/edit?levelId=$levelId"
@@ -95,6 +107,7 @@ private val tabs = listOf(
     Tab(Routes.TODAY, "Today", Icons.Filled.Today),
     Tab(Routes.US, "US", Icons.Filled.Favorite),
     Tab(Routes.LEVELS, "Levels", Icons.Filled.Flag),
+    Tab(Routes.LEARN, "Learn", Icons.Filled.MenuBook),
 )
 
 /** iOS tab bar: flat surface with a hairline on top, icon + 10sp label, accent when selected. */
@@ -186,6 +199,30 @@ fun MainNavGraph(session: AppSession) {
             }
             composable(Routes.LEVELS) {
                 LevelsScreen(onOpenLevel = { navController.navigate(Routes.level(it)) }, onNavigate = { navController.navigate(it) })
+            }
+            composable(Routes.LEARN) {
+                LearnScreen(onOpenCourse = { navController.navigate(Routes.course(it)) }, onOpenTopic = { c, t -> navController.navigate(Routes.topic(c, t)) })
+            }
+            composable(Routes.COURSE, arguments = listOf(navArgument("courseId") { type = NavType.StringType })) { entry ->
+                CourseScreen(
+                    courseId = entry.arguments?.getString("courseId").orEmpty(),
+                    onBack = { navController.popBackStack() },
+                    onOpenTopic = { c, t -> navController.navigate(Routes.topic(c, t)) },
+                    onOpenQuiz = { c, m -> navController.navigate(Routes.quiz(c, m)) },
+                )
+            }
+            composable(Routes.TOPIC, arguments = listOf(navArgument("courseId") { type = NavType.StringType }, navArgument("topicId") { type = NavType.StringType })) {
+                TopicScreen(
+                    onBack = { navController.popBackStack() },
+                    onOpenTopic = { c, t -> navController.navigate(Routes.topic(c, t)) { popUpTo(Routes.COURSE) } },
+                    onOpenQuiz = { c, m -> navController.navigate(Routes.quiz(c, m)) { popUpTo(Routes.COURSE) } },
+                )
+            }
+            composable(Routes.QUIZ, arguments = listOf(navArgument("courseId") { type = NavType.StringType }, navArgument("moduleId") { type = NavType.StringType })) {
+                QuizScreen(
+                    onBack = { navController.popBackStack() },
+                    onOpenTopic = { c, t -> navController.navigate(Routes.topic(c, t)) },
+                )
             }
             composable(Routes.LEVEL, arguments = listOf(navArgument("levelId") { type = NavType.StringType })) { entry ->
                 val lid = entry.arguments?.getString("levelId").orEmpty()

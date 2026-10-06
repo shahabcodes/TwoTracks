@@ -14,6 +14,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Bolt
+import androidx.compose.material.icons.filled.MenuBook
 import androidx.compose.material.icons.filled.Flag
 import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.filled.TrendingUp
@@ -132,4 +133,5 @@ object BriefIcons {
     val goal = Icons.Filled.TrendingUp
     val level = Icons.Filled.Flag
     val move = Icons.Filled.Bolt
+    val learn = Icons.Filled.MenuBook
 }

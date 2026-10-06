@@ -5,6 +5,11 @@ build number is appended by CI (for example `0.1.0 (build 12)`).
 
 ## [Unreleased]
 
+## [0.22.0] - 2026-10-06
+
+### Added
+- Learn tab with the AZ-204 course: Compute module (5 topics with diagrams) and its test. Reading time counts toward your hours.
+
 ## [0.21.0] - 2026-10-06
 
 ### Changed

@@ -1,5 +1,8 @@
 package com.shahaabapps.twotracks.session
 
+import com.shahaabapps.core.data.learning.LearningRepository
+import com.shahaabapps.core.model.QuizAttempt
+import com.shahaabapps.core.model.TopicProgress
 import com.shahaabapps.core.data.study.StudyRepository
 import com.shahaabapps.core.data.tracking.TrackingRepository
 import com.shahaabapps.core.model.Availability
@@ -39,6 +42,7 @@ class CoupleDataStore @Inject constructor(
     private val sessionStore: SessionStore,
     private val studyRepository: StudyRepository,
     private val trackingRepository: TrackingRepository,
+    private val learningRepository: LearningRepository,
 ) {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
 
@@ -60,4 +64,6 @@ class CoupleDataStore @Inject constructor(
     val documents: StateFlow<List<DocumentItem>> = shared { trackingRepository.observeDocuments(it) }
     val budget: StateFlow<List<BudgetItem>> = shared { trackingRepository.observeBudget(it) }
     val deadlines: StateFlow<List<Deadline>> = shared { trackingRepository.observeDeadlines(it) }
+    val topicProgress: StateFlow<List<TopicProgress>> = shared { learningRepository.observeTopicProgress(it) }
+    val quizAttempts: StateFlow<List<QuizAttempt>> = shared { learningRepository.observeQuizAttempts(it) }
 }

@@ -1,5 +1,7 @@
 package com.shahaabapps.core.data.di
 
+import com.shahaabapps.core.data.learning.FirebaseLearningRepository
+import com.shahaabapps.core.data.learning.LearningRepository
 import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.auth
@@ -62,4 +64,8 @@ interface DataBindsModule {
     @Binds
     @Singleton
     fun bindTrackingRepository(impl: FirebaseTrackingRepository): TrackingRepository
+
+    @Binds
+    @Singleton
+    fun bindLearningRepository(impl: FirebaseLearningRepository): LearningRepository
 }

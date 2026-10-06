@@ -33,6 +33,7 @@ tasks.named("preBuild") { dependsOn(copyChangelog) }
 dependencies {
     implementation(project(":core:model"))
     implementation(project(":core:planner"))
+    implementation(project(":core:content"))
     implementation(project(":core:seed"))
     implementation(project(":core:common"))
     implementation(project(":core:ui"))

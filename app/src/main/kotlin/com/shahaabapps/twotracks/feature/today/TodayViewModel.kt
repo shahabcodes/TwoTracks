@@ -1,5 +1,7 @@
 package com.shahaabapps.twotracks.feature.today
 
+import com.shahaabapps.core.content.Courses
+import com.shahaabapps.twotracks.feature.learn.CourseProgress
 import com.shahaabapps.twotracks.session.Celebrations
 import android.content.Context
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -188,6 +190,14 @@ class TodayViewModel @Inject constructor(
     fun dismissWhatsNew() = changelog.markSeen()
 
     /** Today's one thing and three reasons it matters: this goal, this level, the move. */
+    /** The next unread topic of the course that feeds the first active goal, if any. */
+    private fun learnLine(p: PersonPlan): String? {
+        val course = Courses.all.firstOrNull { c -> p.activeGoalIds.contains(c.goalId) } ?: return null
+        val progress = CourseProgress.of(p.role, course.id, dataStore.topicProgress.value, dataStore.quizAttempts.value)
+        val (module, topic) = progress.nextTopic(course) ?: return "${course.title}: every topic read. Retake a module test to keep it sharp."
+        return "Learn tab: ${topic.title.substringBefore(":")}, about ${topic.minutes} minutes, counts toward ${module.title}."
+    }
+
     private fun buildBrief(p: PersonPlan, card: PersonCard, deadline: Deadline?, deadlineDays: Long?): DailyBrief {
         val hour = Clock.now(sessionStore.current()?.me).hour
         val greeting = when {
@@ -217,6 +227,7 @@ class TodayViewModel @Inject constructor(
             val left = level.daysLeft?.let { if (it >= 0) "$it days left" else "${-it} days overdue" } ?: ""
             reasons += BriefIcons.level to "Level ${level.level.number}, ${level.level.name}: ${level.requiredDone} of ${level.requiredTotal} done, $left. Finishing it unlocks Level ${level.level.number + 1} on time."
         }
+        learnLine(p)?.let { reasons += BriefIcons.learn to it }
         reasons += BriefIcons.move to when {
             deadline != null && deadlineDays != null -> "${deadline.title} in $deadlineDays days. Every session now is one less to squeeze in later."
             else -> "Every session now is one less to squeeze in later."

@@ -27,6 +27,7 @@ rootProject.name = "TwoTracks"
 include(":core:model")
 include(":core:planner")
 include(":core:seed")
+include(":core:content")
 
 // Android library modules
 include(":core:common")
