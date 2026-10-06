@@ -66,7 +66,7 @@ fun PlaneCompanion(state: MascotState, modifier: Modifier = Modifier) {
     val driftX by animateFloatAsState(if (state.focus == FieldFocus.EMAIL) state.lookX * 0.45f else 0f, spring(dampingRatio = 0.6f, stiffness = Spring.StiffnessLow), label = "drift")
     val climb = remember { Animatable(0f) }
     LaunchedEffect(state.mood >= 1f) {
-        if (state.mood >= 1f) { climb.snapTo(0f); climb.animateTo(1f, keyframes { durationMillis = 800; 0f at 0; 1f at 260; 0.2f at 560; 0f at 800 }) }
+        if (state.mood >= 1f) { climb.snapTo(0f); climb.animateTo(0f, keyframes { durationMillis = 800; 0f at 0; 1f at 260; 0.2f at 560 }) }
     }
     val arrive = remember { Animatable(0f) }
     LaunchedEffect(Unit) { arrive.animateTo(1f, spring(dampingRatio = 0.7f, stiffness = Spring.StiffnessLow)) }

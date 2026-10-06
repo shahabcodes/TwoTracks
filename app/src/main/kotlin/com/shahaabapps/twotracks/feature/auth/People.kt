@@ -60,7 +60,7 @@ fun PersonCompanion(person: Person, state: MascotState, modifier: Modifier = Mod
     val lean by animateFloatAsState(if (state.focus == FieldFocus.EMAIL) state.lookX * 7f else 0f, spring(dampingRatio = 0.6f, stiffness = Spring.StiffnessLow), label = "lean")
     val jump = remember { Animatable(0f) }
     LaunchedEffect(state.mood >= 1f) {
-        if (state.mood >= 1f) { jump.snapTo(0f); jump.animateTo(1f, keyframes { durationMillis = 700; 0f at 0; 1f at 240; 0f at 520; 0.25f at 610; 0f at 700 }) }
+        if (state.mood >= 1f) { jump.snapTo(0f); jump.animateTo(0f, keyframes { durationMillis = 700; 0f at 0; 1f at 240; 0f at 520; 0.25f at 610 }) }
     }
     val wave = remember { Animatable(0f) }
     LaunchedEffect(Unit) { wave.animateTo(1f, tween(1600, delayMillis = 500, easing = LinearEasing)) }
@@ -78,7 +78,7 @@ fun PersonCompanion(person: Person, state: MascotState, modifier: Modifier = Mod
     val gradient = AppTheme.colors.gradient
     Canvas(modifier = modifier) {
         val h = size.height
-        val headR = h * 0.21f
+        val headR = h * 0.145f
         val groundY = h * 0.95f
         val bob = (breathe - 0.5f) * headR * 0.06f
         val lift = jump.value * headR * 1.1f
@@ -107,23 +107,23 @@ private fun DrawScope.drawPerson(
         Person.USAID -> Look(Color(0xFFF1C9A9), Color(0xFF7A4B2E), Color(0xFFC8905E), accent, Color(0xFF4F6FA3), Color(0xFF2A2630), Color(0xFF8A4B1F))
     }
     val ink = Color(0xFF2A2630)
-    val legH = headR * 0.7f
-    val bodyH = headR * 1.0f
-    val bodyW = headR * 1.3f
+    val legH = headR * 1.5f
+    val bodyH = headR * 1.7f
+    val bodyW = headR * 1.5f
     val bodyTop = feetY - legH - bodyH + bob
-    val headC = Offset(cx, bodyTop - headR * 0.78f)
+    val headC = Offset(cx, bodyTop - headR * 0.9f)
 
     // ---- legs and shoes
     listOf(-1f, 1f).forEach { side ->
-        val lx = cx + side * headR * 0.3f
-        val tuck = jump * headR * 0.25f
-        val legW = if (person == Person.USAID) headR * 0.46f else headR * 0.34f
+        val lx = cx + side * headR * 0.36f
+        val tuck = jump * headR * 0.35f
+        val legW = if (person == Person.USAID) headR * 0.56f else headR * 0.4f
         drawRoundRect(look.bottom, Offset(lx - legW / 2f, feetY - legH + tuck), Size(legW, legH - tuck), CornerRadius(headR * 0.12f))
         if (person == Person.USAID) {
-            drawRoundRect(Color(0xFF6E8BBE), Offset(lx - legW / 2f, feetY - headR * 0.38f + tuck), Size(legW, headR * 0.14f), CornerRadius(headR * 0.06f))
+            drawRoundRect(Color(0xFF6E8BBE), Offset(lx - legW / 2f, feetY - headR * 0.5f + tuck), Size(legW, headR * 0.18f), CornerRadius(headR * 0.06f))
         }
-        drawRoundRect(look.shoes, Offset(lx - headR * 0.22f, feetY - headR * 0.2f + tuck), Size(headR * 0.44f, headR * 0.22f), CornerRadius(headR * 0.1f))
-        drawRoundRect(ink.copy(alpha = 0.25f), Offset(lx - headR * 0.22f, feetY - headR * 0.2f + tuck), Size(headR * 0.44f, headR * 0.22f), CornerRadius(headR * 0.1f), style = Stroke(width = 1.5f))
+        drawRoundRect(look.shoes, Offset(lx - headR * 0.3f, feetY - headR * 0.26f + tuck), Size(headR * 0.6f, headR * 0.28f), CornerRadius(headR * 0.12f))
+        drawRoundRect(ink.copy(alpha = 0.25f), Offset(lx - headR * 0.3f, feetY - headR * 0.26f + tuck), Size(headR * 0.6f, headR * 0.28f), CornerRadius(headR * 0.12f), style = Stroke(width = 1.5f))
     }
 
     // ---- body
@@ -171,15 +171,15 @@ private fun DrawScope.drawPerson(
         }
         drawPath(rim, Color.Black.copy(alpha = 0.18f), style = Stroke(width = headR * 0.1f, cap = StrokeCap.Round))
         listOf(-1f, 1f).forEach { side ->
-            drawLine(Color(0xFFFDF7F9), Offset(cx + side * headR * 0.14f, bodyTop + headR * 0.18f), Offset(cx + side * headR * 0.17f, bodyTop + headR * 0.62f), strokeWidth = headR * 0.04f, cap = StrokeCap.Round)
-            drawCircle(Color(0xFFFDF7F9), headR * 0.035f, Offset(cx + side * headR * 0.17f, bodyTop + headR * 0.64f))
+            drawLine(Color(0xFFFDF7F9), Offset(cx + side * headR * 0.16f, bodyTop + headR * 0.25f), Offset(cx + side * headR * 0.2f, bodyTop + headR * 0.95f), strokeWidth = headR * 0.05f, cap = StrokeCap.Round)
+            drawCircle(Color(0xFFFDF7F9), headR * 0.045f, Offset(cx + side * headR * 0.2f, bodyTop + headR * 0.97f))
         }
-        drawRoundRect(Color.Black.copy(alpha = 0.1f), Offset(cx - bodyW * 0.3f, bodyTop + bodyH * 0.62f), Size(bodyW * 0.6f, bodyH * 0.3f), CornerRadius(headR * 0.08f))
+        drawRoundRect(Color.Black.copy(alpha = 0.1f), Offset(cx - bodyW * 0.3f, bodyTop + bodyH * 0.6f), Size(bodyW * 0.6f, bodyH * 0.28f), CornerRadius(headR * 0.1f))
     }
 
     // ---- arms
     val shoulderY = bodyTop + headR * 0.15f
-    val armLen = headR * 0.85f
+    val armLen = headR * 1.45f
     val faceC = faceCenter(person, headC, headR)
     val faceR = faceRadius(person, headR)
     listOf(-1f, 1f).forEach { side ->
@@ -203,9 +203,9 @@ private fun DrawScope.drawPerson(
             val e = eyeCenter(faceC, faceR, side, peek)
             Offset(sx + (e.x - sx) * cover, shoulderY + (e.y - shoulderY) * cover)
         } else Offset(ex, ey)
-        drawLine(look.top, Offset(sx, shoulderY), target, strokeWidth = headR * 0.28f, cap = StrokeCap.Round)
-        drawLine(look.skin, Offset(sx + (target.x - sx) * 0.55f, shoulderY + (target.y - shoulderY) * 0.55f), target, strokeWidth = headR * 0.22f, cap = StrokeCap.Round)
-        drawCircle(look.skin, headR * 0.17f, target)
+        drawLine(look.top, Offset(sx, shoulderY), target, strokeWidth = headR * 0.34f, cap = StrokeCap.Round)
+        drawLine(look.skin, Offset(sx + (target.x - sx) * 0.55f, shoulderY + (target.y - shoulderY) * 0.55f), target, strokeWidth = headR * 0.27f, cap = StrokeCap.Round)
+        drawCircle(look.skin, headR * 0.2f, target)
     }
 
     // ---- head
@@ -259,9 +259,9 @@ private fun DrawScope.drawPerson(
             val sx = cx + side * bodyW * 0.48f
             val hx = sx + (e.x - sx) * cover
             val hy = shoulderY + (e.y - shoulderY) * cover
-            drawCircle(look.skin, headR * 0.26f, Offset(hx, hy))
-            drawCircle(ink.copy(alpha = 0.15f), headR * 0.26f, Offset(hx, hy), style = Stroke(width = 1.5f))
-            for (f in -1..1) drawLine(ink.copy(alpha = 0.18f), Offset(hx + f * headR * 0.09f, hy - headR * 0.18f), Offset(hx + f * headR * 0.09f, hy + headR * 0.05f), strokeWidth = 1.5f, cap = StrokeCap.Round)
+            drawCircle(look.skin, headR * 0.3f, Offset(hx, hy))
+            drawCircle(ink.copy(alpha = 0.15f), headR * 0.3f, Offset(hx, hy), style = Stroke(width = 1.5f))
+            for (f in -1..1) drawLine(ink.copy(alpha = 0.18f), Offset(hx + f * headR * 0.1f, hy - headR * 0.2f), Offset(hx + f * headR * 0.1f, hy + headR * 0.06f), strokeWidth = 1.5f, cap = StrokeCap.Round)
         }
     }
 }

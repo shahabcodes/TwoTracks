@@ -72,7 +72,7 @@ fun Mascot(state: MascotState, modifier: Modifier = Modifier) {
     // A happy hop whenever the mood reaches 1.
     val hop = remember { Animatable(0f) }
     LaunchedEffect(state.mood >= 1f) {
-        if (state.mood >= 1f) { hop.snapTo(0f); hop.animateTo(1f, keyframes { durationMillis = 650; 0f at 0; -1f at 220; 0.3f at 450; 0f at 650 }) }
+        if (state.mood >= 1f) { hop.snapTo(0f); hop.animateTo(0f, keyframes { durationMillis = 650; 0f at 0; -1f at 220; 0.3f at 450 }) }
     }
     // Flies in from the top-left on first open.
     val arrive = remember { Animatable(0f) }

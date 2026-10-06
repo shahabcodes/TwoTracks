@@ -5,6 +5,14 @@ build number is appended by CI (for example `0.1.0 (build 12)`).
 
 ## [Unreleased]
 
+## [0.21.0] - 2026-10-06
+
+### Changed
+- Mascot update: smaller heads with taller bodies.
+
+### Fixed
+- Companions no longer stay stuck mid-jump after the form is ready.
+
 ## [0.20.0] - 2026-10-05
 
 ### Changed

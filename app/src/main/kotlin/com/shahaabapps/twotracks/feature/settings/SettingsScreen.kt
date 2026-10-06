@@ -153,7 +153,7 @@ fun SettingsScreen(
                                 SegmentedChoice(options = listOf(CompanionKind.BUDDY, CompanionKind.PLANE), selected = companion, label = { it.label }, onSelect = themeViewModel::setCompanion)
                                 SegmentedChoice(options = listOf(CompanionKind.SANYA, CompanionKind.USAID), selected = companion, label = { it.label }, onSelect = themeViewModel::setCompanion)
                             }
-                            Box(modifier = Modifier.size(width = 120.dp, height = 110.dp), contentAlignment = Alignment.Center) {
+                            Box(modifier = Modifier.size(width = 120.dp, height = 150.dp), contentAlignment = Alignment.Center) {
                                 Companion(kind = companion, state = MascotState(mood = 0.8f), modifier = Modifier.fillMaxSize())
                             }
                         }

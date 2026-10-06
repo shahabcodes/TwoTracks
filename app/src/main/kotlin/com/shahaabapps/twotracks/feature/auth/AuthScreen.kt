@@ -127,6 +127,7 @@ fun AuthScreen(
         shake.animateTo(0f, keyframes { durationMillis = 420; 0f at 0; -14f at 60; 12f at 120; -8f at 180; 5f at 240; -2f at 300; 0f at 420 })
     }
     var focus by remember { mutableStateOf(FieldFocus.NONE) }
+    LaunchedEffect(state.mode) { focus = FieldFocus.NONE }
     var passwordShown by remember { mutableStateOf(false) }
     val mood = when {
         state.errorMessage != null -> -1f
@@ -550,6 +551,6 @@ private fun LinkText(text: String, onClick: () -> Unit) {
 
 /** Full-body companions need more room than the floating ones. */
 private fun companionHeight(kind: CompanionKind): Dp = when (kind) {
-    CompanionKind.SANYA, CompanionKind.USAID -> 150.dp
+    CompanionKind.SANYA, CompanionKind.USAID -> 190.dp
     else -> MascotSize
 }
