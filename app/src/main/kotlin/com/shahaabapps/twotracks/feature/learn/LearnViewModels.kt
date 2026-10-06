@@ -210,9 +210,11 @@ class TopicViewModel @Inject constructor(
     dataStore: CoupleDataStore,
     private val actions: LearningActions,
     val speaker: Speaker,
+    val recognizer: Recognizer,
 ) : ViewModel() {
     private val courseId: String = savedStateHandle.get<String>("courseId").orEmpty()
     private val topicId: String = savedStateHandle.get<String>("topicId").orEmpty()
+    init { Courses.byId(courseId)?.speechLanguage?.let { recognizer.setLanguage(it) } }
     private val message = MutableStateFlow<String?>(null)
     private val openedAt = System.currentTimeMillis()
 
@@ -278,6 +280,7 @@ class QuizViewModel @Inject constructor(
     sessionStore: SessionStore,
     dataStore: CoupleDataStore,
     private val actions: LearningActions,
+    val speaker: Speaker,
 ) : ViewModel() {
     private val courseId: String = savedStateHandle.get<String>("courseId").orEmpty()
     private val moduleId: String = savedStateHandle.get<String>("moduleId").orEmpty()

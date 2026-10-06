@@ -30,6 +30,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -58,6 +59,9 @@ fun QuizScreen(onBack: () -> Unit, onOpenTopic: (String, String) -> Unit, viewMo
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val module = state.module
     val quiz = state.quiz
+    val speakerState by viewModel.speaker.state.collectAsStateWithLifecycle()
+    LaunchedEffect(state.course?.speechLanguage) { state.course?.speechLanguage?.let { viewModel.speaker.setLanguage(it) } }
+    val speaker = viewModel.speaker.takeIf { speakerState == Speaker.State.READY }
     val title = when (state.kind) { QuizKind.MOCK -> "Mock exam"; QuizKind.REVIEW -> "Review"; QuizKind.MODULE -> module?.let { "${it.title} test" } ?: "Test" }
     DetailScaffold(title = title, onBack = onBack, backLabel = "Exit") {
         if (quiz == null || module == null || state.course == null) {
@@ -96,6 +100,17 @@ fun QuizScreen(onBack: () -> Unit, onOpenTopic: (String, String) -> Unit, viewMo
                 Column(verticalArrangement = Arrangement.spacedBy(Spacing.md)) {
                     question.scenario?.let { sc ->
                         CupertinoCard { Text(sc, style = MaterialTheme.typography.bodyMedium, color = AppTheme.colors.secondaryLabel) }
+                    }
+                    question.listen?.let { audio ->
+                        CupertinoCard {
+                            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
+                                SpeakButton(audio, speaker, size = 44.dp)
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text("Hören", style = MaterialTheme.typography.labelMedium, color = AppTheme.colors.accent, fontWeight = FontWeight.SemiBold)
+                                    Text(if (state.revealed && state.instant) audio else "Play the audio, then answer. The text appears after you answer.", style = MaterialTheme.typography.bodySmall, color = AppTheme.colors.secondaryLabel)
+                                }
+                            }
+                        }
                     }
                     Text(question.prompt, style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.SemiBold, lineHeight = 28.sp)
                     if (question.multi) Text("Select all that apply.", style = MaterialTheme.typography.bodySmall, color = AppTheme.colors.secondaryLabel)

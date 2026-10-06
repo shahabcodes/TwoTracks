@@ -115,7 +115,7 @@ fun DialogueBlock(block: Block.Dialogue, speaker: Speaker?) {
     Column(modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(16.dp)).background(AppTheme.colors.card).padding(Spacing.md), verticalArrangement = Arrangement.spacedBy(10.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(block.title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1f))
-            CupertinoTextButton(text = "Play all", onClick = { speaker?.speak(block.lines.joinToString(" . ") { it.de }) })
+            CupertinoTextButton(text = "Play all", onClick = { speaker?.speak(block.lines.joinToString(" . ") { it.de }) }, modifier = Modifier.width(96.dp))
         }
         val first = block.lines.firstOrNull()?.speaker
         block.lines.forEach { ln -> DialogueLine(ln, left = ln.speaker == first, speaker) }
@@ -147,16 +147,19 @@ private fun norm(s: String): String = Normalizer.normalize(s.trim().lowercase(),
 /** Checked exercises. Results are not scored; they are for practice and show the answer when wrong. */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-fun ExerciseBlock(block: Block.Exercise, speaker: Speaker?) {
+fun ExerciseBlock(block: Block.Exercise, speaker: Speaker?, recognizer: Recognizer? = null) {
     val accent = AppTheme.colors.accent
     Column(modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(14.dp)).background(accent.copy(alpha = 0.08f)).padding(Spacing.md), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-        Text("Exercise", style = MaterialTheme.typography.labelMedium, color = accent, fontWeight = FontWeight.SemiBold)
+        val label = when (block.exercise) { is Ex.Listen -> "Hören"; is Ex.Speak -> "Sprechen"; is Ex.Writing -> "Schreiben"; else -> "Exercise" }
+        Text(label, style = MaterialTheme.typography.labelMedium, color = accent, fontWeight = FontWeight.SemiBold)
         Text(block.exercise.prompt, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold)
         when (val ex = block.exercise) {
             is Ex.Gap -> GapExercise(ex, speaker)
             is Ex.Reorder -> ReorderExercise(ex, speaker)
             is Ex.Match -> MatchExercise(ex)
-            is Ex.Writing -> WritingExercise(ex)
+            is Ex.Writing -> if (ex.keywords.isEmpty()) WritingExercise(ex) else MarkedWritingExercise(ex)
+            is Ex.Listen -> ListenExercise(ex, speaker)
+            is Ex.Speak -> SpeakExercise(ex, speaker, recognizer)
         }
     }
 }

@@ -137,8 +137,16 @@ sealed interface Ex {
     data class Reorder(override val id: String, override val prompt: String, val pieces: List<String>, val answer: String) : Ex
     /** Pair each left item with a right item. */
     data class Match(override val id: String, override val prompt: String, val pairs: List<Pair<String, String>>) : Ex
-    /** Write a short text; marked on content points, then a model answer is shown. */
-    data class Writing(override val id: String, override val prompt: String, val points: List<String>, val model: String, val minWords: Int = 20) : Ex
+    /**
+     * Write a short text; marked on content points, then a model answer is shown.
+     * [keywords] holds, per point, the words any one of which shows the point was
+     * covered; empty means the learner ticks the points by hand.
+     */
+    data class Writing(override val id: String, override val prompt: String, val points: List<String>, val model: String, val minWords: Int = 20, val keywords: List<List<String>> = emptyList()) : Ex
+    /** Hören: the app speaks [audio] (never shown until answered); the learner answers [question]. */
+    data class Listen(override val id: String, override val prompt: String, val audio: String, val question: String, val options: List<String>, val correct: Int) : Ex
+    /** Sprechen: hear the model, say it, and the phone's speech recognition checks the words. */
+    data class Speak(override val id: String, override val prompt: String, val target: String, val en: String) : Ex
 }
 
 data class Step(val action: String, val expect: String? = null)
@@ -203,6 +211,8 @@ data class Question(
     /** Indices into [options]. More than one means "select all that apply". */
     val correct: Set<Int>,
     val explanation: String,
+    /** Hören questions: text the app speaks and hides until the answer is in. */
+    val listen: String? = null,
 ) {
     val multi: Boolean get() = correct.size > 1
 }
@@ -234,6 +244,12 @@ object B {
     fun reorder(id: String, prompt: String, answer: String) = Block.Exercise(Ex.Reorder(id, prompt, answer.split(" ").shuffled(kotlin.random.Random(id.hashCode())), answer))
     fun match(id: String, prompt: String, vararg pairs: Pair<String, String>) = Block.Exercise(Ex.Match(id, prompt, pairs.toList()))
     fun writing(id: String, prompt: String, model: String, vararg points: String, minWords: Int = 20) = Block.Exercise(Ex.Writing(id, prompt, points.toList(), model.trimIndent(), minWords))
+    /** A writing task the app marks itself: each point is a label and the words that prove it. */
+    fun marked(id: String, prompt: String, model: String, vararg points: Pair<String, List<String>>, minWords: Int = 20) =
+        Block.Exercise(Ex.Writing(id, prompt, points.map { it.first }, model.trimIndent(), minWords, points.map { it.second }))
+    fun listen(id: String, audio: String, question: String, options: List<String>, correct: Int, prompt: String = "Play the audio, then answer. You can play it twice, like the exam.") =
+        Block.Exercise(Ex.Listen(id, prompt, audio.trimIndent().replace("\n", " ").trim(), question, options, correct))
+    fun speak(id: String, target: String, en: String, prompt: String = "Listen, then say it. The phone checks your words.") = Block.Exercise(Ex.Speak(id, prompt, target, en))
     fun code(language: String, code: String) = Block.Code(language, code.trimIndent())
     fun table(headers: List<String>, vararg rows: List<String>) = Block.Table(headers, rows.toList())
     fun diagram(caption: String, nodes: List<DNode>, edges: List<DEdge> = emptyList(), aspect: Float = 0.62f) =
@@ -249,8 +265,8 @@ object B {
         val r = i % n
         q.copy(options = q.options.drop(r) + q.options.take(r), correct = q.correct.map { (it - r + n) % n }.toSet())
     }
-    fun q(id: String, topic: String, prompt: String, options: List<String>, correct: Set<Int>, explanation: String, scenario: String? = null) =
-        Question(id, topic, prompt, scenario, options, correct, explanation.trimIndent().replace("\n", " ").trim())
+    fun q(id: String, topic: String, prompt: String, options: List<String>, correct: Set<Int>, explanation: String, scenario: String? = null, listen: String? = null) =
+        Question(id, topic, prompt, scenario, options, correct, explanation.trimIndent().replace("\n", " ").trim(), listen?.trimIndent()?.replace("\n", " ")?.trim())
 }
 
 /** All courses the app ships. */

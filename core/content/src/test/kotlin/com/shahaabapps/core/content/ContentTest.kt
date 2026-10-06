@@ -106,7 +106,13 @@ class ContentTest {
                     is Ex.Gap -> { assertTrue(e.id, e.sentence.contains("___")); assertTrue(e.id, e.answers.isNotEmpty()) }
                     is Ex.Reorder -> assertEquals(e.id, e.pieces.sorted(), e.answer.split(" ").sorted())
                     is Ex.Match -> assertTrue(e.id, e.pairs.size >= 3)
-                    is Ex.Writing -> assertTrue(e.id, e.points.isNotEmpty() && e.model.isNotBlank())
+                    is Ex.Writing -> {
+                        assertTrue(e.id, e.points.isNotEmpty() && e.model.isNotBlank())
+                        assertTrue("${e.id} keywords per point", e.keywords.isEmpty() || (e.keywords.size == e.points.size && e.keywords.all { it.isNotEmpty() }))
+                        if (e.keywords.isNotEmpty()) assertTrue("${e.id} model must pass its own marker", WritingMarker.mark(e, e.model).points.all { it })
+                    }
+                    is Ex.Listen -> assertTrue(e.id, e.audio.isNotBlank() && e.options.size >= 2 && e.correct in e.options.indices)
+                    is Ex.Speak -> assertTrue(e.id, e.target.isNotBlank() && e.en.isNotBlank())
                 }
             }
         }

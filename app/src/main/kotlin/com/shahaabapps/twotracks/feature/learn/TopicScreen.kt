@@ -92,7 +92,7 @@ fun TopicScreen(
                         )
                     }
                 }
-                items(topic.blocks.size) { i -> BlockView(topic.blocks[i], speaker) }
+                items(topic.blocks.size) { i -> BlockView(topic.blocks[i], speaker, viewModel.recognizer) }
                 if (topic.references.isNotEmpty()) {
                     item { ReferencesBlock(topic.references) }
                 }
@@ -127,7 +127,7 @@ fun TopicScreen(
 }
 
 @Composable
-fun BlockView(block: Block, speaker: Speaker? = null) {
+fun BlockView(block: Block, speaker: Speaker? = null, recognizer: Recognizer? = null) {
     when (block) {
         is Block.Heading -> Text(block.text, style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(top = Spacing.sm))
         is Block.Paragraph -> Text(block.text, style = MaterialTheme.typography.bodyLarge, lineHeight = 24.sp)
@@ -150,7 +150,7 @@ fun BlockView(block: Block, speaker: Speaker? = null) {
         is Block.Glossary -> GlossaryBlock(block)
         is Block.Vocab -> VocabBlock(block, speaker)
         is Block.Dialogue -> DialogueBlock(block, speaker)
-        is Block.Exercise -> ExerciseBlock(block, speaker)
+        is Block.Exercise -> ExerciseBlock(block, speaker, recognizer)
         is Block.Recap -> Column(
             modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(16.dp)).background(AppTheme.colors.accent).padding(Spacing.md),
             verticalArrangement = Arrangement.spacedBy(6.dp),
