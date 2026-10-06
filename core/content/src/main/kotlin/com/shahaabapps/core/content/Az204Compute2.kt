@@ -1,8 +1,18 @@
 package com.shahaabapps.core.content
 
+/** AZ-204 module 1, Compute, topics 4 and 5, plus the module test. */
 internal object Az204Compute2 {
+    private const val LEARN = "https://learn.microsoft.com/en-us/"
+
     private val durable = Topic(
-        id = "az-durable", title = "Durable Functions: when one step has to wait for another", minutes = 16,
+        id = "az-durable", title = "Durable Functions: when one step has to wait for another", minutes = 26,
+        references = listOf(
+            B.ref("Durable Functions overview and patterns", LEARN + "azure/azure-functions/durable/durable-functions-overview"),
+            B.ref("Orchestrator function code constraints", LEARN + "azure/azure-functions/durable/durable-functions-code-constraints"),
+            B.ref("Timers in Durable Functions", LEARN + "azure/azure-functions/durable/durable-functions-timers"),
+            B.ref("Handling external events", LEARN + "azure/azure-functions/durable/durable-functions-external-events"),
+            B.ref("Learn module: Implement Durable Functions", LEARN + "training/modules/implement-durable-functions/"),
+        ),
         blocks = listOf(
             B.plain("""
                 Plain functions are stateless and short. Durable Functions let you write a workflow that runs for hours
@@ -25,7 +35,6 @@ internal object Az204Compute2 {
                     DNode("store", "Task hub (storage)", 0.86f, 0.3f, w = 0.24f, h = 0.2f, kind = NodeKind.CYLINDER, tone = 2),
                 ),
                 edges = listOf(DEdge("client", "orch", label = "start"), DEdge("orch", "a1"), DEdge("orch", "a2"), DEdge("orch", "store", dashed = true, label = "checkpoints")),
-                aspect = 0.62f,
             ),
             B.h("Why the orchestrator must be deterministic"),
             B.p("""
@@ -34,6 +43,16 @@ internal object Az204Compute2 {
                 the history would not match. So use context.CurrentUtcDateTime instead of DateTime.Now, and put any
                 real work inside activities.
             """),
+            B.worked("""
+                Worked example. An orchestrator calls Activity A, then sleeps 3 days, then calls B. After A finishes the
+                host may unload. Three days later the timer fires, the orchestrator replays from line one: A is "called"
+                again but its result comes from history in a millisecond, the timer is already satisfied, and the code
+                reaches B for the first time. If line one had used Guid.NewGuid() to name the order, replay would produce
+                a different id and the history check would fail with a non-determinism error.
+            """),
+            B.check("az-durable-k1", "az-durable", "Where should an HTTP call to a payment API live?",
+                listOf("In the orchestrator", "In an activity", "In the client function"), 1,
+                "Activities hold side effects. Orchestrators replay, so a payment call there would run again on every replay."),
             B.h("Patterns the exam names"),
             B.table(
                 listOf("Pattern", "Shape", "Example"),
@@ -55,11 +74,33 @@ internal object Az204Compute2 {
                     else await ctx.CallActivityAsync("Escalate", true);
                 }
             """),
+            B.code("csharp", """
+                // Fan-out/fan-in: resize every photo in parallel, then build the gallery once
+                var tasks = photos.Select(p => ctx.CallActivityAsync<string>("Resize", p)).ToList();
+                var thumbs = await Task.WhenAll(tasks);
+                await ctx.CallActivityAsync("BuildGallery", thumbs);
+            """),
+            B.steps("Raise the external event from outside",
+                "Client function starts the orchestration and returns the management URLs." to "The response includes statusQueryGetUri and sendEventPostUri.",
+                "The manager's app POSTs to sendEventPostUri with eventName=Approved and body true." to "The orchestrator's WaitForExternalEvent completes.",
+                "GET statusQueryGetUri." to "runtimeStatus shows Running, then Completed with the output.",
+            ),
+            B.compare("Which pattern?",
+                B.card("Monitor", "You are polling something until a condition holds.", "Loop", "Durable timer between checks", "Exit when done or after a deadline"),
+                B.card("Human interaction", "A person must act, and you need a time-out.", "WaitForExternalEvent", "Raced against a durable timer", "Escalate on time-out"),
+                B.card("Async HTTP API", "A caller needs an immediate 202 and a place to poll.", "Client returns status URLs", "Work runs in the orchestration", "Caller polls or uses a webhook"),
+            ),
             B.tip("""
                 "Wait for a manager to approve within 72 hours" is the human interaction pattern: WaitForExternalEvent
                 raced against a durable timer. "Process many items in parallel and combine" is fan-out/fan-in with
                 Task.WhenAll.
             """),
+            B.mistakes(
+                "Using DateTime.Now or Guid.NewGuid() in an orchestrator. Use context time and NewGuid from the context.",
+                "Thread.Sleep or Task.Delay to wait. Only durable timers are replay-safe.",
+                "Doing I/O in the orchestrator because it is quicker. It runs again on every replay.",
+                "Forgetting that activities can run twice (at-least-once). Make them idempotent.",
+            ),
             B.remember("""
                 Durable timers (ctx.CreateTimer) are the only safe way to wait in an orchestrator. Thread.Sleep or
                 Task.Delay would break replay.
@@ -68,6 +109,16 @@ internal object Az204Compute2 {
                 Two Tracks could use a monitor pattern to nudge a partner: start when a session is planned, check every
                 hour whether it was logged, and after the slot ends send one gentle reminder, then stop.
             """),
+            B.tryIt("Try it in 15 minutes", "Works locally with Azurite; no Azure resources needed.",
+                "func new with the Durable Functions orchestration template (dotnet-isolated)", "func start and POST to the HttpStart endpoint", "Open the statusQueryGetUri from the response", "Add a 30-second durable timer and watch runtimeStatus stay Running then Completed",
+            ),
+            B.glossary(
+                "Orchestrator" to "The function that defines the workflow and replays from history.",
+                "Activity" to "A function that does one unit of real work; may run more than once.",
+                "Task hub" to "The storage tables and queues where orchestration state lives.",
+                "Durable timer" to "A replay-safe wait created from the orchestration context.",
+                "External event" to "A named signal raised from outside that an orchestrator can wait for.",
+            ),
             B.recap(
                 "Client starts, orchestrator coordinates, activities do the work.",
                 "Orchestrators replay, so they must be deterministic; use context time and durable timers.",
@@ -77,7 +128,16 @@ internal object Az204Compute2 {
     )
 
     private val containers = Topic(
-        id = "az-containers", title = "Containers on Azure: Registry, Instances and Container Apps", minutes = 18,
+        id = "az-containers", title = "Containers on Azure: Registry, Instances and Container Apps", minutes = 30,
+        references = listOf(
+            B.ref("Azure Container Registry introduction", LEARN + "azure/container-registry/container-registry-intro"),
+            B.ref("ACR Tasks overview", LEARN + "azure/container-registry/container-registry-tasks-overview"),
+            B.ref("Azure Container Instances overview", LEARN + "azure/container-instances/container-instances-overview"),
+            B.ref("Container groups in ACI", LEARN + "azure/container-instances/container-instances-container-groups"),
+            B.ref("Azure Container Apps overview", LEARN + "azure/container-apps/overview"),
+            B.ref("Revisions in Container Apps", LEARN + "azure/container-apps/revisions"),
+            B.ref("Scaling in Container Apps", LEARN + "azure/container-apps/scale-app"),
+        ),
         blocks = listOf(
             B.plain("""
                 A container is your app plus everything it needs, packed into one image that runs the same anywhere.
@@ -92,6 +152,7 @@ internal object Az204Compute2 {
                 az acr create --name twotracksacr --resource-group tt-rg --sku Basic
                 az acr build --registry twotracksacr --image api:1.0 .      # build in the cloud, push automatically
                 az acr login --name twotracksacr                            # then docker push works too
+                az acr repository show-tags --name twotracksacr --repository api
             """),
             B.table(
                 listOf("SKU", "Storage", "Extras"),
@@ -99,6 +160,11 @@ internal object Az204Compute2 {
                 listOf("Standard", "100 GB", "Most production use"),
                 listOf("Premium", "500 GB", "Geo-replication, private link, content trust"),
             ),
+            B.worked("""
+                Worked example. Two Tracks keeps one ACR task that watches the main branch on GitHub. On every push it
+                builds api:{{.Run.ID}} and tags it latest. The Container App pulls by digest, so a rollback is "point the
+                revision at the previous tag", never a rebuild.
+            """),
             B.h("Azure Container Instances (ACI)"),
             B.p("""
                 ACI runs a container the moment you ask, billed by the second, with no cluster to create. It is the
@@ -109,13 +175,18 @@ internal object Az204Compute2 {
                 az container create --resource-group tt-rg --name nightly-export \
                   --image twotracksacr.azurecr.io/export:1.0 \
                   --restart-policy OnFailure --environment-variables BUCKET=exports \
+                  --secure-environment-variables API_KEY=... \
                   --azure-file-volume-account-name ttfiles --azure-file-volume-share-name out --azure-file-volume-mount-path /out
+                az container logs --resource-group tt-rg --name nightly-export
             """),
             B.bullets(
                 "Restart policy: Always for services, OnFailure for jobs that should retry, Never for one-shot tasks.",
                 "Persistent files: mount an Azure Files share; container disks are thrown away.",
                 "Secrets: pass them as secure environment variables or a secret volume, never baked into the image.",
             ),
+            B.check("az-containers-k1", "az-containers", "A nightly export must retry if it crashes but not loop forever on success. Which restart policy?",
+                listOf("Always", "OnFailure", "Never"), 1,
+                "OnFailure restarts only on a non-zero exit. Always would restart after success too; Never would not retry."),
             B.h("Azure Container Apps"),
             B.p("""
                 Container Apps is the managed home for microservices. It runs on Kubernetes underneath but hides it.
@@ -133,6 +204,13 @@ internal object Az204Compute2 {
                 edges = listOf(DEdge("acr", "aci", label = "pull"), DEdge("acr", "aca", label = "pull")),
                 aspect = 0.66f,
             ),
+            B.steps("Deploy the API to Container Apps",
+                "az containerapp env create --name tt-env --resource-group tt-rg --location westeurope" to "An environment with its Log Analytics workspace.",
+                "az containerapp create --name tt-api --environment tt-env --image twotracksacr.azurecr.io/api:1.0 --target-port 8080 --ingress external --registry-server twotracksacr.azurecr.io --registry-identity system" to "The app pulls with managed identity; a public URL prints.",
+                "az containerapp update --name tt-api --min-replicas 1 --max-replicas 5" to "No cold start at 16:15; up to five replicas.",
+                "az containerapp revision set-mode --name tt-api --mode multiple" to "New deployments keep the old revision alive.",
+                "az containerapp ingress traffic set --name tt-api --revision-weight tt-api--v2=30 tt-api--v1=70" to "30 percent of traffic reaches v2.",
+            ),
             B.h("Revisions and traffic"),
             B.p("""
                 Each deployment creates a revision. In single revision mode the new one replaces the old. In multiple
@@ -149,10 +227,21 @@ internal object Az204Compute2 {
                   --image twotracksacr.azurecr.io/api:1.0 --target-port 8080 --ingress external \
                   --min-replicas 0 --max-replicas 5 --scale-rule-name http --scale-rule-type http --scale-rule-http-concurrency 50
             """),
+            B.compare("Which container service?",
+                B.card("Container Instances", "One container or group, now, no orchestration.", "Billed by the second", "Container groups share network and volumes", "No scaling or ingress rules", "Good for jobs and agents"),
+                B.card("Container Apps", "Microservices with scaling, revisions, Dapr.", "Scale 0 to N with KEDA", "Revisions and traffic split", "Managed HTTPS ingress", "Kubernetes hidden"),
+                B.card("Kubernetes Service (AKS)", "You need full Kubernetes control.", "Your cluster, your YAML", "Custom controllers and operators", "Most work to run", "Only when the question demands it"),
+            ),
             B.tip("""
                 Pick ACI for "run this container now with no orchestration". Pick Container Apps for "microservices,
                 scale to zero, revisions, Dapr". Pick AKS only when the question demands full Kubernetes control.
             """),
+            B.mistakes(
+                "Storing the registry password in the container app. Use a managed identity to pull.",
+                "Leaving min replicas at 0 for a latency-sensitive API. The first request after idle pays the start-up.",
+                "Expecting ACI to keep files between runs. Mount Azure Files.",
+                "Using Basic ACR and then needing geo-replication. That is Premium only.",
+            ),
             B.remember("""
                 Container Apps secrets are defined on the app and referenced by environment variables. Managed identity
                 lets the app pull from ACR with no password at all.
@@ -162,6 +251,16 @@ internal object Az204Compute2 {
                 min 1 replica (no cold start at 16:15) and max 5. The nightly export is an ACI container group that
                 writes to an Azure Files share and exits.
             """),
+            B.tryIt("Try it in 15 minutes", "ACR Basic and one ACI container cost a few cents; delete after.",
+                "Create a Basic ACR", "az acr build a hello-world Dockerfile into it", "az container create from that image with --restart-policy Never", "az container logs shows the output", "Delete the resource group",
+            ),
+            B.glossary(
+                "Image" to "A packaged app with its runtime, stored in a registry and run as a container.",
+                "ACR Task" to "A cloud build that produces an image, on demand or on a trigger.",
+                "Container group" to "Several ACI containers sharing a host, network and storage.",
+                "Revision" to "An immutable version of a Container App; traffic can be split between revisions.",
+                "KEDA" to "The scaler Container Apps uses to add replicas from HTTP load or event sources.",
+            ),
             B.recap(
                 "ACR stores images and can build them in the cloud with ACR Tasks.",
                 "ACI runs a container or a group by the second; restart policy and Azure Files mounts matter.",
@@ -230,6 +329,12 @@ internal object Az204Compute2 {
             B.q("c18", "az-containers", "Which ACI restart policy suits a batch job that should retry only if it crashes?",
                 listOf("Always", "OnFailure", "Never", "Manual"), setOf(1),
                 "OnFailure restarts the container only when it exits with an error. Always is for services; Never is for strict one-shot tasks."),
+            B.q("c19", "az-app-service", "An ASP.NET app reads Configuration[\"Firestore:ProjectId\"]. Which app setting key provides it on Linux App Service?",
+                listOf("Firestore:ProjectId", "Firestore__ProjectId", "FIRESTORE_PROJECTID", "Firestore.ProjectId"), setOf(1),
+                "A colon is not valid in Linux environment variable names, so ASP.NET maps a double underscore to the colon."),
+            B.q("c20", "az-containers", "How should a Container App authenticate to pull images from ACR with no stored password?",
+                listOf("Admin user credentials in a secret", "A managed identity granted AcrPull", "Anonymous pull", "A personal access token"), setOf(1),
+                "A system or user-assigned managed identity with the AcrPull role lets the app pull with no credential to store or rotate."),
         ),
     )
 }

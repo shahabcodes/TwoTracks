@@ -21,16 +21,42 @@ enum class Feasibility {
     DOES_NOT_FIT,
 }
 
+/**
+ * How a course (the Learn tab) reports on one goal: which components it has
+ * finished outright, and the hours its content sets for each component.
+ * Finished components count as complete whatever the hours say, and content
+ * budgets replace the seeded ones so the plan follows the course.
+ */
+data class CourseState(
+    val completedComponentIds: Set<String> = emptySet(),
+    val hoursByComponent: Map<String, Double> = emptyMap(),
+    /** Learned fraction per component, from the course, for display when hours are not the measure. */
+    val fractionByComponent: Map<String, Double> = emptyMap(),
+) {
+    companion object { val NONE = CourseState() }
+}
+
 data class ComponentProgress(
     val component: GoalComponent,
     val minutesLogged: Int,
+    /** True when the course finished this component (every topic learned and the test passed). */
+    val finishedByCourse: Boolean = false,
+    /** Hours the course content sets, replacing the seeded budget when present. */
+    val courseHours: Double? = null,
+    /** Course learned fraction, used for the bar when the course drives this component. */
+    val courseFraction: Double? = null,
 ) {
     val hoursLogged: Double get() = minutesLogged / 60.0
-    val hoursRequired: Double get() = component.hoursRequired
+    val hoursRequired: Double get() = courseHours ?: component.hoursRequired
     val fraction: Double
-        get() = if (hoursRequired <= 0.0) 1.0 else (hoursLogged / hoursRequired).coerceIn(0.0, 1.0)
-    val remainingHours: Double get() = max(0.0, hoursRequired - hoursLogged)
-    val isComplete: Boolean get() = hoursRequired > 0.0 && hoursLogged >= hoursRequired
+        get() = when {
+            finishedByCourse -> 1.0
+            courseFraction != null -> maxOf(courseFraction, if (hoursRequired <= 0.0) 0.0 else (hoursLogged / hoursRequired).coerceIn(0.0, 1.0))
+            hoursRequired <= 0.0 -> 1.0
+            else -> (hoursLogged / hoursRequired).coerceIn(0.0, 1.0)
+        }
+    val remainingHours: Double get() = if (finishedByCourse) 0.0 else max(0.0, hoursRequired - hoursLogged)
+    val isComplete: Boolean get() = finishedByCourse || (hoursRequired > 0.0 && hoursLogged >= hoursRequired)
 }
 
 data class GoalProgress(
@@ -89,11 +115,16 @@ data class GoalProgress(
 
 object ProgressCalculator {
 
-    fun compute(goal: StudyGoal, logs: List<StudyLog>, today: LocalDate): GoalProgress {
+    fun compute(goal: StudyGoal, logs: List<StudyLog>, today: LocalDate, course: CourseState = CourseState.NONE): GoalProgress {
         val goalLogs = logs.filter { it.goalId == goal.id }
         val byComponent = goalLogs.groupBy { it.componentId }
         val components = goal.components.map { c ->
-            ComponentProgress(c, byComponent[c.id]?.sumOf { it.minutes } ?: 0)
+            ComponentProgress(
+                c, byComponent[c.id]?.sumOf { it.minutes } ?: 0,
+                finishedByCourse = c.id in course.completedComponentIds,
+                courseHours = course.hoursByComponent[c.id],
+                courseFraction = course.fractionByComponent[c.id],
+            )
         }
         val since = today.minusDays(13)
         val recentMinutes = goalLogs.filter { log ->
@@ -103,8 +134,8 @@ object ProgressCalculator {
         return GoalProgress(goal, components, today, recentWeeklyHours = recentMinutes / 60.0 / 2.0)
     }
 
-    fun computeAll(goals: List<StudyGoal>, logs: List<StudyLog>, today: LocalDate): Map<String, GoalProgress> =
-        goals.associate { it.id to compute(it, logs, today) }
+    fun computeAll(goals: List<StudyGoal>, logs: List<StudyLog>, today: LocalDate, courses: Map<String, CourseState> = emptyMap()): Map<String, GoalProgress> =
+        goals.associate { it.id to compute(it, logs, today, courses[it.id] ?: CourseState.NONE) }
 }
 
 /** Whole-person view: weekly capacity against the sum of weekly needs. */

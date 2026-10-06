@@ -1,5 +1,7 @@
 package com.shahaabapps.twotracks.reminders
 
+import com.shahaabapps.core.data.learning.LearningRepository
+import com.shahaabapps.twotracks.session.CourseBridge
 import com.shahaabapps.core.data.study.StudyRepository
 import com.shahaabapps.core.data.study.forRole
 import com.shahaabapps.core.data.tracking.TrackingRepository
@@ -31,6 +33,7 @@ class SessionPlanning @Inject constructor(
     private val sessionStore: SessionStore,
     private val studyRepository: StudyRepository,
     private val trackingRepository: TrackingRepository,
+    private val learningRepository: LearningRepository,
 ) {
     fun sessionsBetween(from: LocalDate, to: LocalDate): Flow<List<PlannedSession>> =
         sessionStore.session.flatMapLatest { s ->
@@ -64,7 +67,8 @@ class SessionPlanning @Inject constructor(
             .first()
             .filter { it.owner == role }
         val roleGoals = goals.filter { it.owner == role }
-        val progress = ProgressCalculator.computeAll(roleGoals, logs, today)
+        val courseStates = CourseBridge.statesFor(role, learningRepository.observeTopicProgress(s.coupleId).first(), learningRepository.observeQuizAttempts(s.coupleId).first())
+        val progress = ProgressCalculator.computeAll(roleGoals, logs, today, courseStates)
         val weekIso = Dates.format(Dates.weekStart(today))
         val weekCounts = habitLogs.filter { it.owner == role && it.dateIso >= weekIso }.groupBy { it.habitId }.mapValues { e -> e.value.sumOf { it.value } }
         val levelProgress = LevelEngine.progress(levels, roleGoals, progress, weekCounts, today, role)

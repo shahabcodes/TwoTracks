@@ -1,5 +1,9 @@
 package com.shahaabapps.twotracks.feature.study
 
+import androidx.compose.foundation.clickable
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
+import com.shahaabapps.core.ui.theme.Shapes
 import com.shahaabapps.twotracks.ui.components.DialogButton
 import com.shahaabapps.twotracks.ui.components.CupertinoDialog
 import androidx.compose.foundation.background
@@ -64,6 +68,8 @@ fun GoalDetailScreen(
     goalId: String,
     onBack: () -> Unit,
     onEdit: () -> Unit,
+    onOpenCourse: (String) -> Unit = {},
+    onOpenQuiz: (String, String) -> Unit = { _, _ -> },
     viewModel: GoalDetailViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
@@ -115,6 +121,40 @@ fun GoalDetailScreen(
                     }
                 }
 
+                if (state.modules.isNotEmpty() && state.courseId != null) {
+                    item { SectionLabel("Course") }
+                    item {
+                        CupertinoCard(modifier = Modifier.padding(horizontal = Spacing.listHorizontal), onClick = { onOpenCourse(state.courseId!!) }) {
+                            val finished = state.modules.count { it.finished }
+                            val available = state.modules.count { it.module.available }
+                            Text("$finished of $available modules finished", style = MaterialTheme.typography.titleMedium)
+                            Text("A module is finished when every topic is read and its test is passed. That completes the matching skill below, whatever the hours say.", style = MaterialTheme.typography.bodySmall, color = AppTheme.colors.secondaryLabel)
+                            Row(horizontalArrangement = Arrangement.spacedBy(6.dp), modifier = Modifier.padding(top = Spacing.sm)) {
+                                state.modules.forEach { m ->
+                                    Column(
+                                        modifier = Modifier.weight(1f).clip(Shapes.field)
+                                            .background(if (m.finished) AppTheme.colors.success else if (!m.module.available) AppTheme.colors.fill.copy(alpha = 0.5f) else AppTheme.colors.fill)
+                                            .clickable(enabled = m.module.available) { if (m.passed) onOpenCourse(state.courseId!!) else onOpenQuiz(state.courseId!!, m.module.id) }
+                                            .padding(vertical = 8.dp, horizontal = 4.dp),
+                                        horizontalAlignment = Alignment.CenterHorizontally,
+                                    ) {
+                                        Text("${m.module.number}", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = if (m.finished) Color.White else MaterialTheme.colorScheme.onSurface)
+                                        Text(
+                                            when {
+                                                !m.module.available -> "soon"
+                                                m.finished -> "done"
+                                                m.passed -> "${m.learned}/${m.total}"
+                                                else -> "${m.learned}/${m.total}" + (m.bestPercent?.let { " · $it%" } ?: "")
+                                            },
+                                            style = MaterialTheme.typography.labelSmall, color = if (m.finished) Color.White.copy(alpha = 0.9f) else AppTheme.colors.secondaryLabel,
+                                        )
+                                    }
+                                }
+                            }
+                            CupertinoTextButton(text = "Open the course", onClick = { onOpenCourse(state.courseId!!) })
+                        }
+                    }
+                }
                 item { SectionLabel("Skills") }
                 item {
                     CupertinoCard(modifier = Modifier.padding(horizontal = Spacing.listHorizontal)) {
@@ -124,8 +164,12 @@ fun GoalDetailScreen(
                                     Column(modifier = Modifier.weight(1f)) {
                                         Text(c.component.name, style = MaterialTheme.typography.titleMedium)
                                         Text(
-                                            "%.0f of %.0f h".format(c.hoursLogged, c.hoursRequired) + (c.component.targetScore?.let { " · target $it" } ?: ""),
-                                            style = MaterialTheme.typography.bodySmall, color = AppTheme.colors.secondaryLabel,
+                                            when {
+                                                c.finishedByCourse -> "Finished in the course · %.0f h logged".format(c.hoursLogged)
+                                                c.courseFraction != null -> "%.0f of %.0f h · course %.0f%%".format(c.hoursLogged, c.hoursRequired, c.courseFraction!! * 100)
+                                                else -> "%.0f of %.0f h".format(c.hoursLogged, c.hoursRequired)
+                                            } + (c.component.targetScore?.let { " · target $it" } ?: ""),
+                                            style = MaterialTheme.typography.bodySmall, color = if (c.finishedByCourse) AppTheme.colors.success else AppTheme.colors.secondaryLabel,
                                         )
                                     }
                                     if (state.isMine) Chip(text = "Log", onClick = { logTarget = LogTarget(goalId = goal.id, componentId = c.component.id, dateIso = state.todayIso) })

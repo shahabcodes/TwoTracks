@@ -1,5 +1,7 @@
 package com.shahaabapps.twotracks.feature.learn
 
+import com.shahaabapps.twotracks.session.CourseBridge
+import kotlinx.coroutines.flow.first
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -72,6 +74,7 @@ class LearningActions @Inject constructor(
     private val learningRepository: LearningRepository,
     private val studyActions: StudyActions,
     private val celebrations: Celebrations,
+    private val dataStore: CoupleDataStore,
 ) {
     /**
      * Marks a topic learned and logs [minutes] to the course goal's component for
@@ -89,8 +92,23 @@ class LearningActions @Inject constructor(
         if (r is AppResult.Failure) return r.error.message ?: "Could not save"
         studyActions.logMinutes(course.goalId, module.componentId, minutes, today, note = "Learn: ${topic.title}", quiet = true)
         celebrations.logged("$minutes min learned")
+        autoPassIfFinished(course, s.myRole, extraTopic = topic.id)
         return null
     }
+
+    /** When every module is read and passed, the goal is marked passed so the level ticks. */
+    private suspend fun autoPassIfFinished(course: Course, owner: PersonRole, extraTopic: String? = null, extraAttempt: QuizAttempt? = null) {
+        val s = sessionStore.current() ?: return
+        val progress = learningRepository.observeTopicProgress(s.coupleId).first().toMutableList()
+        if (extraTopic != null && progress.none { it.owner == owner && it.topicId == extraTopic }) progress += TopicProgress(owner = owner, courseId = course.id, topicId = extraTopic)
+        val attempts = learningRepository.observeQuizAttempts(s.coupleId).first().toMutableList()
+        if (extraAttempt != null) attempts += extraAttempt
+        if (!CourseBridge.courseFinished(course, owner, progress, attempts)) return
+        val goal = dataStoreGoals().firstOrNull { it.id == course.goalId } ?: return
+        if (!goal.passed) studyActions.setGoalPassed(goal.id, true)
+    }
+
+    private suspend fun dataStoreGoals() = dataStore.goals.value
 
     suspend fun clearLearned(topicId: String): String? {
         val s = sessionStore.current() ?: return "Not signed in"
@@ -108,6 +126,7 @@ class LearningActions @Inject constructor(
         if (r is AppResult.Failure) return r.error.message ?: "Could not save"
         studyActions.logMinutes(course.goalId, module.componentId, minutes.coerceIn(2, 60), today, note = "Test: ${module.title}", quiet = true)
         if (passed) celebrations.passed("${module.title} passed") else celebrations.logged("Test logged")
+        if (passed) autoPassIfFinished(course, s.myRole, extraAttempt = QuizAttempt(owner = s.myRole, courseId = course.id, moduleId = module.id, dateIso = today, score = score, total = quiz.questions.size, passed = true))
         return null
     }
 }

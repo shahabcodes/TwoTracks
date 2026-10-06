@@ -1,5 +1,7 @@
 package com.shahaabapps.twotracks.feature.study
 
+import com.shahaabapps.core.content.Courses
+import com.shahaabapps.twotracks.session.CourseBridge
 import com.shahaabapps.twotracks.session.Celebrations
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
@@ -28,6 +30,8 @@ import javax.inject.Inject
 data class DayBar(val date: LocalDate, val minutes: Int)
 
 data class GoalDetailUiState(
+    val courseId: String? = null,
+    val modules: List<CourseBridge.ModuleStatus> = emptyList(),
     val goal: StudyGoal? = null,
     val progress: GoalProgress? = null,
     val isMine: Boolean = false,
@@ -56,16 +60,20 @@ class GoalDetailViewModel @Inject constructor(
     private val message = MutableStateFlow<String?>(null)
 
     val uiState: StateFlow<GoalDetailUiState> = combine(
-        sessionStore.session, dataStore.goals, dataStore.logs, dataStore.mockScores, message,
-    ) { session, goals, logs, scores, msg ->
+        sessionStore.session, dataStore.goals, dataStore.logs, dataStore.mockScores,
+        combine(message, dataStore.topicProgress, dataStore.quizAttempts) { m, tp, qa -> Triple(m, tp, qa) },
+    ) { session, goals, logs, scores, (msg, topicProgress, quizAttempts) ->
         val goal = goals.firstOrNull { it.id == goalId } ?: return@combine GoalDetailUiState(message = msg, goals = goals)
         val owner = session?.profileFor(goal.owner)
         val today = Clock.today(owner ?: session?.me)
-        val progress = ProgressCalculator.compute(goal, logs, today)
+        val course = Courses.all.firstOrNull { it.goalId == goal.id }
+        val modules = course?.let { CourseBridge.moduleStatuses(it, goal.owner, topicProgress, quizAttempts) }.orEmpty()
+        val progress = ProgressCalculator.compute(goal, logs, today, CourseBridge.statesFor(goal.owner, topicProgress, quizAttempts)[goal.id] ?: com.shahaabapps.core.planner.CourseState.NONE)
         val goalLogs = logs.filter { it.goalId == goal.id }
         val byDay = goalLogs.groupBy { it.dateIso }.mapValues { e -> e.value.sumOf { it.minutes } }
         val (sentence, good) = sentenceFor(goal, progress)
         GoalDetailUiState(
+            courseId = course?.id, modules = modules,
             goal = goal, progress = progress, isMine = session?.myRole == goal.owner,
             recentLogs = goalLogs.sortedWith(compareByDescending<StudyLog> { it.dateIso }.thenByDescending { it.createdAtMillis }).take(30),
             last14 = (13L downTo 0L).map { off -> val d = today.minusDays(off); DayBar(d, byDay[Dates.format(d)] ?: 0) },

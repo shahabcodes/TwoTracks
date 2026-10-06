@@ -18,6 +18,22 @@ data class Course(
     val modules: List<Module>,
 ) {
     val topicCount: Int get() = modules.sumOf { it.topics.size }
+
+    /**
+     * Hours the content sets for each goal component, for modules that have
+     * content: reading, a try-it task per topic, the test, then the same
+     * again as a revision pass. Locked modules are left out so the seeded
+     * budget still applies to them.
+     */
+    fun hoursByComponent(): Map<String, Double> {
+        val byComponent = modules.filter { it.available }.groupBy { it.componentId }.mapValues { (_, ms) ->
+            ms.sumOf { m -> m.studyMinutes } / 60.0
+        }
+        return byComponent + ("practice" to practiceHours)
+    }
+
+    /** Budget for the practice-exam component: the mock exam plus two rereads of the tests. */
+    val practiceHours: Double get() = 8.0
 }
 
 data class Module(
@@ -33,6 +49,9 @@ data class Module(
     val quiz: Quiz?,
 ) {
     val available: Boolean get() = topics.isNotEmpty()
+    val readingMinutes: Int get() = topics.sumOf { it.minutes }
+    /** Reading, a 15-minute try-it per topic and the test, doubled for a revision pass. */
+    val studyMinutes: Int get() = (readingMinutes + topics.size * 15 + (quiz?.questions?.size ?: 0) * 2) * 2
 }
 
 data class Topic(
@@ -40,7 +59,14 @@ data class Topic(
     val title: String,
     val minutes: Int,
     val blocks: List<Block>,
+    /** Official pages to read further, shown at the end of the topic. */
+    val references: List<Reference> = emptyList(),
 )
+
+data class Reference(val title: String, val url: String)
+
+/** One term and its meaning, listed at the end of a topic. */
+data class Term(val term: String, val meaning: String)
 
 sealed interface Block {
     data class Heading(val text: String) : Block
@@ -51,9 +77,22 @@ sealed interface Block {
     data class Table(val headers: List<String>, val rows: List<List<String>>) : Block
     data class Diagram(val spec: DiagramSpec) : Block
     data class Recap(val items: List<String>) : Block
+    /** Numbered steps as you would do them, each with what you should see. */
+    data class Steps(val title: String, val steps: List<Step>) : Block
+    /** Side-by-side cards for a choice the exam likes to test. */
+    data class Compare(val title: String, val cards: List<CompareCard>) : Block
+    /** A short hands-on task with a checklist the reader can tick. */
+    data class TryIt(val title: String, val intro: String, val checklist: List<String>) : Block
+    /** A one-question check between sections; answered inline, not scored. */
+    data class Check(val question: Question) : Block
+    /** Terms used in this topic. */
+    data class Glossary(val terms: List<Term>) : Block
 }
 
-enum class CalloutKind { PLAIN_WORDS, EXAM_TIP, REMEMBER, EXAMPLE }
+data class Step(val action: String, val expect: String? = null)
+data class CompareCard(val title: String, val points: List<String>, val pickWhen: String)
+
+enum class CalloutKind { PLAIN_WORDS, EXAM_TIP, REMEMBER, EXAMPLE, MISTAKES, WORKED }
 
 /**
  * A diagram described as nodes on a unit grid (0..1 in both axes) joined by
@@ -121,6 +160,16 @@ object B {
     fun tip(text: String) = Block.Callout(CalloutKind.EXAM_TIP, text.trimIndent().replace("\n", " ").trim())
     fun remember(text: String) = Block.Callout(CalloutKind.REMEMBER, text.trimIndent().replace("\n", " ").trim())
     fun example(text: String) = Block.Callout(CalloutKind.EXAMPLE, text.trimIndent().replace("\n", " ").trim())
+    fun mistakes(vararg items: String) = Block.Callout(CalloutKind.MISTAKES, items.joinToString("\n") { "• $it" })
+    fun worked(text: String) = Block.Callout(CalloutKind.WORKED, text.trimIndent().replace("\n", " ").trim())
+    fun steps(title: String, vararg steps: Pair<String, String?>) = Block.Steps(title, steps.map { Step(it.first, it.second) })
+    fun compare(title: String, vararg cards: CompareCard) = Block.Compare(title, cards.toList())
+    fun card(title: String, pickWhen: String, vararg points: String) = CompareCard(title, points.toList(), pickWhen)
+    fun tryIt(title: String, intro: String, vararg checklist: String) = Block.TryIt(title, intro.trimIndent().replace("\n", " ").trim(), checklist.toList())
+    fun check(id: String, topic: String, prompt: String, options: List<String>, correct: Int, explanation: String) =
+        Block.Check(Question(id, topic, prompt, null, options, setOf(correct), explanation.trimIndent().replace("\n", " ").trim()))
+    fun glossary(vararg terms: Pair<String, String>) = Block.Glossary(terms.map { Term(it.first, it.second) })
+    fun ref(title: String, url: String) = Reference(title, url)
     fun code(language: String, code: String) = Block.Code(language, code.trimIndent())
     fun table(headers: List<String>, vararg rows: List<String>) = Block.Table(headers, rows.toList())
     fun diagram(caption: String, nodes: List<DNode>, edges: List<DEdge> = emptyList(), aspect: Float = 0.62f) =

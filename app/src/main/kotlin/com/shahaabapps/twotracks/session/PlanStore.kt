@@ -91,8 +91,8 @@ class PlanStore @Inject constructor(
 
     val plan: StateFlow<PlanSnapshot?> = combine(
         sessionStore.session, dataStore.levels, dataStore.goals, dataStore.logs,
-        combine(dataStore.habitLogs, dataStore.availability) { h, a -> h to a },
-    ) { session, levels, goals, logs, (habitLogs, availability) ->
+        combine(dataStore.habitLogs, dataStore.availability, dataStore.topicProgress, dataStore.quizAttempts) { h, a, tp, qa -> Quad(h, a, tp, qa) },
+    ) { session, levels, goals, logs, (habitLogs, availability, topicProgress, quizAttempts) ->
         if (session == null) return@combine null
         fun person(role: PersonRole): PersonPlan {
             val profile = session.profileFor(role)
@@ -100,7 +100,7 @@ class PlanStore @Inject constructor(
             val todayIso = Dates.format(today)
             val weekIso = Dates.format(Dates.weekStart(today))
             val roleGoals = goals.filter { it.owner == role }
-            val progress = ProgressCalculator.computeAll(roleGoals, logs, today)
+            val progress = ProgressCalculator.computeAll(roleGoals, logs, today, CourseBridge.statesFor(role, topicProgress, quizAttempts))
             val weekCounts = habitLogs.filter { it.owner == role && it.dateIso >= weekIso }.groupBy { it.habitId }.mapValues { e -> e.value.sumOf { it.value } }
             val levelProgress = LevelEngine.progress(levels, roleGoals, progress, weekCounts, today, role)
             val activeIds = LevelEngine.activeGoalIds(levelProgress, roleGoals, progress)
@@ -118,3 +118,5 @@ class PlanStore @Inject constructor(
         PlanSnapshot(session = session, me = person(session.myRole), partner = person(session.partnerRole))
     }.stateIn(scope, SharingStarted.WhileSubscribed(10_000), null)
 }
+
+private data class Quad<A, B, C, D>(val a: A, val b: B, val c: C, val d: D)

@@ -1,5 +1,13 @@
 package com.shahaabapps.twotracks.feature.learn
 
+import androidx.compose.foundation.clickable
+import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material.icons.filled.Build
+import androidx.compose.material.icons.filled.Science
+import androidx.compose.material.icons.filled.CheckBox
+import androidx.compose.material.icons.filled.CheckBoxOutlineBlank
+import androidx.compose.material.icons.filled.OpenInNew
+import androidx.compose.runtime.setValue
 import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
@@ -73,6 +81,9 @@ fun TopicScreen(
                     Text(topic.title, style = MaterialTheme.typography.displayLarge, fontWeight = FontWeight.Bold, modifier = Modifier.padding(top = Spacing.xs))
                 }
                 items(topic.blocks.size) { i -> BlockView(topic.blocks[i]) }
+                if (topic.references.isNotEmpty()) {
+                    item { ReferencesBlock(topic.references) }
+                }
                 item {
                     Column(verticalArrangement = Arrangement.spacedBy(Spacing.sm), modifier = Modifier.padding(top = Spacing.md)) {
                         if (state.learned) {
@@ -116,6 +127,11 @@ fun BlockView(block: Block) {
         is Block.Code -> CodeBlock(block)
         is Block.Table -> TableBlock(block)
         is Block.Diagram -> DiagramView(block.spec)
+        is Block.Steps -> StepsBlock(block)
+        is Block.Compare -> CompareBlock(block)
+        is Block.TryIt -> TryItBlock(block)
+        is Block.Check -> CheckBlock(block)
+        is Block.Glossary -> GlossaryBlock(block)
         is Block.Recap -> Column(
             modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(16.dp)).background(AppTheme.colors.accent).padding(Spacing.md),
             verticalArrangement = Arrangement.spacedBy(6.dp),
@@ -138,6 +154,8 @@ private fun Callout(block: Block.Callout) {
         CalloutKind.EXAM_TIP -> Triple(Icons.Filled.School, "Exam tip", AppTheme.colors.warn)
         CalloutKind.REMEMBER -> Triple(Icons.Filled.PushPin, "Remember this", AppTheme.colors.success)
         CalloutKind.EXAMPLE -> Triple(Icons.Filled.Lightbulb, "For Two Tracks", AppTheme.colors.secondaryLabel)
+        CalloutKind.MISTAKES -> Triple(Icons.Filled.Warning, "Common mistakes", AppTheme.colors.destructive)
+        CalloutKind.WORKED -> Triple(Icons.Filled.Build, "Worked example", AppTheme.colors.accent)
     }
     Column(
         modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(14.dp)).background(tint.copy(alpha = 0.12f)).padding(Spacing.md),
@@ -185,3 +203,130 @@ private fun TableBlock(block: Block.Table) {
 
 @Composable
 private fun CupertinoSecondaryButtonUnused() { CupertinoSecondaryButton(text = "", onClick = {}) }
+
+@Composable
+private fun StepsBlock(block: Block.Steps) {
+    Column(modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(14.dp)).background(AppTheme.colors.card).padding(Spacing.md), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        Text(block.title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+        block.steps.forEachIndexed { i, st ->
+            Row(verticalAlignment = Alignment.Top, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                Box(modifier = Modifier.size(24.dp).clip(CircleShape).background(AppTheme.colors.accent), contentAlignment = Alignment.Center) {
+                    Text("${i + 1}", style = MaterialTheme.typography.labelMedium, color = Color.White, fontWeight = FontWeight.Bold)
+                }
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(st.action, style = MaterialTheme.typography.bodyMedium, lineHeight = 21.sp)
+                    st.expect?.let { Text("You should see: $it", style = MaterialTheme.typography.bodySmall, color = AppTheme.colors.secondaryLabel) }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun CompareBlock(block: Block.Compare) {
+    Column(verticalArrangement = Arrangement.spacedBy(Spacing.sm)) {
+        Text(block.title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+        Row(modifier = Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
+            block.cards.forEach { c ->
+                Column(modifier = Modifier.width(230.dp).clip(RoundedCornerShape(14.dp)).background(AppTheme.colors.card).padding(Spacing.md), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    Text(c.title, style = MaterialTheme.typography.titleMedium, color = AppTheme.colors.accent, fontWeight = FontWeight.SemiBold)
+                    c.points.forEach { pt ->
+                        Row(verticalAlignment = Alignment.Top) {
+                            Box(modifier = Modifier.padding(top = 7.dp, end = 8.dp).size(5.dp).clip(CircleShape).background(AppTheme.colors.secondaryLabel))
+                            Text(pt, style = MaterialTheme.typography.bodySmall, lineHeight = 18.sp, modifier = Modifier.weight(1f))
+                        }
+                    }
+                    Text("Pick when: ${c.pickWhen}", style = MaterialTheme.typography.labelSmall, color = AppTheme.colors.success, modifier = Modifier.padding(top = 4.dp))
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun TryItBlock(block: Block.TryIt) {
+    val ticked = androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateListOf<Int>() }
+    Column(modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(14.dp)).background(AppTheme.colors.success.copy(alpha = 0.1f)).padding(Spacing.md), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+            Icon(Icons.Filled.Science, contentDescription = null, tint = AppTheme.colors.success, modifier = Modifier.size(18.dp))
+            Text(block.title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold, color = AppTheme.colors.success)
+        }
+        Text(block.intro, style = MaterialTheme.typography.bodySmall, color = AppTheme.colors.secondaryLabel)
+        block.checklist.forEachIndexed { i, item ->
+            val on = i in ticked
+            Row(
+                verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp),
+                modifier = Modifier.fillMaxWidth().clickable { if (on) ticked.remove(i) else ticked.add(i) },
+            ) {
+                Icon(if (on) Icons.Filled.CheckBox else Icons.Filled.CheckBoxOutlineBlank, contentDescription = null, tint = if (on) AppTheme.colors.success else AppTheme.colors.secondaryLabel, modifier = Modifier.size(22.dp))
+                Text(item, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.weight(1f))
+            }
+        }
+    }
+}
+
+@Composable
+private fun CheckBlock(block: Block.Check) {
+    var picked by androidx.compose.runtime.remember(block.question.id) { androidx.compose.runtime.mutableStateOf<Int?>(null) }
+    val q = block.question
+    Column(modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(14.dp)).background(AppTheme.colors.accent.copy(alpha = 0.08f)).padding(Spacing.md), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Text("Quick check", style = MaterialTheme.typography.labelMedium, color = AppTheme.colors.accent, fontWeight = FontWeight.SemiBold)
+        Text(q.prompt, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold, lineHeight = 21.sp)
+        q.options.forEachIndexed { i, opt ->
+            val state = when {
+                picked == null -> null
+                i in q.correct -> true
+                i == picked -> false
+                else -> null
+            }
+            Row(
+                verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp),
+                modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(10.dp))
+                    .background(when (state) { true -> AppTheme.colors.success.copy(alpha = 0.15f); false -> AppTheme.colors.destructive.copy(alpha = 0.15f); null -> AppTheme.colors.card })
+                    .clickable(enabled = picked == null) { picked = i }
+                    .padding(horizontal = 12.dp, vertical = 10.dp),
+            ) {
+                Text(('A' + i).toString(), style = MaterialTheme.typography.labelMedium, color = AppTheme.colors.secondaryLabel, fontWeight = FontWeight.Bold)
+                Text(opt, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.weight(1f))
+            }
+        }
+        if (picked != null) {
+            Text(
+                (if (picked in q.correct) "Right. " else "Not quite. ") + q.explanation,
+                style = MaterialTheme.typography.bodySmall, lineHeight = 19.sp,
+                color = if (picked in q.correct) AppTheme.colors.success else AppTheme.colors.destructive,
+            )
+        }
+    }
+}
+
+@Composable
+private fun GlossaryBlock(block: Block.Glossary) {
+    Column(modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(14.dp)).background(AppTheme.colors.card).padding(Spacing.md), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        Text("Words to know", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+        block.terms.forEach { t ->
+            Row(verticalAlignment = Alignment.Top) {
+                Text(t.term, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold, modifier = Modifier.width(120.dp))
+                Text(t.meaning, style = MaterialTheme.typography.bodySmall, lineHeight = 18.sp, modifier = Modifier.weight(1f))
+            }
+        }
+    }
+}
+
+@Composable
+private fun ReferencesBlock(refs: List<com.shahaabapps.core.content.Reference>) {
+    val uri = androidx.compose.ui.platform.LocalUriHandler.current
+    Column(modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(14.dp)).background(AppTheme.colors.card).padding(Spacing.md), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Text("Read more on Microsoft Learn", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+        refs.forEach { r ->
+            Row(
+                verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp),
+                modifier = Modifier.fillMaxWidth().clickable { uri.openUri(r.url) }.padding(vertical = 4.dp),
+            ) {
+                Icon(Icons.Filled.OpenInNew, contentDescription = null, tint = AppTheme.colors.accent, modifier = Modifier.size(16.dp))
+                Text(r.title, style = MaterialTheme.typography.bodyMedium, color = AppTheme.colors.accent, modifier = Modifier.weight(1f))
+            }
+        }
+        Text("Official pages open in your browser.", style = MaterialTheme.typography.labelSmall, color = AppTheme.colors.secondaryLabel)
+    }
+}

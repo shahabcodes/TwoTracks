@@ -5,6 +5,12 @@ build number is appended by CI (for example `0.1.0 (build 12)`).
 
 ## [Unreleased]
 
+## [0.23.0] - 2026-10-06
+
+### Added
+- Learn progress drives the plan: finished modules complete skills, course hours set budgets, sessions link to the next topic, goal page shows modules.
+- Richer Compute lessons: worked examples, walkthroughs, compare cards, common mistakes, try-it checklists, quick checks, glossaries and Microsoft Learn references.
+
 ## [0.22.0] - 2026-10-06
 
 ### Added

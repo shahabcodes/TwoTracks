@@ -1,5 +1,6 @@
 package com.shahaabapps.twotracks.feature.today
 
+import com.shahaabapps.core.model.TopicProgress
 import com.shahaabapps.core.content.Courses
 import com.shahaabapps.twotracks.feature.learn.CourseProgress
 import com.shahaabapps.twotracks.session.Celebrations
@@ -46,7 +47,11 @@ data class SessionRow(
     val goal: StudyGoal?,
     val componentName: String,
     val timeLabel: String,
+    /** The next unread topic of this session's course module, when a course exists. */
+    val nextTopic: NextTopic? = null,
 )
+
+data class NextTopic(val courseId: String, val topicId: String, val title: String, val minutes: Int)
 
 /** One person's card on Today. */
 data class PersonCard(
@@ -110,8 +115,8 @@ class TodayViewModel @Inject constructor(
     }
 
     val uiState: StateFlow<TodayUiState> = combine(
-        planStore.plan, sessionsFlow, dataStore.deadlines, message, combine(briefDismissed, changelog.unseen) { d, w -> d to w },
-    ) { plan, sessions, deadlines, msg, (dismissed, whatsNew) ->
+        planStore.plan, sessionsFlow, dataStore.deadlines, message, combine(briefDismissed, changelog.unseen, dataStore.topicProgress) { d, w, tp -> Triple(d, w, tp) },
+    ) { plan, sessions, deadlines, msg, (dismissed, whatsNew, topicProgress) ->
         if (plan == null) return@combine TodayUiState(loading = true, message = msg)
         val goalsById = plan.me.goals.plus(plan.partner.goals).associateBy { it.id }
 
@@ -124,6 +129,7 @@ class TodayViewModel @Inject constructor(
                     session = s, goal = g,
                     componentName = g?.components?.firstOrNull { it.id == s.componentId }?.name.orEmpty(),
                     timeLabel = "${Dates.minutesToClock(s.startMinutes)} to ${Dates.minutesToClock(s.endMinutes)}",
+                    nextTopic = nextTopicFor(p.role, s.goalId, s.componentId, topicProgress),
                 )
             }
             return PersonCard(
@@ -190,6 +196,15 @@ class TodayViewModel @Inject constructor(
     fun dismissWhatsNew() = changelog.markSeen()
 
     /** Today's one thing and three reasons it matters: this goal, this level, the move. */
+    /** The next unread topic in the module that feeds [componentId], or anywhere in the course if that module is done. */
+    private fun nextTopicFor(role: PersonRole, goalId: String, componentId: String, progress: List<TopicProgress>): NextTopic? {
+        val course = Courses.all.firstOrNull { it.goalId == goalId } ?: return null
+        val learned = progress.filter { it.owner == role && it.courseId == course.id }.map { it.topicId }.toSet()
+        val inModule = course.modules.filter { it.componentId == componentId }.flatMap { it.topics }.firstOrNull { it.id !in learned }
+        val anywhere = inModule ?: course.modules.flatMap { it.topics }.firstOrNull { it.id !in learned } ?: return null
+        return NextTopic(course.id, anywhere.id, anywhere.title.substringBefore(":"), anywhere.minutes)
+    }
+
     /** The next unread topic of the course that feeds the first active goal, if any. */
     private fun learnLine(p: PersonPlan): String? {
         val course = Courses.all.firstOrNull { c -> p.activeGoalIds.contains(c.goalId) } ?: return null

@@ -14,7 +14,7 @@ class ContentTest {
             assertEquals(c.modules.size, c.modules.map { it.id }.toSet().size)
             val topics = c.modules.flatMap { it.topics }
             assertEquals(topics.size, topics.map { it.id }.toSet().size)
-            val questions = c.modules.mapNotNull { it.quiz }.flatMap { it.questions }
+            val questions = c.modules.mapNotNull { it.quiz }.flatMap { it.questions } + c.modules.flatMap { it.topics }.flatMap { it.blocks }.filterIsInstance<Block.Check>().map { it.question }
             assertEquals(questions.size, questions.map { it.id }.toSet().size)
         }
     }
@@ -45,6 +45,10 @@ class ContentTest {
                 assertTrue("${t.id} should end with a recap", t.blocks.last() is Block.Recap)
                 assertTrue("${t.id} needs a diagram", t.blocks.any { it is Block.Diagram })
                 assertTrue("${t.id} minutes", t.minutes in 5..60)
+                assertTrue("${t.id} needs official references", t.references.isNotEmpty())
+                t.references.forEach { r -> assertTrue("${t.id}: ${r.url}", r.url.startsWith("https://learn.microsoft.com/") || r.url.startsWith("https://www.goethe.de/") || r.url.startsWith("https://ielts.org/")) }
+                assertTrue("${t.id} needs a glossary", t.blocks.any { it is Block.Glossary })
+                t.blocks.filterIsInstance<Block.Check>().forEach { c -> assertTrue("${c.question.id} topic", c.question.topicId == t.id) }
             }
         }
     }

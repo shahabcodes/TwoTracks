@@ -184,6 +184,7 @@ fun MainNavGraph(session: AppSession) {
                     onOpenGoal = { navController.navigate(Routes.goalDetail(it)) },
                     onOpenWeek = { navController.navigate(Routes.YOUR_WEEK) },
                     onOpenChangelog = { navController.navigate(Routes.CHANGELOG) },
+                    onOpenTopic = { c, t -> navController.navigate(Routes.topic(c, t)) },
                 )
             }
             composable(Routes.CHANGELOG) { ChangelogScreen(onBack = { navController.popBackStack() }) }
@@ -240,7 +241,7 @@ fun MainNavGraph(session: AppSession) {
             composable(Routes.WEEK) { WeekScreen(onBack = { navController.popBackStack() }, onOpenGoal = { navController.navigate(Routes.goalDetail(it)) }) }
             composable(Routes.GOAL_DETAIL, arguments = listOf(navArgument("goalId") { type = NavType.StringType })) { entry ->
                 val goalId = entry.arguments?.getString("goalId").orEmpty()
-                GoalDetailScreen(goalId = goalId, onBack = { navController.popBackStack() }, onEdit = { navController.navigate(Routes.goalEdit(goalId)) })
+                GoalDetailScreen(goalId = goalId, onBack = { navController.popBackStack() }, onEdit = { navController.navigate(Routes.goalEdit(goalId)) }, onOpenCourse = { navController.navigate(Routes.course(it)) }, onOpenQuiz = { c, m -> navController.navigate(Routes.quiz(c, m)) })
             }
             composable(Routes.GOAL_NEW, arguments = listOf(navArgument("levelId") { type = NavType.StringType; nullable = true; defaultValue = null })) {
                 GoalEditScreen(goalId = null, onDone = { navController.popBackStack() })

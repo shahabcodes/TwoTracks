@@ -1,5 +1,6 @@
 package com.shahaabapps.twotracks.feature.today
 
+import com.shahaabapps.core.ui.components.CupertinoSecondaryButton
 import androidx.compose.foundation.layout.fillMaxSize
 import com.shahaabapps.twotracks.ui.components.AuroraLayer
 import androidx.compose.animation.animateColorAsState
@@ -69,6 +70,7 @@ fun TodayScreen(
     onOpenGoal: (String) -> Unit,
     onOpenWeek: () -> Unit,
     onOpenChangelog: () -> Unit,
+    onOpenTopic: (String, String) -> Unit = { _, _ -> },
     viewModel: TodayViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
@@ -129,7 +131,7 @@ fun TodayScreen(
                                 }
                             }
                         }
-                        me.sessions.forEachIndexed { i, row -> SessionBlock(row, first = i == 0, onOpenGoal = onOpenGoal, onDone = { viewModel.done(row) }, onSkip = { viewModel.skip(row.session.id) }, onReopen = { viewModel.reopen(row.session.id) }, onLog = {
+                        me.sessions.forEachIndexed { i, row -> SessionBlock(row, first = i == 0, onOpenGoal = onOpenGoal, onOpenTopic = onOpenTopic, onDone = { viewModel.done(row) }, onSkip = { viewModel.skip(row.session.id) }, onReopen = { viewModel.reopen(row.session.id) }, onLog = {
                             logTarget = LogTarget(goalId = row.session.goalId, componentId = row.session.componentId, sessionId = row.session.id, defaultMinutes = row.session.durationMinutes, dateIso = row.session.dateIso, isClass = row.session.isClass)
                         }) }
                         Text(
@@ -233,6 +235,7 @@ private fun SessionBlock(
     row: SessionRow,
     first: Boolean,
     onOpenGoal: (String) -> Unit,
+    onOpenTopic: (String, String) -> Unit,
     onDone: () -> Unit,
     onSkip: () -> Unit,
     onReopen: () -> Unit,
@@ -265,6 +268,9 @@ private fun SessionBlock(
                 onClick = { haptic.performHapticFeedback(HapticFeedbackType.LongPress); if (row.session.isClass) onLog() else onDone() },
                 modifier = Modifier.padding(top = Spacing.sm),
             )
+            row.nextTopic?.let { t ->
+                CupertinoSecondaryButton(text = "Read: ${t.title} (${t.minutes} min)", onClick = { onOpenTopic(t.courseId, t.topicId) }, modifier = Modifier.padding(top = Spacing.sm))
+            }
             Row(horizontalArrangement = Arrangement.spacedBy(Spacing.sm), modifier = Modifier.padding(top = Spacing.md)) {
                 Chip(text = "Different time", onClick = onLog)
                 Chip(text = "Skip today", onClick = onSkip)
