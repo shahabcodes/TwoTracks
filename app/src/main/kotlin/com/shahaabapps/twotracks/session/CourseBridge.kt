@@ -35,14 +35,20 @@ object CourseBridge {
         }
     }
 
+    /** True when the course's mock exam has been passed, or there is no mock exam to pass. */
+    fun mockPassed(course: Course, owner: PersonRole, attempts: List<QuizAttempt>): Boolean =
+        course.mockExam == null || attempts.any { it.owner == owner && it.courseId == course.id && it.moduleId == Courses.MOCK_MODULE_ID && it.passed }
+
     /** CourseState per goal id, for one person. */
     fun statesFor(owner: PersonRole, progress: List<TopicProgress>, attempts: List<QuizAttempt>): Map<String, CourseState> =
         Courses.all.flatMap { course -> course.goalIds.map { it to course } }.associate { (goalId, course) ->
             val statuses = moduleStatuses(course, owner, progress, attempts)
             goalId to CourseState(
                 completedComponentIds = statuses.filter { it.finished }.map { it.module.componentId }.toSet() +
-                    // The practice component is done when every available module test is passed.
-                    (if (statuses.filter { it.module.available }.let { it.isNotEmpty() && it.all { s -> s.passed } }) setOf("practice") else emptySet()),
+                    // Practice is done when every available module test is passed and, where the
+                    // course has one, the mock exam has been passed too.
+                    (if (statuses.filter { it.module.available }.let { it.isNotEmpty() && it.all { s -> s.passed } } &&
+                            mockPassed(course, owner, attempts)) setOf("practice") else emptySet()),
                 // Only components with content get a content budget; the rest keep their seeded hours.
                 hoursByComponent = course.hoursByComponent().filterKeys { k -> k == "practice" || statuses.any { it.module.componentId == k && it.module.available } },
                 fractionByComponent = statuses.filter { it.module.available }.associate { it.module.componentId to it.fraction.toDouble() },
@@ -52,6 +58,7 @@ object CourseBridge {
     /** True when every available module of the course is finished; the goal can be auto-passed. */
     fun courseFinished(course: Course, owner: PersonRole, progress: List<TopicProgress>, attempts: List<QuizAttempt>): Boolean {
         val statuses = moduleStatuses(course, owner, progress, attempts).filter { it.module.available }
-        return statuses.isNotEmpty() && statuses.all { it.finished } && course.modules.all { it.available }
+        return statuses.isNotEmpty() && statuses.all { it.finished } && course.modules.all { it.available } &&
+            mockPassed(course, owner, attempts)
     }
 }

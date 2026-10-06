@@ -8,6 +8,7 @@ import androidx.lifecycle.viewModelScope
 import com.shahaabapps.core.common.AppResult
 import com.shahaabapps.core.content.Course
 import com.shahaabapps.core.content.Courses
+import com.shahaabapps.core.content.draw
 import com.shahaabapps.core.content.Module
 import com.shahaabapps.core.content.Question
 import com.shahaabapps.core.content.Quiz
@@ -81,7 +82,7 @@ data class CourseProgress(
         /** Older attempts did not record what was asked: assume the whole test of that module. */
         private fun askedByDefault(course: Course?, moduleId: String): List<String> = when (moduleId) {
             Courses.MOCK_MODULE_ID -> course?.mockExam?.questions?.map { it.id }.orEmpty()
-            Courses.REVIEW_MODULE_ID -> emptyList()
+            Courses.REVIEW_MODULE_ID, Courses.CHECK_MODULE_ID -> emptyList()
             else -> course?.modules?.firstOrNull { it.id == moduleId }?.quiz?.questions?.map { it.id }.orEmpty()
         }
     }
@@ -135,16 +136,35 @@ class LearningActions @Inject constructor(
     private fun myGoalId(course: Course, owner: PersonRole): String =
         dataStore.goals.value.firstOrNull { it.owner == owner && course.feeds(it.id) }?.id ?: course.goalId
 
+    /**
+     * Records a one-question check inside a topic so a wrong answer joins the
+     * review set and a later right answer clears it. No minutes are logged,
+     * because the time is already counted in the topic's reading time.
+     */
+    suspend fun recordCheck(course: Course, question: Question, correct: Boolean) {
+        val s = sessionStore.current() ?: return
+        learningRepository.addAttempt(
+            s.coupleId,
+            QuizAttempt(
+                owner = s.myRole, courseId = course.id, moduleId = Courses.CHECK_MODULE_ID,
+                dateIso = Clock.todayIso(s.me), score = if (correct) 1 else 0, total = 1, passed = correct,
+                missed = if (correct) emptyList() else listOf(question.id), asked = listOf(question.id),
+                at = System.currentTimeMillis(),
+            ),
+        )
+    }
+
     suspend fun clearLearned(topicId: String): String? {
         val s = sessionStore.current() ?: return "Not signed in"
         return (learningRepository.clearLearned(s.coupleId, s.myRole, topicId) as? AppResult.Failure)?.error?.message
     }
 
-    suspend fun recordAttempt(course: Course, module: Module, quiz: Quiz, score: Int, missed: List<String>, minutes: Int): String? {
+    suspend fun recordAttempt(course: Course, module: Module, quiz: Quiz, score: Int, missed: List<String>, minutes: Int, asked: List<String> = quiz.questions.map { it.id }): String? {
         val s = sessionStore.current() ?: return "Not signed in"
         val today = Clock.todayIso(s.me)
-        val passed = score * 100 / quiz.questions.size >= quiz.passPercent
-        val attempt = QuizAttempt(owner = s.myRole, courseId = course.id, moduleId = module.id, dateIso = today, score = score, total = quiz.questions.size, passed = passed, missed = missed, asked = quiz.questions.map { it.id }, at = System.currentTimeMillis())
+        val total = asked.size.coerceAtLeast(1)
+        val passed = score * 100 / total >= quiz.passPercent
+        val attempt = QuizAttempt(owner = s.myRole, courseId = course.id, moduleId = module.id, dateIso = today, score = score, total = total, passed = passed, missed = missed, asked = asked, at = System.currentTimeMillis())
         val r = learningRepository.addAttempt(s.coupleId, attempt)
         if (r is AppResult.Failure) return r.error.message ?: "Could not save"
         val cap = quiz.timeLimitMinutes ?: 60
@@ -240,6 +260,12 @@ class TopicViewModel @Inject constructor(
     }
 
     fun unlearn() = viewModelScope.launch { message.value = actions.clearLearned(topicId) }
+
+    /** Called when the reader answers a one-question check inside the topic. */
+    fun checkAnswered(question: Question, correct: Boolean) = viewModelScope.launch {
+        val c = uiState.value.course ?: return@launch
+        actions.recordCheck(c, question, correct)
+    }
     fun clearMessage() { message.value = null }
 }
 
@@ -251,6 +277,8 @@ data class QuizUiState(
     val course: Course? = null,
     val module: Module? = null,
     val quiz: Quiz? = null,
+    /** The questions for this sitting: the whole paper, or a random draw. */
+    val asked: List<Question> = emptyList(),
     val kind: QuizKind = QuizKind.MODULE,
     val index: Int = 0,
     val selected: Set<Int> = emptySet(),
@@ -263,13 +291,13 @@ data class QuizUiState(
     val timedOut: Boolean = false,
     val message: String? = null,
 ) {
-    val question: Question? get() = quiz?.questions?.getOrNull(index)
+    val question: Question? get() = asked.getOrNull(index)
     val correctCount: Int get() = answers.count { it.value }
-    val total: Int get() = quiz?.questions?.size ?: 0
+    val total: Int get() = asked.size
     val percent: Int get() = if (total == 0) 0 else correctCount * 100 / total
     val passed: Boolean get() = quiz != null && percent >= quiz.passPercent
     /** Missed includes questions never reached when the clock ran out. */
-    val missedQuestions: List<Question> get() = quiz?.questions?.filter { answers[it.id] != true }.orEmpty()
+    val missedQuestions: List<Question> get() = asked.filter { answers[it.id] != true }
     val instant: Boolean get() = quiz?.instantFeedback != false
     val clock: String? get() = secondsLeft?.let { "%d:%02d".format(it / 60, it % 60) }
 }
@@ -300,7 +328,11 @@ class QuizViewModel @Inject constructor(
             }
             else -> course?.modules?.firstOrNull { it.id == moduleId } to QuizKind.MODULE
         }
-        _uiState.value = QuizUiState(course = course, module = module, quiz = module?.quiz, kind = kind, secondsLeft = module?.quiz?.timeLimitMinutes?.let { it * 60 })
+        val quiz = module?.quiz
+        _uiState.value = QuizUiState(
+            course = course, module = module, quiz = quiz, asked = quiz?.draw().orEmpty(), kind = kind,
+            secondsLeft = quiz?.timeLimitMinutes?.let { it * 60 },
+        )
         startTimer()
     }
 
@@ -354,12 +386,18 @@ class QuizViewModel @Inject constructor(
         val c = s.course ?: return@launch; val m = s.module ?: return@launch; val q = s.quiz ?: return@launch
         if (s.saved) return@launch
         val minutes = ((System.currentTimeMillis() - startedAt) / 60_000L).toInt()
-        val err = actions.recordAttempt(c, m, q, s.correctCount, s.missedQuestions.map { it.id }, minutes)
+        val err = actions.recordAttempt(c, m, q, s.correctCount, s.missedQuestions.map { it.id }, minutes, s.asked.map { it.id })
         _uiState.update { it.copy(saved = err == null, message = err) }
     }
 
+    /** A retake draws again, so a randomised paper is a different paper. */
     fun retake() {
-        _uiState.update { QuizUiState(course = it.course, module = it.module, quiz = it.quiz, kind = it.kind, secondsLeft = it.quiz?.timeLimitMinutes?.let { m -> m * 60 }) }
+        _uiState.update {
+            QuizUiState(
+                course = it.course, module = it.module, quiz = it.quiz, asked = it.quiz?.draw().orEmpty(), kind = it.kind,
+                secondsLeft = it.quiz?.timeLimitMinutes?.let { m -> m * 60 },
+            )
+        }
         startTimer()
     }
 }

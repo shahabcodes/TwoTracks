@@ -8,7 +8,7 @@ package com.shahaabapps.core.content
  */
 internal object IeltsMock {
     val quiz = Quiz(
-        id = "ie-mock", title = "IELTS mock: Listening and Reading", passPercent = 75, timeLimitMinutes = 90, instantFeedback = false,
+        id = "ie-mock", title = "IELTS mock: Listening and Reading", passPercent = 75, timeLimitMinutes = 90, instantFeedback = false, drawCount = 40,
         questions = B.spread(listOf(
             // ---------------------------------------------------------------- Listening Part 1
             B.q("im1", "ie2-parts", "Listening Part 1: What is the caller's surname?", listOf("Haywood", "Heywood", "Hayward"), setOf(2), "Spelt H-A-Y-W-A-R-D in the recording.", listen = "Receptionist: Could I take your name please? Caller: It's Hayward. That's H-A-Y-W-A-R-D."),
@@ -78,6 +78,6 @@ internal object IeltsMock {
                 scenario = "Annual leave. Full-time staff are entitled to 25 days of paid leave per year, in addition to public holidays. Requests must be submitted at least two weeks in advance through the staff portal. Up to five days may be carried over into the following year, but only with the written approval of your line manager. Leave may not be taken during the first month of employment."),
             B.q("im40", "ie3-timing", "Reading: Staff handbook. A new employee wants leave in week three of their job. They", listOf("may apply as normal", "may not take leave yet", "need two weeks' notice only"), setOf(1), "Leave may not be taken during the first month of employment.",
                 scenario = "Annual leave. Full-time staff are entitled to 25 days of paid leave per year, in addition to public holidays. Requests must be submitted at least two weeks in advance through the staff portal. Up to five days may be carried over into the following year, but only with the written approval of your line manager. Leave may not be taken during the first month of employment."),
-        )),
+        ) + IeltsMock2.questions),
     )
 }

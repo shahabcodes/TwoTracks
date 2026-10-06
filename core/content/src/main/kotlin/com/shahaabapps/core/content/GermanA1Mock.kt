@@ -8,7 +8,7 @@ package com.shahaabapps.core.content
  */
 internal object GermanA1Mock {
     val quiz = Quiz(
-        id = "de-mock", title = "Goethe A1 mock: Hören and Lesen", passPercent = 60, timeLimitMinutes = 45, instantFeedback = false,
+        id = "de-mock", title = "Goethe A1 mock: Hören and Lesen", passPercent = 60, timeLimitMinutes = 45, instantFeedback = false, drawCount = 30,
         questions = B.spread(listOf(
             // Hören Teil 1: dialogues, three options
             B.q("dm1", "de12-listening", "Hören Teil 1: Wann kommt Sanya an?", listOf("um 14:15", "um 14:50", "um 15:15"), setOf(1), "Vierzehn Uhr fünfzig: the second time given replaces the first.", listen = "Usaid: Wann kommst du morgen an? Sanya: Um Viertel nach zwei. Nein, Moment, der Zug ist später, um vierzehn Uhr fünfzig. Usaid: Gut, ich hole dich ab."),
@@ -46,6 +46,6 @@ internal object GermanA1Mock {
             B.q("dm28", "de6-practice", "Lesen Teil 3: Richtig oder falsch: Man kann Frau Braun anrufen.", listOf("Richtig", "Falsch"), setOf(0), "Wer Fragen hat, kann Frau Braun anrufen. Richtig.", scenario = "Aushang: Am Freitag ist das Büro ab 13 Uhr geschlossen. Wer Fragen hat, kann Frau Braun anrufen: 0221 334455."),
             B.q("dm29", "de11-reading", "Lesen Teil 3: Richtig oder falsch: In der Bibliothek darf man essen.", listOf("Richtig", "Falsch"), setOf(1), "Essen und Trinken verboten. Falsch.", scenario = "Bibliothek. Öffnungszeiten: Montag bis Freitag 10 bis 18 Uhr. Essen und Trinken verboten."),
             B.q("dm30", "de7-dialogue", "Lesen Teil 3: Richtig oder falsch: Der Zug nach Bonn fährt heute von Gleis 5.", listOf("Richtig", "Falsch"), setOf(0), "heute von Gleis 5. Richtig.", scenario = "Anzeige am Bahnhof: Regionalzug nach Bonn, 10:32, heute Gleis 5 (nicht Gleis 2)."),
-        )),
+        ) + GermanA1Mock2.questions),
     )
 }

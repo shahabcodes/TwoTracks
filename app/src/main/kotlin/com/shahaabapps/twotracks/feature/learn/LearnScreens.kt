@@ -147,8 +147,8 @@ private fun ExamPracticeSection(course: Course, p: CourseProgress?, onOpenQuiz: 
                 subtitle = when {
                     p?.mockPassed == true -> "Passed, best ${p.mockBest}%"
                     p?.mockBest != null -> "Best ${p.mockBest}%, need ${mock.passPercent}%"
-                    !passedAll -> "${mock.questions.size} questions, ${mock.timeLimitMinutes} min. Pass the module tests first for a fair reading"
-                    else -> "${mock.questions.size} questions, ${mock.timeLimitMinutes} min, pass at ${mock.passPercent}%"
+                    !passedAll -> "${mock.drawCount ?: mock.questions.size} questions, ${mock.timeLimitMinutes} min. Pass the module tests first for a fair reading"
+                    else -> "${mock.drawCount ?: mock.questions.size} questions drawn from ${mock.questions.size}, ${mock.timeLimitMinutes} min, pass at ${mock.passPercent}%"
                 },
                 leadingIcon = Icons.Filled.Quiz, iconColor = if (p?.mockPassed == true) AppTheme.colors.success else AppTheme.colors.accent,
                 showDivider = true,

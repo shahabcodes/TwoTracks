@@ -7,7 +7,7 @@ package com.shahaabapps.core.content
  */
 internal object Az204Mock {
     val quiz = Quiz(
-        id = "az-mock", title = "AZ-204 mock exam", passPercent = 70, timeLimitMinutes = 100, instantFeedback = false,
+        id = "az-mock", title = "AZ-204 mock exam", passPercent = 70, timeLimitMinutes = 100, instantFeedback = false, drawCount = 50,
         questions = B.spread(listOf(
             // Compute
             B.q("mk1", "az-app-service", "A web app must run Linux containers, keep running without cold starts and scale to several instances. Which hosting plan is the least expensive that meets this?", listOf("Free", "Shared", "Basic", "Isolated"), setOf(2), "Basic is the first tier with dedicated compute, Linux and manual scale out; Free and Shared cannot scale out.",
@@ -65,6 +65,6 @@ internal object Az204Mock {
             B.q("mk48", "az-eventhubs", "Telemetry from thousands of devices must be ingested at high throughput, retained for a week and read independently by two teams. Which service and feature?", listOf("Service Bus queue", "Event Hubs with two consumer groups", "Storage queue", "Event Grid custom topic"), setOf(1), "Event Hubs retains streams; consumer groups give independent readers."),
             B.q("mk49", "az-servicebus", "Orders for the same customer must be processed in order by one consumer at a time, and poison messages must be set aside after five tries. Which features? Select all that apply.", listOf("Sessions", "Max delivery count of 5 with dead-lettering", "ReceiveAndDelete mode", "Duplicate detection"), setOf(0, 1), "Sessions give per-key ordering; max delivery count routes failures to the dead-letter queue."),
             B.q("mk50", "az-servicebus", "A queue must exceed 80 GB and keep a server-side log of every operation. Which service?", listOf("Service Bus Standard", "Service Bus Premium", "Azure Queue Storage", "Event Hubs"), setOf(2), "Storage queues scale to the account limit and support storage analytics logging."),
-        )),
+        ) + Az204Mock2.questions),
     )
 }

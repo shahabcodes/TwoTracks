@@ -25,6 +25,11 @@ class ContentTest {
             val ids = c.allTopics.map { it.id }.toSet()
             val m = c.mockExam!!
             assertTrue("${c.id} mock timing", m.timeLimitMinutes != null && !m.instantFeedback)
+            // A randomised mock needs a pool bigger than the draw, or a retake is the same paper.
+            val draw = m.drawCount
+            assertTrue("${c.id} mock pool ${m.questions.size} vs draw $draw", draw != null && m.questions.size >= draw + 10)
+            repeat(3) { assertEquals(draw, m.draw(seed = it.toLong()).size) }
+            assertTrue("${c.id} two draws should differ", m.draw(seed = 1L).map { q -> q.id } != m.draw(seed = 2L).map { q -> q.id })
             m.questions.forEach { q -> assertTrue("${q.id} points at ${q.topicId}", q.topicId in ids) }
         }
     }

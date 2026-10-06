@@ -203,6 +203,11 @@ data class Quiz(
     val questions: List<Question>,
     /** When set, the test is timed and ends itself when the clock runs out. */
     val timeLimitMinutes: Int? = null,
+    /**
+     * When set, each sitting draws this many questions at random from
+     * [questions], so a retake is a different paper rather than a memory test.
+     */
+    val drawCount: Int? = null,
     /** False hides the explanation until the results page, like a real exam sitting. */
     val instantFeedback: Boolean = true,
 )
@@ -278,12 +283,21 @@ object B {
         Question(id, topic, prompt, scenario, options, correct, explanation.trimIndent().replace("\n", " ").trim(), listen?.trimIndent()?.replace("\n", " ")?.trim())
 }
 
+/** A sitting of a quiz: the whole paper, or a random draw when the quiz asks for one. */
+fun Quiz.draw(seed: Long = System.nanoTime()): List<Question> {
+    val n = drawCount ?: return questions
+    if (n >= questions.size) return questions
+    return questions.shuffled(kotlin.random.Random(seed)).take(n)
+}
+
 /** All courses the app ships. */
 object Courses {
     const val VERSION = 1
     /** Module ids the quiz route accepts besides real modules. */
     const val MOCK_MODULE_ID = "mock-exam"
     const val REVIEW_MODULE_ID = "review"
+    /** Attempts recorded for the one-question checks inside a topic. */
+    const val CHECK_MODULE_ID = "checks"
     val all: List<Course> get() = listOf(Az204.course, GermanA1.course, Ielts.course)
     fun forGoal(goalId: String): Course? = all.firstOrNull { it.feeds(goalId) }
     /** Every vocabulary word in a course, in module order. */

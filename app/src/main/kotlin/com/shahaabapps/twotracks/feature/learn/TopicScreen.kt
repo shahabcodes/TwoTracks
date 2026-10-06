@@ -92,7 +92,7 @@ fun TopicScreen(
                         )
                     }
                 }
-                items(topic.blocks.size) { i -> BlockView(topic.blocks[i], speaker, viewModel.recognizer, course.speechLanguage) }
+                items(topic.blocks.size) { i -> BlockView(topic.blocks[i], speaker, viewModel.recognizer, course.speechLanguage, viewModel::checkAnswered) }
                 if (topic.references.isNotEmpty()) {
                     item { ReferencesBlock(topic.references) }
                 }
@@ -127,7 +127,7 @@ fun TopicScreen(
 }
 
 @Composable
-fun BlockView(block: Block, speaker: Speaker? = null, recognizer: Recognizer? = null, lang: String? = null) {
+fun BlockView(block: Block, speaker: Speaker? = null, recognizer: Recognizer? = null, lang: String? = null, onChecked: (com.shahaabapps.core.content.Question, Boolean) -> Unit = { _, _ -> }) {
     when (block) {
         is Block.Heading -> Text(block.text, style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(top = Spacing.sm))
         is Block.Paragraph -> Text(block.text, style = MaterialTheme.typography.bodyLarge, lineHeight = 24.sp)
@@ -146,7 +146,7 @@ fun BlockView(block: Block, speaker: Speaker? = null, recognizer: Recognizer? = 
         is Block.Steps -> StepsBlock(block)
         is Block.Compare -> CompareBlock(block)
         is Block.TryIt -> TryItBlock(block)
-        is Block.Check -> CheckBlock(block)
+        is Block.Check -> CheckBlock(block, onChecked)
         is Block.Glossary -> GlossaryBlock(block)
         is Block.Vocab -> VocabBlock(block, speaker)
         is Block.Dialogue -> DialogueBlock(block, speaker)
@@ -285,7 +285,7 @@ private fun TryItBlock(block: Block.TryIt) {
 }
 
 @Composable
-private fun CheckBlock(block: Block.Check) {
+private fun CheckBlock(block: Block.Check, onChecked: (com.shahaabapps.core.content.Question, Boolean) -> Unit = { _, _ -> }) {
     var picked by androidx.compose.runtime.remember(block.question.id) { androidx.compose.runtime.mutableStateOf<Int?>(null) }
     val q = block.question
     Column(modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(14.dp)).background(AppTheme.colors.accent.copy(alpha = 0.08f)).padding(Spacing.md), verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -302,7 +302,7 @@ private fun CheckBlock(block: Block.Check) {
                 verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp),
                 modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(10.dp))
                     .background(when (state) { true -> AppTheme.colors.success.copy(alpha = 0.15f); false -> AppTheme.colors.destructive.copy(alpha = 0.15f); null -> AppTheme.colors.card })
-                    .clickable(enabled = picked == null) { picked = i }
+                    .clickable(enabled = picked == null) { picked = i; onChecked(q, i in q.correct) }
                     .padding(horizontal = 12.dp, vertical = 10.dp),
             ) {
                 Text(('A' + i).toString(), style = MaterialTheme.typography.labelMedium, color = AppTheme.colors.secondaryLabel, fontWeight = FontWeight.Bold)
