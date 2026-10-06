@@ -24,12 +24,12 @@ object Az204 {
                 Module(
                     id = "az-storage", number = 2, title = "Storage",
                     summary = "Blob storage and Cosmos DB for the data your code keeps.",
-                    examWeight = "15 to 20 percent", componentId = "storage", topics = emptyList(), quiz = null,
+                    examWeight = "15 to 20 percent", componentId = "storage", topics = Az204Storage.topics + Az204Storage2.topics, quiz = Az204Storage2.quiz,
                 ),
                 Module(
                     id = "az-security", number = 3, title = "Security",
                     summary = "Signing users in, keeping secrets, and letting services talk safely.",
-                    examWeight = "15 to 20 percent", componentId = "security", topics = emptyList(), quiz = null,
+                    examWeight = "15 to 20 percent", componentId = "security", topics = Az204Security.topics + Az204Security2.topics, quiz = Az204Security2.quiz,
                 ),
                 Module(
                     id = "az-monitor", number = 4, title = "Monitor and optimise",
