@@ -1,5 +1,6 @@
 package com.shahaabapps.twotracks.feature.today
 
+import com.shahaabapps.twotracks.feature.learn.Deck
 import com.shahaabapps.core.model.TopicProgress
 import com.shahaabapps.core.content.Courses
 import com.shahaabapps.twotracks.feature.learn.CourseProgress
@@ -198,16 +199,25 @@ class TodayViewModel @Inject constructor(
     /** Today's one thing and three reasons it matters: this goal, this level, the move. */
     /** The next unread topic in the module that feeds [componentId], or anywhere in the course if that module is done. */
     private fun nextTopicFor(role: PersonRole, goalId: String, componentId: String, progress: List<TopicProgress>): NextTopic? {
-        val course = Courses.all.firstOrNull { it.goalId == goalId } ?: return null
+        val course = Courses.forGoal(goalId) ?: return null
         val learned = progress.filter { it.owner == role && it.courseId == course.id }.map { it.topicId }.toSet()
         val inModule = course.modules.filter { it.componentId == componentId }.flatMap { it.topics }.firstOrNull { it.id !in learned }
         val anywhere = inModule ?: course.modules.flatMap { it.topics }.firstOrNull { it.id !in learned } ?: return null
         return NextTopic(course.id, anywhere.id, anywhere.title.substringBefore(":"), anywhere.minutes)
     }
 
+    /** Flashcards due today across language courses the person has started. */
+    private fun wordsLine(p: PersonPlan): String? {
+        val cards = dataStore.flashcards.value
+        val progress = dataStore.topicProgress.value
+        val total = Courses.all.filter { Courses.words(it).isNotEmpty() }.sumOf { c -> Deck.dueCount(p.role, c, cards, p.today) + Deck.newCount(p.role, c, cards, progress) }
+        if (total == 0) return null
+        return "Words: $total cards waiting in the deck, about ${(total / 4).coerceAtLeast(2)} minutes. Missed words come back until they stick."
+    }
+
     /** The next unread topic of the course that feeds the first active goal, if any. */
     private fun learnLine(p: PersonPlan): String? {
-        val course = Courses.all.firstOrNull { c -> p.activeGoalIds.contains(c.goalId) } ?: return null
+        val course = Courses.all.firstOrNull { c -> p.activeGoalIds.any { c.feeds(it) } } ?: return null
         val progress = CourseProgress.of(p.role, course.id, dataStore.topicProgress.value, dataStore.quizAttempts.value)
         val (module, topic) = progress.nextTopic(course) ?: return "${course.title}: every topic read. Retake a module test to keep it sharp."
         return "Learn tab: ${topic.title.substringBefore(":")}, about ${topic.minutes} minutes, counts toward ${module.title}."
@@ -243,6 +253,7 @@ class TodayViewModel @Inject constructor(
             reasons += BriefIcons.level to "Level ${level.level.number}, ${level.level.name}: ${level.requiredDone} of ${level.requiredTotal} done, $left. Finishing it unlocks Level ${level.level.number + 1} on time."
         }
         learnLine(p)?.let { reasons += BriefIcons.learn to it }
+        wordsLine(p)?.let { reasons += BriefIcons.learn to it }
         reasons += BriefIcons.move to when {
             deadline != null && deadlineDays != null -> "${deadline.title} in $deadlineDays days. Every session now is one less to squeeze in later."
             else -> "Every session now is one less to squeeze in later."

@@ -66,7 +66,7 @@ class GoalDetailViewModel @Inject constructor(
         val goal = goals.firstOrNull { it.id == goalId } ?: return@combine GoalDetailUiState(message = msg, goals = goals)
         val owner = session?.profileFor(goal.owner)
         val today = Clock.today(owner ?: session?.me)
-        val course = Courses.all.firstOrNull { it.goalId == goal.id }
+        val course = Courses.forGoal(goal.id)
         val modules = course?.let { CourseBridge.moduleStatuses(it, goal.owner, topicProgress, quizAttempts) }.orEmpty()
         val progress = ProgressCalculator.compute(goal, logs, today, CourseBridge.statesFor(goal.owner, topicProgress, quizAttempts)[goal.id] ?: com.shahaabapps.core.planner.CourseState.NONE)
         val goalLogs = logs.filter { it.goalId == goal.id }

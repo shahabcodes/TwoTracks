@@ -16,7 +16,19 @@ data class Course(
     /** The StudyGoal this course feeds (for example "az-204"). */
     val goalId: String,
     val modules: List<Module>,
+    /** Other goals the same course feeds, for example the partner's copy of German A1. */
+    val extraGoalIds: List<String> = emptyList(),
+    /** BCP-47 tag for text-to-speech of the foreign-language blocks, or null for none. */
+    val speechLanguage: String? = null,
 ) {
+    val goalIds: List<String> get() = listOf(goalId) + extraGoalIds
+    /** A readable name for a goal component id, for hints in the UI. */
+    fun skillName(componentId: String): String = when (componentId) {
+        "vocabulary" -> "Vocabulary"; "grammar" -> "Grammar"; "listening" -> "Listening"; "reading" -> "Reading"; "writing" -> "Writing"; "speaking" -> "Speaking"
+        "compute" -> "Compute"; "storage" -> "Storage"; "security" -> "Security"; "monitoring" -> "Monitoring"; "connect" -> "Connect"; "practice" -> "Practice"
+        else -> componentId.replaceFirstChar { it.uppercase() }
+    }
+    fun feeds(goalId: String): Boolean = goalId in goalIds
     val topicCount: Int get() = modules.sumOf { it.topics.size }
 
     /**
@@ -87,6 +99,32 @@ sealed interface Block {
     data class Check(val question: Question) : Block
     /** Terms used in this topic. */
     data class Glossary(val terms: List<Term>) : Block
+    /** Vocabulary cards that flip and speak; every word joins the flashcard deck. */
+    data class Vocab(val words: List<Word>) : Block
+    /** A short conversation, spoken line by line, with translations on demand. */
+    data class Dialogue(val title: String, val lines: List<Line>) : Block
+    /** A checked exercise: gap fill, reorder, match or a free writing task with a model. */
+    data class Exercise(val exercise: Ex) : Block
+}
+
+/** A vocabulary item. [id] is stable across content versions; it keys the flashcard state. */
+data class Word(val id: String, val de: String, val en: String, val example: String, val exampleEn: String, val article: String? = null, val plural: String? = null) {
+    val display: String get() = listOfNotNull(article, de).joinToString(" ")
+}
+
+data class Line(val speaker: String, val de: String, val en: String)
+
+sealed interface Ex {
+    val id: String
+    val prompt: String
+    /** Type the missing word; several accepted spellings. */
+    data class Gap(override val id: String, override val prompt: String, val sentence: String, val answers: List<String>, val hint: String? = null) : Ex
+    /** Tap the pieces in the right order. */
+    data class Reorder(override val id: String, override val prompt: String, val pieces: List<String>, val answer: String) : Ex
+    /** Pair each left item with a right item. */
+    data class Match(override val id: String, override val prompt: String, val pairs: List<Pair<String, String>>) : Ex
+    /** Write a short text; marked on content points, then a model answer is shown. */
+    data class Writing(override val id: String, override val prompt: String, val points: List<String>, val model: String, val minWords: Int = 20) : Ex
 }
 
 data class Step(val action: String, val expect: String? = null)
@@ -170,6 +208,14 @@ object B {
         Block.Check(Question(id, topic, prompt, null, options, setOf(correct), explanation.trimIndent().replace("\n", " ").trim()))
     fun glossary(vararg terms: Pair<String, String>) = Block.Glossary(terms.map { Term(it.first, it.second) })
     fun ref(title: String, url: String) = Reference(title, url)
+    fun vocab(vararg words: Word) = Block.Vocab(words.toList())
+    fun w(id: String, de: String, en: String, example: String, exampleEn: String, article: String? = null, plural: String? = null) = Word(id, de, en, example, exampleEn, article, plural)
+    fun dialogue(title: String, vararg lines: Line) = Block.Dialogue(title, lines.toList())
+    fun line(speaker: String, de: String, en: String) = Line(speaker, de, en)
+    fun gap(id: String, prompt: String, sentence: String, vararg answers: String, hint: String? = null) = Block.Exercise(Ex.Gap(id, prompt, sentence, answers.toList(), hint))
+    fun reorder(id: String, prompt: String, answer: String) = Block.Exercise(Ex.Reorder(id, prompt, answer.split(" ").shuffled(kotlin.random.Random(id.hashCode())), answer))
+    fun match(id: String, prompt: String, vararg pairs: Pair<String, String>) = Block.Exercise(Ex.Match(id, prompt, pairs.toList()))
+    fun writing(id: String, prompt: String, model: String, vararg points: String, minWords: Int = 20) = Block.Exercise(Ex.Writing(id, prompt, points.toList(), model.trimIndent(), minWords))
     fun code(language: String, code: String) = Block.Code(language, code.trimIndent())
     fun table(headers: List<String>, vararg rows: List<String>) = Block.Table(headers, rows.toList())
     fun diagram(caption: String, nodes: List<DNode>, edges: List<DEdge> = emptyList(), aspect: Float = 0.62f) =
@@ -182,7 +228,10 @@ object B {
 /** All courses the app ships. */
 object Courses {
     const val VERSION = 1
-    val all: List<Course> get() = listOf(Az204.course)
+    val all: List<Course> get() = listOf(Az204.course, GermanA1.course)
+    fun forGoal(goalId: String): Course? = all.firstOrNull { it.feeds(goalId) }
+    /** Every vocabulary word in a course, in module order. */
+    fun words(course: Course): List<Word> = course.modules.flatMap { m -> m.topics.flatMap { t -> t.blocks.filterIsInstance<Block.Vocab>().flatMap { it.words } } }
     fun byId(id: String): Course? = all.firstOrNull { it.id == id }
     fun topic(courseId: String, topicId: String): Pair<Module, Topic>? {
         val course = byId(courseId) ?: return null

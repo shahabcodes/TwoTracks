@@ -5,6 +5,11 @@ build number is appended by CI (for example `0.1.0 (build 12)`).
 
 ## [Unreleased]
 
+## [0.24.0] - 2026-10-06
+
+### Added
+- German A1 course, modules 1 to 4: vocabulary cards with sound, dialogues, exercises, Goethe-style tests, and a flashcard deck that brings words back until they stick.
+
 ## [0.23.0] - 2026-10-06
 
 ### Added

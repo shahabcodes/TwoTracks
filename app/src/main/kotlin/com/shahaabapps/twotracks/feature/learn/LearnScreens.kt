@@ -1,5 +1,8 @@
 package com.shahaabapps.twotracks.feature.learn
 
+import androidx.compose.foundation.clickable
+import androidx.compose.material.icons.filled.Style
+import com.shahaabapps.core.ui.theme.Shapes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -47,7 +50,7 @@ import com.shahaabapps.twotracks.ui.components.SectionLabel
 
 /** Tab 4: the courses, with your progress and a one-tap "continue". */
 @Composable
-fun LearnScreen(onOpenCourse: (String) -> Unit, onOpenTopic: (String, String) -> Unit, viewModel: LearnViewModel = hiltViewModel()) {
+fun LearnScreen(onOpenCourse: (String) -> Unit, onOpenTopic: (String, String) -> Unit, onOpenDeck: (String) -> Unit = {}, viewModel: LearnViewModel = hiltViewModel()) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     CupertinoScaffold(title = "Learn") {
         LazyColumn(verticalArrangement = Arrangement.spacedBy(Spacing.md), contentPadding = PaddingValues(bottom = Spacing.xl)) {
@@ -76,6 +79,16 @@ fun LearnScreen(onOpenCourse: (String) -> Unit, onOpenTopic: (String, String) ->
                                 modifier = Modifier.padding(top = Spacing.sm),
                             )
                         }
+                        state.decks[course.id]?.let { d ->
+                            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = Spacing.sm).fillMaxWidth().clip(Shapes.field).background(AppTheme.colors.fill).clickable { onOpenDeck(course.id) }.padding(horizontal = Spacing.md, vertical = 10.dp)) {
+                                Icon(Icons.Filled.Style, contentDescription = null, tint = AppTheme.colors.accent, modifier = Modifier.size(20.dp))
+                                Column(modifier = Modifier.weight(1f).padding(start = Spacing.sm)) {
+                                    Text("Words: ${d.due} due · ${d.fresh} new", style = MaterialTheme.typography.titleMedium)
+                                    Text(if (d.size == 0 && d.fresh == 0) "Read a Words topic to start the deck" else "${d.size} in the deck · a few minutes a day", style = MaterialTheme.typography.bodySmall, color = AppTheme.colors.secondaryLabel)
+                                }
+                                CupertinoDisclosure()
+                            }
+                        }
                         val partner = state.partnerProgress[course.id]
                         if (partner != null && partner.learnedTopicIds.isNotEmpty()) {
                             Text(
@@ -88,7 +101,7 @@ fun LearnScreen(onOpenCourse: (String) -> Unit, onOpenTopic: (String, String) ->
             }
             item {
                 Text(
-                    "German A1 and IELTS courses arrive in the next updates and use the same lessons, diagrams and tests.",
+                    "IELTS arrives in a later update on the same lessons, diagrams and tests.",
                     style = MaterialTheme.typography.bodySmall, color = AppTheme.colors.secondaryLabel,
                     modifier = Modifier.padding(horizontal = Spacing.listHorizontal + Spacing.sectionStart),
                 )

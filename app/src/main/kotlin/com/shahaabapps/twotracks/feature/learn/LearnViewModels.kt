@@ -90,7 +90,7 @@ class LearningActions @Inject constructor(
             s.coupleId, TopicProgress(owner = s.myRole, courseId = course.id, topicId = topic.id, learnedAtIso = today, minutes = minutes),
         )
         if (r is AppResult.Failure) return r.error.message ?: "Could not save"
-        studyActions.logMinutes(course.goalId, module.componentId, minutes, today, note = "Learn: ${topic.title}", quiet = true)
+        studyActions.logMinutes(myGoalId(course, s.myRole), module.componentId, minutes, today, note = "Learn: ${topic.title}", quiet = true)
         celebrations.logged("$minutes min learned")
         autoPassIfFinished(course, s.myRole, extraTopic = topic.id)
         return null
@@ -104,11 +104,15 @@ class LearningActions @Inject constructor(
         val attempts = learningRepository.observeQuizAttempts(s.coupleId).first().toMutableList()
         if (extraAttempt != null) attempts += extraAttempt
         if (!CourseBridge.courseFinished(course, owner, progress, attempts)) return
-        val goal = dataStoreGoals().firstOrNull { it.id == course.goalId } ?: return
+        val goal = dataStoreGoals().firstOrNull { it.id == myGoalId(course, owner) } ?: return
         if (!goal.passed) studyActions.setGoalPassed(goal.id, true)
     }
 
     private suspend fun dataStoreGoals() = dataStore.goals.value
+
+    /** The copy of the course goal this person owns (German A1 exists for both tracks). */
+    private fun myGoalId(course: Course, owner: PersonRole): String =
+        dataStore.goals.value.firstOrNull { it.owner == owner && course.feeds(it.id) }?.id ?: course.goalId
 
     suspend fun clearLearned(topicId: String): String? {
         val s = sessionStore.current() ?: return "Not signed in"
@@ -124,7 +128,7 @@ class LearningActions @Inject constructor(
             QuizAttempt(owner = s.myRole, courseId = course.id, moduleId = module.id, dateIso = today, score = score, total = quiz.questions.size, passed = passed, missed = missed),
         )
         if (r is AppResult.Failure) return r.error.message ?: "Could not save"
-        studyActions.logMinutes(course.goalId, module.componentId, minutes.coerceIn(2, 60), today, note = "Test: ${module.title}", quiet = true)
+        studyActions.logMinutes(myGoalId(course, s.myRole), module.componentId, minutes.coerceIn(2, 60), today, note = "Test: ${module.title}", quiet = true)
         if (passed) celebrations.passed("${module.title} passed") else celebrations.logged("Test logged")
         if (passed) autoPassIfFinished(course, s.myRole, extraAttempt = QuizAttempt(owner = s.myRole, courseId = course.id, moduleId = module.id, dateIso = today, score = score, total = quiz.questions.size, passed = true))
         return null
@@ -133,11 +137,15 @@ class LearningActions @Inject constructor(
 
 // --------------------------------------------------------------- view models
 
+data class DeckInfo(val due: Int, val fresh: Int, val size: Int)
+
 data class LearnUiState(
     val courses: List<Course> = Courses.all,
     val progress: Map<String, CourseProgress> = emptyMap(),
     val partnerProgress: Map<String, CourseProgress> = emptyMap(),
     val partnerName: String = "",
+    /** Flashcard deck state per course, only for courses with vocabulary. */
+    val decks: Map<String, DeckInfo> = emptyMap(),
 )
 
 @HiltViewModel
@@ -145,13 +153,17 @@ class LearnViewModel @Inject constructor(
     sessionStore: SessionStore,
     dataStore: CoupleDataStore,
 ) : ViewModel() {
-    val uiState: StateFlow<LearnUiState> = combine(sessionStore.state, dataStore.topicProgress, dataStore.quizAttempts) { state, progress, attempts ->
+    val uiState: StateFlow<LearnUiState> = combine(sessionStore.state, dataStore.topicProgress, dataStore.quizAttempts, dataStore.flashcards) { state, progress, attempts, cards ->
         val session = (state as? com.shahaabapps.twotracks.session.SessionState.Ready)?.session ?: return@combine LearnUiState()
         val partnerRole = if (session.myRole == PersonRole.TECH) PersonRole.TEACHER else PersonRole.TECH
+        val today = Clock.today(session.me)
         LearnUiState(
             progress = Courses.all.associate { it.id to CourseProgress.of(session.myRole, it.id, progress, attempts) },
             partnerProgress = Courses.all.associate { it.id to CourseProgress.of(partnerRole, it.id, progress, attempts) },
             partnerName = session.partner?.name ?: "Partner",
+            decks = Courses.all.filter { Courses.words(it).isNotEmpty() }.associate { c ->
+                c.id to DeckInfo(Deck.dueCount(session.myRole, c, cards, today), Deck.newCount(session.myRole, c, cards, progress), cards.count { it.owner == session.myRole && it.courseId == c.id })
+            },
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), LearnUiState())
 }
@@ -173,6 +185,7 @@ class TopicViewModel @Inject constructor(
     sessionStore: SessionStore,
     dataStore: CoupleDataStore,
     private val actions: LearningActions,
+    val speaker: Speaker,
 ) : ViewModel() {
     private val courseId: String = savedStateHandle.get<String>("courseId").orEmpty()
     private val topicId: String = savedStateHandle.get<String>("topicId").orEmpty()

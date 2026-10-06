@@ -1,5 +1,6 @@
 package com.shahaabapps.twotracks.ui
 
+import com.shahaabapps.twotracks.feature.learn.DeckScreen
 import androidx.compose.material.icons.filled.MenuBook
 import com.shahaabapps.twotracks.feature.learn.CourseScreen
 import com.shahaabapps.twotracks.feature.learn.LearnScreen
@@ -75,6 +76,7 @@ object Routes {
     const val COURSE = "learn/{courseId}"
     const val TOPIC = "learn/{courseId}/topic/{topicId}"
     const val QUIZ = "learn/{courseId}/quiz/{moduleId}"
+    const val DECK = "learn/{courseId}/deck"
     const val LEVEL = "level/{levelId}"
     const val YOUR_WEEK = "yourweek"
     const val PARTNER = "partner"
@@ -95,6 +97,7 @@ object Routes {
     fun course(id: String) = "learn/$id"
     fun topic(courseId: String, topicId: String) = "learn/$courseId/topic/$topicId"
     fun quiz(courseId: String, moduleId: String) = "learn/$courseId/quiz/$moduleId"
+    fun deck(courseId: String) = "learn/$courseId/deck"
     fun goalDetail(id: String) = "goal/$id"
     fun goalEdit(id: String) = "goal/$id/edit"
     fun newGoal(levelId: String? = null) = if (levelId == null) "goal/new/edit" else "goal/new/edit?levelId=$levelId"
@@ -202,7 +205,10 @@ fun MainNavGraph(session: AppSession) {
                 LevelsScreen(onOpenLevel = { navController.navigate(Routes.level(it)) }, onNavigate = { navController.navigate(it) })
             }
             composable(Routes.LEARN) {
-                LearnScreen(onOpenCourse = { navController.navigate(Routes.course(it)) }, onOpenTopic = { c, t -> navController.navigate(Routes.topic(c, t)) })
+                LearnScreen(onOpenCourse = { navController.navigate(Routes.course(it)) }, onOpenTopic = { c, t -> navController.navigate(Routes.topic(c, t)) }, onOpenDeck = { navController.navigate(Routes.deck(it)) })
+            }
+            composable(Routes.DECK, arguments = listOf(navArgument("courseId") { type = NavType.StringType })) {
+                DeckScreen(onBack = { navController.popBackStack() })
             }
             composable(Routes.COURSE, arguments = listOf(navArgument("courseId") { type = NavType.StringType })) { entry ->
                 CourseScreen(

@@ -1,5 +1,6 @@
 package com.shahaabapps.twotracks.session
 
+import com.shahaabapps.core.model.Flashcard
 import com.shahaabapps.core.data.learning.LearningRepository
 import com.shahaabapps.core.model.QuizAttempt
 import com.shahaabapps.core.model.TopicProgress
@@ -66,4 +67,5 @@ class CoupleDataStore @Inject constructor(
     val deadlines: StateFlow<List<Deadline>> = shared { trackingRepository.observeDeadlines(it) }
     val topicProgress: StateFlow<List<TopicProgress>> = shared { learningRepository.observeTopicProgress(it) }
     val quizAttempts: StateFlow<List<QuizAttempt>> = shared { learningRepository.observeQuizAttempts(it) }
+    val flashcards: StateFlow<List<Flashcard>> = shared { learningRepository.observeFlashcards(it) }
 }

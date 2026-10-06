@@ -68,6 +68,9 @@ fun TopicScreen(
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val snackbar = remember { SnackbarHostState() }
+    val speakerState by viewModel.speaker.state.collectAsStateWithLifecycle()
+    LaunchedEffect(state.course?.speechLanguage) { state.course?.speechLanguage?.let { viewModel.speaker.setLanguage(it) } }
+    val speaker: Speaker? = if (state.course?.speechLanguage != null && speakerState == Speaker.State.READY) viewModel.speaker else null
     LaunchedEffect(state.message) { state.message?.let { snackbar.showSnackbar(it); viewModel.clearMessage() } }
     val topic = state.topic
     val module = state.module
@@ -80,7 +83,16 @@ fun TopicScreen(
                     Text("Topic ${state.index + 1} of ${state.count} · ${topic.minutes} min read", style = MaterialTheme.typography.labelMedium, color = AppTheme.colors.secondaryLabel)
                     Text(topic.title, style = MaterialTheme.typography.displayLarge, fontWeight = FontWeight.Bold, modifier = Modifier.padding(top = Spacing.xs))
                 }
-                items(topic.blocks.size) { i -> BlockView(topic.blocks[i]) }
+                if (course.speechLanguage != null && speakerState == Speaker.State.MISSING_LANGUAGE) {
+                    item {
+                        Text(
+                            "German voice not installed, so the speaker buttons are off. Tap here to open the download page.",
+                            style = MaterialTheme.typography.bodySmall, color = AppTheme.colors.warn,
+                            modifier = Modifier.clickable { viewModel.speaker.openInstallPage() },
+                        )
+                    }
+                }
+                items(topic.blocks.size) { i -> BlockView(topic.blocks[i], speaker) }
                 if (topic.references.isNotEmpty()) {
                     item { ReferencesBlock(topic.references) }
                 }
@@ -89,7 +101,7 @@ fun TopicScreen(
                         if (state.learned) {
                             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
                                 PopIn { Icon(Icons.Filled.CheckCircle, contentDescription = null, tint = AppTheme.colors.success) }
-                                Text("Learned. The minutes are in your AZ-204 hours.", style = MaterialTheme.typography.bodyMedium, color = AppTheme.colors.success)
+                                Text("Learned. The minutes are in your ${course.title} hours.", style = MaterialTheme.typography.bodyMedium, color = AppTheme.colors.success)
                             }
                             val nextId = state.nextTopicId
                             if (nextId != null) {
@@ -100,7 +112,11 @@ fun TopicScreen(
                             CupertinoTextButton(text = "Mark as not learned", onClick = viewModel::unlearn)
                         } else {
                             CupertinoPrimaryButton(text = "Mark as learned", onClick = viewModel::markLearned)
-                            Text("Marks the topic done and adds your reading time to the ${module.title} skill.", style = MaterialTheme.typography.bodySmall, color = AppTheme.colors.secondaryLabel)
+                            Text(
+                                if (topic.blocks.any { it is Block.Vocab }) "Marks the topic done, adds the time to your hours and puts these words into your flashcard deck."
+                                else "Marks the topic done and adds your reading time to the ${course.skillName(module.componentId)} skill.",
+                                style = MaterialTheme.typography.bodySmall, color = AppTheme.colors.secondaryLabel,
+                            )
                         }
                     }
                 }
@@ -111,7 +127,7 @@ fun TopicScreen(
 }
 
 @Composable
-fun BlockView(block: Block) {
+fun BlockView(block: Block, speaker: Speaker? = null) {
     when (block) {
         is Block.Heading -> Text(block.text, style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(top = Spacing.sm))
         is Block.Paragraph -> Text(block.text, style = MaterialTheme.typography.bodyLarge, lineHeight = 24.sp)
@@ -132,6 +148,9 @@ fun BlockView(block: Block) {
         is Block.TryIt -> TryItBlock(block)
         is Block.Check -> CheckBlock(block)
         is Block.Glossary -> GlossaryBlock(block)
+        is Block.Vocab -> VocabBlock(block, speaker)
+        is Block.Dialogue -> DialogueBlock(block, speaker)
+        is Block.Exercise -> ExerciseBlock(block, speaker)
         is Block.Recap -> Column(
             modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(16.dp)).background(AppTheme.colors.accent).padding(Spacing.md),
             verticalArrangement = Arrangement.spacedBy(6.dp),
@@ -317,7 +336,14 @@ private fun GlossaryBlock(block: Block.Glossary) {
 private fun ReferencesBlock(refs: List<com.shahaabapps.core.content.Reference>) {
     val uri = androidx.compose.ui.platform.LocalUriHandler.current
     Column(modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(14.dp)).background(AppTheme.colors.card).padding(Spacing.md), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        Text("Read more on Microsoft Learn", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+        val host = refs.firstOrNull()?.url.orEmpty()
+        val source = when {
+            host.contains("learn.microsoft.com") -> "Microsoft Learn"
+            host.contains("goethe.de") -> "the Goethe-Institut"
+            host.contains("ielts.org") -> "IELTS"
+            else -> "the official site"
+        }
+        Text("Read more on $source", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
         refs.forEach { r ->
             Row(
                 verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp),

@@ -1,5 +1,6 @@
 package com.shahaabapps.core.data.learning
 
+import com.shahaabapps.core.model.Flashcard
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
 import com.shahaabapps.core.common.AppResult
@@ -30,6 +31,8 @@ interface LearningRepository {
     suspend fun markLearned(coupleId: String, progress: TopicProgress): AppResult<Unit>
     suspend fun clearLearned(coupleId: String, owner: PersonRole, topicId: String): AppResult<Unit>
     suspend fun addAttempt(coupleId: String, attempt: QuizAttempt): AppResult<String>
+    fun observeFlashcards(coupleId: String): Flow<List<Flashcard>>
+    suspend fun saveFlashcards(coupleId: String, cards: List<Flashcard>): AppResult<Unit>
 }
 
 @Singleton
@@ -58,6 +61,27 @@ class FirebaseLearningRepository @Inject constructor(
         ref.set(attempt.copy(id = ref.id).toMap()).await()
         ref.id
     }
+
+    override fun observeFlashcards(coupleId: String): Flow<List<Flashcard>> =
+        firestore.sub(coupleId, Paths.FLASHCARDS).asFlow { it.toFlashcard() }
+
+    override suspend fun saveFlashcards(coupleId: String, cards: List<Flashcard>): AppResult<Unit> = runCatchingResult {
+        val batch = firestore.batch()
+        cards.forEach { c -> batch.set(firestore.sub(coupleId, Paths.FLASHCARDS).document("${c.owner.name.lowercase()}_${c.wordId}"), c.toMap()) }
+        batch.commit().await()
+        Unit
+    }
+
+    private fun Flashcard.toMap() = mapOf(
+        "owner" to owner.name, "courseId" to courseId, "wordId" to wordId, "step" to step, "dueIso" to dueIso,
+        "lastReviewIso" to lastReviewIso, "correct" to correct, "misses" to misses,
+    )
+
+    private fun DocumentSnapshot.toFlashcard() = Flashcard(
+        id = id, owner = runCatching { PersonRole.valueOf(str("owner")) }.getOrDefault(PersonRole.TECH),
+        courseId = str("courseId"), wordId = str("wordId"), step = int("step"), dueIso = str("dueIso"),
+        lastReviewIso = str("lastReviewIso"), correct = int("correct"), misses = int("misses"),
+    )
 
     private fun topicDocId(owner: PersonRole, topicId: String) = "${owner.name.lowercase()}_$topicId"
 

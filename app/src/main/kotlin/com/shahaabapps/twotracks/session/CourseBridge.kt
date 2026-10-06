@@ -37,9 +37,9 @@ object CourseBridge {
 
     /** CourseState per goal id, for one person. */
     fun statesFor(owner: PersonRole, progress: List<TopicProgress>, attempts: List<QuizAttempt>): Map<String, CourseState> =
-        Courses.all.associate { course ->
+        Courses.all.flatMap { course -> course.goalIds.map { it to course } }.associate { (goalId, course) ->
             val statuses = moduleStatuses(course, owner, progress, attempts)
-            course.goalId to CourseState(
+            goalId to CourseState(
                 completedComponentIds = statuses.filter { it.finished }.map { it.module.componentId }.toSet() +
                     // The practice component is done when every available module test is passed.
                     (if (statuses.filter { it.module.available }.let { it.isNotEmpty() && it.all { s -> s.passed } }) setOf("practice") else emptySet()),

@@ -25,3 +25,16 @@ data class QuizAttempt(
 ) {
     val percent: Int get() = if (total == 0) 0 else score * 100 / total
 }
+
+/** Spaced-repetition state for one vocabulary word, per person. */
+data class Flashcard(
+    val id: String = "",
+    val owner: PersonRole = PersonRole.TECH,
+    val courseId: String = "",
+    val wordId: String = "",
+    val step: Int = 0,
+    val dueIso: String = "",
+    val lastReviewIso: String = "",
+    val correct: Int = 0,
+    val misses: Int = 0,
+)

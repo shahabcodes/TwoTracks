@@ -31,7 +31,8 @@ class ContentTest {
                     assertTrue("${q.id} points at ${q.topicId}", q.topicId in topicIds)
                     assertTrue("${q.id} has no correct answer", q.correct.isNotEmpty())
                     assertTrue("${q.id} correct index out of range", q.correct.all { it in q.options.indices })
-                    assertTrue("${q.id} needs 3+ options", q.options.size >= 3)
+                    // Richtig/Falsch is the real Lesen format, so two options are allowed there.
+                    assertTrue("${q.id} needs 3+ options", q.options.size >= 3 || q.options == listOf("Richtig", "Falsch"))
                     assertTrue("${q.id} needs an explanation", q.explanation.length > 20)
                 }
             }
@@ -73,5 +74,24 @@ class ContentTest {
         // AZ-204 skills seeded in core:seed: compute, storage, security, monitoring, connect, practice.
         val known = setOf("compute", "storage", "security", "monitoring", "connect", "practice")
         Az204.course.modules.forEach { m -> assertTrue(m.componentId, m.componentId in known) }
+    }
+
+    @Test
+    fun `vocabulary ids are unique and exercises are well formed`() {
+        courses.forEach { c ->
+            val words = Courses.words(c)
+            assertEquals(words.size, words.map { it.id }.toSet().size)
+            words.forEach { w -> assertTrue(w.id, w.de.isNotBlank() && w.en.isNotBlank() && w.example.isNotBlank()) }
+            val exercises = c.modules.flatMap { it.topics }.flatMap { it.blocks }.filterIsInstance<Block.Exercise>().map { it.exercise }
+            assertEquals(exercises.size, exercises.map { it.id }.toSet().size)
+            exercises.forEach { e ->
+                when (e) {
+                    is Ex.Gap -> { assertTrue(e.id, e.sentence.contains("___")); assertTrue(e.id, e.answers.isNotEmpty()) }
+                    is Ex.Reorder -> assertEquals(e.id, e.pieces.sorted(), e.answer.split(" ").sorted())
+                    is Ex.Match -> assertTrue(e.id, e.pairs.size >= 3)
+                    is Ex.Writing -> assertTrue(e.id, e.points.isNotEmpty() && e.model.isNotBlank())
+                }
+            }
+        }
     }
 }
