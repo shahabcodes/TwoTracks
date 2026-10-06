@@ -20,19 +20,17 @@ object GermanA1 {
             goalId = "de-a1",
             extraGoalIds = listOf("de-a1-teacher"),
             speechLanguage = "de-DE",
+            mockExam = GermanA1Mock.quiz,
             modules = listOf(
                 GermanA1M1.module, GermanA1M2.module, GermanA1M3.module, GermanA1M4.module,
                 GermanA1M5.module,
                 GermanA1M6.module,
                 GermanA1M7.module,
                 GermanA1M8.module,
-                locked(9, "Free time and weather", "Hobbies, gern and lieber, a first look at the past.", "vocabulary"),
-                locked(10, "Talking about the past", "Perfekt with haben and sein, time expressions.", "grammar"),
-                locked(11, "Writing to people", "Forms, short emails and invitations, exactly as the exam asks.", "writing"),
-                locked(12, "Exam preparation", "How each paper works, strategies, a full mock exam.", "listening"),
+                GermanA1M9.module,
+                GermanA1M10.module,
+                GermanA1M11.module,
+                GermanA1M12.module,
             ),
         )
-
-    private fun locked(n: Int, title: String, summary: String, component: String) =
-        Module(id = "de-m$n", number = n, title = title, summary = summary, examWeight = "A1", componentId = component, topics = emptyList(), quiz = null)
 }

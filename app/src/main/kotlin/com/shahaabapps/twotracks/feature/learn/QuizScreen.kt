@@ -41,6 +41,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.shahaabapps.core.content.Courses
 import com.shahaabapps.core.content.Question
 import com.shahaabapps.core.ui.components.CupertinoCard
 import com.shahaabapps.core.ui.components.CupertinoPrimaryButton
@@ -209,7 +210,9 @@ private fun Results(state: QuizUiState, onRetake: () -> Unit, onOpenTopic: (Stri
             Text("Review these", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.SemiBold)
             val byTopic = missed.groupBy { it.topicId }
             byTopic.forEach { (topicId, qs) ->
-                val title = module.topics.firstOrNull { it.id == topicId }?.title?.substringBefore(":") ?: topicId
+                val real = state.course?.let { c -> Courses.topic(c.id, topicId) }
+                val short = (real?.second ?: module.topics.firstOrNull { it.id == topicId })?.title?.substringBefore(":") ?: topicId
+                val title = if (real != null && real.first.id != module.id) "${real.first.title} · $short" else short
                 CupertinoCard(onClick = { onOpenTopic(topicId) }) {
                     Text(title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
                     Text("${qs.size} missed · tap to reread", style = MaterialTheme.typography.bodySmall, color = AppTheme.colors.secondaryLabel)

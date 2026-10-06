@@ -5,6 +5,10 @@ build number is appended by CI (for example `0.1.0 (build 12)`).
 
 ## [Unreleased]
 
+## [0.27.0] - 2026-10-06
+### Added
+- German A1 complete: modules 9 to 12, the whole A1 word list in the deck, and a timed Goethe-style mock exam for Hören and Lesen.
+
 ## [0.26.0] - 2026-10-06
 ### Added
 - German A1 modules 5 to 8, with listening exercises, speaking exercises that check your pronunciation, and a writing marker.
