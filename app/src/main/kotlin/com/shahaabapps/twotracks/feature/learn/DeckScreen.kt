@@ -95,11 +95,11 @@ fun DeckScreen(onBack: () -> Unit, viewModel: DeckViewModel = hiltViewModel()) {
                         }
                         Text("Known words come back in ${state.nextIntervalDays} day${if (state.nextIntervalDays == 1L) "" else "s"}; missed ones tomorrow.", style = MaterialTheme.typography.labelSmall, color = AppTheme.colors.secondaryLabel)
                     } else {
-                        CupertinoPrimaryButton(text = "Show the English", onClick = viewModel::flip)
+                        CupertinoPrimaryButton(text = "Show the meaning", onClick = viewModel::flip)
                     }
                     if (!state.canSpeak) {
                         Text(
-                            if (state.speakerState == Speaker.State.MISSING_LANGUAGE) "German voice not installed. Tap to open the download page." else "Text-to-speech is not available on this phone.",
+                            if (state.speakerState == Speaker.State.MISSING_LANGUAGE) "${course.languageName} voice not installed. Tap to open the download page." else "Text-to-speech is not available on this phone.",
                             style = MaterialTheme.typography.labelSmall, color = AppTheme.colors.warn,
                             modifier = Modifier.clickable(enabled = state.speakerState == Speaker.State.MISSING_LANGUAGE) { speaker.openInstallPage() },
                         )

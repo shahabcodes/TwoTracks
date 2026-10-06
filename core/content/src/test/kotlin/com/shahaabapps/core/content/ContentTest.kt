@@ -20,6 +20,16 @@ class ContentTest {
     }
 
     @Test
+    fun `every course with a mock exam has one that points at real topics`() {
+        courses.filter { it.mockExam != null }.forEach { c ->
+            val ids = c.allTopics.map { it.id }.toSet()
+            val m = c.mockExam!!
+            assertTrue("${c.id} mock timing", m.timeLimitMinutes != null && !m.instantFeedback)
+            m.questions.forEach { q -> assertTrue("${q.id} points at ${q.topicId}", q.topicId in ids) }
+        }
+    }
+
+    @Test
     fun `the mock exam covers every module and points at real topics`() {
         val mock = Az204.course.mockExam!!
         val topicIds = Az204.course.allTopics.map { it.id }.toSet()
@@ -91,6 +101,9 @@ class ContentTest {
         // AZ-204 skills seeded in core:seed: compute, storage, security, monitoring, connect, practice.
         val known = setOf("compute", "storage", "security", "monitoring", "connect", "practice")
         Az204.course.modules.forEach { m -> assertTrue(m.componentId, m.componentId in known) }
+        // IELTS goals are seeded with the four paper components only.
+        val ielts = setOf("listening", "reading", "writing", "speaking")
+        Ielts.course.modules.forEach { m -> assertTrue(m.componentId, m.componentId in ielts) }
     }
 
     @Test

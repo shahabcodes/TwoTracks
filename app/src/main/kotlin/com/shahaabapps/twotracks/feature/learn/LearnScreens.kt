@@ -100,13 +100,6 @@ fun LearnScreen(onOpenCourse: (String) -> Unit, onOpenTopic: (String, String) ->
                     }
                 }
             }
-            item {
-                Text(
-                    "IELTS arrives in a later update on the same lessons, diagrams and tests.",
-                    style = MaterialTheme.typography.bodySmall, color = AppTheme.colors.secondaryLabel,
-                    modifier = Modifier.padding(horizontal = Spacing.listHorizontal + Spacing.sectionStart),
-                )
-            }
         }
     }
 }

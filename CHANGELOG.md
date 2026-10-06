@@ -5,6 +5,10 @@ build number is appended by CI (for example `0.1.0 (build 12)`).
 
 ## [Unreleased]
 
+## [0.28.0] - 2026-10-06
+### Added
+- IELTS band 7+ course: eight modules across all four papers, a writing marker for essays, letters and reports, and a timed mock exam.
+
 ## [0.27.0] - 2026-10-06
 ### Added
 - German A1 complete: modules 9 to 12, the whole A1 word list in the deck, and a timed Goethe-style mock exam for Hören and Lesen.

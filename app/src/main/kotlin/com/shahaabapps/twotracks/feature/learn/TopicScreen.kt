@@ -86,13 +86,13 @@ fun TopicScreen(
                 if (course.speechLanguage != null && speakerState == Speaker.State.MISSING_LANGUAGE) {
                     item {
                         Text(
-                            "German voice not installed, so the speaker buttons are off. Tap here to open the download page.",
+                            "${course.languageName} voice not installed, so the speaker buttons are off. Tap here to open the download page.",
                             style = MaterialTheme.typography.bodySmall, color = AppTheme.colors.warn,
                             modifier = Modifier.clickable { viewModel.speaker.openInstallPage() },
                         )
                     }
                 }
-                items(topic.blocks.size) { i -> BlockView(topic.blocks[i], speaker, viewModel.recognizer) }
+                items(topic.blocks.size) { i -> BlockView(topic.blocks[i], speaker, viewModel.recognizer, course.speechLanguage) }
                 if (topic.references.isNotEmpty()) {
                     item { ReferencesBlock(topic.references) }
                 }
@@ -127,7 +127,7 @@ fun TopicScreen(
 }
 
 @Composable
-fun BlockView(block: Block, speaker: Speaker? = null, recognizer: Recognizer? = null) {
+fun BlockView(block: Block, speaker: Speaker? = null, recognizer: Recognizer? = null, lang: String? = null) {
     when (block) {
         is Block.Heading -> Text(block.text, style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(top = Spacing.sm))
         is Block.Paragraph -> Text(block.text, style = MaterialTheme.typography.bodyLarge, lineHeight = 24.sp)
@@ -150,7 +150,7 @@ fun BlockView(block: Block, speaker: Speaker? = null, recognizer: Recognizer? = 
         is Block.Glossary -> GlossaryBlock(block)
         is Block.Vocab -> VocabBlock(block, speaker)
         is Block.Dialogue -> DialogueBlock(block, speaker)
-        is Block.Exercise -> ExerciseBlock(block, speaker, recognizer)
+        is Block.Exercise -> ExerciseBlock(block, speaker, recognizer, lang)
         is Block.Recap -> Column(
             modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(16.dp)).background(AppTheme.colors.accent).padding(Spacing.md),
             verticalArrangement = Arrangement.spacedBy(6.dp),

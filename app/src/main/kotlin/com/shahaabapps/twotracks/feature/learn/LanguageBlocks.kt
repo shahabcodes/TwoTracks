@@ -119,7 +119,7 @@ fun DialogueBlock(block: Block.Dialogue, speaker: Speaker?) {
         }
         val first = block.lines.firstOrNull()?.speaker
         block.lines.forEach { ln -> DialogueLine(ln, left = ln.speaker == first, speaker) }
-        Text("Tap a line for the English. Then cover it and say the German from memory.", style = MaterialTheme.typography.labelSmall, color = AppTheme.colors.secondaryLabel)
+        Text("Tap a line for the translation. Then cover it and say the line from memory.", style = MaterialTheme.typography.labelSmall, color = AppTheme.colors.secondaryLabel)
     }
 }
 
@@ -147,10 +147,17 @@ private fun norm(s: String): String = Normalizer.normalize(s.trim().lowercase(),
 /** Checked exercises. Results are not scored; they are for practice and show the answer when wrong. */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-fun ExerciseBlock(block: Block.Exercise, speaker: Speaker?, recognizer: Recognizer? = null) {
+fun ExerciseBlock(block: Block.Exercise, speaker: Speaker?, recognizer: Recognizer? = null, lang: String? = null) {
     val accent = AppTheme.colors.accent
     Column(modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(14.dp)).background(accent.copy(alpha = 0.08f)).padding(Spacing.md), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-        val label = when (block.exercise) { is Ex.Listen -> "Hören"; is Ex.Speak -> "Sprechen"; is Ex.Writing -> "Schreiben"; else -> "Exercise" }
+        // German courses use the Goethe paper names; everything else uses plain English.
+        val german = lang?.startsWith("de") == true
+        val label = when (block.exercise) {
+            is Ex.Listen -> if (german) "Hören" else "Listening"
+            is Ex.Speak -> if (german) "Sprechen" else "Speaking"
+            is Ex.Writing -> if (german) "Schreiben" else "Writing"
+            else -> "Exercise"
+        }
         Text(label, style = MaterialTheme.typography.labelMedium, color = accent, fontWeight = FontWeight.SemiBold)
         Text(block.exercise.prompt, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold)
         when (val ex = block.exercise) {
@@ -168,6 +175,12 @@ fun ExerciseBlock(block: Block.Exercise, speaker: Speaker?, recognizer: Recogniz
 private fun GapExercise(ex: Ex.Gap, speaker: Speaker?) {
     var text by remember(ex.id) { mutableStateOf("") }
     var result by remember(ex.id) { mutableStateOf<Boolean?>(null) }
+    ex.audio?.let { audio ->
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
+            SpeakButton(audio, speaker, size = 40.dp)
+            Text("Play, then type what you hear in the gap.", style = MaterialTheme.typography.bodySmall, color = AppTheme.colors.secondaryLabel)
+        }
+    }
     Text(ex.sentence.replace("___", "______"), style = MaterialTheme.typography.bodyLarge)
     ex.hint?.let { Text("Hint: $it", style = MaterialTheme.typography.labelSmall, color = AppTheme.colors.secondaryLabel) }
     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
@@ -180,7 +193,7 @@ private fun GapExercise(ex: Ex.Gap, speaker: Speaker?) {
     result?.let { ok ->
         val full = ex.sentence.replace("___", ex.answers.first())
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            Text(if (ok) "Richtig: $full" else "Not quite. Correct: $full", style = MaterialTheme.typography.bodySmall, color = if (ok) AppTheme.colors.success else AppTheme.colors.destructive, modifier = Modifier.weight(1f))
+            Text(if (ok) "Correct: $full" else "Not quite. Correct: $full", style = MaterialTheme.typography.bodySmall, color = if (ok) AppTheme.colors.success else AppTheme.colors.destructive, modifier = Modifier.weight(1f))
             SpeakButton(full, speaker, size = 28.dp)
         }
     }
@@ -207,7 +220,7 @@ private fun ReorderExercise(ex: Ex.Reorder, speaker: Speaker?) {
     }
     if (done) {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            Text(if (ok) "Richtig: ${ex.answer}" else "Correct order: ${ex.answer}", style = MaterialTheme.typography.bodySmall, color = if (ok) AppTheme.colors.success else AppTheme.colors.destructive, modifier = Modifier.weight(1f))
+            Text(if (ok) "Correct: ${ex.answer}" else "Correct order: ${ex.answer}", style = MaterialTheme.typography.bodySmall, color = if (ok) AppTheme.colors.success else AppTheme.colors.destructive, modifier = Modifier.weight(1f))
             SpeakButton(ex.answer, speaker, size = 28.dp)
         }
     }
@@ -249,7 +262,7 @@ private fun MatchExercise(ex: Ex.Match) {
             }
         }
     }
-    if (matched.size == ex.pairs.size) Text("Alles richtig!", style = MaterialTheme.typography.bodySmall, color = AppTheme.colors.success)
+    if (matched.size == ex.pairs.size) Text("All matched!", style = MaterialTheme.typography.bodySmall, color = AppTheme.colors.success)
 }
 
 @Composable
@@ -257,7 +270,7 @@ private fun WritingExercise(ex: Ex.Writing) {
     var text by remember(ex.id) { mutableStateOf("") }
     var checked by remember(ex.id) { mutableStateOf(false) }
     val words = text.trim().split(Regex("\\s+")).filter { it.isNotBlank() }.size
-    CupertinoTextField(value = text, onValueChange = { text = it; checked = false }, placeholder = "Write in German here", singleLine = false, modifier = Modifier.fillMaxWidth())
+    CupertinoTextField(value = text, onValueChange = { text = it; checked = false }, placeholder = "Write here", singleLine = false, modifier = Modifier.fillMaxWidth())
     Text("$words words · aim for ${ex.minWords}+", style = MaterialTheme.typography.labelSmall, color = if (words >= ex.minWords) AppTheme.colors.success else AppTheme.colors.secondaryLabel)
     Text("The marker looks for:", style = MaterialTheme.typography.labelMedium, color = AppTheme.colors.secondaryLabel)
     val ticks = remember(ex.id) { mutableStateListOf<Int>() }
