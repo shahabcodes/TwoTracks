@@ -43,6 +43,9 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.shahaabapps.core.content.Courses
 import com.shahaabapps.core.content.Question
+import com.shahaabapps.core.content.ScoreBy
+import com.shahaabapps.core.content.breakdown
+import com.shahaabapps.core.content.weakest
 import com.shahaabapps.core.ui.components.CupertinoCard
 import com.shahaabapps.core.ui.components.CupertinoPrimaryButton
 import com.shahaabapps.core.ui.components.CupertinoSecondaryButton
@@ -204,6 +207,39 @@ private fun Results(state: QuizUiState, onRetake: () -> Unit, onOpenTopic: (Stri
         Row(horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
             StatTile(label = "Score", value = "${state.percent}%", modifier = Modifier.weight(1f), valueColor = if (state.passed) AppTheme.colors.success else AppTheme.colors.warn)
             StatTile(label = "Correct", value = "${state.correctCount} of ${state.total}", modifier = Modifier.weight(1f))
+        }
+        // Where the score came from, so it points somewhere: by module for a paper
+        // that spans the course, by topic for one module's own test.
+        val pass = state.quiz?.passPercent ?: 80
+        val areas = state.course
+            ?.breakdown(state.asked, state.answers.filterValues { it }.keys, if (state.kind == QuizKind.MODULE) ScoreBy.TOPIC else ScoreBy.MODULE)
+            .orEmpty()
+        // One area is just the score again, said twice.
+        if (areas.size > 1) {
+            Text("How it went", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.SemiBold)
+            CupertinoCard {
+                areas.forEachIndexed { i, a ->
+                    val tone = when {
+                        a.clean -> AppTheme.colors.success
+                        a.percent >= pass -> AppTheme.colors.accent
+                        else -> AppTheme.colors.warn
+                    }
+                    Column(modifier = Modifier.padding(top = if (i == 0) 0.dp else Spacing.sm)) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(a.label, style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
+                            Text("${a.correct} of ${a.asked}", style = MaterialTheme.typography.bodySmall, color = tone, fontWeight = FontWeight.SemiBold)
+                        }
+                        ProgressBar(fraction = a.percent / 100f, color = tone, height = 6.dp, modifier = Modifier.padding(top = 4.dp))
+                    }
+                }
+            }
+            val weak = areas.weakest(pass)
+            if (weak.isNotEmpty() && !state.passed) {
+                Text(
+                    "Weakest: ${weak.take(2).joinToString(" and ") { it.label }}. Start there.",
+                    style = MaterialTheme.typography.bodySmall, color = AppTheme.colors.secondaryLabel,
+                )
+            }
         }
         val missed = state.missedQuestions
         if (missed.isNotEmpty()) {
