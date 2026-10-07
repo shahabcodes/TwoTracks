@@ -20,6 +20,7 @@ import com.shahaabapps.core.model.Profile
 import com.shahaabapps.core.model.SessionStatus
 import com.shahaabapps.core.model.StudyGoal
 import com.shahaabapps.core.planner.Dates
+import com.shahaabapps.core.planner.Streaks
 import com.shahaabapps.core.planner.LevelProgress
 import com.shahaabapps.twotracks.reminders.SessionPlanning
 import com.shahaabapps.twotracks.session.Clock
@@ -88,6 +89,10 @@ data class TodayUiState(
     val nextDeadline: Deadline? = null,
     val daysToDeadline: Long? = null,
     val message: String? = null,
+    /** Days in a row both of them studied, and who still owes today. */
+    val togetherStreak: Int = 0,
+    val longestTogether: Int = 0,
+    val togetherToday: Streaks.Together = Streaks.Together.NEITHER,
     /** Set once a day on open; null after dismissal. */
     val brief: DailyBrief? = null,
     val whatsNew: Release? = null,
@@ -160,6 +165,7 @@ class TodayViewModel @Inject constructor(
             loading = false, today = plan.me.today, level = plan.me.current, partnerLevel = plan.partner.current, me = myCard, partner = card(plan.partner),
             status = plan.me.statusSentence, goals = plan.me.goals, activeGoals = plan.me.activeGoals,
             nextDeadline = next?.first, daysToDeadline = next?.let { ChronoUnit.DAYS.between(plan.me.today, it.second) }, message = msg,
+            togetherStreak = plan.togetherStreak, longestTogether = plan.longestTogether, togetherToday = plan.togetherToday,
             brief = if (briefDue) buildBrief(plan.me, myCard, next?.first, next?.let { ChronoUnit.DAYS.between(plan.me.today, it.second) }) else null,
             whatsNew = whatsNew,
         )
