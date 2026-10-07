@@ -60,6 +60,21 @@ data class Course(
     val topicCount: Int get() = modules.sumOf { it.topics.size }
 
     /**
+     * True when this course keeps its own record of the time spent on a goal
+     * component, so the plan should neither ask for minutes nor add its own.
+     *
+     * Reading a topic, sitting a test and a deck session all log quietly
+     * against the module's component, and every sitting logs against practice.
+     * A plan session that also logged its planned duration would count the
+     * same study twice, which inflates the pace the forecast reads.
+     *
+     * A module with no content yet covers nothing: its hours are still the
+     * seeded estimate and only a person can say what they did.
+     */
+    fun covers(componentId: String): Boolean =
+        componentId == "practice" || modules.any { it.available && it.componentId == componentId }
+
+    /**
      * Hours the content sets for each goal component, for modules that have
      * content: reading, a try-it task per topic, the test, then the same
      * again as a revision pass. Locked modules are left out so the seeded
@@ -314,6 +329,13 @@ object Courses {
     const val CHECK_MODULE_ID = "checks"
     val all: List<Course> get() = listOf(Az204.course, GermanA1.course, Ielts.course)
     fun forGoal(goalId: String): Course? = all.firstOrNull { it.feeds(goalId) }
+
+    /**
+     * True when a course already records the time for this goal component.
+     * False for a goal no course feeds yet, where logging by hand is the only
+     * way its hours ever move — most of the roadmap, until each course exists.
+     */
+    fun covers(goalId: String, componentId: String): Boolean = forGoal(goalId)?.covers(componentId) == true
     /** Every vocabulary word in a course, in module order. */
     fun words(course: Course): List<Word> = course.modules.flatMap { m -> m.topics.flatMap { t -> t.blocks.filterIsInstance<Block.Vocab>().flatMap { it.words } } }
     fun byId(id: String): Course? = all.firstOrNull { it.id == id }

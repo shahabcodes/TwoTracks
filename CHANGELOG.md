@@ -5,6 +5,10 @@ build number is appended by CI (for example `0.1.0 (build 12)`).
 
 ## [Unreleased]
 
+## [0.34.0] - 2026-10-07
+### Changed
+- Study time counts itself where a course records it; no more logging minutes by hand for those.
+
 ## [0.33.0] - 2026-10-07
 ### Added
 - Today's study: one card on the Learn tab with the day's topic, words and questions, ticked off as you go.
