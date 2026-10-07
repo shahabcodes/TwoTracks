@@ -42,6 +42,7 @@ import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.shahaabapps.core.content.Ex
+import com.shahaabapps.core.content.SpeechMatch
 import com.shahaabapps.core.content.WritingMarker
 import com.shahaabapps.core.ui.components.CupertinoPrimaryButton
 import com.shahaabapps.core.ui.components.CupertinoTextButton
@@ -101,10 +102,12 @@ fun SpeakExercise(ex: Ex.Speak, speaker: Speaker?, recognizer: Recognizer?) {
     var heard by remember(ex.id) { mutableStateOf<String?>(null) }
     var selfChecked by remember(ex.id) { mutableStateOf(false) }
     var granted by remember { mutableStateOf(ContextCompat.checkSelfPermission(context, Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED) }
-    val ask = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { ok -> granted = ok; if (ok) recognizer?.listen() }
+    val ask = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { ok -> granted = ok; if (ok) recognizer?.listen(ex.id) }
     val usable = recognizer != null && recognizer.available
-    DisposableEffect(ex.id) { onDispose { recognizer?.reset() } }
-    if (state is Recognizer.State.Heard && heard == null) heard = (state as Recognizer.State.Heard).text
+    DisposableEffect(ex.id) { onDispose { recognizer?.reset(ex.id) } }
+    // One recogniser serves every card on the page: read only what this one asked for.
+    val mine = state.owner == ex.id
+    if (mine && state is Recognizer.State.Heard && heard == null) heard = (state as Recognizer.State.Heard).text
 
     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
         Column(modifier = Modifier.weight(1f)) {
@@ -114,36 +117,33 @@ fun SpeakExercise(ex: Ex.Speak, speaker: Speaker?, recognizer: Recognizer?) {
         SpeakButton(ex.target, speaker, size = 40.dp)
         SpeakButton(ex.target, speaker, size = 30.dp, slow = true)
     }
-    val listening = state is Recognizer.State.Listening
+    val listening = mine && state is Recognizer.State.Listening
     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
         Box(
             modifier = Modifier.size(56.dp).clip(CircleShape).background(when { !usable -> AppTheme.colors.fill; listening -> AppTheme.colors.destructive; else -> AppTheme.colors.accent })
-                .clickable(enabled = usable && !listening) { heard = null; if (granted) recognizer?.listen() else ask.launch(Manifest.permission.RECORD_AUDIO) },
+                .clickable(enabled = usable && !listening) { heard = null; if (granted) recognizer?.listen(ex.id) else ask.launch(Manifest.permission.RECORD_AUDIO) },
             contentAlignment = Alignment.Center,
         ) { Icon(Icons.Filled.Mic, contentDescription = "Speak", tint = if (usable) Color.White else AppTheme.colors.secondaryLabel, modifier = Modifier.size(28.dp)) }
         Text(
             when {
                 !usable -> "Speech recognition is not available on this phone. Say it aloud, then tick below."
                 listening -> "Listening… say it now"
-                state is Recognizer.State.Failed -> (state as Recognizer.State.Failed).reason
+                mine && state is Recognizer.State.Failed -> (state as Recognizer.State.Failed).reason
                 heard != null -> "Heard you. Tap the mic to try again."
                 else -> "Tap the mic, then say the sentence"
             },
-            style = MaterialTheme.typography.bodySmall, color = if (state is Recognizer.State.Failed) AppTheme.colors.warn else AppTheme.colors.secondaryLabel, modifier = Modifier.weight(1f),
+            style = MaterialTheme.typography.bodySmall, color = if (mine && state is Recognizer.State.Failed) AppTheme.colors.warn else AppTheme.colors.secondaryLabel, modifier = Modifier.weight(1f),
         )
     }
     heard?.let { h ->
-        val target = WritingMarker.normalise(ex.target).split(" ")
-        val said = WritingMarker.normalise(h).split(" ")
-        val hit = target.count { it in said }
-        val pct = if (target.isEmpty()) 0 else hit * 100 / target.size
+        val match = SpeechMatch.of(ex.target, h)
+        val pct = match.percent
         Column(modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(10.dp)).background(AppTheme.colors.card).padding(Spacing.sm), verticalArrangement = Arrangement.spacedBy(4.dp)) {
             Text(if (pct >= 80) "Sehr gut: $pct% of the words" else if (pct >= 50) "Getting there: $pct% of the words" else "Try once more: $pct% of the words", style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.SemiBold, color = if (pct >= 80) AppTheme.colors.success else AppTheme.colors.warn)
             Text("You said: $h", style = MaterialTheme.typography.bodySmall)
             Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                target.forEach { w ->
-                    val ok = w in said
-                    Text(w, style = MaterialTheme.typography.bodySmall, color = if (ok) AppTheme.colors.success else AppTheme.colors.destructive, fontWeight = if (ok) FontWeight.Normal else FontWeight.SemiBold)
+                match.words.forEach { w ->
+                    Text(w.word, style = MaterialTheme.typography.bodySmall, color = if (w.matched) AppTheme.colors.success else AppTheme.colors.destructive, fontWeight = if (w.matched) FontWeight.Normal else FontWeight.SemiBold)
                 }
             }
         }

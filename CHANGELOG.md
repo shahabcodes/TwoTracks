@@ -5,6 +5,10 @@ build number is appended by CI (for example `0.1.0 (build 12)`).
 
 ## [Unreleased]
 
+## [0.35.0] - 2026-10-07
+### Fixed
+- Speaking: your answer now shows only on the card you spoke into, and a comma no longer costs you a word.
+
 ## [0.34.0] - 2026-10-07
 ### Changed
 - Study time counts itself where a course records it; no more logging minutes by hand for those.

@@ -36,9 +36,20 @@ object WritingMarker {
     private val overview = listOf("overall", "in general", "generally", "it is clear that", "the most striking", "in summary", "as can be seen")
     private val comparison = listOf("higher", "lower", "more than", "less than", "compared", "whereas", "while", "in contrast", "the highest", "the lowest", "twice", "double", "similar", "respectively", "rose", "fell", "increased", "decreased", "peaked")
 
+    /**
+     * Lower case, ß folded to ss, punctuation reduced to spaces, so that only
+     * the words decide a match.
+     *
+     * The comma belongs in that set as much as the full stop. Without it a
+     * content point beginning "Hallo," never matched the keyword "hallo", and
+     * a sentence spoken back perfectly scored short because its first word
+     * still carried the comma from the prompt. German quotation marks and
+     * dashes are here for the same reason. Hyphens are left alone: they join
+     * compound words rather than separate them.
+     */
     fun normalise(s: String): String = Normalizer.normalize(s.lowercase(), Normalizer.Form.NFC)
         .replace("ß", "ss")
-        .replace(Regex("[.!?;:()\"’']"), " ")
+        .replace(Regex("[.,!?;:()\\[\\]\"’'„“”«»…–—]"), " ")
         .replace(Regex("[ 	]+"), " ").trim()
 
     private fun paragraphs(text: String): Int = text.trim().split(Regex("\\n\\s*\\n|\\n")).count { it.isNotBlank() }
