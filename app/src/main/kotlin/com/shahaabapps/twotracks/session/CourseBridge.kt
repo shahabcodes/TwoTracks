@@ -39,19 +39,53 @@ object CourseBridge {
     fun mockPassed(course: Course, owner: PersonRole, attempts: List<QuizAttempt>): Boolean =
         course.mockExam == null || attempts.any { it.owner == owner && it.courseId == course.id && it.moduleId == Courses.MOCK_MODULE_ID && it.passed }
 
+    /**
+     * Each topic of a module and the module's own test count as one unit of
+     * its work, so reading a topic and passing the test both move the bar and
+     * a module only reads as whole when both are done.
+     */
+    private fun units(s: ModuleStatus): Int = s.total + 1
+    private fun unitsDone(s: ModuleStatus): Int = s.learned + if (s.passed) 1 else 0
+
+    /**
+     * Across every module feeding one component. Several modules share a
+     * component — IELTS reading spans three of them — so this sums over the
+     * group rather than letting the last module stand for the lot.
+     */
+    private fun groupFraction(ms: List<ModuleStatus>): Double {
+        val total = ms.sumOf { units(it) }
+        return if (total == 0) 0.0 else ms.sumOf { unitsDone(it) }.toDouble() / total
+    }
+
+    /** The content's own minute estimate for the part of a module not done yet. */
+    private fun remainingMinutes(s: ModuleStatus): Double =
+        if (s.finished) 0.0 else s.module.studyMinutes * (1.0 - unitsDone(s).toDouble() / units(s))
+
+    /** Practice is the module tests plus, where the course has one, the mock exam. */
+    private fun practiceFraction(course: Course, statuses: List<ModuleStatus>, owner: PersonRole, attempts: List<QuizAttempt>): Double {
+        val hasMock = course.mockExam != null
+        val total = statuses.size + if (hasMock) 1 else 0
+        if (total == 0) return 0.0
+        val done = statuses.count { it.passed } + if (hasMock && mockPassed(course, owner, attempts)) 1 else 0
+        return done.toDouble() / total
+    }
+
     /** CourseState per goal id, for one person. */
     fun statesFor(owner: PersonRole, progress: List<TopicProgress>, attempts: List<QuizAttempt>): Map<String, CourseState> =
         Courses.all.flatMap { course -> course.goalIds.map { it to course } }.associate { (goalId, course) ->
-            val statuses = moduleStatuses(course, owner, progress, attempts)
+            val statuses = moduleStatuses(course, owner, progress, attempts).filter { it.module.available }
+            val byComponent = statuses.groupBy { it.module.componentId }
+            val practice = practiceFraction(course, statuses, owner, attempts)
             goalId to CourseState(
-                completedComponentIds = statuses.filter { it.finished }.map { it.module.componentId }.toSet() +
-                    // Practice is done when every available module test is passed and, where the
-                    // course has one, the mock exam has been passed too.
-                    (if (statuses.filter { it.module.available }.let { it.isNotEmpty() && it.all { s -> s.passed } } &&
-                            mockPassed(course, owner, attempts)) setOf("practice") else emptySet()),
+                // A component is finished only when every module feeding it is finished, and
+                // practice when every module test is passed and, where there is one, the mock too.
+                completedComponentIds = byComponent.filterValues { ms -> ms.all { it.finished } }.keys +
+                    (if (statuses.isNotEmpty() && practice >= 1.0) setOf("practice") else emptySet()),
                 // Only components with content get a content budget; the rest keep their seeded hours.
-                hoursByComponent = course.hoursByComponent().filterKeys { k -> k == "practice" || statuses.any { it.module.componentId == k && it.module.available } },
-                fractionByComponent = statuses.filter { it.module.available }.associate { it.module.componentId to it.fraction.toDouble() },
+                hoursByComponent = course.hoursByComponent().filterKeys { it == "practice" || it in byComponent.keys },
+                fractionByComponent = byComponent.mapValues { (_, ms) -> groupFraction(ms) } + ("practice" to practice),
+                remainingHoursByComponent = byComponent.mapValues { (_, ms) -> ms.sumOf { remainingMinutes(it) } / 60.0 } +
+                    ("practice" to course.practiceHours * (1.0 - practice)),
             )
         }
 

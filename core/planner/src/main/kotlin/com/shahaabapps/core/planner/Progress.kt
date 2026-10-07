@@ -32,6 +32,18 @@ data class CourseState(
     val hoursByComponent: Map<String, Double> = emptyMap(),
     /** Learned fraction per component, from the course, for display when hours are not the measure. */
     val fractionByComponent: Map<String, Double> = emptyMap(),
+    /**
+     * Hours of work the course still holds for each component: the content's
+     * own estimate for everything not finished yet.
+     *
+     * The planner forecasts from this rather than from budget minus logged
+     * minutes, because a good half of the budget is work the app never logs —
+     * the try-it task in each topic and the revision pass the estimate
+     * assumes. Subtracting logged minutes from it never reaches zero, which
+     * left the weekly need and the feasibility verdict permanently pessimistic
+     * however much of the course was really done.
+     */
+    val remainingHoursByComponent: Map<String, Double> = emptyMap(),
 ) {
     companion object { val NONE = CourseState() }
 }
@@ -45,6 +57,8 @@ data class ComponentProgress(
     val courseHours: Double? = null,
     /** Course learned fraction, used for the bar when the course drives this component. */
     val courseFraction: Double? = null,
+    /** Hours the course says are left here, which outrank budget minus logged. */
+    val courseRemainingHours: Double? = null,
 ) {
     val hoursLogged: Double get() = minutesLogged / 60.0
     val hoursRequired: Double get() = courseHours ?: component.hoursRequired
@@ -55,8 +69,23 @@ data class ComponentProgress(
             hoursRequired <= 0.0 -> 1.0
             else -> (hoursLogged / hoursRequired).coerceIn(0.0, 1.0)
         }
-    val remainingHours: Double get() = if (finishedByCourse) 0.0 else max(0.0, hoursRequired - hoursLogged)
-    val isComplete: Boolean get() = finishedByCourse || (hoursRequired > 0.0 && hoursLogged >= hoursRequired)
+    /**
+     * Work still to do. When the course tracks this component its own estimate
+     * is the answer, because it knows what is left rather than inferring it
+     * from minutes the app may never have been able to log.
+     */
+    val remainingHours: Double
+        get() = when {
+            finishedByCourse -> 0.0
+            courseRemainingHours != null -> max(0.0, courseRemainingHours)
+            else -> max(0.0, hoursRequired - hoursLogged)
+        }
+    val isComplete: Boolean
+        get() = when {
+            finishedByCourse -> true
+            courseRemainingHours != null -> courseRemainingHours <= 0.0
+            else -> hoursRequired > 0.0 && hoursLogged >= hoursRequired
+        }
 }
 
 data class GoalProgress(
@@ -69,8 +98,19 @@ data class GoalProgress(
     val hoursLogged: Double get() = components.sumOf { it.hoursLogged }
     val hoursRequired: Double get() = components.sumOf { it.hoursRequired }
     val remainingHours: Double get() = components.sumOf { it.remainingHours }
+    /**
+     * How far the goal has come, each component weighted by its size. The
+     * components already prefer what the course knows over logged minutes, so
+     * the goal follows the course too instead of dividing hours logged by a
+     * budget that counts unloggable work.
+     */
     val fraction: Double
-        get() = if (hoursRequired <= 0.0) 0.0 else (hoursLogged / hoursRequired).coerceIn(0.0, 1.0)
+        get() {
+            if (components.isEmpty()) return 0.0
+            val weight = components.sumOf { it.hoursRequired }
+            if (weight <= 0.0) return components.count { it.isComplete }.toDouble() / components.size
+            return (components.sumOf { it.fraction * it.hoursRequired } / weight).coerceIn(0.0, 1.0)
+        }
     val isComplete: Boolean get() = hoursRequired > 0.0 && remainingHours <= 0.0
 
     val targetDate: LocalDate? get() = Dates.parseOrNull(goal.targetDateIso)
@@ -124,6 +164,7 @@ object ProgressCalculator {
                 finishedByCourse = c.id in course.completedComponentIds,
                 courseHours = course.hoursByComponent[c.id],
                 courseFraction = course.fractionByComponent[c.id],
+                courseRemainingHours = course.remainingHoursByComponent[c.id],
             )
         }
         val since = today.minusDays(13)
