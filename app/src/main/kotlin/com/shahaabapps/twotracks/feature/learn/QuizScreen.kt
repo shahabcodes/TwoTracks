@@ -66,12 +66,22 @@ fun QuizScreen(onBack: () -> Unit, onOpenTopic: (String, String) -> Unit, viewMo
     val speakerState by viewModel.speaker.state.collectAsStateWithLifecycle()
     LaunchedEffect(state.course?.speechLanguage) { state.course?.speechLanguage?.let { viewModel.speaker.setLanguage(it) } }
     val speaker = viewModel.speaker.takeIf { speakerState == Speaker.State.READY }
-    val title = when (state.kind) { QuizKind.MOCK -> "Mock exam"; QuizKind.REVIEW -> "Review"; QuizKind.MODULE -> module?.let { "${it.title} test" } ?: "Test" }
+    val title = when (state.kind) {
+        QuizKind.MOCK -> "Mock exam"
+        QuizKind.REVIEW -> "Review"
+        QuizKind.DAILY -> "Daily review"
+        QuizKind.MODULE -> module?.let { "${it.title} test" } ?: "Test"
+    }
     DetailScaffold(title = title, onBack = onBack, backLabel = "Exit") {
         if (quiz == null || module == null || state.course == null) {
-            if (state.kind == QuizKind.REVIEW) Column(modifier = Modifier.padding(horizontal = Spacing.listHorizontal), verticalArrangement = Arrangement.spacedBy(Spacing.md)) {
-                Text("Nothing to review", style = MaterialTheme.typography.displayLarge, fontWeight = FontWeight.Bold)
-                Text("Every question you have missed has since been answered correctly. Take a module test or the mock exam to find new gaps.", style = MaterialTheme.typography.bodyMedium, color = AppTheme.colors.secondaryLabel)
+            val empty = when (state.kind) {
+                QuizKind.REVIEW -> "Nothing to review" to "Every question you have missed has since been answered correctly. Take a module test or the mock exam to find new gaps."
+                QuizKind.DAILY -> "Nothing due today" to "Every question you have met is still fresh. Read a topic or sit a test, and they will come back here when they are about to fade."
+                else -> null
+            }
+            if (empty != null) Column(modifier = Modifier.padding(horizontal = Spacing.listHorizontal), verticalArrangement = Arrangement.spacedBy(Spacing.md)) {
+                Text(empty.first, style = MaterialTheme.typography.displayLarge, fontWeight = FontWeight.Bold)
+                Text(empty.second, style = MaterialTheme.typography.bodyMedium, color = AppTheme.colors.secondaryLabel)
                 CupertinoPrimaryButton(text = "Back", onClick = onBack)
             }
             return@DetailScaffold
@@ -189,15 +199,22 @@ private fun Results(state: QuizUiState, onRetake: () -> Unit, onOpenTopic: (Stri
         verticalArrangement = Arrangement.spacedBy(Spacing.md),
     ) {
         val headline = when {
+            state.kind == QuizKind.DAILY -> "Review done"
             state.kind == QuizKind.REVIEW -> "Review done"
             state.timedOut -> "Time is up"
             state.passed -> "Passed"
             else -> "Not yet"
         }
-        val tone = if (state.kind == QuizKind.REVIEW || state.passed) AppTheme.colors.success else AppTheme.colors.warn
+        val keeping = state.kind == QuizKind.DAILY || state.kind == QuizKind.REVIEW
+        val tone = if (keeping || state.passed) AppTheme.colors.success else AppTheme.colors.warn
         Text(headline, style = MaterialTheme.typography.displayLarge, fontWeight = FontWeight.Bold, color = tone)
         Text(
             when (state.kind) {
+                QuizKind.DAILY -> if (state.missedQuestions.isEmpty()) {
+                    "All held. Each one comes back a little later than last time."
+                } else {
+                    "${state.missedQuestions.size} slipped; those come back tomorrow, the rest later."
+                }
                 QuizKind.REVIEW -> if (state.missedQuestions.isEmpty()) "Every missed question is now right. The review set is empty." else "${state.missedQuestions.size} still to get right; they stay in the review set and come back next time."
                 QuizKind.MOCK -> if (state.passed) "Above the ${state.quiz?.passPercent}% the real exam asks for. The minutes count as practice." else "The real exam needs ${state.quiz?.passPercent}%. The missed questions below are in your review set; reread their topics and sit it again."
                 QuizKind.MODULE -> if (state.passed) "${module.title} is ticked. The minutes are in your hours." else "You need ${state.quiz?.passPercent}%. Read the weak topics below and try again; retakes are unlimited."
@@ -260,9 +277,10 @@ private fun Results(state: QuizUiState, onRetake: () -> Unit, onOpenTopic: (Stri
             }
         }
         state.message?.let { Text(it, color = AppTheme.colors.destructive, style = MaterialTheme.typography.bodySmall) }
-        val done = state.passed || state.kind == QuizKind.REVIEW
+        val done = state.passed || keeping
         if (done) CupertinoPrimaryButton(text = "Back to the course", onClick = onDone) else CupertinoPrimaryButton(text = "Try again", onClick = onRetake)
-        if (done) { if (state.kind != QuizKind.REVIEW) CupertinoSecondaryButton(text = "Take it again", onClick = onRetake) } else CupertinoTextButton(text = "Back to the course", onClick = onDone)
+        // A spaced sitting is not retaken: the schedule decides when each question returns.
+        if (done) { if (!keeping) CupertinoSecondaryButton(text = "Take it again", onClick = onRetake) } else CupertinoTextButton(text = "Back to the course", onClick = onDone)
     }
 }
 

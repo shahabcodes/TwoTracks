@@ -20,6 +20,7 @@ import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.MenuBook
 import androidx.compose.material.icons.filled.Quiz
 import androidx.compose.material.icons.filled.Replay
+import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -51,7 +52,13 @@ import com.shahaabapps.twotracks.ui.components.SectionLabel
 
 /** Tab 4: the courses, with your progress and a one-tap "continue". */
 @Composable
-fun LearnScreen(onOpenCourse: (String) -> Unit, onOpenTopic: (String, String) -> Unit, onOpenDeck: (String) -> Unit = {}, viewModel: LearnViewModel = hiltViewModel()) {
+fun LearnScreen(
+    onOpenCourse: (String) -> Unit,
+    onOpenTopic: (String, String) -> Unit,
+    onOpenDeck: (String) -> Unit = {},
+    onOpenQuiz: (String, String) -> Unit = { _, _ -> },
+    viewModel: LearnViewModel = hiltViewModel(),
+) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     CupertinoScaffold(title = "Learn") {
         LazyColumn(verticalArrangement = Arrangement.spacedBy(Spacing.md), contentPadding = PaddingValues(bottom = Spacing.xl)) {
@@ -79,6 +86,18 @@ fun LearnScreen(onOpenCourse: (String) -> Unit, onOpenTopic: (String, String) ->
                                 onClick = { onOpenTopic(course.id, next.second.id) },
                                 modifier = Modifier.padding(top = Spacing.sm),
                             )
+                        }
+                        // Questions due again today: the one tap that keeps a finished course alive.
+                        val due = state.dailyDue[course.id] ?: 0
+                        if (due > 0) {
+                            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = Spacing.sm).fillMaxWidth().clip(Shapes.field).background(AppTheme.colors.fill).clickable { onOpenQuiz(course.id, Courses.DAILY_MODULE_ID) }.padding(horizontal = Spacing.md, vertical = 10.dp)) {
+                                Icon(Icons.Filled.Schedule, contentDescription = null, tint = AppTheme.colors.accent, modifier = Modifier.size(20.dp))
+                                Column(modifier = Modifier.weight(1f).padding(start = Spacing.sm)) {
+                                    Text("Daily review: $due due", style = MaterialTheme.typography.titleMedium)
+                                    Text("Questions coming back before they fade", style = MaterialTheme.typography.bodySmall, color = AppTheme.colors.secondaryLabel)
+                                }
+                                CupertinoDisclosure()
+                            }
                         }
                         state.decks[course.id]?.let { d ->
                             Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = Spacing.sm).fillMaxWidth().clip(Shapes.field).background(AppTheme.colors.fill).clickable { onOpenDeck(course.id) }.padding(horizontal = Spacing.md, vertical = 10.dp)) {
@@ -128,32 +147,47 @@ fun CourseScreen(
             course.modules.forEach { m ->
                 item { ModuleSection(course, m, p, onOpenTopic, onOpenQuiz) }
             }
-            if (course.mockExam != null) item { ExamPracticeSection(course, p, onOpenQuiz) }
+            item { ExamPracticeSection(course, p, state.dailyDue[courseId] ?: 0, onOpenQuiz) }
         }
     }
 }
 
-/** The mock exam and the review set, after the modules. */
+/** The mock exam, the daily review and the review set, after the modules. */
 @Composable
-private fun ExamPracticeSection(course: Course, p: CourseProgress?, onOpenQuiz: (String, String) -> Unit) {
-    val mock = course.mockExam ?: return
+private fun ExamPracticeSection(course: Course, p: CourseProgress?, dailyDue: Int, onOpenQuiz: (String, String) -> Unit) {
+    val mock = course.mockExam
     val review = p?.reviewQuestions(course).orEmpty()
+    val held = p?.questionsHeld ?: 0
     val passedAll = p != null && p.modulesPassed(course) == course.modules.count { it.available }
     Column {
         Text("EXAM PRACTICE", style = MaterialTheme.typography.labelMedium, color = AppTheme.colors.secondaryLabel, modifier = Modifier.padding(start = Spacing.listHorizontal + Spacing.sectionStart, bottom = 6.dp))
-        CupertinoListSection(footer = "Questions you miss anywhere collect in the review set until you answer them correctly.") {
+        CupertinoListSection(footer = "Questions you miss anywhere collect in the review set until you answer them correctly. Ones you get right come back on a widening schedule until they stick.") {
+            if (mock != null) {
+                CupertinoListRow(
+                    title = mock.title,
+                    subtitle = when {
+                        p?.mockPassed == true -> "Passed, best ${p.mockBest}%"
+                        p?.mockBest != null -> "Best ${p.mockBest}%, need ${mock.passPercent}%"
+                        !passedAll -> "${mock.drawCount ?: mock.questions.size} questions, ${mock.timeLimitMinutes} min. Pass the module tests first for a fair reading"
+                        else -> "${mock.drawCount ?: mock.questions.size} questions drawn from ${mock.questions.size}, ${mock.timeLimitMinutes} min, pass at ${mock.passPercent}%"
+                    },
+                    leadingIcon = Icons.Filled.Quiz, iconColor = if (p?.mockPassed == true) AppTheme.colors.success else AppTheme.colors.accent,
+                    showDivider = true,
+                    onClick = { onOpenQuiz(course.id, Courses.MOCK_MODULE_ID) },
+                    trailing = { if (p?.mockPassed == true) StatusChip("Passed", AppTheme.colors.success) else CupertinoDisclosure() },
+                )
+            }
             CupertinoListRow(
-                title = mock.title,
+                title = "Daily review",
                 subtitle = when {
-                    p?.mockPassed == true -> "Passed, best ${p.mockBest}%"
-                    p?.mockBest != null -> "Best ${p.mockBest}%, need ${mock.passPercent}%"
-                    !passedAll -> "${mock.drawCount ?: mock.questions.size} questions, ${mock.timeLimitMinutes} min. Pass the module tests first for a fair reading"
-                    else -> "${mock.drawCount ?: mock.questions.size} questions drawn from ${mock.questions.size}, ${mock.timeLimitMinutes} min, pass at ${mock.passPercent}%"
+                    dailyDue > 0 -> "$dailyDue due · about ${(dailyDue * 1.5).toInt().coerceAtLeast(2)} min"
+                    held > 0 -> "Nothing due today · $held held"
+                    else -> "Sit a test or read a topic and questions start coming back here"
                 },
-                leadingIcon = Icons.Filled.Quiz, iconColor = if (p?.mockPassed == true) AppTheme.colors.success else AppTheme.colors.accent,
+                leadingIcon = Icons.Filled.Schedule, iconColor = if (dailyDue > 0) AppTheme.colors.accent else AppTheme.colors.secondaryLabel,
                 showDivider = true,
-                onClick = { onOpenQuiz(course.id, Courses.MOCK_MODULE_ID) },
-                trailing = { if (p?.mockPassed == true) StatusChip("Passed", AppTheme.colors.success) else CupertinoDisclosure() },
+                onClick = if (dailyDue == 0) null else ({ onOpenQuiz(course.id, Courses.DAILY_MODULE_ID) }),
+                trailing = { if (dailyDue > 0) CupertinoDisclosure() },
             )
             CupertinoListRow(
                 title = "Review missed questions",

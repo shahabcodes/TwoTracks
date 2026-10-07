@@ -93,7 +93,7 @@ class DeckViewModel @Inject constructor(
         val course = Courses.byId(courseId) ?: return
         today = Clock.today(s.me)
         val all = dataStore.flashcards.value
-        cards = Deck.cardsFor(s.myRole, course, all).associateBy { it.wordId }.toMutableMap()
+        cards = Deck.cardsFor(s.myRole, course, all).associateBy { it.itemId }.toMutableMap()
         val met = Deck.metWordIds(s.myRole, course, dataStore.topicProgress.value)
         val wordsById = Courses.words(course).associateBy { it.id }
         var ids = Srs.session(cards.values.toList(), met, today)
@@ -142,7 +142,7 @@ class DeckViewModel @Inject constructor(
         val s = sessionStore.current() ?: return@launch
         val course = _uiState.value.course ?: return@launch
         val changed = results.keys.mapNotNull { cards[it] }.map { c ->
-            Flashcard(owner = s.myRole, courseId = course.id, wordId = c.wordId, step = c.step, dueIso = c.dueIso, lastReviewIso = c.lastReviewIso, correct = c.correct, misses = c.misses)
+            Flashcard(owner = s.myRole, courseId = course.id, wordId = c.itemId, step = c.step, dueIso = c.dueIso, lastReviewIso = c.lastReviewIso, correct = c.correct, misses = c.misses)
         }
         val r = learningRepository.saveFlashcards(s.coupleId, changed)
         if (r is AppResult.Failure) return@launch

@@ -17,6 +17,9 @@ import com.shahaabapps.core.data.learning.LearningRepository
 import com.shahaabapps.core.model.PersonRole
 import com.shahaabapps.core.model.QuizAttempt
 import com.shahaabapps.core.model.TopicProgress
+import com.shahaabapps.core.planner.QuestionSrs
+import com.shahaabapps.core.planner.Srs
+import java.time.LocalDate
 import com.shahaabapps.twotracks.session.Celebrations
 import com.shahaabapps.twotracks.session.Clock
 import com.shahaabapps.twotracks.session.CoupleDataStore
@@ -43,6 +46,8 @@ data class CourseProgress(
     val passedModuleIds: Set<String>,
     val bestPercentByModule: Map<String, Int>,
     val missedQuestionIds: Set<String>,
+    /** Spaced-repetition state per question, folded from the sittings on record. */
+    val questionCards: Map<String, Srs.Card> = emptyMap(),
 ) {
     fun moduleLearned(m: Module): Int = m.topics.count { it.id in learnedTopicIds }
     fun moduleFraction(m: Module): Float = if (m.topics.isEmpty()) 0f else moduleLearned(m).toFloat() / m.topics.size
@@ -58,6 +63,21 @@ data class CourseProgress(
     fun modulesPassed(c: Course): Int = c.modules.count { it.id in passedModuleIds }
     /** The missed questions that still need a correct answer, in course order. */
     fun reviewQuestions(c: Course): List<Question> = c.allQuestions.filter { it.id in missedQuestionIds }
+
+    /**
+     * Questions due again today, longest overdue first. The review set comes
+     * first and is skipped here: getting a wrong answer right is more urgent
+     * than keeping a right one, and a question should not be asked twice in a day.
+     */
+    fun dailyDue(c: Course, today: LocalDate, limit: Int = QuestionSrs.DAILY_LIMIT): List<Question> {
+        val byId = c.allQuestions.associateBy { it.id }
+        return QuestionSrs.due(questionCards, today, skip = missedQuestionIds, limit = limit).mapNotNull { byId[it] }
+    }
+
+    fun dailyDueCount(today: LocalDate): Int = QuestionSrs.dueCount(questionCards, today, skip = missedQuestionIds)
+
+    /** Questions held at the top of the schedule, for a sense of what has stuck. */
+    val questionsHeld: Int get() = QuestionSrs.matureCount(questionCards)
     val mockBest: Int? get() = bestPercentByModule[Courses.MOCK_MODULE_ID]
     val mockPassed: Boolean get() = Courses.MOCK_MODULE_ID in passedModuleIds
 
@@ -76,13 +96,16 @@ data class CourseProgress(
                 missed -= asked.toSet()
                 missed += a.missed
             }
-            return CourseProgress(mine.map { it.topicId }.toSet(), passed, best, missed)
+            return CourseProgress(
+                mine.map { it.topicId }.toSet(), passed, best, missed,
+                questionCards = QuestionSrs.states(att, owner, courseId, course?.allQuestions?.map { it.id }?.toSet().orEmpty()),
+            )
         }
 
         /** Older attempts did not record what was asked: assume the whole test of that module. */
         private fun askedByDefault(course: Course?, moduleId: String): List<String> = when (moduleId) {
             Courses.MOCK_MODULE_ID -> course?.mockExam?.questions?.map { it.id }.orEmpty()
-            Courses.REVIEW_MODULE_ID, Courses.CHECK_MODULE_ID -> emptyList()
+            Courses.REVIEW_MODULE_ID, Courses.CHECK_MODULE_ID, Courses.DAILY_MODULE_ID -> emptyList()
             else -> course?.modules?.firstOrNull { it.id == moduleId }?.quiz?.questions?.map { it.id }.orEmpty()
         }
     }
@@ -170,6 +193,7 @@ class LearningActions @Inject constructor(
         val cap = quiz.timeLimitMinutes ?: 60
         studyActions.logMinutes(myGoalId(course, s.myRole), module.componentId, minutes.coerceIn(2, cap), today, note = "Test: ${module.title}", quiet = true)
         when (module.id) {
+            Courses.DAILY_MODULE_ID -> celebrations.logged("Daily review done")
             Courses.REVIEW_MODULE_ID -> celebrations.logged("Review logged")
             Courses.MOCK_MODULE_ID -> if (passed) celebrations.passed("Mock exam passed") else celebrations.logged("Mock exam logged")
             else -> if (passed) celebrations.passed("${module.title} passed") else celebrations.logged("Test logged")
@@ -190,6 +214,8 @@ data class LearnUiState(
     val partnerName: String = "",
     /** Flashcard deck state per course, only for courses with vocabulary. */
     val decks: Map<String, DeckInfo> = emptyMap(),
+    /** Questions due for a spaced review today, per course. */
+    val dailyDue: Map<String, Int> = emptyMap(),
 )
 
 @HiltViewModel
@@ -201,8 +227,10 @@ class LearnViewModel @Inject constructor(
         val session = (state as? com.shahaabapps.twotracks.session.SessionState.Ready)?.session ?: return@combine LearnUiState()
         val partnerRole = if (session.myRole == PersonRole.TECH) PersonRole.TEACHER else PersonRole.TECH
         val today = Clock.today(session.me)
+        val mine = Courses.all.associate { it.id to CourseProgress.of(session.myRole, it.id, progress, attempts) }
         LearnUiState(
-            progress = Courses.all.associate { it.id to CourseProgress.of(session.myRole, it.id, progress, attempts) },
+            progress = mine,
+            dailyDue = mine.mapValues { (_, p) -> p.dailyDueCount(today) },
             partnerProgress = Courses.all.associate { it.id to CourseProgress.of(partnerRole, it.id, progress, attempts) },
             partnerName = session.partner?.name ?: "Partner",
             decks = Courses.all.filter { Courses.words(it).isNotEmpty() }.associate { c ->
@@ -270,7 +298,7 @@ class TopicViewModel @Inject constructor(
 }
 
 /** Which kind of sitting the quiz screen is running. */
-enum class QuizKind { MODULE, MOCK, REVIEW }
+enum class QuizKind { MODULE, MOCK, REVIEW, DAILY }
 
 /** The quiz runs entirely in memory until the results page, then one attempt is written. */
 data class QuizUiState(
@@ -319,12 +347,26 @@ class QuizViewModel @Inject constructor(
 
     init {
         val course = Courses.byId(courseId)
-        val me = (sessionStore.state.value as? com.shahaabapps.twotracks.session.SessionState.Ready)?.session?.myRole
+        val session = (sessionStore.state.value as? com.shahaabapps.twotracks.session.SessionState.Ready)?.session
+        val me = session?.myRole
+        fun progressNow() = if (course != null && me != null) {
+            CourseProgress.of(me, course.id, dataStore.topicProgress.value, dataStore.quizAttempts.value)
+        } else {
+            null
+        }
         val (module, kind) = when (moduleId) {
             Courses.MOCK_MODULE_ID -> course?.mockModule() to QuizKind.MOCK
             Courses.REVIEW_MODULE_ID -> {
-                val missed = if (course != null && me != null) CourseProgress.of(me, course.id, dataStore.topicProgress.value, dataStore.quizAttempts.value).reviewQuestions(course) else emptyList()
+                val missed = course?.let { progressNow()?.reviewQuestions(it) }.orEmpty()
                 course?.takeIf { missed.isNotEmpty() }?.reviewModule(missed) to QuizKind.REVIEW
+            }
+            Courses.DAILY_MODULE_ID -> {
+                val due = if (course != null && session != null) {
+                    progressNow()?.dailyDue(course, Clock.today(session.me)).orEmpty()
+                } else {
+                    emptyList()
+                }
+                course?.takeIf { due.isNotEmpty() }?.dailyModule(due) to QuizKind.DAILY
             }
             else -> course?.modules?.firstOrNull { it.id == moduleId } to QuizKind.MODULE
         }

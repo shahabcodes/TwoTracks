@@ -14,7 +14,8 @@ object Srs {
     const val DAILY_LIMIT = 15
 
     data class Card(
-        val wordId: String,
+        /** The item this card schedules: a vocabulary word, or a quiz question. */
+        val itemId: String,
         /** 0 = new, otherwise the index into [LADDER] of the last interval granted. */
         val step: Int = 0,
         val dueIso: String = "",
@@ -40,12 +41,12 @@ object Srs {
 
     /**
      * Today's session: due cards first (oldest due first), then new cards from
-     * [newWordIds] that have no state yet, up to [limit].
+     * [newItemIds] that have no state yet, up to [limit].
      */
-    fun session(cards: List<Card>, newWordIds: List<String>, today: LocalDate, limit: Int = DAILY_LIMIT): List<String> {
-        val byId = cards.associateBy { it.wordId }
-        val due = cards.filter { isDue(it, today) && it.dueIso.isNotEmpty() }.sortedBy { it.dueIso }.map { it.wordId }
-        val fresh = newWordIds.filter { it !in byId }
+    fun session(cards: List<Card>, newItemIds: List<String>, today: LocalDate, limit: Int = DAILY_LIMIT): List<String> {
+        val byId = cards.associateBy { it.itemId }
+        val due = cards.filter { isDue(it, today) && it.dueIso.isNotEmpty() }.sortedBy { it.dueIso }.map { it.itemId }
+        val fresh = newItemIds.filter { it !in byId }
         return (due + fresh).distinct().take(limit)
     }
 

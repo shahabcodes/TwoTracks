@@ -4,6 +4,8 @@ import com.shahaabapps.core.content.Block
 import com.shahaabapps.core.content.Courses
 import com.shahaabapps.core.model.PersonRole
 import com.shahaabapps.core.model.QuizAttempt
+import com.shahaabapps.core.planner.QuestionSrs
+import java.time.LocalDate
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -29,6 +31,68 @@ class CourseProgressTest {
 
     private fun progressFor(vararg attempts: QuizAttempt) =
         CourseProgress.of(me, course.id, emptyList(), attempts.toList())
+
+    // ------------------------------------------------------------- daily review
+
+    private val module = course.modules.first { it.quiz != null }
+    private val qs = module.quiz!!.questions
+
+    @Test
+    fun `a question answered right comes back on the schedule, not at once`() {
+        val p = progressFor(attempt(module.id, qs.take(2).map { it.id }, emptyList(), 1, date = "2026-10-01"))
+        assertEquals(0, p.dailyDueCount(LocalDate.of(2026, 10, 1)))
+        assertEquals(2, p.dailyDueCount(LocalDate.of(2026, 10, 2)))
+        assertEquals(qs.take(2).map { it.id }.toSet(), p.dailyDue(course, LocalDate.of(2026, 10, 2)).map { it.id }.toSet())
+    }
+
+    @Test
+    fun `a question in the review set is not also due for a daily review`() {
+        val p = progressFor(attempt(module.id, qs.take(2).map { it.id }, listOf(qs[0].id), 1, date = "2026-10-01"))
+        assertTrue(qs[0].id in p.missedQuestionIds)
+        // Both are scheduled, but the missed one belongs to the review set today.
+        assertEquals(listOf(qs[1].id), p.dailyDue(course, LocalDate.of(2026, 10, 2)).map { it.id })
+        assertEquals(1, p.dailyDueCount(LocalDate.of(2026, 10, 2)))
+    }
+
+    @Test
+    fun `a question never asked is never due`() {
+        val p = progressFor(attempt(module.id, listOf(qs[0].id), emptyList(), 1, date = "2026-10-01"))
+        val due = p.dailyDue(course, LocalDate.of(2027, 1, 1)).map { it.id }
+        assertEquals(listOf(qs[0].id), due)
+        assertFalse(qs[1].id in due)
+    }
+
+    @Test
+    fun `an inline check seeds the schedule, so reading alone fills the daily review`() {
+        val p = progressFor(attempt(Courses.CHECK_MODULE_ID, listOf(checkQuestion.id), emptyList(), 1, date = "2026-10-01"))
+        assertEquals(listOf(checkQuestion.id), p.dailyDue(course, LocalDate.of(2026, 10, 2)).map { it.id })
+    }
+
+    @Test
+    fun `the daily sitting holds to its limit while the count tells the truth`() {
+        val many = qs.map { it.id } + course.mockExam!!.questions.map { it.id }
+        val p = progressFor(attempt(Courses.MOCK_MODULE_ID, many.distinct(), emptyList(), 1, date = "2026-10-01"))
+        val tomorrow = LocalDate.of(2026, 10, 2)
+        assertEquals(QuestionSrs.DAILY_LIMIT, p.dailyDue(course, tomorrow).size)
+        assertTrue("the count should not be capped", p.dailyDueCount(tomorrow) > QuestionSrs.DAILY_LIMIT)
+    }
+
+    @Test
+    fun `a daily sitting advances the schedule and its misses join the review set`() {
+        val first = attempt(module.id, qs.take(2).map { it.id }, emptyList(), 1, date = "2026-10-01")
+        val daily = attempt(Courses.DAILY_MODULE_ID, qs.take(2).map { it.id }, listOf(qs[0].id), 2, date = "2026-10-02")
+        val p = progressFor(first, daily)
+        assertTrue("a miss in a daily sitting still needs getting right", qs[0].id in p.missedQuestionIds)
+        // The one held climbs the ladder, so it is not due again the next day.
+        assertEquals(0, p.dailyDueCount(LocalDate.of(2026, 10, 3)))
+        assertEquals(listOf(qs[1].id), p.dailyDue(course, LocalDate.of(2026, 10, 5)).map { it.id })
+    }
+
+    @Test
+    fun `a daily sitting is not a passed module`() {
+        val p = progressFor(attempt(Courses.DAILY_MODULE_ID, listOf(qs[0].id), emptyList(), 1))
+        assertEquals(0, p.modulesPassed(course))
+    }
 
     @Test
     fun `a missed check question joins the review set`() {

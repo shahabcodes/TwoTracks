@@ -5,6 +5,10 @@ build number is appended by CI (for example `0.1.0 (build 12)`).
 
 ## [Unreleased]
 
+## [0.32.0] - 2026-10-07
+### Added
+- Daily review: questions you got right come back on a widening schedule until they stick.
+
 ## [0.31.0] - 2026-10-07
 ### Fixed
 - Study hours now count what the course has left to do, so the weekly need and forecast are right.
