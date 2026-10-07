@@ -124,6 +124,22 @@ internal object Az204Compute {
                 For Two Tracks, the API lives in one Standard Linux plan with two instances. The admin site shares
                 the plan because it is tiny. Both read their Firebase settings from app settings, never from code.
             """),
+            B.h("Check yourself"),
+            B.match(
+                "az-c-appsvc-match", "Each symptom has one fix. Pair them.",
+                "Secrets sitting in appsettings.json" to "Move them to app settings or a Key Vault reference",
+                "The first request after an idle hour is slow" to "Turn on Always On, from Basic upwards",
+                "You need a staging copy to swap into production" to "Move the plan to Standard, where slots begin",
+                "A setting reads as null on Linux but worked on Windows" to "Match the key's case exactly",
+            ),
+            B.gap(
+                "az-c-appsvc-gap1", "Stream the log live from the shell.",
+                "az webapp log ___ --name twotracks-api --resource-group tt-rg", "tail",
+            ),
+            B.gap(
+                "az-c-appsvc-gap2", "Filesystem application logging turns itself off so it cannot fill the disk.",
+                "Logging to the file system stops on its own after ___ hours.", "12", "twelve",
+            ),
             B.tryIt("Try it in 15 minutes", "On a free Azure account, create a Linux web app on the Free tier, set one app setting, and watch the restart in the log stream.",
                 "Create web app, runtime .NET 8, Linux, Free F1", "Add app setting Hello=World and save", "Open Log stream and confirm the restart lines", "Browse the URL and see the default page", "Delete the resource group when done",
             ),
@@ -252,6 +268,23 @@ internal object Az204Compute {
                 Two Tracks gets a burst every evening at 16:15 Qatar time when reminders fire. A schedule rule adds a
                 worker at 16:00 and removes it at 18:00, cheaper than reacting to CPU after the spike has started.
             """),
+            B.h("Check yourself"),
+            B.match(
+                "az-c-slots-match", "Pair each term with what it actually does.",
+                "Scale up" to "A bigger worker: more cores and memory, and a new tier",
+                "Scale out" to "More workers behind the one URL, same tier",
+                "Swap" to "Routing changes so the warmed staging workers answer production",
+                "Traffic percent" to "A share of real users pinned to staging by a cookie",
+            ),
+            B.gap(
+                "az-c-slots-gap1", "Force your own browser onto the staging build without moving any users.",
+                "Open the production URL with ?x-ms-routing-name=___", "staging",
+            ),
+            B.gap(
+                "az-c-slots-gap2", "The question says production must keep using the production database after the swap.",
+                "Mark the connection string as a deployment ___ setting so it stays put.", "slot",
+            ),
+            B.reorder("az-c-slots-re1", "Build the command that deploys to the staging slot.", "az webapp deploy --slot staging"),
             B.tryIt("Try it in 15 minutes", "Needs a Standard S1 plan, which the free credit covers for an hour. Delete it after.",
                 "Add a slot named staging to a web app", "Change the app title in staging only", "Swap and confirm production shows the new title", "Swap back", "Delete the plan",
             ),
@@ -392,6 +425,23 @@ internal object Az204Compute {
                 reminder message per user onto a queue. A second, queue-triggered function sends the notification.
                 Both sit in one Consumption function app and cost cents a month.
             """),
+            B.h("Check yourself"),
+            B.match(
+                "az-c-func-match", "Pair each piece with its job.",
+                "Trigger" to "The one event that starts the function",
+                "Input binding" to "Hands data in with no connection code",
+                "Output binding" to "Writes what you return to another service",
+                "host.json" to "Settings shared by every function in the app",
+            ),
+            B.gap(
+                "az-c-func-gap1", "Azure's timer uses six fields where most CRON uses five.",
+                "Seconds, minutes, hours, day, month and ___.", "weekday", "day of week", "day-of-week",
+            ),
+            B.gap(
+                "az-c-func-gap2", "However many bindings a function has, this number does not change.",
+                "Every function has exactly ___ trigger.", "one", "1",
+            ),
+            B.reorder("az-c-func-re1", "Build the command that publishes the project to Azure.", "func azure functionapp publish tt-functions"),
             B.tryIt("Try it in 15 minutes", "Free tier is enough; a Consumption app has a free monthly grant.",
                 "Create a Consumption function app in the portal", "Add an HTTP trigger function with the template", "Call it from the browser with ?name=you", "Add a timer function with 0 */1 * * * * and watch Monitor show runs every minute", "Delete the resource group",
             ),

@@ -5,6 +5,10 @@ build number is appended by CI (for example `0.1.0 (build 12)`).
 
 ## [Unreleased]
 
+## [0.37.0] - 2026-10-07
+### Added
+- AZ-204 now has exercises in every topic: match the service, fill the command, order the steps.
+
 ## [0.36.0] - 2026-10-07
 ### Added
 - A shared streak on Today: days in a row you both studied, and whose turn it is.
