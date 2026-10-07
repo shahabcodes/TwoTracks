@@ -112,6 +112,20 @@ class ContentTest {
     }
 
     @Test
+    fun `every topic asks the reader to do something`() {
+        // A topic that only explains is a page of a textbook. Each one must
+        // carry at least one check or exercise, so reading is interrupted by
+        // recalling. AZ-204 shipped with none of the latter; this stops that
+        // happening again, in any course.
+        courses.forEach { c ->
+            c.allTopics.forEach { t ->
+                val interactive = t.blocks.count { it is Block.Check || it is Block.Exercise }
+                assertTrue("${c.id}/${t.id} has nothing to do, only prose", interactive > 0)
+            }
+        }
+    }
+
+    @Test
     fun `vocabulary ids are unique and exercises are well formed`() {
         courses.forEach { c ->
             val words = Courses.words(c)

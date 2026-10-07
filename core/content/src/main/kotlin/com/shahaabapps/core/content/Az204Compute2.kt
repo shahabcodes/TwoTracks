@@ -109,6 +109,22 @@ internal object Az204Compute2 {
                 Two Tracks could use a monitor pattern to nudge a partner: start when a session is planned, check every
                 hour whether it was logged, and after the slot ends send one gentle reminder, then stop.
             """),
+            B.h("Check yourself"),
+            B.match(
+                "az-c-durable-match", "Pair each piece of a durable workflow with its job.",
+                "Client (starter)" to "Kicks off an orchestration and gets back an instance id",
+                "Orchestrator" to "Calls activities in order and keeps the state, deterministically",
+                "Activity" to "The one step that does the actual work",
+                "Durable timer" to "The only safe way for an orchestration to wait",
+            ),
+            B.gap(
+                "az-c-durable-gap1", "An orchestrator replays from the start, so the clock cannot come from the system.",
+                "Read the time with context.___ instead of DateTime.Now.", "CurrentUtcDateTime", "currentutcdatetime",
+            ),
+            B.gap(
+                "az-c-durable-gap2", "Name the pattern: resize every photo in parallel, then build one gallery from the results.",
+                "That is ___, with Task.WhenAll.", "fan-out/fan-in", "fan out/fan in", "fan-out fan-in", "fanout/fanin",
+            ),
             B.tryIt("Try it in 15 minutes", "Works locally with Azurite; no Azure resources needed.",
                 "func new with the Durable Functions orchestration template (dotnet-isolated)", "func start and POST to the HttpStart endpoint", "Open the statusQueryGetUri from the response", "Add a 30-second durable timer and watch runtimeStatus stay Running then Completed",
             ),
@@ -251,6 +267,23 @@ internal object Az204Compute2 {
                 min 1 replica (no cold start at 16:15) and max 5. The nightly export is an ACI container group that
                 writes to an Azure Files share and exits.
             """),
+            B.h("Check yourself"),
+            B.match(
+                "az-c-containers-match", "Each requirement points at one service. Pair them.",
+                "Run this container now, no orchestration, billed by the second" to "Container Instances",
+                "Microservices with scale to zero, revisions and Dapr" to "Container Apps",
+                "A private registry that can also build the image for you" to "Container Registry",
+                "The question insists on full Kubernetes control" to "AKS",
+            ),
+            B.gap(
+                "az-c-containers-gap1", "Pay nothing while the app is idle, at the cost of a cold start.",
+                "Set Container Apps minimum replicas to ___.", "0", "zero",
+            ),
+            B.gap(
+                "az-c-containers-gap2", "Container disks are thrown away when the container goes.",
+                "Mount an Azure ___ share to keep files between runs.", "Files", "files",
+            ),
+            B.reorder("az-c-containers-re1", "Build the command that creates the registry.", "az acr create --name twotracksacr --sku Basic"),
             B.tryIt("Try it in 15 minutes", "ACR Basic and one ACI container cost a few cents; delete after.",
                 "Create a Basic ACR", "az acr build a hello-world Dockerfile into it", "az container create from that image with --restart-policy Never", "az container logs shows the output", "Delete the resource group",
             ),
