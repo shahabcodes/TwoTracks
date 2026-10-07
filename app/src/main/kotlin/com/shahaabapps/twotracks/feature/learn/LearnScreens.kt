@@ -36,6 +36,9 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.shahaabapps.core.content.Course
 import com.shahaabapps.core.content.CourseProgress
+import com.shahaabapps.core.content.DailyStudy
+import com.shahaabapps.core.content.StudyKind
+import com.shahaabapps.core.content.StudyStep
 import com.shahaabapps.core.content.Courses
 import com.shahaabapps.core.content.Module
 import com.shahaabapps.core.ui.components.CupertinoCard
@@ -63,6 +66,17 @@ fun LearnScreen(
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     CupertinoScaffold(title = "Learn") {
         LazyColumn(verticalArrangement = Arrangement.spacedBy(Spacing.md), contentPadding = PaddingValues(bottom = Spacing.xl)) {
+            if (state.daily.total > 0) {
+                item {
+                    TodayStudyCard(state.daily) { step ->
+                        when (step.kind) {
+                            StudyKind.TOPIC -> step.topicId?.let { onOpenTopic(step.courseId, it) }
+                            StudyKind.WORDS -> onOpenDeck(step.courseId)
+                            StudyKind.QUESTIONS -> onOpenQuiz(step.courseId, Courses.DAILY_MODULE_ID)
+                        }
+                    }
+                }
+            }
             state.courses.forEach { course ->
                 val p = state.progress[course.id]
                 val next = p?.nextTopic(course)
@@ -120,6 +134,71 @@ fun LearnScreen(
                     }
                 }
             }
+        }
+    }
+}
+
+/**
+ * Today's study, across every course: read one topic, clear the words that are
+ * due, answer the questions that have come back round. Three rows that can all
+ * be ticked, so the day has an end rather than only a middle.
+ */
+@Composable
+private fun TodayStudyCard(daily: DailyStudy, onStep: (StudyStep) -> Unit) {
+    CupertinoCard(modifier = Modifier.padding(horizontal = Spacing.listHorizontal)) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(if (daily.closed) "Done for today" else "Today's study", style = MaterialTheme.typography.headlineMedium)
+                Text(
+                    if (daily.closed) {
+                        "Everything due is cleared. The rest comes back when it is meant to."
+                    } else {
+                        "${daily.doneCount} of ${daily.total} done · about ${daily.minutesLeft} min left"
+                    },
+                    style = MaterialTheme.typography.bodySmall, color = AppTheme.colors.secondaryLabel,
+                )
+            }
+            if (daily.closed) {
+                Icon(Icons.Filled.CheckCircle, contentDescription = null, tint = AppTheme.colors.success, modifier = Modifier.size(28.dp))
+            }
+        }
+        ProgressBar(
+            fraction = daily.fraction,
+            color = if (daily.closed) AppTheme.colors.success else AppTheme.colors.accent,
+            modifier = Modifier.padding(top = Spacing.sm),
+        )
+        daily.steps.forEach { step ->
+            val icon = when (step.kind) {
+                StudyKind.TOPIC -> Icons.Filled.MenuBook
+                StudyKind.WORDS -> Icons.Filled.Style
+                StudyKind.QUESTIONS -> Icons.Filled.Schedule
+            }
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.padding(top = Spacing.sm).fillMaxWidth().clip(Shapes.field)
+                    .background(AppTheme.colors.fill)
+                    .clickable(enabled = !step.done) { onStep(step) }
+                    .padding(horizontal = Spacing.md, vertical = 10.dp),
+            ) {
+                Icon(
+                    if (step.done) Icons.Filled.CheckCircle else icon,
+                    contentDescription = null,
+                    tint = if (step.done) AppTheme.colors.success else AppTheme.colors.accent,
+                    modifier = Modifier.size(20.dp),
+                )
+                Column(modifier = Modifier.weight(1f).padding(start = Spacing.sm)) {
+                    Text(step.title, style = MaterialTheme.typography.titleMedium, color = if (step.done) AppTheme.colors.secondaryLabel else Color.Unspecified)
+                    Text(step.detail, style = MaterialTheme.typography.bodySmall, color = AppTheme.colors.secondaryLabel)
+                }
+                if (!step.done) CupertinoDisclosure()
+            }
+        }
+        daily.next?.let { next ->
+            CupertinoPrimaryButton(
+                text = "Start: ${next.title.substringBefore(":")}",
+                onClick = { onStep(next) },
+                modifier = Modifier.padding(top = Spacing.md),
+            )
         }
     }
 }

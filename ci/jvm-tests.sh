@@ -73,8 +73,13 @@ rm -rf "$WORK/main" "$WORK/test"; mkdir -p "$WORK/main" "$WORK/test"
 echo "== compiling main =="
 kotlinc -no-stdlib -cp "$STDLIB" -jvm-target 17 -d "$WORK/main" "${main_roots[@]}" 2>&1 | quiet
 
+# -Xfriend-paths makes the main output a friend module so tests can reach
+# internal declarations, which is what Gradle does for the same source set.
+# Without it this script is stricter than the real build and would push
+# visibility changes that exist only to satisfy the harness.
 echo "== compiling tests =="
-kotlinc -no-stdlib -cp "$TEST_CP" -jvm-target 17 -d "$WORK/test" "${test_roots[@]}" 2>&1 | quiet
+kotlinc -no-stdlib -cp "$TEST_CP" -jvm-target 17 -Xfriend-paths="$WORK/main" \
+  -d "$WORK/test" "${test_roots[@]}" 2>&1 | quiet
 
 classes=$(find "$WORK/test" -name '*Test.class' | sed "s|$WORK/test/||; s|/|.|g; s|\.class$||" | sort)
 [ -n "$classes" ] || { echo "no test classes compiled" >&2; exit 1; }
