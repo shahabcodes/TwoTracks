@@ -1,9 +1,9 @@
 package com.shahaabapps.twotracks.feature.today
 
-import com.shahaabapps.twotracks.feature.learn.Deck
 import com.shahaabapps.core.model.TopicProgress
 import com.shahaabapps.core.content.Courses
 import com.shahaabapps.core.content.CourseProgress
+import com.shahaabapps.core.content.WordDeck
 import com.shahaabapps.twotracks.session.Celebrations
 import android.content.Context
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -228,11 +228,19 @@ class TodayViewModel @Inject constructor(
         return "Review: $total missed question${if (total == 1) "" else "s"} waiting on the course page. Getting them right clears them."
     }
 
+    /** Questions the spaced schedule has brought back round, across the courses in play. */
+    private fun dailyLine(p: PersonPlan): String? {
+        val total = Courses.all.filter { c -> p.activeGoalIds.any { c.feeds(it) } }
+            .sumOf { c -> CourseProgress.of(p.role, c.id, dataStore.topicProgress.value, dataStore.quizAttempts.value).dailyDueCount(p.today) }
+        if (total == 0) return null
+        return "Daily review: $total question${if (total == 1) "" else "s"} back round on the Learn tab. Each one you hold comes back later than last time."
+    }
+
     /** Flashcards due today across language courses the person has started. */
     private fun wordsLine(p: PersonPlan): String? {
         val cards = dataStore.flashcards.value
         val progress = dataStore.topicProgress.value
-        val total = Courses.all.filter { Courses.words(it).isNotEmpty() }.sumOf { c -> Deck.dueCount(p.role, c, cards, p.today) + Deck.newCount(p.role, c, cards, progress) }
+        val total = Courses.all.filter { Courses.words(it).isNotEmpty() }.sumOf { c -> WordDeck.dueCount(p.role, c, cards, p.today) + WordDeck.newCount(p.role, c, cards, progress) }
         if (total == 0) return null
         return "Words: $total cards waiting in the deck, about ${(total / 4).coerceAtLeast(2)} minutes. Missed words come back until they stick."
     }
@@ -276,6 +284,7 @@ class TodayViewModel @Inject constructor(
         }
         learnLine(p)?.let { reasons += BriefIcons.learn to it }
         reviewLine(p)?.let { reasons += BriefIcons.learn to it }
+        dailyLine(p)?.let { reasons += BriefIcons.learn to it }
         wordsLine(p)?.let { reasons += BriefIcons.learn to it }
         reasons += BriefIcons.move to when {
             deadline != null && deadlineDays != null -> "${deadline.title} in $deadlineDays days. Every session now is one less to squeeze in later."

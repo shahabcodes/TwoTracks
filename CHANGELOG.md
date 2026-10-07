@@ -5,6 +5,10 @@ build number is appended by CI (for example `0.1.0 (build 12)`).
 
 ## [Unreleased]
 
+## [0.33.0] - 2026-10-07
+### Added
+- Today's study: one card on the Learn tab with the day's topic, words and questions, ticked off as you go.
+
 ## [0.32.0] - 2026-10-07
 ### Added
 - Daily review: questions you got right come back on a widening schedule until they stick.

@@ -7,6 +7,7 @@ import com.shahaabapps.core.common.AppResult
 import com.shahaabapps.core.content.Course
 import com.shahaabapps.core.content.Courses
 import com.shahaabapps.core.content.Word
+import com.shahaabapps.core.content.WordDeck
 import com.shahaabapps.core.data.learning.LearningRepository
 import com.shahaabapps.core.model.Flashcard
 import com.shahaabapps.core.model.PersonRole
@@ -25,26 +26,6 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 import javax.inject.Inject
-
-/** Pure helpers shared by the deck screen and the Learn tab card. */
-object Deck {
-    fun cardsFor(owner: PersonRole, course: Course, all: List<Flashcard>): List<Srs.Card> =
-        all.filter { it.owner == owner && it.courseId == course.id }.map { Srs.Card(it.wordId, it.step, it.dueIso, it.lastReviewIso, it.correct, it.misses) }
-
-    /** Words the person has met: every word in a topic they marked learned. */
-    fun metWordIds(owner: PersonRole, course: Course, progress: List<TopicProgress>): List<String> {
-        val learned = progress.filter { it.owner == owner && it.courseId == course.id }.map { it.topicId }.toSet()
-        return course.modules.flatMap { m -> m.topics.filter { it.id in learned } }
-            .flatMap { t -> t.blocks.filterIsInstance<com.shahaabapps.core.content.Block.Vocab>().flatMap { it.words } }.map { it.id }
-    }
-
-    fun dueCount(owner: PersonRole, course: Course, all: List<Flashcard>, today: LocalDate): Int = Srs.dueCount(cardsFor(owner, course, all), today)
-
-    fun newCount(owner: PersonRole, course: Course, all: List<Flashcard>, progress: List<TopicProgress>): Int {
-        val have = all.filter { it.owner == owner && it.courseId == course.id }.map { it.wordId }.toSet()
-        return metWordIds(owner, course, progress).count { it !in have }
-    }
-}
 
 data class DeckUiState(
     val course: Course? = null,
@@ -93,8 +74,8 @@ class DeckViewModel @Inject constructor(
         val course = Courses.byId(courseId) ?: return
         today = Clock.today(s.me)
         val all = dataStore.flashcards.value
-        cards = Deck.cardsFor(s.myRole, course, all).associateBy { it.itemId }.toMutableMap()
-        val met = Deck.metWordIds(s.myRole, course, dataStore.topicProgress.value)
+        cards = WordDeck.cardsFor(s.myRole, course, all).associateBy { it.itemId }.toMutableMap()
+        val met = WordDeck.metWordIds(s.myRole, course, dataStore.topicProgress.value)
         val wordsById = Courses.words(course).associateBy { it.id }
         var ids = Srs.session(cards.values.toList(), met, today)
         if (force && ids.isEmpty()) ids = (cards.keys.toList() + met).distinct().shuffled().take(10)

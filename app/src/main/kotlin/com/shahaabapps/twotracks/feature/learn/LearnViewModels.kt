@@ -9,11 +9,13 @@ import com.shahaabapps.core.common.AppResult
 import com.shahaabapps.core.content.Course
 import com.shahaabapps.core.content.CourseProgress
 import com.shahaabapps.core.content.Courses
+import com.shahaabapps.core.content.DailyStudy
 import com.shahaabapps.core.content.draw
 import com.shahaabapps.core.content.Module
 import com.shahaabapps.core.content.Question
 import com.shahaabapps.core.content.Quiz
 import com.shahaabapps.core.content.Topic
+import com.shahaabapps.core.content.WordDeck
 import com.shahaabapps.core.data.learning.LearningRepository
 import com.shahaabapps.core.model.PersonRole
 import com.shahaabapps.core.model.QuizAttempt
@@ -141,6 +143,8 @@ data class LearnUiState(
     val decks: Map<String, DeckInfo> = emptyMap(),
     /** Questions due for a spaced review today, per course. */
     val dailyDue: Map<String, Int> = emptyMap(),
+    /** Today's loop across every course: one topic, the words due, the questions back round. */
+    val daily: DailyStudy = DailyStudy(),
 )
 
 @HiltViewModel
@@ -156,10 +160,11 @@ class LearnViewModel @Inject constructor(
         LearnUiState(
             progress = mine,
             dailyDue = mine.mapValues { (_, p) -> p.dailyDueCount(today) },
+            daily = DailyStudy.of(session.myRole, Courses.all, mine, progress, attempts, cards, today),
             partnerProgress = Courses.all.associate { it.id to CourseProgress.of(partnerRole, it.id, progress, attempts) },
             partnerName = session.partner?.name ?: "Partner",
             decks = Courses.all.filter { Courses.words(it).isNotEmpty() }.associate { c ->
-                c.id to DeckInfo(Deck.dueCount(session.myRole, c, cards, today), Deck.newCount(session.myRole, c, cards, progress), cards.count { it.owner == session.myRole && it.courseId == c.id })
+                c.id to DeckInfo(WordDeck.dueCount(session.myRole, c, cards, today), WordDeck.newCount(session.myRole, c, cards, progress), cards.count { it.owner == session.myRole && it.courseId == c.id })
             },
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), LearnUiState())
