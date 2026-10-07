@@ -35,6 +35,18 @@ data class Course(
     /** The mock exam wrapped as a module so the quiz screen can run it; logs to the practice component. */
     fun mockModule(): Module? = mockExam?.let { Module(Courses.MOCK_MODULE_ID, 0, "Mock exam", "A timed practice exam across every module.", "", "practice", allTopics, it) }
 
+    /**
+     * A short sitting of questions met before and now due again, so the course
+     * still has something to give once the module tests are passed. Logs to
+     * practice like the other sittings.
+     */
+    fun dailyModule(questions: List<Question>): Module =
+        Module(
+            Courses.DAILY_MODULE_ID, 0, "Daily review",
+            "Questions you have met before, back just before they fade.", "", "practice", allTopics,
+            Quiz(Courses.DAILY_MODULE_ID, "Daily review", passPercent = 0, questions = questions),
+        )
+
     /** A review test built from [questions] the person got wrong; also logs to practice. */
     fun reviewModule(questions: List<Question>): Module =
         Module(Courses.REVIEW_MODULE_ID, 0, "Review", "The questions you missed, until you get them right.", "", "practice", allTopics, Quiz(Courses.REVIEW_MODULE_ID, "Review missed questions", passPercent = 0, questions = questions))
@@ -296,6 +308,8 @@ object Courses {
     /** Module ids the quiz route accepts besides real modules. */
     const val MOCK_MODULE_ID = "mock-exam"
     const val REVIEW_MODULE_ID = "review"
+    /** A sitting of questions due again on the spaced-repetition schedule. */
+    const val DAILY_MODULE_ID = "daily"
     /** Attempts recorded for the one-question checks inside a topic. */
     const val CHECK_MODULE_ID = "checks"
     val all: List<Course> get() = listOf(Az204.course, GermanA1.course, Ielts.course)

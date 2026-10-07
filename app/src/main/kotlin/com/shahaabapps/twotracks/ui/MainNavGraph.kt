@@ -206,7 +206,7 @@ fun MainNavGraph(session: AppSession) {
                 LevelsScreen(onOpenLevel = { navController.navigate(Routes.level(it)) }, onNavigate = { navController.navigate(it) })
             }
             composable(Routes.LEARN) {
-                LearnScreen(onOpenCourse = { navController.navigate(Routes.course(it)) }, onOpenTopic = { c, t -> navController.navigate(Routes.topic(c, t)) }, onOpenDeck = { navController.navigate(Routes.deck(it)) })
+                LearnScreen(onOpenCourse = { navController.navigate(Routes.course(it)) }, onOpenTopic = { c, t -> navController.navigate(Routes.topic(c, t)) }, onOpenDeck = { navController.navigate(Routes.deck(it)) }, onOpenQuiz = { c, m -> navController.navigate(Routes.quiz(c, m)) })
             }
             composable(Routes.DECK, arguments = listOf(navArgument("courseId") { type = NavType.StringType })) {
                 DeckScreen(onBack = { navController.popBackStack() })

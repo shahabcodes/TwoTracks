@@ -13,5 +13,6 @@ kotlin {
 
 dependencies {
     implementation(project(":core:model"))
+    implementation(project(":core:planner"))
     testImplementation(libs.junit)
 }
