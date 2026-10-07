@@ -55,8 +55,13 @@ jobs:
             echo "using committed placeholder (app will not reach a real backend)."
           fi
 
-      - name: Unit tests (planner, seed)
-        run: gradle :core:planner:test :core:seed:test --no-daemon
+      # The same set a contributor runs locally before pushing: ContentTest in
+      # core:content guards the course data (ids, recaps, diagrams, glossaries,
+      # reference URLs, quiz shape, and that every writing model answer passes
+      # its own marker), and the app tests cover the practice rule and the
+      # review set.
+      - name: Unit tests (content, planner, seed, app)
+        run: gradle :core:content:test :core:planner:test :core:seed:test :app:testDebugUnitTest --no-daemon
 
       - name: Build debug APK (signed with the committed debug keystore)
         run: gradle :app:assembleDebug --no-daemon --stacktrace
