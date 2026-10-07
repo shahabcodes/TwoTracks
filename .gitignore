@@ -5,6 +5,8 @@
 .DS_Store
 /build
 build/
+# Kotlin compiler session scratch, written beside the build output.
+.kotlin/
 /captures
 .externalNativeBuild
 .cxx
