@@ -66,7 +66,7 @@ placeholder, which installs but cannot reach a backend.
 ## Building
 
 ```bash
-./gradlew :core:planner:test :core:seed:test
+./gradlew :core:content:test :core:planner:test :core:seed:test :app:testDebugUnitTest
 ./gradlew :app:assembleDebug
 ```
 
@@ -79,6 +79,30 @@ To test against the local Firebase emulator suite instead of a real project:
 npx firebase-tools@13 emulators:start --only auth,firestore
 ./gradlew :app:assembleDebug -PfirebaseEmulator=true
 ```
+
+## Cloud sessions
+
+A Claude Code cloud container cannot build this project out of the box: there
+is no Android SDK, the JDK is 21 where the build wants 17, and the environment's
+network policy usually denies `dl.google.com`, which serves both the SDK
+packages and Google's Maven. Because the root build declares the Android Gradle
+plugin, Gradle will not even configure — not even for the plain-Kotlin modules.
+
+Two scripts cover that:
+
+```bash
+ci/jvm-tests.sh      # core:model, core:planner, core:content — no Gradle, no SDK
+ci/check-imports.sh  # :app using a core type it never imported, and the reverse
+```
+
+`ci/jvm-tests.sh` drives the Kotlin compiler directly, fetching it from Maven
+Central, and runs those three modules' tests anywhere. Keep logic worth testing
+in them and it stays useful. The app module still needs the real toolchain.
+
+To get the real toolchain in a cloud session, allow `dl.google.com` under the
+environment's Network access and run `ci/cloud-setup.sh` as its Setup script.
+That installs JDK 17 from apt and the Android SDK, and points every shell and
+the checkout at both. It refuses with instructions if that host is still denied.
 
 ## Versions, signing and releases
 
