@@ -35,6 +35,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.shahaabapps.core.content.Course
+import com.shahaabapps.core.content.CourseProgress
 import com.shahaabapps.core.content.Courses
 import com.shahaabapps.core.content.Module
 import com.shahaabapps.core.ui.components.CupertinoCard

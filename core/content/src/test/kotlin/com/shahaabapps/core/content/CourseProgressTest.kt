@@ -1,7 +1,5 @@
-package com.shahaabapps.twotracks.feature.learn
+package com.shahaabapps.core.content
 
-import com.shahaabapps.core.content.Block
-import com.shahaabapps.core.content.Courses
 import com.shahaabapps.core.model.PersonRole
 import com.shahaabapps.core.model.QuizAttempt
 import com.shahaabapps.core.planner.QuestionSrs
