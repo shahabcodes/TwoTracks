@@ -56,6 +56,20 @@ class StudyActions @Inject constructor(
         return null
     }
 
+    /**
+     * Marks a planned session done without logging any minutes, for a session
+     * whose course keeps the time itself. Logging the planned duration on top
+     * would count the same study twice.
+     */
+    suspend fun markSessionDone(sessionId: String): String? {
+        val s = sessionStore.current() ?: return "Not signed in"
+        val r = studyRepository.setSessionStatus(s.coupleId, sessionId, SessionStatus.DONE)
+        if (r is AppResult.Failure) return r.error.message ?: "Could not save"
+        reminderScheduler.refresh()
+        celebrations.logged("Session done")
+        return null
+    }
+
     suspend fun skipSession(sessionId: String): String? {
         val s = sessionStore.current() ?: return "Not signed in"
         return (studyRepository.setSessionStatus(s.coupleId, sessionId, SessionStatus.SKIPPED) as? AppResult.Failure)?.error?.message

@@ -278,12 +278,20 @@ private fun SessionBlock(
                 CupertinoSecondaryButton(text = "Review ${r.count} missed question${if (r.count == 1) "" else "s"}", onClick = { onOpenQuiz(r.courseId, Courses.REVIEW_MODULE_ID) }, modifier = Modifier.padding(top = Spacing.sm))
             }
             Row(horizontalArrangement = Arrangement.spacedBy(Spacing.sm), modifier = Modifier.padding(top = Spacing.md)) {
-                Chip(text = "Different time", onClick = onLog)
+                // Where the course keeps the time there is nothing to enter by hand.
+                if (!row.timeFromCourse) Chip(text = "Different time", onClick = onLog)
                 Chip(text = "Skip today", onClick = onSkip)
+            }
+            if (row.timeFromCourse) {
+                Text(
+                    "Minutes count themselves as you read, test and review.",
+                    style = MaterialTheme.typography.bodySmall, color = AppTheme.colors.secondaryLabel,
+                    modifier = Modifier.padding(top = Spacing.sm),
+                )
             }
         } else if (skipped) {
             CupertinoTextButton(text = "Reopen", onClick = onReopen)
-        } else {
+        } else if (!row.timeFromCourse) {
             CupertinoTextButton(text = "Add more time", onClick = onLog)
         }
     }

@@ -52,6 +52,12 @@ data class SessionRow(
     val nextTopic: NextTopic? = null,
     /** Missed questions waiting in the course's review set, shown when the topics are all read or this is practice time. */
     val review: ReviewSet? = null,
+    /**
+     * True when the course records this session's time itself, so the plan
+     * neither asks for minutes nor adds its own. A class is never covered:
+     * it happens away from the app and only a person can say how long it ran.
+     */
+    val timeFromCourse: Boolean = false,
 )
 
 data class NextTopic(val courseId: String, val topicId: String, val title: String, val minutes: Int)
@@ -135,6 +141,7 @@ class TodayViewModel @Inject constructor(
                     timeLabel = "${Dates.minutesToClock(s.startMinutes)} to ${Dates.minutesToClock(s.endMinutes)}",
                     nextTopic = nextTopicFor(p.role, s.goalId, s.componentId, topicProgress),
                     review = reviewFor(p.role, s.goalId, s.componentId, topicProgress),
+                    timeFromCourse = !s.isClass && Courses.covers(s.goalId, s.componentId),
                 )
             }
             return PersonCard(
@@ -158,11 +165,20 @@ class TodayViewModel @Inject constructor(
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), TodayUiState())
 
-    /** One-tap Done: logs the planned minutes to the planned goal and skill. */
+    /**
+     * One-tap Done. Where a course keeps the time — reading, tests and the deck
+     * all log as you go — the session is only marked done; logging its planned
+     * duration on top would count the same study twice and flatter the pace the
+     * forecast reads. Everywhere else the planned minutes are still the record.
+     */
     fun done(row: SessionRow) = viewModelScope.launch {
         val s = row.session
-        message.value = actions.logMinutes(s.goalId, s.componentId, s.durationMinutes, s.dateIso, sessionId = s.id, fromClass = s.isClass)
-            ?: "Logged ${s.durationMinutes} min of ${row.goal?.title ?: "study"}"
+        message.value = if (row.timeFromCourse) {
+            actions.markSessionDone(s.id) ?: "Session done. The course counts the time as you study."
+        } else {
+            actions.logMinutes(s.goalId, s.componentId, s.durationMinutes, s.dateIso, sessionId = s.id, fromClass = s.isClass)
+                ?: "Logged ${s.durationMinutes} min of ${row.goal?.title ?: "study"}"
+        }
     }
 
     fun logMinutes(goalId: String, componentId: String, minutes: Int, note: String, sessionId: String?, fromClass: Boolean) {
