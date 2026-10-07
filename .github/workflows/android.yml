@@ -90,8 +90,16 @@ jobs:
       # Only the newest APK is kept on GitHub: every earlier release (and its
       # APK) is deleted before this build's release is created. Git tags of
       # versioned releases stay so history is still visible.
+      #
+      # This condition must stay the union of the two publish steps below. It
+      # used to be a plain "not a pull request", which also matched a manual
+      # run from a branch — and since publishing needs main or a tag, such a
+      # run deleted the release and put nothing in its place, leaving no
+      # installable APK anywhere.
       - name: Delete previous releases and their APKs
-        if: github.event_name != 'pull_request'
+        if: |
+          ((github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main')
+          || startsWith(github.ref, 'refs/tags/v')
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
