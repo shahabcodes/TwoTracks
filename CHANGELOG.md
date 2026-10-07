@@ -5,6 +5,10 @@ build number is appended by CI (for example `0.1.0 (build 12)`).
 
 ## [Unreleased]
 
+## [0.36.0] - 2026-10-07
+### Added
+- A shared streak on Today: days in a row you both studied, and whose turn it is.
+
 ## [0.35.0] - 2026-10-07
 ### Fixed
 - Speaking: your answer now shows only on the card you spoke into, and a comma no longer costs you a word.

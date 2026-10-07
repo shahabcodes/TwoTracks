@@ -77,6 +77,10 @@ data class PlanSnapshot(
     val session: AppSession,
     val me: PersonPlan,
     val partner: PersonPlan,
+    /** Days in a row both of them studied, and who still owes today. */
+    val togetherStreak: Int = 0,
+    val longestTogether: Int = 0,
+    val togetherToday: Streaks.Together = Streaks.Together.NEITHER,
 ) {
     fun forRole(role: PersonRole): PersonPlan = if (role == me.role) me else partner
 }
@@ -115,7 +119,18 @@ class PlanStore @Inject constructor(
                 weekCounts = weekCounts,
             )
         }
-        PlanSnapshot(session = session, me = person(session.myRole), partner = person(session.partnerRole))
+        val mine = person(session.myRole)
+        val theirs = person(session.partnerRole)
+        // The shared run is counted on my own day boundary: we may be in
+        // different time zones, and one calendar has to decide what "today" is.
+        val myDates = logs.filter { it.owner == mine.role }.map { it.dateIso }
+        val theirDates = logs.filter { it.owner == theirs.role }.map { it.dateIso }
+        PlanSnapshot(
+            session = session, me = mine, partner = theirs,
+            togetherStreak = Streaks.together(myDates, theirDates, mine.today),
+            longestTogether = Streaks.longestTogether(myDates, theirDates),
+            togetherToday = Streaks.togetherToday(myDates, theirDates, mine.today),
+        )
     }.stateIn(scope, SharingStarted.WhileSubscribed(10_000), null)
 }
 

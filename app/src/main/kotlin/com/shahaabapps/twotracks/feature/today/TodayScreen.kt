@@ -10,6 +10,8 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -18,6 +20,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.RadioButtonUnchecked
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -40,6 +44,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.shahaabapps.core.content.Courses
+import com.shahaabapps.core.planner.Streaks
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.shahaabapps.core.model.SessionStatus
 import com.shahaabapps.core.ui.components.Avatar
@@ -115,6 +120,12 @@ fun TodayScreen(
                         }
                     }
                 }
+            }
+
+            // The shared run: the one thing here that asks something of the pair.
+            val partnerName = state.partner?.name
+            if (partnerName != null) {
+                item { TogetherCard(state, partnerName = partnerName) }
             }
 
             // My card
@@ -229,6 +240,56 @@ fun TodayScreen(
         WhatsNewDialog(release = whatsNew, onDismiss = viewModel::dismissWhatsNew, onViewMore = { viewModel.dismissWhatsNew(); onOpenChangelog() })
     } else if (brief != null && !state.loading) {
         DailyBriefSheet(brief = brief, onStart = viewModel::dismissBrief, onDismiss = viewModel::dismissBrief)
+    }
+}
+
+/**
+ * Days in a row when both of them studied. It cannot be kept alive alone,
+ * which is what makes it worth showing: the nudge is to the one who has not
+ * studied yet, by name, rather than a number only you can move.
+ */
+@Composable
+private fun TogetherCard(state: TodayUiState, partnerName: String) {
+    val run = state.togetherStreak
+    val headline = when (state.togetherToday) {
+        Streaks.Together.BOTH -> if (run > 1) "$run days running, together" else "Both studied today"
+        Streaks.Together.ONLY_ME -> "Your part is done"
+        Streaks.Together.ONLY_THEM -> "$partnerName has studied today"
+        Streaks.Together.NEITHER -> if (run > 0) "$run day${if (run == 1) "" else "s"} running, together" else "Study together"
+    }
+    val detail = when (state.togetherToday) {
+        Streaks.Together.BOTH -> "You both showed up today. Longest run together: ${maxOf(state.longestTogether, run)} days."
+        Streaks.Together.ONLY_ME -> "$partnerName has not studied yet. The run needs both of you."
+        Streaks.Together.ONLY_THEM -> "Your turn, to keep the run going."
+        Streaks.Together.NEITHER ->
+            if (run > 0) "Still alive until the day is out. Neither of you has studied yet." else "A day counts when you both study. Nobody can keep it going alone."
+    }
+    val tone = when (state.togetherToday) {
+        Streaks.Together.BOTH -> AppTheme.colors.success
+        Streaks.Together.NEITHER -> if (run > 0) AppTheme.colors.warn else AppTheme.colors.secondaryLabel
+        else -> AppTheme.colors.accent
+    }
+    CupertinoCard(modifier = Modifier.padding(horizontal = Spacing.listHorizontal)) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Icon(
+                if (state.togetherToday == Streaks.Together.BOTH) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
+                contentDescription = null, tint = tone, modifier = Modifier.size(26.dp),
+            )
+            Column(modifier = Modifier.weight(1f).padding(start = Spacing.sm)) {
+                Text(headline, style = MaterialTheme.typography.headlineMedium)
+                Text(detail, style = MaterialTheme.typography.bodySmall, color = AppTheme.colors.secondaryLabel)
+            }
+        }
+        // Seven dots: the last week, filled where both of them studied.
+        if (run > 0 || state.togetherToday != Streaks.Together.NEITHER) {
+            Row(horizontalArrangement = Arrangement.spacedBy(6.dp), modifier = Modifier.padding(top = Spacing.sm)) {
+                val filled = run.coerceAtMost(7)
+                repeat(7) { i ->
+                    val on = i >= 7 - filled
+                    Box(modifier = Modifier.size(10.dp).clip(CircleShape).background(if (on) tone else AppTheme.colors.fill))
+                }
+            }
+        }
     }
 }
 
