@@ -5,6 +5,11 @@ build number is appended by CI (for example `0.1.0 (build 12)`).
 
 ## [Unreleased]
 
+## [0.31.0] - 2026-10-07
+### Fixed
+- Study hours now count what the course has left to do, so the weekly need and forecast are right.
+- A component several modules feed is only complete when all of them are.
+
 ## [0.30.0] - 2026-10-07
 ### Added
 - Test results now show how each module went, not just the score.
