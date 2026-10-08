@@ -16,9 +16,14 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeoutOrNull
+import java.util.concurrent.atomic.AtomicLong
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -57,40 +62,72 @@ class WidgetRefresher @Inject constructor(
         Streaks.Together.BOTH -> 3
     }
 
+    /** The last time a snapshot was written, so four receivers waking at once do the work once. */
+    private val lastPushedAt = AtomicLong(0)
+
     fun start() {
-        scope.launch {
-            combine(
-                sessionStore.state,
-                dataStore.topicProgress,
-                dataStore.quizAttempts,
-                dataStore.flashcards,
-                dataStore.logs,
-            ) { state, progress, attempts, cards, logs ->
-                val session = (state as? SessionState.Ready)?.session ?: return@combine WidgetSnapshot()
-                val me = session.myRole
-                val them = if (me == PersonRole.TECH) PersonRole.TEACHER else PersonRole.TECH
-                val today = Clock.today(session.me)
-                val byCourse = Courses.all.associate { it.id to CourseProgress.of(me, it.id, progress, attempts) }
-                val mineDates = logs.filter { it.owner == me }.map { it.dateIso }
-                val theirDates = logs.filter { it.owner == them }.map { it.dateIso }
-                WidgetSnapshot.of(
-                    owner = me,
-                    courses = Courses.all,
-                    progressByCourse = byCourse,
-                    topicProgress = progress,
-                    attempts = attempts,
-                    flashcards = cards,
-                    togetherStreak = Streaks.together(mineDates, theirDates, today),
-                    togetherState = togetherCode(Streaks.togetherToday(mineDates, theirDates, today)),
-                    partnerName = session.partner?.name.orEmpty(),
-                    today = today,
-                )
-            }.distinctUntilChanged().collect { snapshot ->
-                runCatching {
-                    WidgetStore.write(context, snapshot)
-                    widgets.forEach { it.updateAll(context) }
-                }
-            }
+        scope.launch { snapshots().collect { push(it) } }
+    }
+
+    /**
+     * Recompute once, now. Called when the launcher adds a widget or asks one
+     * to update, which is the only chance a widget has to fill itself in when
+     * the app has not been opened.
+     */
+    suspend fun refreshNow() {
+        runCatching {
+            if (System.currentTimeMillis() - lastPushedAt.get() < MIN_GAP_MS) return
+            withTimeoutOrNull(WAIT_FOR_DATA_MS) { snapshots().first() }?.let { push(it) }
         }
+    }
+
+    /**
+     * Snapshots as the couple's data moves. Nothing is emitted until there is
+     * a session to build one from: an empty snapshot written over a good one
+     * leaves every widget reading as a quiet day, and it survives until the
+     * app is next opened.
+     */
+    private fun snapshots(): Flow<WidgetSnapshot> =
+        combine(
+            sessionStore.state,
+            dataStore.topicProgress,
+            dataStore.quizAttempts,
+            dataStore.flashcards,
+            dataStore.logs,
+        ) { state, progress, attempts, cards, logs ->
+            val session = (state as? SessionState.Ready)?.session ?: return@combine null
+            val me = session.myRole
+            val them = if (me == PersonRole.TECH) PersonRole.TEACHER else PersonRole.TECH
+            val today = Clock.today(session.me)
+            val byCourse = Courses.all.associate { it.id to CourseProgress.of(me, it.id, progress, attempts) }
+            val mineDates = logs.filter { it.owner == me }.map { it.dateIso }
+            val theirDates = logs.filter { it.owner == them }.map { it.dateIso }
+            WidgetSnapshot.of(
+                owner = me,
+                courses = Courses.all,
+                progressByCourse = byCourse,
+                topicProgress = progress,
+                attempts = attempts,
+                flashcards = cards,
+                togetherStreak = Streaks.together(mineDates, theirDates, today),
+                togetherState = togetherCode(Streaks.togetherToday(mineDates, theirDates, today)),
+                partnerName = session.partner?.name.orEmpty(),
+                today = today,
+            )
+        }.filterNotNull().distinctUntilChanged()
+
+    private suspend fun push(snapshot: WidgetSnapshot) {
+        runCatching {
+            WidgetStore.write(context, snapshot)
+            lastPushedAt.set(System.currentTimeMillis())
+            widgets.forEach { it.updateAll(context) }
+        }
+    }
+
+    private companion object {
+        /** How long a cold start may spend waiting for Firestore before giving up. */
+        const val WAIT_FOR_DATA_MS = 20_000L
+        /** Four receivers wake on one broadcast; only the first needs to recompute. */
+        const val MIN_GAP_MS = 60_000L
     }
 }

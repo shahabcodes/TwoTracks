@@ -1,5 +1,6 @@
 package com.shahaabapps.twotracks.widget
 
+import android.appwidget.AppWidgetManager
 import android.content.Context
 import android.content.Intent
 import androidx.compose.runtime.Composable
@@ -8,9 +9,11 @@ import androidx.compose.ui.unit.sp
 import androidx.glance.GlanceId
 import androidx.glance.GlanceModifier
 import androidx.glance.GlanceTheme
+import androidx.glance.LocalSize
 import androidx.glance.action.clickable
 import androidx.glance.appwidget.GlanceAppWidget
 import androidx.glance.appwidget.GlanceAppWidgetReceiver
+import androidx.glance.appwidget.SizeMode
 import androidx.glance.appwidget.action.actionStartActivity
 import androidx.glance.appwidget.cornerRadius
 import androidx.glance.appwidget.provideContent
@@ -31,6 +34,15 @@ import androidx.glance.text.TextStyle
 import com.shahaabapps.core.content.Courses
 import com.shahaabapps.core.content.WidgetSnapshot
 import com.shahaabapps.twotracks.MainActivity
+import dagger.hilt.EntryPoint
+import dagger.hilt.InstallIn
+import dagger.hilt.android.EntryPointAccessors
+import dagger.hilt.components.SingletonComponent
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
+import java.time.LocalDate
 
 /**
  * Home-screen widgets.
@@ -41,6 +53,11 @@ import com.shahaabapps.twotracks.MainActivity
  * looking like a broken version of them. These lean on [GlanceTheme], so they
  * follow the system's light and dark and, on Android 12 and later, the user's
  * wallpaper colours.
+ *
+ * Two rules hold throughout. A widget never states a number it cannot stand
+ * behind: an unwritten or yesterday's snapshot asks for a tap instead of
+ * reporting a quiet day. And a widget never ends in a full stop: when there is
+ * nothing due it points at the next thing rather than saying so and stopping.
  */
 
 /** Tapping a widget opens the app, and where sensible, the screen it is about. */
@@ -60,15 +77,28 @@ object WidgetRoutes {
     fun dailyReview(courseId: String) = "learn/$courseId/quiz/${Courses.DAILY_MODULE_ID}"
 }
 
+/** The route to the next outstanding thing, or null when the snapshot does not name one. */
+private fun WidgetSnapshot.nextRoute(): String? =
+    nextTopicId.takeIf { it.isNotBlank() && nextCourseId.isNotBlank() }?.let { WidgetRoutes.topic(nextCourseId, it) }
+
 // ------------------------------------------------------------------ pieces
 
+/**
+ * Below this a card has room for two lines and no more, so the label, the
+ * example sentence and the pips are dropped and the type comes down a size.
+ * A launcher hands out whatever height it likes; everything here has to read
+ * properly at one cell and at three.
+ */
+private val COMPACT_BELOW = 92.dp
+
 @Composable
-private fun Card(onClick: Intent?, content: @Composable () -> Unit) {
+private fun Card(onClick: Intent?, content: @Composable (compact: Boolean) -> Unit) {
+    val compact = LocalSize.current.height < COMPACT_BELOW
     val base = GlanceModifier
         .fillMaxSize()
         .background(GlanceTheme.colors.widgetBackground)
         .cornerRadius(20.dp)
-        .padding(14.dp)
+        .padding(horizontal = 14.dp, vertical = if (compact) 8.dp else 14.dp)
     // Centred, not top-aligned. A launcher decides the height and often gives
     // more than the content needs; centred text reads as deliberate at any
     // size, where top-aligned text leaves a slab of empty card beneath it.
@@ -76,33 +106,43 @@ private fun Card(onClick: Intent?, content: @Composable () -> Unit) {
         modifier = if (onClick != null) base.clickable(actionStartActivity(onClick)) else base,
         verticalAlignment = Alignment.Vertical.CenterVertically,
         horizontalAlignment = Alignment.Horizontal.Start,
-        content = { content() },
+        content = { content(compact) },
     )
 }
 
 @Composable
-private fun Title(text: String) = Text(
+private fun Title(text: String, compact: Boolean) {
+    if (compact) return
+    Text(
+        text,
+        style = TextStyle(color = GlanceTheme.colors.onSurfaceVariant, fontSize = 11.sp, fontWeight = FontWeight.Medium),
+    )
+    Spacer(GlanceModifier.height(4.dp))
+}
+
+@Composable
+private fun Headline(text: String, compact: Boolean) = Text(
     text,
-    style = TextStyle(color = GlanceTheme.colors.onSurfaceVariant, fontSize = 11.sp, fontWeight = FontWeight.Medium),
+    maxLines = if (compact) 1 else 2,
+    style = TextStyle(
+        color = GlanceTheme.colors.onSurface,
+        fontSize = if (compact) 15.sp else 20.sp,
+        fontWeight = FontWeight.Bold,
+    ),
 )
 
 @Composable
-private fun Headline(text: String) = Text(
+private fun Body(text: String, compact: Boolean, lines: Int = 2) = Text(
     text,
-    maxLines = 2,
-    style = TextStyle(color = GlanceTheme.colors.onSurface, fontSize = 20.sp, fontWeight = FontWeight.Bold),
-)
-
-@Composable
-private fun Body(text: String, lines: Int = 2) = Text(
-    text,
-    maxLines = lines,
-    style = TextStyle(color = GlanceTheme.colors.onSurfaceVariant, fontSize = 13.sp),
+    maxLines = if (compact) 1 else lines,
+    style = TextStyle(color = GlanceTheme.colors.onSurfaceVariant, fontSize = if (compact) 12.sp else 13.sp),
 )
 
 /** A row of pips, filled on the left, used for the loop and the shared run. */
 @Composable
-private fun Pips(filled: Int, total: Int) {
+private fun Pips(filled: Int, total: Int, compact: Boolean) {
+    if (compact) return
+    Spacer(GlanceModifier.height(8.dp))
     Row(modifier = GlanceModifier.fillMaxWidth()) {
         repeat(total) { i ->
             Column(
@@ -117,33 +157,46 @@ private fun Pips(filled: Int, total: Int) {
     }
 }
 
+/**
+ * What a widget shows when it has no snapshot it can trust. Said plainly,
+ * because a widget that has never been filled in must not be mistaken for a
+ * day with nothing to do.
+ */
+@Composable
+private fun NeedsSync(compact: Boolean) {
+    Headline("Open TwoTracks", compact)
+    Body("Tap to fill the widget in.", compact, lines = 1)
+}
+
 // ----------------------------------------------------------------- widgets
 
 /** Today's loop: one topic, the words due, the questions back round. */
 class TodayStudyWidget : GlanceAppWidget() {
+    override val sizeMode = SizeMode.Exact
+
     override suspend fun provideGlance(context: Context, id: GlanceId) {
         val s = WidgetStore.read(context)
+        val fresh = s.fresh(LocalDate.now())
         provideContent {
             GlanceTheme {
-                Card(openRoute(context, s.nextTopicId.takeIf { it.isNotBlank() }?.let { WidgetRoutes.topic(s.nextCourseId, it) })) {
-                    Title("TODAY'S STUDY")
-                    Spacer(GlanceModifier.height(4.dp))
+                Card(openRoute(context, if (fresh) s.nextRoute() else null)) { compact ->
+                    Title("TODAY'S STUDY", compact)
                     when {
+                        !fresh -> NeedsSync(compact)
                         s.stepsTotal == 0 -> {
-                            Headline("Nothing queued")
-                            Body("Open a course to start the day.")
+                            Headline("Nothing queued", compact)
+                            Body("Open a course to start the day.", compact)
                         }
                         s.loopClosed -> {
-                            Headline("Done for today")
-                            Body("Everything due is cleared.")
+                            Headline("Done for today", compact)
+                            Body("Everything due is cleared.", compact)
                         }
                         else -> {
-                            Headline("${s.stepsDone} of ${s.stepsTotal} done")
-                            Body("${s.minutesLeft} min left" + if (s.nextLabel.isNotBlank()) " · ${s.nextLabel}" else "")
+                            Headline("${s.stepsDone} of ${s.stepsTotal} done", compact)
+                            Body("${s.minutesLeft} min left" + if (s.nextLabel.isNotBlank()) " · ${s.nextLabel}" else "", compact)
                         }
                     }
-                    Spacer(GlanceModifier.height(8.dp))
-                    if (s.stepsTotal > 0) Pips(filled = s.stepsDone, total = s.stepsTotal)
+                    if (fresh && s.stepsTotal > 0) Pips(filled = s.stepsDone, total = s.stepsTotal, compact = compact)
                 }
             }
         }
@@ -152,19 +205,34 @@ class TodayStudyWidget : GlanceAppWidget() {
 
 /** Questions the spaced schedule has brought back round. */
 class DailyReviewWidget : GlanceAppWidget() {
+    override val sizeMode = SizeMode.Exact
+
     override suspend fun provideGlance(context: Context, id: GlanceId) {
         val s = WidgetStore.read(context)
+        val fresh = s.fresh(LocalDate.now())
+        val due = s.questionsDue > 0 && s.questionsCourseId.isNotBlank()
+        // With nothing due this points at the next topic rather than stopping:
+        // "nothing to review" is true most of the way through a course, and a
+        // widget that only ever says so is a widget worth removing.
+        val route = if (!fresh) null else if (due) WidgetRoutes.dailyReview(s.questionsCourseId) else s.nextRoute()
         provideContent {
             GlanceTheme {
-                Card(openRoute(context, s.questionsCourseId.takeIf { it.isNotBlank() }?.let { WidgetRoutes.dailyReview(it) })) {
-                    Title("DAILY REVIEW")
-                    Spacer(GlanceModifier.height(4.dp))
-                    if (s.questionsDue > 0) {
-                        Headline("${s.questionsDue} due")
-                        Body("Questions coming back before they fade.")
-                    } else {
-                        Headline("All held")
-                        Body("Nothing due today.")
+                Card(openRoute(context, route)) { compact ->
+                    Title("DAILY REVIEW", compact)
+                    when {
+                        !fresh -> NeedsSync(compact)
+                        due -> {
+                            Headline("${s.questionsDue} due", compact)
+                            Body("Questions coming back before they fade.", compact)
+                        }
+                        s.nextLabel.isNotBlank() -> {
+                            Headline("Nothing due", compact)
+                            Body("Next up · ${s.nextLabel}", compact)
+                        }
+                        else -> {
+                            Headline("All held", compact)
+                            Body("Nothing has come back round yet.", compact)
+                        }
                     }
                 }
             }
@@ -174,26 +242,41 @@ class DailyReviewWidget : GlanceAppWidget() {
 
 /**
  * One word, all day. The only widget here that teaches rather than nags:
- * seeing a word twenty times while unlocking the phone is free exposure.
+ * seeing a word twenty times while unlocking the phone is free exposure. It
+ * shows a term from a glossary where a course has no vocabulary, so a
+ * certification course is not a blank card for good.
  */
 class WordOfDayWidget : GlanceAppWidget() {
+    override val sizeMode = SizeMode.Exact
+
     override suspend fun provideGlance(context: Context, id: GlanceId) {
         val s = WidgetStore.read(context)
+        // A word from yesterday is still a word worth meeting, so this one
+        // does not need a snapshot written today, only one written at all.
+        val route = when {
+            !s.hasWord || s.wordCourseId.isBlank() -> null
+            s.wordIsTerm && s.wordTopicId.isNotBlank() -> WidgetRoutes.topic(s.wordCourseId, s.wordTopicId)
+            s.wordIsTerm -> null
+            else -> WidgetRoutes.deck(s.wordCourseId)
+        }
         provideContent {
             GlanceTheme {
-                Card(openRoute(context, s.wordCourseId.takeIf { it.isNotBlank() }?.let { WidgetRoutes.deck(it) })) {
-                    Title("WORD OF THE DAY")
-                    Spacer(GlanceModifier.height(4.dp))
-                    if (s.hasWord) {
-                        Headline(s.word)
-                        Body(s.wordMeaning, lines = 1)
-                        if (s.wordExample.isNotBlank()) {
-                            Spacer(GlanceModifier.height(6.dp))
-                            Body(s.wordExample, lines = 2)
+                Card(openRoute(context, route)) { compact ->
+                    Title(if (s.wordIsTerm) "TERM OF THE DAY" else "WORD OF THE DAY", compact)
+                    when {
+                        s.hasWord -> {
+                            Headline(s.word, compact)
+                            Body(s.wordMeaning, compact, lines = 1)
+                            if (s.wordExample.isNotBlank() && !compact) {
+                                Spacer(GlanceModifier.height(6.dp))
+                                Body(s.wordExample, compact, lines = 2)
+                            }
                         }
-                    } else {
-                        Headline("No words yet")
-                        Body("Read a Words topic and they start appearing here.")
+                        !s.synced -> NeedsSync(compact)
+                        else -> {
+                            Headline("Nothing yet", compact)
+                            Body("Read a topic and its terms appear here.", compact)
+                        }
                     }
                 }
             }
@@ -203,34 +286,41 @@ class WordOfDayWidget : GlanceAppWidget() {
 
 /** The shared run, and whose turn it is. */
 class TogetherWidget : GlanceAppWidget() {
+    override val sizeMode = SizeMode.Exact
+
     override suspend fun provideGlance(context: Context, id: GlanceId) {
         val s = WidgetStore.read(context)
+        val fresh = s.fresh(LocalDate.now())
         provideContent {
             GlanceTheme {
-                Card(openRoute(context, null)) {
-                    Title("TOGETHER")
-                    Spacer(GlanceModifier.height(4.dp))
+                Card(openRoute(context, null)) { compact ->
+                    Title("TOGETHER", compact)
                     val them = s.partnerName.ifBlank { "Your partner" }
-                    when (s.togetherState) {
-                        3 -> {
-                            Headline(if (s.togetherStreak > 1) "${s.togetherStreak} days running" else "Both studied today")
-                            Body("You both showed up today.")
+                    when {
+                        !fresh -> NeedsSync(compact)
+                        s.togetherState == 3 -> {
+                            Headline(if (s.togetherStreak > 1) "${s.togetherStreak} days running" else "Both studied today", compact)
+                            Body("You both showed up today.", compact)
                         }
-                        1 -> {
-                            Headline("Your part is done")
-                            Body("$them has not studied yet.")
+                        s.togetherState == 1 -> {
+                            Headline("Your part is done", compact)
+                            Body("$them has not studied yet.", compact)
                         }
-                        2 -> {
-                            Headline("$them has studied")
-                            Body("Your turn, to keep the run going.")
+                        s.togetherState == 2 -> {
+                            Headline("$them has studied", compact)
+                            Body("Your turn, to keep the run going.", compact)
                         }
                         else -> {
-                            Headline(if (s.togetherStreak > 0) "${s.togetherStreak} days running" else "Study together")
-                            Body(if (s.togetherStreak > 0) "Still alive until the day is out." else "A day counts when you both study.")
+                            Headline(if (s.togetherStreak > 0) "${s.togetherStreak} days running" else "Study together", compact)
+                            Body(
+                                if (s.togetherStreak > 0) "Still alive until the day is out." else "A day counts when you both study.",
+                                compact,
+                            )
                         }
                     }
-                    Spacer(GlanceModifier.height(8.dp))
-                    if (s.togetherStreak > 0) Pips(filled = minOf(s.togetherStreak, 7), total = 7)
+                    if (fresh && s.togetherStreak > 0) {
+                        Pips(filled = minOf(s.togetherStreak, 7), total = 7, compact = compact)
+                    }
                 }
             }
         }
@@ -239,18 +329,47 @@ class TogetherWidget : GlanceAppWidget() {
 
 // --------------------------------------------------------------- receivers
 
-class TodayStudyWidgetReceiver : GlanceAppWidgetReceiver() {
+@EntryPoint
+@InstallIn(SingletonComponent::class)
+internal interface WidgetEntryPoint {
+    fun widgetRefresher(): WidgetRefresher
+}
+
+private val refreshScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+
+/**
+ * Receivers that recompute, not just redraw.
+ *
+ * [GlanceAppWidgetReceiver.onUpdate] re-renders from the stored snapshot, which
+ * for a widget added while the app was closed means rendering nothing. This is
+ * the only moment a widget gets to ask for fresh data, so it asks: on being
+ * added, and on each update the launcher schedules.
+ */
+abstract class RefreshingWidgetReceiver : GlanceAppWidgetReceiver() {
+    override fun onUpdate(context: Context, appWidgetManager: AppWidgetManager, appWidgetIds: IntArray) {
+        super.onUpdate(context, appWidgetManager, appWidgetIds)
+        val refresher = runCatching {
+            EntryPointAccessors.fromApplication(
+                context.applicationContext,
+                WidgetEntryPoint::class.java,
+            ).widgetRefresher()
+        }.getOrNull() ?: return
+        refreshScope.launch { refresher.refreshNow() }
+    }
+}
+
+class TodayStudyWidgetReceiver : RefreshingWidgetReceiver() {
     override val glanceAppWidget: GlanceAppWidget = TodayStudyWidget()
 }
 
-class DailyReviewWidgetReceiver : GlanceAppWidgetReceiver() {
+class DailyReviewWidgetReceiver : RefreshingWidgetReceiver() {
     override val glanceAppWidget: GlanceAppWidget = DailyReviewWidget()
 }
 
-class WordOfDayWidgetReceiver : GlanceAppWidgetReceiver() {
+class WordOfDayWidgetReceiver : RefreshingWidgetReceiver() {
     override val glanceAppWidget: GlanceAppWidget = WordOfDayWidget()
 }
 
-class TogetherWidgetReceiver : GlanceAppWidgetReceiver() {
+class TogetherWidgetReceiver : RefreshingWidgetReceiver() {
     override val glanceAppWidget: GlanceAppWidget = TogetherWidget()
 }

@@ -5,7 +5,6 @@ import com.shahaabapps.core.model.TopicProgress
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
-import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.time.LocalDate
@@ -37,10 +36,43 @@ class WidgetSnapshotTest {
     }
 
     @Test
-    fun `with nothing read there is no word to show`() {
+    fun `with nothing read it still has something to teach`() {
+        // The opening topic of each course, which is what is about to be read
+        // anyway. A blank card teaches nobody anything.
         val s = snapshot(emptyList())
-        assertFalse(s.hasWord)
-        assertEquals("", s.word)
+        assertTrue("a fresh account should still get an item", s.hasWord)
+        assertTrue(s.wordMeaning.isNotBlank())
+        assertTrue("it should name the topic it came from", s.wordTopicId.isNotBlank())
+    }
+
+    @Test
+    fun `a course with no vocabulary offers its glossary terms`() {
+        // AZ-204 has no Block.Vocab anywhere, so before this the widget was
+        // empty for good for anyone studying only a certification.
+        val az = Az204.course
+        assertTrue("AZ-204 should have no vocabulary", Courses.words(az).isEmpty())
+        val topics = az.allTopics.filter { t -> t.blocks.filterIsInstance<Block.Glossary>().isNotEmpty() }.take(3)
+        assertTrue("AZ-204 should define terms", topics.isNotEmpty())
+        val item = WidgetSnapshot.dayItem(me, listOf(az), learned(az, topics.map { it.id }), today)
+        assertNotNull(item)
+        assertTrue("an AZ-204 item must be a term", item!!.isTerm)
+        assertEquals(az.id, item.courseId)
+        val terms = Courses.terms(az).associateBy { it.term }
+        assertEquals(terms[item.display]?.meaning, item.meaning)
+        // A term belongs to the topic that defines it, which is where tapping goes.
+        assertTrue(item.topicId in topics.map { it.id })
+    }
+
+    @Test
+    fun `a term carries no example sentence and a word does`() {
+        val vocab = vocabTopics(2)
+        val word = WidgetSnapshot.dayItem(me, listOf(german), learned(german, vocab.map { it.id }), today)
+        assertNotNull(word)
+        assertFalse(word!!.isTerm)
+        val az = Az204.course
+        val glossary = az.allTopics.filter { t -> t.blocks.filterIsInstance<Block.Glossary>().isNotEmpty() }.take(2)
+        val term = WidgetSnapshot.dayItem(me, listOf(az), learned(az, glossary.map { it.id }), today)
+        assertEquals("", term!!.example)
     }
 
     @Test
@@ -71,10 +103,17 @@ class WidgetSnapshotTest {
     }
 
     @Test
-    fun `a word met by one person is not offered to the other`() {
-        val theirs = learned(german, vocabTopics(2).map { it.id }).map { it.copy(owner = PersonRole.TEACHER) }
-        assertNull(WidgetSnapshot.wordOfDay(me, courses, theirs, today))
-        assertNotNull(WidgetSnapshot.wordOfDay(PersonRole.TEACHER, courses, theirs, today))
+    fun `what one person has met is not offered to the other`() {
+        val topics = vocabTopics(2)
+        val theirs = learned(german, topics.map { it.id }).map { it.copy(owner = PersonRole.TEACHER) }
+        val openers = courses.mapNotNull { it.allTopics.firstOrNull()?.id }.toSet()
+        // Both get something, but it is drawn from their own reading: the one
+        // who read nothing falls back to the topic each course opens with.
+        val mine = (0..20).map { WidgetSnapshot.dayItem(me, courses, theirs, today.plusDays(it.toLong()))!! }
+        assertTrue("mine should only come from the opening topics", mine.all { it.topicId in openers })
+        val theirIds = topics.map { it.id }.toSet()
+        val theirs20 = (0..20).map { WidgetSnapshot.dayItem(PersonRole.TEACHER, courses, theirs, today.plusDays(it.toLong()))!! }
+        assertTrue("theirs should come from what they read", theirs20.all { it.topicId in theirIds })
     }
 
     @Test
@@ -92,8 +131,20 @@ class WidgetSnapshotTest {
         val s = snapshot(emptyList())
         assertFalse(s.stale(today))
         assertTrue(s.stale(today.plusDays(1)))
+        assertTrue(s.fresh(today))
+        assertFalse("yesterday's counts are not today's answer", s.fresh(today.plusDays(1)))
         // An empty snapshot has never been written, so it is not stale, it is absent.
         assertFalse(WidgetSnapshot().stale(today))
+    }
+
+    @Test
+    fun `an unwritten snapshot is not a quiet day`() {
+        // The distinction the widgets turn on: never written reads as "open the
+        // app", not as "nothing due", or a broken widget looks like a calm one.
+        val s = WidgetSnapshot()
+        assertFalse(s.synced)
+        assertFalse(s.fresh(today))
+        assertTrue(snapshot(emptyList()).synced)
     }
 
     @Test
@@ -103,5 +154,7 @@ class WidgetSnapshotTest {
         assertFalse(s.loopClosed)
         assertEquals(0, s.stepsTotal)
         assertEquals("", s.nextLabel)
+        assertFalse(s.wordIsTerm)
+        assertEquals("", s.wordTopicId)
     }
 }

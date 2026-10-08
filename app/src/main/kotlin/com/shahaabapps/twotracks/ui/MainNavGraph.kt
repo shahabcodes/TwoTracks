@@ -34,6 +34,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -67,6 +69,7 @@ import com.shahaabapps.twotracks.feature.us.UsScreen
 import com.shahaabapps.twotracks.feature.week.WeekScreen
 import com.shahaabapps.twotracks.feature.week.YourWeekScreen
 import com.shahaabapps.twotracks.session.AppSession
+import com.shahaabapps.twotracks.widget.WidgetLaunch
 
 object Routes {
     const val TODAY = "today"
@@ -142,8 +145,20 @@ private fun CupertinoTabBar(selectedRoute: String?, onSelect: (String) -> Unit) 
 }
 
 @Composable
-fun MainNavGraph(session: AppSession) {
+fun MainNavGraph(session: AppSession, widgetLaunch: WidgetLaunch) {
     val navController = rememberNavController()
+
+    // A widget tap names where it wants to land. It cannot be honoured until
+    // the graph exists, so it waits in WidgetLaunch until here.
+    val widgetRoute by widgetLaunch.route.collectAsStateWithLifecycle()
+    LaunchedEffect(widgetRoute) {
+        val route = widgetRoute ?: return@LaunchedEffect
+        widgetLaunch.consume()
+        navController.navigate(route) {
+            popUpTo(navController.graph.findStartDestination().id) { saveState = true }
+            launchSingleTop = true
+        }
+    }
     val backStack by navController.currentBackStackEntryAsState()
     val currentDestination = backStack?.destination
     val selectedTab = tabs.firstOrNull { tab -> currentDestination?.hierarchy?.any { it.route == tab.route } == true }?.route

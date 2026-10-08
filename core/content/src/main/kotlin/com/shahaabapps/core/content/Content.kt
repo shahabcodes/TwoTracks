@@ -364,6 +364,8 @@ object Courses {
     fun covers(goalId: String, componentId: String): Boolean = forGoal(goalId)?.covers(componentId) == true
     /** Every vocabulary word in a course, in module order. */
     fun words(course: Course): List<Word> = course.modules.flatMap { m -> m.topics.flatMap { t -> t.blocks.filterIsInstance<Block.Vocab>().flatMap { it.words } } }
+    /** Every glossary term in a course, in module order. The courses without vocabulary still have these. */
+    fun terms(course: Course): List<Term> = course.modules.flatMap { m -> m.topics.flatMap { t -> t.blocks.filterIsInstance<Block.Glossary>().flatMap { it.terms } } }
     fun byId(id: String): Course? = all.firstOrNull { it.id == id }
     fun topic(courseId: String, topicId: String): Pair<Module, Topic>? {
         val course = byId(courseId) ?: return null

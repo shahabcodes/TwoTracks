@@ -2,6 +2,7 @@ package com.shahaabapps.twotracks.widget
 
 import android.content.Context
 import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
@@ -37,6 +38,8 @@ object WidgetStore {
     private val WORD_MEANING = stringPreferencesKey("word_meaning")
     private val WORD_EXAMPLE = stringPreferencesKey("word_example")
     private val WORD_COURSE = stringPreferencesKey("word_course")
+    private val WORD_TOPIC = stringPreferencesKey("word_topic")
+    private val WORD_IS_TERM = booleanPreferencesKey("word_is_term")
     private val TOGETHER_STREAK = intPreferencesKey("together_streak")
     private val PARTNER_NAME = stringPreferencesKey("partner_name")
     private val TOGETHER_STATE = intPreferencesKey("together_state")
@@ -56,6 +59,8 @@ object WidgetStore {
             p[WORD_MEANING] = s.wordMeaning
             p[WORD_EXAMPLE] = s.wordExample
             p[WORD_COURSE] = s.wordCourseId
+            p[WORD_TOPIC] = s.wordTopicId
+            p[WORD_IS_TERM] = s.wordIsTerm
             p[TOGETHER_STREAK] = s.togetherStreak
             p[PARTNER_NAME] = s.partnerName
             p[TOGETHER_STATE] = s.togetherState
@@ -80,6 +85,8 @@ object WidgetStore {
         wordMeaning = this[WORD_MEANING].orEmpty(),
         wordExample = this[WORD_EXAMPLE].orEmpty(),
         wordCourseId = this[WORD_COURSE].orEmpty(),
+        wordTopicId = this[WORD_TOPIC].orEmpty(),
+        wordIsTerm = this[WORD_IS_TERM] ?: false,
         togetherStreak = this[TOGETHER_STREAK] ?: 0,
         partnerName = this[PARTNER_NAME].orEmpty(),
         togetherState = this[TOGETHER_STATE] ?: 0,
