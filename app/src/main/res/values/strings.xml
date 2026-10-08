@@ -2,4 +2,9 @@
 <resources>
     <string name="app_name">Two Tracks</string>
     <string name="notification_channel_reminders">Study reminders</string>
+    <!-- Shown under each widget in the launcher's picker. -->
+    <string name="widget_today_study_description">Today\'s topic, words and questions, ticked off as you go.</string>
+    <string name="widget_daily_review_description">Questions coming back round before they fade.</string>
+    <string name="widget_word_of_day_description">One word a day from the deck, with its meaning.</string>
+    <string name="widget_together_description">Days in a row you have both studied, and whose turn it is.</string>
 </resources>
