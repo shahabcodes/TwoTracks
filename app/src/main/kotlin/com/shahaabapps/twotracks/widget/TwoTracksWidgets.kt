@@ -69,9 +69,13 @@ private fun Card(onClick: Intent?, content: @Composable () -> Unit) {
         .background(GlanceTheme.colors.widgetBackground)
         .cornerRadius(20.dp)
         .padding(14.dp)
+    // Centred, not top-aligned. A launcher decides the height and often gives
+    // more than the content needs; centred text reads as deliberate at any
+    // size, where top-aligned text leaves a slab of empty card beneath it.
     Column(
         modifier = if (onClick != null) base.clickable(actionStartActivity(onClick)) else base,
-        verticalAlignment = Alignment.Vertical.Top,
+        verticalAlignment = Alignment.Vertical.CenterVertically,
+        horizontalAlignment = Alignment.Horizontal.Start,
         content = { content() },
     )
 }
