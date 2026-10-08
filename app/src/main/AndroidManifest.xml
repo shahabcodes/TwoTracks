@@ -45,5 +45,52 @@
                 <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
             </intent-filter>
         </receiver>
+        <receiver
+            android:name=".widget.TodayStudyWidgetReceiver"
+            android:exported="false"
+            android:label="Today's study">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_today_study" />
+        </receiver>
+
+        <receiver
+            android:name=".widget.DailyReviewWidgetReceiver"
+            android:exported="false"
+            android:label="Daily review">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_daily_review" />
+        </receiver>
+
+        <receiver
+            android:name=".widget.WordOfDayWidgetReceiver"
+            android:exported="false"
+            android:label="Word of the day">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_word_of_day" />
+        </receiver>
+
+        <receiver
+            android:name=".widget.TogetherWidgetReceiver"
+            android:exported="false"
+            android:label="Together">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_together" />
+        </receiver>
     </application>
 </manifest>
