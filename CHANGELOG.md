@@ -5,6 +5,10 @@ build number is appended by CI (for example `0.1.0 (build 12)`).
 
 ## [Unreleased]
 
+## [0.43.0] - 2026-10-08
+### Added
+- Checks ask how sure you are before showing the answer, and explain the option you picked.
+
 ## [0.42.0] - 2026-10-08
 ### Added
 - Topics show how well they are known instead of a tick, and offer the ones worth rereading.

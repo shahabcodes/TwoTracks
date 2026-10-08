@@ -57,6 +57,7 @@ import com.shahaabapps.core.ui.theme.AppTheme
 import com.shahaabapps.core.ui.theme.Spacing
 import com.shahaabapps.twotracks.ui.components.DetailScaffold
 import com.shahaabapps.twotracks.ui.components.PopIn
+import androidx.compose.ui.text.style.TextAlign
 
 /** One lesson: the blocks rendered in order, then "Mark as learned" which logs the reading time. */
 @Composable
@@ -286,14 +287,20 @@ private fun TryItBlock(block: Block.TryIt) {
 
 @Composable
 private fun CheckBlock(block: Block.Check, onChecked: (com.shahaabapps.core.content.Question, Boolean) -> Unit = { _, _ -> }) {
-    var picked by androidx.compose.runtime.remember(block.question.id) { androidx.compose.runtime.mutableStateOf<Int?>(null) }
     val q = block.question
+    var picked by androidx.compose.runtime.remember(q.id) { androidx.compose.runtime.mutableStateOf<Int?>(null) }
+    // Null until the answer is committed. Asking before the reveal is the
+    // whole point: afterwards everyone remembers having been fairly sure.
+    var sure by androidx.compose.runtime.remember(q.id) { androidx.compose.runtime.mutableStateOf<Boolean?>(null) }
+    val revealed = picked != null && sure != null
+    val right = picked in q.correct
+
     Column(modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(14.dp)).background(AppTheme.colors.accent.copy(alpha = 0.08f)).padding(Spacing.md), verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Text("Quick check", style = MaterialTheme.typography.labelMedium, color = AppTheme.colors.accent, fontWeight = FontWeight.SemiBold)
         Text(q.prompt, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold, lineHeight = 21.sp)
         q.options.forEachIndexed { i, opt ->
             val state = when {
-                picked == null -> null
+                !revealed -> null
                 i in q.correct -> true
                 i == picked -> false
                 else -> null
@@ -301,20 +308,67 @@ private fun CheckBlock(block: Block.Check, onChecked: (com.shahaabapps.core.cont
             Row(
                 verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp),
                 modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(10.dp))
-                    .background(when (state) { true -> AppTheme.colors.success.copy(alpha = 0.15f); false -> AppTheme.colors.destructive.copy(alpha = 0.15f); null -> AppTheme.colors.card })
-                    .clickable(enabled = picked == null) { picked = i; onChecked(q, i in q.correct) }
+                    .background(
+                        when {
+                            state == true -> AppTheme.colors.success.copy(alpha = 0.15f)
+                            state == false -> AppTheme.colors.destructive.copy(alpha = 0.15f)
+                            // Chosen but not yet revealed, so the choice is visible while confidence is asked.
+                            !revealed && picked == i -> AppTheme.colors.accent.copy(alpha = 0.18f)
+                            else -> AppTheme.colors.card
+                        },
+                    )
+                    // Recorded on the pick, as it always was: someone who answers
+                    // and scrolls on should not lose the answer to a new step.
+                    .clickable(enabled = !revealed) { picked = i; onChecked(q, i in q.correct) }
                     .padding(horizontal = 12.dp, vertical = 10.dp),
             ) {
                 Text(('A' + i).toString(), style = MaterialTheme.typography.labelMedium, color = AppTheme.colors.secondaryLabel, fontWeight = FontWeight.Bold)
                 Text(opt, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.weight(1f))
             }
         }
-        if (picked != null) {
+
+        // Commit before the answer is shown. A confident wrong answer is the
+        // most useful thing a check can find, and it can only be found here.
+        if (picked != null && sure == null) {
+            Text("Before you see it — how sure are you?", style = MaterialTheme.typography.bodySmall, color = AppTheme.colors.secondaryLabel)
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
+                listOf(true to "Sure", false to "Not sure").forEach { (value, label) ->
+                    Text(
+                        label,
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.SemiBold,
+                        color = AppTheme.colors.accent,
+                        modifier = Modifier.weight(1f).clip(RoundedCornerShape(10.dp))
+                            .background(AppTheme.colors.card)
+                            .clickable { sure = value }
+                            .padding(vertical = 10.dp),
+                        textAlign = TextAlign.Center,
+                    )
+                }
+            }
+        }
+
+        if (revealed) {
+            // A confident miss is worth naming. Being sure and wrong is what
+            // leaves a belief in place, and it is the one worth going back for.
+            val heading = when {
+                right && sure == true -> "Right, and you knew it."
+                right -> "Right."
+                sure == true -> "Not quite — and you were sure, which is the kind worth rereading."
+                else -> "Not quite."
+            }
             Text(
-                (if (picked in q.correct) "Right. " else "Not quite. ") + q.explanation,
-                style = MaterialTheme.typography.bodySmall, lineHeight = 19.sp,
-                color = if (picked in q.correct) AppTheme.colors.success else AppTheme.colors.destructive,
+                heading,
+                style = MaterialTheme.typography.bodySmall, lineHeight = 19.sp, fontWeight = FontWeight.SemiBold,
+                color = if (right) AppTheme.colors.success else AppTheme.colors.destructive,
             )
+            // Why the option you picked was tempting, before why the right one
+            // is right: the quiz screen has done this since 0.38, and the
+            // in-topic checks were written notes nobody could see.
+            q.whyWrongFor(setOfNotNull(picked))?.let { why ->
+                Text(why, style = MaterialTheme.typography.bodySmall, lineHeight = 19.sp, fontWeight = FontWeight.SemiBold)
+            }
+            Text(q.explanation, style = MaterialTheme.typography.bodySmall, lineHeight = 19.sp, color = AppTheme.colors.secondaryLabel)
         }
     }
 }
