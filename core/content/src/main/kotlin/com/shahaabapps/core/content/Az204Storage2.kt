@@ -97,6 +97,18 @@ internal object Az204Storage2 {
                 partitions, still fine. If the key had been /country, both users would share one partition and every
                 write would queue on it.
             """),
+            B.faded(
+                "az-cosmos-model-f1",
+                "Same decision, a different container. It will hold chat messages, and almost every query asks for one conversation.",
+                listOf(
+                    "Partitioning by /messageId would spread perfectly and make every query fan out.",
+                    "Partitioning by /conversationId puts the common query in a single ___.",
+                    "Either way it is fixed when the container is created, and cannot be changed afterwards.",
+                ),
+                blank = 1,
+                answers = listOf("partition", "logical partition"),
+                note = "Many values, spread evenly, and present in the query you run most. All three at once, or it is the wrong key.",
+            ),
             B.h("Request units and throughput"),
             B.bullets(
                 "1 RU is roughly a 1 KB point read. A query costs more; a write costs about 5 RU per KB.",
@@ -267,6 +279,18 @@ internal object Az204Storage2 {
                 load, a change-feed function updates it whenever a log is written. The lease container tracks how
                 far each function instance has read, so two instances never process the same change.
             """),
+            B.faded(
+                "az-cosmos-sdk-f1",
+                "Same document, two writers. Two instances of the API read the same streak document and both write it back.",
+                listOf(
+                    "Without anything else, the second write simply lands on top and the first change is gone.",
+                    "Send the item's ___ with the write, and the second one fails rather than overwriting.",
+                    "The caller then re-reads the current item and applies its change again.",
+                ),
+                blank = 1,
+                answers = listOf("etag"),
+                note = "Optimistic concurrency: no lock is taken, there is only a version stamp that still has to match when the write arrives.",
+            ),
             B.steps("Wire a change-feed function",
                 "Create a leases container with partition key /id." to "Small; stores checkpoints.",
                 "Add the Cosmos DB trigger with LeaseContainerName = leases." to "The function starts reading from now.",

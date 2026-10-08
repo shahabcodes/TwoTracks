@@ -145,6 +145,18 @@ internal object Az204Connect {
                 minutes, and strips internal headers on the way out. The back end on App Service only accepts
                 traffic from APIM's IP and a managed-identity token, so nobody can skip the gateway.
             """),
+            B.faded(
+                "az-apim-f1",
+                "Same gateway, a different limit. A partner must be held to 1000 calls a day rather than smoothed per minute.",
+                listOf(
+                    "rate-limit is the wrong tool: it smooths bursts over a short window and answers 429.",
+                    "A daily allowance is a ___ policy, and a caller past it gets 403.",
+                    "Both can sit in the same inbound section, as long as <base /> is kept.",
+                ),
+                blank = 1,
+                answers = listOf("quota"),
+                note = "One says slow down, the other says you have had your share. The status codes are different on purpose.",
+            ),
             B.steps("Publish an API",
                 "az apim create --name tt-apim --resource-group tt-rg --publisher-name TwoTracks --publisher-email ops@example.com --sku-name Consumption" to "Consumption deploys in minutes.",
                 "Import the back end's OpenAPI document as an API." to "Operations are created from the spec.",
@@ -325,6 +337,18 @@ internal object Az204Connect {
                 A second subscription sends every event to a Service Bus queue for the audit service. A corrupted file
                 that makes the Function throw is retried, then dead-lettered to the deadletter container after 24 hours.
             """),
+            B.faded(
+                "az-eventgrid-f1",
+                "Same wiring, a narrower route. Only blobs written under the invoices container should reach the Function.",
+                listOf(
+                    "The source still raises BlobCreated for every blob in the account.",
+                    "On the event subscription, set a subject ___-with filter of /blobServices/default/containers/invoices/.",
+                    "Anything that still fails to deliver after 24 hours goes to the dead-letter container.",
+                ),
+                blank = 1,
+                answers = listOf("begins"),
+                note = "Filtering on the subscription means an unwanted event is never delivered, and so never paid for or handled.",
+            ),
             B.steps("Subscribe a Function to blob events",
                 "az eventgrid system-topic create --name ttstorage-events --resource-group tt-rg --source <storage-id> --topic-type Microsoft.Storage.StorageAccounts --location westeurope" to "A system topic for the account.",
                 "az eventgrid system-topic event-subscription create --name csv-import --resource-group tt-rg --system-topic-name ttstorage-events --endpoint-type azurefunction --endpoint <function-id> --included-event-types Microsoft.Storage.BlobCreated --subject-begins-with /blobServices/default/containers/exports --subject-ends-with .csv --deadletter-endpoint <container-id>" to "Filtered and dead-lettered.",

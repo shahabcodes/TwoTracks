@@ -70,6 +70,18 @@ internal object Az204Security {
                 profile photo. A nightly report function uses a client credential with application permission
                 Logs.Read.All, consented by the admin.
             """),
+            B.faded(
+                "az-identity-f1",
+                "Same platform, nobody signed in. A nightly job must read every user's logs at two in the morning.",
+                listOf(
+                    "The mobile client's delegated Logs.ReadWrite is no use: it needs a user to act for.",
+                    "The job uses the client credentials flow and an ___ permission.",
+                    "An administrator consents to it once, and it arrives in the roles claim rather than scp.",
+                ),
+                blank = 1,
+                answers = listOf("application"),
+                note = "No user means the app acts as itself. A delegated permission would have nobody to act on behalf of.",
+            ),
             B.check(
                 "az-identity-k2", "az-identity",
                 "A nightly job with nobody signed in must read every user's calendar. Which permission type?",
@@ -245,6 +257,18 @@ internal object Az204Security {
                 run that throws, so it shows the Microsoft sign-in, caches the account, and from then on silent works
                 for months thanks to the refresh token. Every API call sends Bearer <access token>.
             """),
+            B.faded(
+                "az-msal-f1",
+                "Same app, a month later. It has not been opened for weeks and the cached access token has long expired.",
+                listOf(
+                    "acquireTokenSilent is still the first call, exactly as on every other launch.",
+                    "It succeeds without a prompt, because the ___ token is used to fetch a new access token.",
+                    "Only when that fails too does MsalUiRequiredException come back and the user is asked.",
+                ),
+                blank = 1,
+                answers = listOf("refresh"),
+                note = "Silent first, interactive only on MsalUiRequiredException. Retrying silently cannot change what is in the cache.",
+            ),
             B.steps("Token cache in a web app",
                 "Use the auth code flow via Microsoft.Identity.Web." to "It wraps MSAL for ASP.NET Core.",
                 "Add a distributed cache (Redis or SQL) for tokens." to "In-memory caches vanish on scale-out.",
@@ -380,6 +404,18 @@ internal object Az204Security {
                 study session. With delegated User.Read and Calendars.Read it calls /me/photo/${'$'}value and
                 /me/calendar/getSchedule. The access token aud is Graph, separate from the token for the Two Tracks API.
             """),
+            B.faded(
+                "az-graph-f1",
+                "Same API, three things at once. You need the signed-in user's profile, their photo and their manager.",
+                listOf(
+                    "Three separate calls would work, and would be three round trips.",
+                    "Send them together with ___, which carries up to twenty requests in one HTTP call.",
+                    "The token's audience is Graph, not the Two Tracks API.",
+                ),
+                blank = 1,
+                answers = listOf("\$batch", "batch"),
+                note = "Twenty per batch. Thirty calls is two batches rather than one, which is the detail the exam asks for.",
+            ),
             B.steps("Explore before coding",
                 "Open Graph Explorer at developer.microsoft.com/graph/graph-explorer." to "Sign in with a test account.",
                 "Run GET /me and then GET /me?\$select=displayName." to "See how \$select shrinks the response.",

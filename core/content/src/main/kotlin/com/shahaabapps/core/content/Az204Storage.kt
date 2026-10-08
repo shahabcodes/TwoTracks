@@ -79,6 +79,18 @@ internal object Az204Storage {
                 dashboard (Hot). Older months are kept for a year in case of a dispute (Cool) and then for five years
                 for the record (Archive). A lifecycle rule does the moving; nobody touches it by hand.
             """),
+            B.faded(
+                "az-blob-basics-f1",
+                "Same lifecycle, an awkward request. A dispute needs a CSV from three years ago, which the rule moved to Archive long since.",
+                listOf(
+                    "The blob is still there, and still costs almost nothing to keep.",
+                    "It cannot be read until it is ___, which takes hours rather than seconds.",
+                    "Until then a read of it simply fails: Archive is offline storage, not slow storage.",
+                ),
+                blank = 1,
+                answers = listOf("rehydrated", "rehydrate", "rehydration"),
+                note = "Hot, Cool and Cold are all readable at once, at different prices. Archive is the one that is not readable at all.",
+            ),
             B.code("json", """
                 {
                   "rules": [{
@@ -207,6 +219,18 @@ internal object Az204Storage {
                 in Azure it uses the app's managed identity with the Storage Blob Data Contributor role. The same code
                 runs in both places with no settings change.
             """),
+            B.faded(
+                "az-blob-sdk-f1",
+                "Same credential story, a link to hand out. Your API must give a browser ten minutes of access to one private blob.",
+                listOf(
+                    "The account key must not leave the API, so it cannot be the thing that signs this.",
+                    "Issue a ___ delegation SAS, signed with an Entra ID key obtained by the app's own identity.",
+                    "Set a ten minute expiry, and it can be revoked before then if it has to be.",
+                ),
+                blank = 1,
+                answers = listOf("user"),
+                note = "An account-key SAS cannot be revoked without rotating the key for everything else that uses it.",
+            ),
             B.h("Properties and metadata"),
             B.p("System properties are things like Content-Type and Last-Modified. Metadata is your own name-value pairs, up to 8 KB, stored with the blob and returned on every read."),
             B.code("csharp", """

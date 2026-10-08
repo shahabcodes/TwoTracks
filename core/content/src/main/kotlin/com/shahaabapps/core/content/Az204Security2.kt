@@ -90,6 +90,18 @@ internal object Az204Security2 {
                 Usaid runs az login and DefaultAzureCredential picks up his own account, which also has the role. The
                 connection string appears in no file, no pipeline variable and no portal setting.
             """),
+            B.faded(
+                "az-keyvault-f1",
+                "Same vault, three apps. They all read the same secret, and the identity has to exist before any of them is deployed.",
+                listOf(
+                    "A system-assigned identity is out: it is created with one resource and dies with it.",
+                    "Create a ___-assigned managed identity, which is a resource of its own, and attach it to all three.",
+                    "Grant that one identity the Key Vault Secrets User role, once.",
+                ),
+                blank = 1,
+                answers = listOf("user"),
+                note = "System-assigned for one resource with a matching lifetime. User-assigned to share an identity, or to have it before the apps exist.",
+            ),
             B.steps("Wire it up",
                 "az webapp identity assign --name tt-api --resource-group tt-rg" to "Returns the principalId of the new system identity.",
                 "az keyvault create --name tt-vault --resource-group tt-rg --enable-rbac-authorization true" to "A vault using RBAC.",
@@ -235,6 +247,18 @@ internal object Az204Security2 {
                 Sanya try it first. The API reads the store with its managed identity (App Configuration Data Reader)
                 and the Cosmos connection is a Key Vault reference inside the store.
             """),
+            B.faded(
+                "az-appconfig-f1",
+                "Same store, no restart. DailyLimit changes and the running app has to pick it up.",
+                listOf(
+                    "Reading every key on a timer would be one request per key, on every check.",
+                    "Instead the app watches a single ___ key, and refreshes all the others when that one changes.",
+                    "The middleware does the refreshing; the app code reads the values as it always did.",
+                ),
+                blank = 1,
+                answers = listOf("sentinel"),
+                note = "Polling every key is exactly what the sentinel pattern exists to avoid.",
+            ),
             B.steps("Create and seed a store",
                 "az appconfig create --name tt-config --resource-group tt-rg --sku Standard" to "Free tier has one store per subscription and 1000 requests a day.",
                 "az appconfig kv set --name tt-config --key TwoTracks:Srs:DailyLimit --value 15 --label prod --yes" to "A labelled value.",

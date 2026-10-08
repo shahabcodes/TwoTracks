@@ -56,6 +56,18 @@ internal object Az204Compute2 {
                 reaches B for the first time. If line one had used Guid.NewGuid() to name the order, replay would produce
                 a different id and the history check would fail with a non-determinism error.
             """),
+            B.faded(
+                "az-durable-f1",
+                "Same trap, a different line. An orchestrator needs to wait five minutes between two activities.",
+                listOf(
+                    "Thread.Sleep would block the host, and Task.Delay would not survive the orchestrator being unloaded.",
+                    "Neither is recorded in the ___, so on replay the wait would happen all over again.",
+                    "The replay-safe version is context.CreateTimer, a durable timer.",
+                ),
+                blank = 1,
+                answers = listOf("history"),
+                note = "Anything that is not in the history gives a different answer on replay, and a different answer is what a non-determinism error is.",
+            ),
             B.check("az-durable-k1", "az-durable", "Where should an HTTP call to a payment API live?",
                 listOf("In the orchestrator", "In an activity", "In the client function"), 1,
                 "Activities hold side effects. Orchestrators replay, so a payment call there would run again on every replay."),
@@ -221,6 +233,18 @@ internal object Az204Compute2 {
                 builds api:{{.Run.ID}} and tags it latest. The Container App pulls by digest, so a rollback is "point the
                 revision at the previous tag", never a rebuild.
             """),
+            B.faded(
+                "az-containers-f1",
+                "Same setup, going backwards. A bad image has gone out and you need the previous version serving traffic within the minute.",
+                listOf(
+                    "The image is already in the registry; nothing needs building.",
+                    "In Container Apps, point traffic at the previous ___ instead of the latest one.",
+                    "Each one is immutable, so the old version is exactly what it was.",
+                ),
+                blank = 1,
+                answers = listOf("revision"),
+                note = "A rollback is a routing change, not a build. That is the whole reason these are immutable and versioned.",
+            ),
             B.h("Azure Container Instances (ACI)"),
             B.p("""
                 ACI runs a container the moment you ask, billed by the second, with no cluster to create. It is the
