@@ -52,6 +52,16 @@ internal object Az204Storage2 {
             B.remember("Session is the default and what most apps want: a user sees their own update immediately, and other users soon after."),
             B.check("az-cosmos-model-k1", "az-cosmos-model", "A leaderboard may show scores slightly late but never out of order. Which level?",
                 listOf("Strong", "Consistent prefix", "Eventual"), 1, "Consistent prefix guarantees order without the cost of Strong."),
+            B.check(
+                "az-cosmos-model-k2", "az-cosmos-model",
+                "Which consistency level does a new Cosmos account default to?",
+                listOf("Session", "Strong", "Eventual"), 0,
+                "Session is the default: a client reads its own writes, at far less cost than Strong.",
+                whyWrong = mapOf(
+                    1 to "Strong is the most expensive and the slowest, and is not what you get unless you ask.",
+                    2 to "Eventual is the cheapest, and is not the default either.",
+                ),
+            ),
             B.h("Partition keys: the exam's favourite"),
             B.p("""
                 Every container is split into logical partitions by the value of one property, the partition key.
@@ -100,6 +110,16 @@ internal object Az204Storage2 {
                 "Ignoring 429s. Handle throttling with retries or autoscale.",
             ),
             B.example("Two Tracks: NoSQL API, Session consistency, serverless while the user base is two people, partition key /owner on logs and /date on sessions."),
+            B.check(
+                "az-cosmos-model-k3", "az-cosmos-model",
+                "A container is partitioned by country, and most of the traffic is one country. What is wrong with that?",
+                listOf("A hot partition — and the key cannot be changed later", "Nothing, as long as the RU/s is high enough", "Reads will come back stale"), 0,
+                "A key needs many values, which spread the load and which the common query includes. It is also fixed when the container is created.",
+                whyWrong = mapOf(
+                    1 to "Raising RU/s does not help: one logical partition has its own throughput limit and caps at 20 GB.",
+                    2 to "Staleness is a consistency question. This is a partitioning one.",
+                ),
+            ),
             B.h("Check yourself"),
             B.match(
                 "az-s-cosmos-match", "Pair each consistency level with its promise.",
@@ -179,6 +199,16 @@ internal object Az204Storage2 {
             ),
             B.check("az-cosmos-sdk-k1", "az-cosmos-sdk", "Two app instances may update the same document at once; the second must not overwrite the first blindly. What do you use?",
                 listOf("A stored procedure", "IfMatchEtag on the replace", "Strong consistency"), 1, "The ETag check makes the second write fail with 412 so it can re-read and retry."),
+            B.check(
+                "az-cosmos-sdk-k2", "az-cosmos-sdk",
+                "Two writers must not overwrite each other's change. What do you use?",
+                listOf("The ETag, with an if-match condition", "A stored procedure", "A stronger consistency level"), 0,
+                "The ETag is a version stamp: send it back with the write and it fails if the item has moved on.",
+                whyWrong = mapOf(
+                    1 to "A stored procedure gives a transaction inside one partition, which is a different problem from two clients racing.",
+                    2 to "Consistency governs how fresh a read is, not whether a write lands on top of someone else's.",
+                ),
+            ),
             B.h("Server-side code"),
             B.table(
                 listOf("Kind", "Runs", "Use"),
@@ -230,6 +260,16 @@ internal object Az204Storage2 {
                 "Sharing one lease container between two different functions without a LeaseContainerPrefix.",
             ),
             B.example("Two Tracks: point reads for goal pages, in-partition queries for weekly logs, a change-feed function for streaks, TTL of 90 days on planned sessions."),
+            B.check(
+                "az-cosmos-sdk-k3", "az-cosmos-sdk",
+                "Which of these does the change feed NOT give you?",
+                listOf("Deletes", "Inserts", "Updates"), 0,
+                "The change feed carries inserts and updates. To react to a removal you model it as a soft delete, usually with a TTL.",
+                whyWrong = mapOf(
+                    1 to "Inserts are the obvious case, and are included.",
+                    2 to "Updates are included too, in order within a partition.",
+                ),
+            ),
             B.h("Check yourself"),
             B.match(
                 "az-s-cosmossdk-match", "Pair each piece of server-side code with where it runs.",

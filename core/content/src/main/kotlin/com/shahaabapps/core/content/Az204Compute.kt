@@ -97,6 +97,16 @@ internal object Az204Compute {
                 "Configuration, Application settings, add Firestore__ProjectId." to "Save warns that the app will restart.",
                 "Deployment Center, pick GitHub and the repo branch." to "A workflow file is committed and the first run deploys.",
             ),
+            B.check(
+                "az-app-service-k3", "az-app-service",
+                "You change an app setting in the portal. What happens to the running app?",
+                listOf("It restarts and starts using the new value", "Nothing until the next deployment", "The value reaches only new instances"), 0,
+                "App settings are injected as environment variables at start-up, so changing one restarts the app.",
+                whyWrong = mapOf(
+                    1 to "No deployment is needed: settings live outside the code, and the platform restarts the app itself.",
+                    2 to "Every instance restarts, not only ones started later.",
+                ),
+            ),
             B.h("Logging and diagnostics"),
             B.p("""
                 App Service can write application logs (what your code prints), web server logs, detailed error pages
@@ -108,6 +118,16 @@ internal object Az204Compute {
                 az webapp log config --name twotracks-api --resource-group tt-rg --application-logging filesystem --level information
                 az webapp log tail --name twotracks-api --resource-group tt-rg
             """),
+            B.check(
+                "az-app-service-k2", "az-app-service",
+                "An app sits idle overnight and the first request each morning is slow. What fixes that?",
+                listOf("Always On, which the Basic tier and above offer", "A larger instance size", "A second deployment slot"), 0,
+                "Always On keeps the app loaded, so the platform is not starting it up on the first request after idle.",
+                whyWrong = mapOf(
+                    1 to "A bigger worker makes a loaded app faster. It does not stop an unloaded one having to start.",
+                    2 to "A slot is a second copy for staging and swapping. It has no effect on a cold start in production.",
+                ),
+            ),
             B.h("Where the code comes from"),
             B.bullets(
                 "Push a zip, a Git repo, or a GitHub Actions workflow. Continuous deployment watches a branch and redeploys on every push.",
@@ -213,6 +233,16 @@ internal object Az204Compute {
             B.check("az-slots-scaling-k1", "az-slots-scaling", "After a swap, which of these is now answering the production URL?",
                 listOf("The workers that were serving staging", "The same workers as before, with new code copied in", "A fresh set of workers"), 0,
                 "A swap changes routing, not files. The staging workers, already warmed up, start answering the production hostname."),
+            B.check(
+                "az-slots-scaling-k2", "az-slots-scaling",
+                "A connection string on the staging slot is marked as a deployment slot setting. After a swap, which slot has that value?",
+                listOf("Staging still", "Production, having travelled with the code", "Neither; the swap clears it"), 0,
+                "A sticky setting stays with its slot. Everything not marked sticky moves with the code.",
+                whyWrong = mapOf(
+                    1 to "That is what an unmarked setting does. Marking it a slot setting is precisely what stops it moving.",
+                    2 to "A swap clears nothing. The value stays on the slot it is stuck to.",
+                ),
+            ),
             B.h("Testing in production"),
             B.worked("""
                 Worked example. Two Tracks wants 10 percent of real users on v2 for an hour. In Deployment slots, set
@@ -268,6 +298,16 @@ internal object Az204Compute {
                 Two Tracks gets a burst every evening at 16:15 Qatar time when reminders fire. A schedule rule adds a
                 worker at 16:00 and removes it at 18:00, cheaper than reacting to CPU after the spike has started.
             """),
+            B.check(
+                "az-slots-scaling-k3", "az-slots-scaling",
+                "Traffic has doubled, and each request is the same amount of work as before. Scale up or scale out?",
+                listOf("Scale out: more instances", "Scale up: a bigger worker", "Neither; lengthen the cool-down"), 0,
+                "More of the same work means more workers. Scaling up is for work that needs a bigger machine, not more of them.",
+                whyWrong = mapOf(
+                    1 to "A bigger worker helps when one request needs more CPU or memory, not when there are simply more requests.",
+                    2 to "Cool-down only limits how often a rule may act. It adds no capacity at all.",
+                ),
+            ),
             B.h("Check yourself"),
             B.match(
                 "az-c-slots-match", "Pair each term with what it actually does.",
@@ -355,6 +395,16 @@ internal object Az204Compute {
                 0 30 9 * * 1-5    09:30 on weekdays
                 0 0 0 1 * *       midnight on the 1st of every month
             """),
+            B.check(
+                "az-functions-k2", "az-functions",
+                "What does the NCRONTAB expression 0 */5 * * * * do?",
+                listOf("Runs every five minutes", "Runs every five seconds", "Runs at five past every hour"), 0,
+                "Six fields, beginning with seconds: at second zero, every fifth minute.",
+                whyWrong = mapOf(
+                    1 to "Every five seconds puts the step in the first field: */5 * * * * *.",
+                    2 to "Five past the hour is 0 5 * * * * — a fixed minute, with no step.",
+                ),
+            ),
             B.h("A function in C#"),
             B.worked("""
                 Worked example. Two Tracks needs a reminder sweep at 16:00 Sunday to Thursday. The timer is the trigger,
@@ -396,6 +446,16 @@ internal object Az204Compute {
                 "Must not have a cold start" or "needs VNet access" points to Premium. "Cheapest for a function that
                 runs a few times a day" points to Consumption. "Runs for 30 minutes" rules out Consumption.
             """),
+            B.check(
+                "az-functions-k3", "az-functions",
+                "Which of these is true of the Consumption plan?",
+                listOf("It scales to zero, so the first call after idle may cold start", "It keeps instances pre-warmed, so there is no cold start", "It lets a single run take as long as it needs"), 0,
+                "Consumption scales to zero and bills per execution. The price is a cold start and a limit on how long one run may take.",
+                whyWrong = mapOf(
+                    1 to "Pre-warmed instances are the Premium plan, which exists largely to answer cold starts.",
+                    2 to "Consumption caps a single run. Premium and Dedicated are what lift that limit.",
+                ),
+            ),
             B.h("The host file and settings"),
             B.p("""
                 host.json configures the whole function app (logging, time-outs, queue batch sizes). local.settings.json

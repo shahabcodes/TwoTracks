@@ -64,6 +64,16 @@ internal object Az204Security {
                 profile photo. A nightly report function uses a client credential with application permission
                 Logs.Read.All, consented by the admin.
             """),
+            B.check(
+                "az-identity-k2", "az-identity",
+                "A nightly job with nobody signed in must read every user's calendar. Which permission type?",
+                listOf("An application permission, with admin consent", "A delegated permission", "Either will do"), 0,
+                "With no user present the app acts as itself: an application permission, consented by an admin, arriving in the roles claim.",
+                whyWrong = mapOf(
+                    1 to "A delegated permission needs a signed-in user to act on behalf of, and at two in the morning there is none.",
+                    2 to "They are not interchangeable. The absence of a user rules delegated out.",
+                ),
+            ),
             B.h("Public versus confidential clients"),
             B.compare("Client types",
                 B.card("Public client", "Mobile and desktop apps, single-page apps.", "Cannot keep a secret", "Uses auth code + PKCE", "Redirect URI is a custom scheme or localhost"),
@@ -91,6 +101,16 @@ internal object Az204Security {
                 "Forgetting to validate aud on the API; a token for Graph is not a token for you.",
             ),
             B.example("Two Tracks: mobile app = public client with PKCE; API = exposes Logs.ReadWrite; nightly function = client credentials with a certificate from Key Vault."),
+            B.check(
+                "az-identity-k3", "az-identity",
+                "A mobile app signs users in. Which flow?",
+                listOf("Authorization code with PKCE", "Client credentials", "Implicit"), 0,
+                "A mobile app is a public client and cannot keep a secret, so PKCE protects the code exchange in its place.",
+                whyWrong = mapOf(
+                    1 to "Client credentials is for daemons with no user, and needs a secret a mobile app has nowhere safe to put.",
+                    2 to "Implicit is deprecated, precisely because it returns tokens in the URL.",
+                ),
+            ),
             B.h("Check yourself"),
             B.match(
                 "az-x-identity-match", "Three tokens, three jobs. Pair them.",
@@ -181,6 +201,16 @@ internal object Az204Security {
             ),
             B.check("az-msal-k1", "az-msal", "A background service with no user must call Microsoft Graph. Which MSAL method?",
                 listOf("AcquireTokenInteractive", "AcquireTokenForClient", "AcquireTokenSilent"), 1, "Client credentials flow is AcquireTokenForClient with the /.default scope."),
+            B.check(
+                "az-msal-k2", "az-msal",
+                "AcquireTokenSilent throws MsalUiRequiredException. What should the code do?",
+                listOf("Fall back to an interactive prompt", "Retry silently, with a back-off", "Build a new client application"), 0,
+                "That exception is the library saying the user has to be asked: consent, MFA, or a session that has expired.",
+                whyWrong = mapOf(
+                    1 to "Retrying silently throws the same exception. Nothing in the cache changes without the user.",
+                    2 to "A new client object shares the same token cache, and so the same problem.",
+                ),
+            ),
             B.h("Scopes"),
             B.bullets(
                 "Request scopes as resource/permission, for example https://graph.microsoft.com/User.Read or api://tt-api/Logs.ReadWrite.",
@@ -207,6 +237,16 @@ internal object Az204Security {
                 "Caching tokens in memory on a web farm; use a distributed cache.",
             ),
             B.example("Two Tracks mobile: PublicClientApplication, silent then interactive, one token for the API and one for Graph."),
+            B.check(
+                "az-msal-k3", "az-msal",
+                "A daemon asks for a Graph token with client credentials. Which scope does it request?",
+                listOf("https://graph.microsoft.com/.default", "User.Read", "offline_access"), 0,
+                "/.default asks for everything already consented for that resource, which is how client credentials has to work: there is no user to consent to anything narrower.",
+                whyWrong = mapOf(
+                    1 to "A specific delegated scope needs a user. Client credentials cannot request one.",
+                    2 to "offline_access asks for a refresh token, which a daemon has no use for: it simply asks for another token.",
+                ),
+            ),
             B.h("Check yourself"),
             B.match(
                 "az-x-msal-match", "Pair each situation with the MSAL call that fits.",
@@ -274,6 +314,16 @@ internal object Az204Security {
                 listOf("\$search", "Full text", "\$search=\"displayName:usaid\""),
             ),
             B.tip("\$count, \$search and some \$filter queries on directory objects need the header ConsistencyLevel: eventual. That header is a favourite exam detail."),
+            B.check(
+                "az-graph-k2", "az-graph",
+                "A Graph response contains @odata.nextLink. What does the client do with it?",
+                listOf("Call that URL for the next page", "Retry the original call", "Raise \$top and start again"), 0,
+                "nextLink is the complete URL of the following page. Follow it until a response arrives without one.",
+                whyWrong = mapOf(
+                    1 to "Retrying returns the same first page.",
+                    2 to "\$top is a hint rather than a guarantee, and Graph will page anyway. Following nextLink is the only reliable way through.",
+                ),
+            ),
             B.h("Paging and batching"),
             B.bullets(
                 "Large results come in pages with an @odata.nextLink; follow it until it is absent.",
@@ -308,6 +358,16 @@ internal object Az204Security {
                 "Forgetting ConsistencyLevel: eventual with \$count or \$search.",
             ),
             B.example("Two Tracks: Graph for photos and calendar availability; Graph SDK with DefaultAzureCredential in the API; Graph Explorer for discovering scopes."),
+            B.check(
+                "az-graph-k3", "az-graph",
+                "You must make thirty Graph calls in as few round trips as possible. What do you do?",
+                listOf("Two \$batch requests, since one holds twenty", "One \$batch request with all thirty", "Thirty calls, handling Retry-After"), 0,
+                "\$batch carries up to twenty requests in one HTTP call, so thirty needs two of them.",
+                whyWrong = mapOf(
+                    1 to "A single batch is capped at twenty requests, so the rest are rejected.",
+                    2 to "That works, and is exactly the thirty round trips batching exists to avoid.",
+                ),
+            ),
             B.h("Check yourself"),
             B.gap(
                 "az-x-graph-gap1", "A large result arrives in pages, and the response tells you there is more.",

@@ -97,6 +97,16 @@ internal object Az204Connect {
             B.remember("rate-limit is a short burst control (per minute, 429 Too Many Requests). quota is a long-term allowance (per day or month, 403 Forbidden). Both can be keyed by any expression with the -by-key variants."),
             B.check("az-apim-k1", "az-apim", "Partners may call at most 1,000 times a month each; bursts are fine. Which policy?",
                 listOf("rate-limit-by-key", "quota-by-key", "ip-filter"), 1, "A monthly allowance is a quota; rate-limit controls short windows."),
+            B.check(
+                "az-apim-k2", "az-apim",
+                "Callers must be held to ten calls a minute, and told to slow down rather than refused outright. Which policy?",
+                listOf("rate-limit, which answers 429", "quota, which answers 403", "validate-jwt, which answers 401"), 0,
+                "rate-limit smooths bursts and answers 429 Too Many Requests. A quota is a longer allowance, and going over it is a refusal.",
+                whyWrong = mapOf(
+                    1 to "A quota is an allowance over a longer period, and a caller past it gets 403 — a refusal, not an invitation to slow down.",
+                    2 to "validate-jwt checks the token. It has nothing to say about how often a caller calls.",
+                ),
+            ),
             B.h("Policy expressions"),
             B.p("Anything in @(...) is a C# expression with the context object: context.Request, context.Response, context.Subscription, context.User, context.Variables. Multi-statement blocks use @{ ... }."),
             B.code("xml", """
@@ -107,6 +117,16 @@ internal object Az204Connect {
                   <otherwise><set-backend-service base-url="https://tt-api.azurewebsites.net" /></otherwise>
                 </choose>
             """),
+            B.check(
+                "az-apim-k3", "az-apim",
+                "An operation-level policy leaves <base /> out of its inbound section. What happens?",
+                listOf("The product and global inbound policies do not run", "The policy is rejected when you save it", "Those policies run twice"), 0,
+                "<base /> is where the parent scope's policies execute. Leave it out and that scope is skipped entirely.",
+                whyWrong = mapOf(
+                    1 to "It saves perfectly happily, which is what makes this easy to miss until something is unprotected.",
+                    2 to "Running twice is what happens if <base /> appears more than once, not if it is missing.",
+                ),
+            ),
             B.h("Securing the back end"),
             B.bullets(
                 "Subscription keys authenticate the caller to APIM, not APIM to the back end.",
@@ -231,6 +251,16 @@ internal object Az204Connect {
             B.tip("\"Only CSV files uploaded to the exports container\" is a subject filter: begins with /blobServices/default/containers/exports and ends with .csv."),
             B.check("az-eventgrid-k1", "az-eventgrid", "Events that could not be delivered after 24 hours must be kept for inspection. What do you configure?",
                 listOf("A longer retry", "Dead-lettering to a storage container", "A second subscription"), 1, "Dead-letter destinations keep undeliverable events as blobs."),
+            B.check(
+                "az-eventgrid-k2", "az-eventgrid",
+                "You want only the blob events under /containers/images/. What do you configure?",
+                listOf("A subject begins-with filter on the event subscription", "A policy on the topic", "A check at the top of the handler"), 0,
+                "Subscriptions filter by event type, by subject prefix and suffix, or on the data itself, so unwanted events are never delivered.",
+                whyWrong = mapOf(
+                    1 to "Topics do not filter. The subscription is where a route is narrowed.",
+                    2 to "That works, but you have already paid for the delivery. Not receiving them is the point of a subject filter.",
+                ),
+            ),
             B.h("Webhook validation"),
             B.p("""
                 Before Event Grid trusts a webhook it sends a SubscriptionValidationEvent with a validationCode. Your
@@ -251,6 +281,16 @@ internal object Az204Connect {
                     return Ok();
                 }
             """),
+            B.check(
+                "az-eventgrid-k3", "az-eventgrid",
+                "Your handler occasionally receives the same event twice. What should it do about it?",
+                listOf("Be idempotent, so the same event twice has the same effect as once", "Reject the duplicate with a 409", "Turn retries off on the subscription"), 0,
+                "Event Grid delivers at least once and retries for 24 hours, so a handler has to tolerate a repeat.",
+                whyWrong = mapOf(
+                    1 to "A 409 is a failure, so Event Grid retries it. That makes the duplicate worse rather than better.",
+                    2 to "Retries are what get an event delivered when the handler was briefly down. Without them, an outage loses events.",
+                ),
+            ),
             B.h("Publishing your own events"),
             B.code("csharp", """
                 var client = new EventGridPublisherClient(new Uri("https://tt-events.westeurope-1.eventgrid.azure.net/api/events"), new DefaultAzureCredential());

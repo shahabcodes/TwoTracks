@@ -62,6 +62,16 @@ internal object Az204Security2 {
                 var crypto = new CryptographyClient(new Uri("https://tt-vault.vault.azure.net/keys/data-key"), new DefaultAzureCredential());
                 var enc = await crypto.EncryptAsync(EncryptionAlgorithm.RsaOaep, plaintextBytes);
             """),
+            B.check(
+                "az-keyvault-k2", "az-keyvault",
+                "Three apps must share one identity, created before any of them exists. Which kind?",
+                listOf("User-assigned", "System-assigned", "A service principal with a secret"), 0,
+                "A user-assigned identity is a resource of its own, so it can be created in advance and attached to several resources.",
+                whyWrong = mapOf(
+                    1 to "A system-assigned identity is tied to one resource's lifetime and dies with it, so it cannot be shared.",
+                    2 to "That puts back the credential a managed identity exists to remove.",
+                ),
+            ),
             B.h("No code at all: Key Vault references"),
             B.p("App Service and Functions can resolve an app setting from the vault at start-up. The app reads a normal environment variable; the platform fetches the secret with the managed identity."),
             B.code("text", """
@@ -88,6 +98,16 @@ internal object Az204Security2 {
                 "Deleting a user-assigned identity still attached to apps; they lose access at once.",
             ),
             B.example("Two Tracks: RBAC vault, system identity on the API, user-assigned identity shared by the nightly functions, certificate auto-renewed for the custom domain."),
+            B.check(
+                "az-keyvault-k3", "az-keyvault",
+                "What does a Key Vault reference in an app setting save you from?",
+                listOf("Writing any secret-fetching code in the app", "Granting the app access to the vault", "Soft delete"), 0,
+                "The platform resolves the reference at start-up and the value arrives as an ordinary environment variable.",
+                whyWrong = mapOf(
+                    1 to "The app's managed identity still needs permission on the vault. The reference only removes the code.",
+                    2 to "Soft delete is a setting on the vault, and has nothing to do with how a value is read.",
+                ),
+            ),
             B.h("Check yourself"),
             B.match(
                 "az-x-kv-match", "Pair each vault object with what is true of it.",
@@ -171,6 +191,16 @@ internal object Az204Security2 {
                 app.UseAzureAppConfiguration();   // middleware triggers the refresh check
             """),
             B.remember("Register one sentinel key with refreshAll instead of every key. The refresh happens on the next request after the interval, driven by the middleware, not on a timer in the background."),
+            B.check(
+                "az-appconfig-k3", "az-appconfig",
+                "How does an app pick up changed settings without being restarted?",
+                listOf("Watch one sentinel key and refresh the rest when it moves", "Poll every key on a timer", "Restart the app from a webhook"), 0,
+                "One sentinel key is checked, and when it changes every other key is refreshed: one request instead of hundreds.",
+                whyWrong = mapOf(
+                    1 to "Polling every key is exactly what the sentinel pattern exists to avoid.",
+                    2 to "A restart is what dynamic refresh is for not having to do.",
+                ),
+            ),
             B.h("Feature flags"),
             B.bullets(
                 "A flag is on, off, or conditional with filters: percentage, time window, targeting (users and groups), or custom.",
@@ -198,6 +228,16 @@ internal object Az204Security2 {
                 "Using connection strings when the app has a managed identity; grant App Configuration Data Reader instead.",
             ),
             B.example("Two Tracks: labels per environment, a sentinel key for refresh, MockExam flag with targeting, secrets via Key Vault references."),
+            B.check(
+                "az-appconfig-k2", "az-appconfig",
+                "A feature should be on for a fifth of requests. What do you configure?",
+                listOf("A percentage feature filter", "A label", "A sentinel key"), 0,
+                "Feature filters — percentage, time window, targeting — are what decide a flag's answer at runtime.",
+                whyWrong = mapOf(
+                    1 to "A label is a per-environment variant of a key, not a rollout rule.",
+                    2 to "A sentinel key is how a refresh is triggered, not how a flag is decided.",
+                ),
+            ),
             B.h("Check yourself"),
             B.gap(
                 "az-x-appcfg-gap1", "Check a flag from code in ASP.NET.",

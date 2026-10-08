@@ -284,8 +284,23 @@ object B {
     fun compare(title: String, vararg cards: CompareCard) = Block.Compare(title, cards.toList())
     fun card(title: String, pickWhen: String, vararg points: String) = CompareCard(title, points.toList(), pickWhen)
     fun tryIt(title: String, intro: String, vararg checklist: String) = Block.TryIt(title, intro.trimIndent().replace("\n", " ").trim(), checklist.toList())
-    fun check(id: String, topic: String, prompt: String, options: List<String>, correct: Int, explanation: String) =
-        Block.Check(Question(id, topic, prompt, null, options, setOf(correct), explanation.trimIndent().replace("\n", " ").trim()))
+    fun check(
+        id: String,
+        topic: String,
+        prompt: String,
+        options: List<String>,
+        correct: Int,
+        explanation: String,
+        whyWrong: Map<Int, String> = emptyMap(),
+    ) = Block.Check(
+        settle(
+            Question(
+                id, topic, prompt, null, options, setOf(correct),
+                explanation.trimIndent().replace("\n", " ").trim(),
+                whyWrong = whyWrong,
+            ),
+        ),
+    )
     fun glossary(vararg terms: Pair<String, String>) = Block.Glossary(terms.map { Term(it.first, it.second) })
     fun ref(title: String, url: String) = Reference(title, url)
     fun vocab(vararg words: Word) = Block.Vocab(words.toList())
@@ -307,25 +322,45 @@ object B {
     fun diagram(caption: String, nodes: List<DNode>, edges: List<DEdge> = emptyList(), aspect: Float = 0.62f) =
         Block.Diagram(DiagramSpec(caption, nodes, edges, aspect))
     fun recap(vararg items: String) = Block.Recap(items.toList())
-    /**
-     * Rotates each question's options by its position so the right answer is
-     * not usually in the same slot. Explanations never mention letters, so
-     * the text stays correct.
-     */
-    fun spread(questions: List<Question>): List<Question> = questions.mapIndexed { i, q ->
-        // Fixed-order answer sets (True/False/Not Given and the like) keep their order.
-        if (q.options.size < 3 || q.options.first().uppercase() in setOf("TRUE", "YES", "RICHTIG")) return@mapIndexed q
+    /** Answer sets with a meaningful order (True/False/Not Given and the like) keep it. */
+    private val FIXED_ORDER = setOf("TRUE", "YES", "RICHTIG")
+
+    /** Moves every index into [Question.options] by the same rotation. */
+    private fun rotateBy(q: Question, r: Int): Question {
         val n = q.options.size
-        val r = i % n
-        // Every index into options moves by the same rotation, the per-option
-        // notes as much as the correct set. Missing one would pin an
-        // explanation to an answer it was never written about.
-        q.copy(
+        // Every index into options moves together, the per-option notes as
+        // much as the correct set. Missing one would pin an explanation to an
+        // answer it was never written about.
+        return q.copy(
             options = q.options.drop(r) + q.options.take(r),
             correct = q.correct.map { (it - r + n) % n }.toSet(),
             whyWrong = q.whyWrong.mapKeys { (k, _) -> (k - r + n) % n },
         )
     }
+
+    /**
+     * Rotates each question's options by its position, so the right answer is
+     * not usually in the same slot. Explanations never mention letters, so
+     * the text stays correct.
+     */
+    fun spread(questions: List<Question>): List<Question> = questions.mapIndexed { i, q ->
+        if (q.options.size < 3 || q.options.first().uppercase() in FIXED_ORDER) return@mapIndexed q
+        rotateBy(q, i % q.options.size)
+    }
+
+    /**
+     * Rotates one question's options by its id.
+     *
+     * An inline check's answer otherwise sits wherever its author happened to
+     * type it, and across a course that becomes a position worth guessing —
+     * AZ-204's first round of checks put it second 21 times out of 22. Keyed
+     * on the id, so the order is the same every time a topic is reopened.
+     */
+    private fun settle(q: Question): Question {
+        if (q.options.size < 3 || q.options.first().uppercase() in FIXED_ORDER) return q
+        return rotateBy(q, q.id.hashCode().mod(q.options.size))
+    }
+
     fun q(
         id: String, topic: String, prompt: String, options: List<String>, correct: Set<Int>, explanation: String,
         scenario: String? = null, listen: String? = null, whyWrong: Map<Int, String> = emptyMap(),

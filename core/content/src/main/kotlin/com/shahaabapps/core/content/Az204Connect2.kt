@@ -70,6 +70,16 @@ internal object Az204Connect2 {
                 "Checkpoint after a batch, not every event; checkpointing is a storage write.",
                 "Azure Functions Event Hub trigger does all of this with a Storage connection and a cardinality of many.",
             ),
+            B.check(
+                "az-eventhubs-k2", "az-eventhubs",
+                "Two applications must each read the whole stream, independently of the other. What do you give them?",
+                listOf("A consumer group each", "A partition each", "A throughput unit each"), 0,
+                "A consumer group is an independent view of the stream, with its own checkpoints.",
+                whyWrong = mapOf(
+                    1 to "A partition is a slice of the stream, so each application would see only part of it.",
+                    2 to "Throughput units buy capacity. They do not separate one reader's position from another's.",
+                ),
+            ),
             B.h("Scaling and capture"),
             B.bullets(
                 "Throughput: add throughput units (Standard) or processing units (Premium); enable auto-inflate to grow automatically (it never shrinks).",
@@ -101,6 +111,16 @@ internal object Az204Connect2 {
                 "Choosing Event Hubs when each message needs individual handling with dead-lettering; that is Service Bus.",
             ),
             B.example("Two Tracks: Standard namespace, sessions hub with 4 partitions keyed by owner, two consumer groups, Capture to Data Lake every 5 minutes."),
+            B.check(
+                "az-eventhubs-k3", "az-eventhubs",
+                "Events must also land in storage as Avro files, with no code written to do it. What do you enable?",
+                listOf("Capture", "A checkpoint store", "Dead-lettering"), 0,
+                "Capture batches events to Blob Storage or Data Lake in Avro automatically.",
+                whyWrong = mapOf(
+                    1 to "A checkpoint store records how far a reader has got. It archives nothing.",
+                    2 to "Dead-lettering is a Service Bus and Event Grid idea. Event Hubs has no such sub-queue.",
+                ),
+            ),
             B.h("Check yourself"),
             B.gap(
                 "az-n-hubs-gap1", "Archive every event to storage without writing any code.",
@@ -211,6 +231,16 @@ internal object Az204Connect2 {
                 listOf("Defer", "Keep but skip; fetch later by sequence number"),
                 listOf("Renew lock", "Extend the lock for long work"),
             ),
+            B.check(
+                "az-servicebus-k2", "az-servicebus",
+                "A receiver holds a message in PeekLock and finds it can never be processed. Which settlement?",
+                listOf("Dead-letter it", "Abandon it", "Complete it"), 0,
+                "Dead-lettering moves it to the sub-queue for messages that could not be handled, where it can be looked at later.",
+                whyWrong = mapOf(
+                    1 to "Abandon releases the lock and the message comes round again, so one that can never be processed just circles until its delivery count runs out.",
+                    2 to "Complete says it was handled successfully, which loses it silently.",
+                ),
+            ),
             B.h("Topic filters"),
             B.code("text", """
                 SQL filter:          passed = true AND owner LIKE 'u%'
@@ -256,6 +286,16 @@ internal object Az204Connect2 {
                 "Never reading the dead-letter queue; failures pile up silently.",
             ),
             B.example("Two Tracks: Standard Service Bus, lesson-events topic with certificates and analytics subscriptions, sessions keyed by owner, Storage queue for thumbnails."),
+            B.check(
+                "az-servicebus-k3", "az-servicebus",
+                "A queue has to hold well over 80 GB of simple messages. Which service?",
+                listOf("Queue Storage", "A Service Bus queue", "A Service Bus topic"), 0,
+                "Storage queues are the choice for very large, simple queues. Service Bus caps a queue far lower, and earns it with sessions, transactions and dead-lettering.",
+                whyWrong = mapOf(
+                    1 to "A Service Bus queue gives ordering, sessions and dead-lettering, but not that capacity.",
+                    2 to "A topic is for fan-out to several subscribers, and has the same size limits as the queue.",
+                ),
+            ),
             B.h("Check yourself"),
             B.match(
                 "az-n-sb-match", "Pair each way of settling a message with its effect.",

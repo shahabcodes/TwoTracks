@@ -49,6 +49,16 @@ internal object Az204Storage {
             B.tip("\"Must survive a regional outage and be readable from the secondary without failover\" is RA-GRS. \"Cheapest with zone resilience\" is ZRS."),
             B.check("az-blob-basics-k1", "az-blob-basics", "An app writes a log line every second and must never rewrite old lines. Which blob type?",
                 listOf("Block blob", "Append blob", "Page blob"), 1, "Append blobs are built for add-only logs."),
+            B.check(
+                "az-blob-basics-k2", "az-blob-basics",
+                "The data must survive the loss of an entire region. Which redundancy?",
+                listOf("GRS", "ZRS", "LRS"), 0,
+                "Geo-redundant storage keeps copies in a second region. Zone- and locally-redundant both stay inside one.",
+                whyWrong = mapOf(
+                    1 to "ZRS spreads copies across availability zones, which survives a datacentre but not the region around it.",
+                    2 to "LRS keeps every copy in one facility.",
+                ),
+            ),
             B.h("Access tiers: pay for storage or for access, not both"),
             B.table(
                 listOf("Tier", "Storage cost", "Access cost", "Minimum stay", "Use"),
@@ -96,6 +106,16 @@ internal object Az204Storage {
                 "Creating a classic or v1 account and wondering why tiers are missing; use StorageV2.",
             ),
             B.example("Two Tracks uses one ZRS StorageV2 account: exports (lifecycle-managed), photos for profiles, and a static website container for the help pages."),
+            B.check(
+                "az-blob-basics-k3", "az-blob-basics",
+                "An application requests a blob that is in the Archive tier. What happens?",
+                listOf("It must be rehydrated first, which takes hours", "It is served, more slowly than from Hot", "It is served normally, at a higher charge"), 0,
+                "Archive is offline storage. The blob has to be moved to an online tier before anything can read it.",
+                whyWrong = mapOf(
+                    1 to "Cool and Cold are cheaper to store and dearer to read, but still readable. Archive is not readable at all until rehydrated.",
+                    2 to "There is no read-at-a-premium option for Archive. The data is simply offline.",
+                ),
+            ),
             B.h("Check yourself"),
             B.match(
                 "az-s-blob-match", "Pair each blob type with what it is for.",
@@ -178,6 +198,16 @@ internal object Az204Storage {
             B.tip("Metadata keys are case-insensitive and must be valid C# identifiers. The exam likes \"store the uploader's name with the file\": that is metadata, not a tag or a property."),
             B.check("az-blob-sdk-k1", "az-blob-sdk", "You need to search blobs by a custom key across the whole account. Which feature?",
                 listOf("Metadata", "Blob index tags", "HTTP headers"), 1, "Index tags are queryable across the account; metadata is only read per blob."),
+            B.check(
+                "az-blob-sdk-k2", "az-blob-sdk",
+                "You need to find blobs across a whole account by a key-value pair. What do you use?",
+                listOf("Index tags", "Metadata", "A naming convention"), 0,
+                "Index tags are queryable across the account. Metadata travels with a blob but cannot be searched.",
+                whyWrong = mapOf(
+                    1 to "Metadata is name-value pairs on the blob, with no query over it. That difference is the whole point of the pair.",
+                    2 to "A name prefix only narrows within a container, and encodes nothing you can query on.",
+                ),
+            ),
             B.h("Shared access signatures: a link with limits"),
             B.p("A SAS is a URL with a signature that grants specific permissions for a specific time. Three kinds:"),
             B.table(
@@ -196,6 +226,16 @@ internal object Az204Storage {
                 var url = new BlobUriBuilder(blob.Uri) { Sas = sas.ToSasQueryParameters(key, service.AccountName) }.ToUri();
             """),
             B.remember("Prefer a user delegation SAS: it is signed with Entra ID, so no account key leaves the vault. A stored access policy lets you revoke a service SAS without rotating the key."),
+            B.check(
+                "az-blob-sdk-k3", "az-blob-sdk",
+                "An API hands out download links for private blobs. Which signature is the safer one?",
+                listOf("A short-lived user delegation SAS", "An account-key SAS with a long expiry", "The account key itself"), 0,
+                "A user delegation SAS is signed with an Entra ID key, so it can be revoked and carries no account key with it.",
+                whyWrong = mapOf(
+                    1 to "An account-key SAS cannot be revoked without rotating the key, and a long expiry widens the damage if it leaks.",
+                    2 to "Handing out the account key hands out full control of the account.",
+                ),
+            ),
             B.h("Leases: one writer at a time"),
             B.p("A lease locks a blob for writes for 15 to 60 seconds (or forever until released). Use it when several instances might update the same blob, such as a shared counter or a config file."),
             B.steps("Give a user a 30-minute download link",

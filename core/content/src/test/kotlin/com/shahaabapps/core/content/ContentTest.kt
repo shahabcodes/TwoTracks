@@ -126,6 +126,55 @@ class ContentTest {
     }
 
     @Test
+    fun `AZ-204 asks three times in every topic`() {
+        // One check at the end of a 28-minute read is a reading comprehension
+        // question, not retrieval practice. Three, spread through the topic,
+        // mean each section is recalled before the next one starts.
+        //
+        // AZ-204 only, for now: its topics are long prose, where German's and
+        // IELTS's are short and carry exercises of their own instead.
+        Az204.course.allTopics.forEach { t ->
+            val checks = t.blocks.count { it is Block.Check }
+            assertTrue("az-204/${t.id} has $checks check(s), wanted 3 or more", checks >= 3)
+        }
+    }
+
+    @Test
+    fun `the answer to a check is not always in the same place`() {
+        // The first round of AZ-204 checks put the answer second 21 times out
+        // of 22, which is a position worth guessing rather than knowing. B.check
+        // rotates by the question id, so this watches that it stays spread.
+        val checks = courses.flatMap { c ->
+            c.allTopics.flatMap { t -> t.blocks.filterIsInstance<Block.Check>().map { it.question } }
+        }.filter { it.options.size >= 3 && !it.multi }
+        assertTrue("expected a decent number of checks, saw ${checks.size}", checks.size > 40)
+        val bySlot = checks.groupingBy { it.correct.first() }.eachCount()
+        val commonest = bySlot.values.max()
+        assertTrue(
+            "the answer sits in one slot ${commonest} of ${checks.size} times: $bySlot",
+            commonest < checks.size * 2 / 3,
+        )
+    }
+
+    @Test
+    fun `a wrong-option note is attached to an option that exists and is wrong`() {
+        // whyWrong is keyed by index, and B.spread rotates those keys. A note
+        // pointing at the right answer, or past the end of the list, would
+        // explain the wrong thing to someone who is already wrong.
+        courses.forEach { c ->
+            val questions = c.allTopics.flatMap { t -> t.blocks.filterIsInstance<Block.Check>().map { it.question } } +
+                c.modules.mapNotNull { it.quiz }.flatMap { it.questions } +
+                listOfNotNull(c.mockExam).flatMap { it.questions }
+            questions.forEach { q ->
+                q.whyWrong.keys.forEach { i ->
+                    assertTrue("${c.id}/${q.id}: note on option $i, which is out of range", i in q.options.indices)
+                    assertTrue("${c.id}/${q.id}: note on option $i, which is a correct answer", i !in q.correct)
+                }
+            }
+        }
+    }
+
+    @Test
     fun `vocabulary ids are unique and exercises are well formed`() {
         courses.forEach { c ->
             val words = Courses.words(c)

@@ -83,6 +83,16 @@ internal object Az204Monitor {
                 listOf("join", "Combine tables on a key, for example operation_Id"),
                 listOf("render", "Chart the result"),
             ),
+            B.check(
+                "az-appinsights-k2", "az-appinsights",
+                "Which field ties a request to the dependency calls it made?",
+                listOf("operation_Id", "session_Id", "cloud_RoleName"), 0,
+                "Every telemetry item from one request shares its operation_Id, which is what makes an end-to-end trace possible.",
+                whyWrong = mapOf(
+                    1 to "session_Id groups one user's whole visit, which is far broader than a single request.",
+                    2 to "cloud_RoleName says which component sent the item, not which request it belonged to.",
+                ),
+            ),
             B.h("Correlation, sampling and Live Metrics"),
             B.bullets(
                 "Every request and the dependencies it caused share an operation_Id. The Application Map and end-to-end transaction view are built on it.",
@@ -110,6 +120,16 @@ internal object Az204Monitor {
                 "Querying the wrong table: exceptions you logged through ILogger are in traces unless you pass the exception object.",
             ),
             B.example("Two Tracks: auto-instrumentation on App Service plus TrackEvent for LessonFinished and QuizPassed; a workbook of lessons per day per partner."),
+            B.check(
+                "az-appinsights-k3", "az-appinsights",
+                "Telemetry is costing too much, so you turn on adaptive sampling. What happens to your request counts?",
+                listOf("They stay roughly right, because sampling corrects the numbers", "They fall in proportion to the sampling rate", "They stop being collected"), 0,
+                "Adaptive sampling keeps related items together and scales the counts back up, so the metrics stay usable while the volume drops.",
+                whyWrong = mapOf(
+                    1 to "That would make sampling useless for metrics. The SDK multiplies the counts back up by the sampling rate.",
+                    2 to "Sampling reduces how much is stored. It does not switch collection off.",
+                ),
+            ),
             B.h("Check yourself"),
             B.match(
                 "az-m-ai-match", "Pair each KQL operator with what it does.",
@@ -180,6 +200,16 @@ internal object Az204Monitor {
                     finally { _telemetry.TrackAvailability("api-health", DateTimeOffset.UtcNow, sw.Elapsed, "westeurope-vnet", ok); }
                 }
             """),
+            B.check(
+                "az-availability-k2", "az-availability",
+                "The endpoint you need to probe sits inside a private network. What do you use?",
+                listOf("TrackAvailability, from code running inside that network", "A standard availability test", "A metric alert"), 0,
+                "Standard tests run from Microsoft's public regions, so a private endpoint needs your own probe reporting results in.",
+                whyWrong = mapOf(
+                    1 to "A standard test probes from public regions, and cannot reach a private endpoint at all.",
+                    2 to "A metric alert fires on a metric you already have. It probes nothing.",
+                ),
+            ),
             B.h("Alert rules"),
             B.table(
                 listOf("Kind", "Evaluates", "Example"),
@@ -224,6 +254,16 @@ internal object Az204Monitor {
                 "Sending alerts to one person's inbox; use an action group so the list can change.",
             ),
             B.example("Two Tracks: five-region standard test, 5xx metric alert with push notification, log alert on QuizPassed dropping to zero for a day, autoscale 1 to 3 instances."),
+            B.check(
+                "az-availability-k3", "az-availability",
+                "An autoscale profile adds an instance above 70% CPU and removes one below 70%. What goes wrong?",
+                listOf("It flaps: the two rules fight, so the thresholds need a gap between them", "Nothing; this is the shape to aim for", "It never scales back in"), 0,
+                "Scale-out and scale-in thresholds that meet cause repeated opposite actions. A gap and a cooldown are what keep it steady.",
+                whyWrong = mapOf(
+                    1 to "A matched pair of rules is right. It is the thresholds touching that causes the trouble.",
+                    2 to "It scales in perfectly well. That is the problem: it scales in and straight back out.",
+                ),
+            ),
             B.h("Check yourself"),
             B.match(
                 "az-m-avail-match", "Pair each rule with what it is for.",
@@ -320,6 +360,16 @@ internal object Az204Monitor {
             B.remember("Create one ConnectionMultiplexer for the whole app and reuse it. Creating one per request exhausts connections and is the classic exam mistake."),
             B.check("az-redis-k1", "az-redis", "A study-streak leaderboard must return the top 10 users quickly and update on every log. Which Redis structure?",
                 listOf("A string per user", "A sorted set", "A list"), 1, "Sorted sets keep members ordered by score; ZRANGE gives the top N in O(log n)."),
+            B.check(
+                "az-redis-k2", "az-redis",
+                "How many ConnectionMultiplexer instances should an application create?",
+                listOf("One, shared for the lifetime of the app", "One per request", "One per key"), 0,
+                "The multiplexer is expensive to build and designed to be shared.",
+                whyWrong = mapOf(
+                    1 to "Per request is the classic mistake. It is costly to create and will run the cache out of connections.",
+                    2 to "Keys are just arguments to commands on the shared connection.",
+                ),
+            ),
             B.h("Patterns"),
             B.compare("Cache patterns",
                 B.card("Cache-aside", "The app reads the cache first and fills it on a miss.", "Simple; the default", "Stale until TTL or invalidation", "Set an expiry on every key"),
@@ -350,6 +400,16 @@ internal object Az204Monitor {
                 "Choosing Basic for production; there is no replica and no SLA.",
             ),
             B.example("Two Tracks: Standard C0, cache-aside for Today plans with 10-minute TTL, delete-on-write invalidation, sorted set for streaks."),
+            B.check(
+                "az-redis-k3", "az-redis",
+                "Which Redis structure fits a leaderboard?",
+                listOf("A sorted set", "A hash", "A list"), 0,
+                "A sorted set orders its members by a numeric score, which is what a leaderboard is.",
+                whyWrong = mapOf(
+                    1 to "A hash stores the fields of one object. Good for a cached record, but it orders nothing.",
+                    2 to "A list keeps insertion order, which suits a queue rather than a ranking.",
+                ),
+            ),
             B.h("Check yourself"),
             B.gap(
                 "az-m-redis-gap1", "Redis evicts keys that carry an expiry before it touches the rest.",
@@ -411,6 +471,16 @@ internal object Az204Monitor {
                 listOf("Front Door Premium", "Standard plus managed WAF rules, Private Link to origins", "Security-sensitive apps"),
                 listOf("Azure CDN (classic, Edgio or Microsoft)", "Legacy CDN profiles", "Still in exam questions; same caching ideas"),
             ),
+            B.check(
+                "az-cdn-k2", "az-cdn",
+                "What decides how long an edge keeps its copy of a file?",
+                listOf("Cache-Control from the origin, unless a caching rule overrides it", "The CDN tier", "The size of the file"), 0,
+                "TTL comes from the origin's Cache-Control header, or from a rule that overrides it.",
+                whyWrong = mapOf(
+                    1 to "The tier changes which features and how much you pay, not the lifetime of a cached copy.",
+                    2 to "Size has no bearing on TTL.",
+                ),
+            ),
             B.h("How caching decides"),
             B.bullets(
                 "The origin's Cache-Control header sets the TTL. If missing, Front Door uses a default (for example 1 to 3 days depending on the product) and you can override it with a rule.",
@@ -454,6 +524,16 @@ internal object Az204Monitor {
                 "Choosing \"use query string\" for assets with cache-busting parameters you never change; one copy per URL wastes cache.",
             ),
             B.example("Two Tracks: Front Door Standard in front of a static website, hashed asset names, 5-minute TTL on HTML, API route with cache bypass."),
+            B.check(
+                "az-cdn-k3", "az-cdn",
+                "A stylesheet must change immediately for every user. What is the more reliable approach?",
+                listOf("Give the file a versioned name, so the URL itself changes", "Purge the path and wait", "Drop the TTL to one second"), 0,
+                "A new URL cannot be served from an old cached copy, which is why versioned names remove the need to purge at all.",
+                whyWrong = mapOf(
+                    1 to "Purging is the right tool for an urgent fix, but it is a request to every edge and not instant.",
+                    2 to "A one-second TTL means re-fetching on almost every request, which gives up the point of a CDN.",
+                ),
+            ),
             B.h("Check yourself"),
             B.match(
                 "az-m-cdn-match", "Pair each caching rule with when to use it.",
