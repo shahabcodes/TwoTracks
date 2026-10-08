@@ -127,6 +127,14 @@ internal object Az204Security2 {
             B.tryIt("Try it in 15 minutes", "Free apart from a few cents of vault operations.",
                 "Create an RBAC vault and a secret", "Grant yourself Key Vault Secrets User", "Read the secret with az keyvault secret show", "Create a Function App, enable system identity, add a Key Vault reference setting and check it resolves (green tick in the portal)",
             ),
+            B.explain(
+                "az-keyvault-x1",
+                "Explain how an app can read a secret with no credential of its own, and when a user-assigned identity is the right choice.",
+                "The app gets a managed identity, which is an Entra identity Azure creates and rotates for it, and is granted a role on the vault. In code DefaultAzureCredential picks up that identity in Azure and the developer login locally, so nothing is stored. With no code at all, a Key Vault reference in an app setting is resolved at start-up and arrives as an ordinary environment variable. A system-assigned identity lives and dies with one resource; a user-assigned one is a resource of its own, so use it to share an identity across several apps or to create it before they exist.",
+                "A managed identity replaces the credential" to listOf("managed identity", "no credential", "no secret", "entra"),
+                "DefaultAzureCredential or a Key Vault reference" to listOf("defaultazurecredential", "key vault reference", "app setting", "reference"),
+                "User-assigned is shared or pre-created" to listOf("user-assigned", "user assigned", "share", "shared", "several", "before"),
+            ),
             B.glossary(
                 "Managed identity" to "An Entra identity Azure manages for a resource; no credential to store.",
                 "System-assigned" to "An identity tied to one resource's lifetime.",
@@ -256,6 +264,14 @@ internal object Az204Security2 {
             ),
             B.tryIt("Try it in 15 minutes", "The Free tier is enough.",
                 "Create a free store and two labelled values for one key", "Add a feature flag and toggle it", "In a console app, load with Select and labelFilter and print the value", "Change the value in the portal and add a sentinel refresh",
+            ),
+            B.explain(
+                "az-appconfig-x1",
+                "Explain how an app picks up a changed setting without restarting, and what a feature filter does.",
+                "App Configuration holds non-secret settings centrally, with labels for the per-environment variants and Key Vault references where a value is actually a secret. For dynamic refresh the app watches one sentinel key: when that key changes, every other key is refreshed, which is one request rather than hundreds. A feature flag is a switch read through IFeatureManager, and a feature filter decides its answer at runtime — a percentage of requests, a time window, or a targeted set of users.",
+                "Labels for environments, references for secrets" to listOf("label", "labels", "environment", "key vault reference"),
+                "A sentinel key triggers the refresh" to listOf("sentinel", "refresh", "one key", "watch"),
+                "Filters decide a flag at runtime" to listOf("filter", "filters", "percentage", "time window", "targeting"),
             ),
             B.glossary(
                 "Label" to "A variant of a key, usually per environment.",

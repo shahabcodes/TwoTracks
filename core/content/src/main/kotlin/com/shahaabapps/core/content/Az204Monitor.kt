@@ -145,6 +145,14 @@ internal object Az204Monitor {
             B.tryIt("Try it in 15 minutes", "Workspace-based Application Insights has a 5 GB free monthly allowance.",
                 "Create an Application Insights resource", "Run any sample web app with the connection string", "Make a few requests and one that fails", "Run requests | summarize count() by resultCode in Logs",
             ),
+            B.explain(
+                "az-appinsights-x1",
+                "Explain what Application Insights collects on its own, and how one request is tied to the calls it made.",
+                "Requests, dependency calls, exceptions and traces are collected without any code, and TrackEvent and TrackMetric add your own on top. It all lands in a Log Analytics workspace and is queried with KQL. Every item from a single request carries the same operation_Id, which is what makes an end-to-end trace possible. Sampling cuts the volume while keeping related items together and scaling the counts back up, so the metrics stay usable.",
+                "Requests, dependencies, exceptions come free" to listOf("request", "dependency", "dependencies", "exception", "trace"),
+                "operation_Id correlates one request" to listOf("operation_id", "operation id", "correlate", "correlation", "ties"),
+                "It is queried with KQL in Log Analytics" to listOf("kql", "kusto", "log analytics", "workspace", "logs"),
+            ),
             B.glossary(
                 "Telemetry" to "Any item sent to Application Insights: request, dependency, exception, trace, event, metric.",
                 "Connection string" to "The setting that tells the SDK where to send telemetry.",
@@ -282,6 +290,14 @@ internal object Az204Monitor {
             ),
             B.tryIt("Try it in 15 minutes", "Alerts cost cents; availability tests are free for a few.",
                 "Add a standard availability test to any public URL", "Create an action group with your email", "Create a metric alert on availability results < 100", "Stop the app and wait for the email",
+            ),
+            B.explain(
+                "az-availability-x1",
+                "Explain how you would watch an endpoint and be told when it breaks, and what an autoscale rule needs besides a threshold.",
+                "A standard availability test probes a public endpoint on a schedule from several regions; an endpoint inside a private network needs your own code reporting with TrackAvailability instead. Alerts come in kinds — metric, log search, activity log, availability — and all of them send to an action group, which is the reusable set of notifications and automations. An autoscale rule needs a scale-in rule to match the scale-out one, a gap between their thresholds and a cooldown, or the two rules fight and the instance count flaps.",
+                "Tests probe from regions, or from your own code" to listOf("availability test", "probe", "probes", "trackavailability", "regions"),
+                "Alerts send to an action group" to listOf("action group", "alert", "alerts", "notification"),
+                "Autoscale needs a gap and a cooldown" to listOf("cooldown", "cool-down", "gap", "threshold", "flap"),
             ),
             B.glossary(
                 "Availability test" to "A scheduled probe of your endpoint from several regions.",
@@ -422,6 +438,14 @@ internal object Az204Monitor {
             B.tryIt("Try it in 15 minutes", "A Basic C0 cache costs a few cents an hour; delete it after.",
                 "Create a Basic C0 cache", "Open the portal Console and run SET greeting hello EX 60, then GET greeting", "Wait a minute and GET again", "ZADD streaks 7 usaid 9 sanya then ZREVRANGE streaks 0 1 WITHSCORES",
             ),
+            B.explain(
+                "az-redis-x1",
+                "Explain the cache-aside pattern, and the one rule about the connection you must not get wrong.",
+                "Cache-aside means reading the cache first, and on a miss reading the real source and putting the value in the cache with a time to live. A write invalidates or updates the key so the next read is not stale. The connection rule is that ConnectionMultiplexer is expensive and meant to be shared: create one for the lifetime of the application, not one per request, or the cache runs out of connections.",
+                "Read cache, on miss read source and populate" to listOf("cache-aside", "cache aside", "miss", "populate", "read the cache"),
+                "A TTL, and invalidate on write" to listOf("ttl", "time to live", "expiry", "invalidate", "expire"),
+                "One shared ConnectionMultiplexer" to listOf("connectionmultiplexer", "multiplexer", "one connection", "shared", "singleton"),
+            ),
             B.glossary(
                 "Cache-aside" to "Read cache, on miss read source and populate cache.",
                 "TTL" to "Time to live; the expiry on a key.",
@@ -548,6 +572,14 @@ internal object Az204Monitor {
             ),
             B.tryIt("Try it in 15 minutes", "Front Door Standard has an hourly base fee; delete the profile after.",
                 "Enable a static website on a storage account", "Create a Front Door Standard profile pointing at it", "Load the page twice and check the X-Cache header (TCP_MISS then TCP_HIT)", "Change the file, see the old one, purge, see the new one",
+            ),
+            B.explain(
+                "az-cdn-x1",
+                "Explain what decides how long an edge keeps a file, and the two ways to change a file that is already cached.",
+                "An edge keeps a copy for the time to live, which comes from the origin's Cache-Control header unless a caching rule overrides it. Query string behaviour decides whether URL parameters produce separate cached copies. To change something already out there you either purge the path, which is a request to every edge and not instant, or give the file a versioned name so the URL itself changes and no old copy can match it.",
+                "Cache-Control or a rule sets the TTL" to listOf("cache-control", "cache control", "ttl", "rule", "origin"),
+                "Purge removes it before its TTL" to listOf("purge", "purging", "invalidate"),
+                "A versioned name avoids the problem" to listOf("version", "versioned", "file name", "filename", "new url"),
             ),
             B.glossary(
                 "Edge / point of presence" to "A CDN server near users that holds cached copies.",

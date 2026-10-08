@@ -181,7 +181,14 @@ sealed interface Ex {
 }
 
 /** What the marker checks beyond the content points: a letter's greeting and sign-off, an essay's paragraphs and linking, a report's overview and figures. */
-enum class WritingForm { LETTER, ESSAY, REPORT }
+/**
+ * What kind of text is being written, which decides the form checks.
+ *
+ * [EXPLANATION] has none: an explanation of App Service needs no greeting, no
+ * sign-off and no four paragraphs, only the ideas and enough words to hold
+ * them.
+ */
+enum class WritingForm { LETTER, ESSAY, REPORT, EXPLANATION }
 
 data class Step(val action: String, val expect: String? = null)
 data class CompareCard(val title: String, val points: List<String>, val pickWhen: String)
@@ -314,6 +321,16 @@ object B {
     /** A writing task the app marks itself: each point is a label and the words that prove it. */
     fun marked(id: String, prompt: String, model: String, vararg points: Pair<String, List<String>>, minWords: Int = 20, form: WritingForm = WritingForm.LETTER) =
         Block.Exercise(Ex.Writing(id, prompt, points.map { it.first }, model.trimIndent(), minWords, points.map { it.second }, form))
+    /**
+     * Say it back in your own words, then see a model.
+     *
+     * Choosing between three options can be done on recognition alone.
+     * Producing a sentence cannot, which is why this is the last thing a topic
+     * asks and why the model is held back until an answer is in.
+     */
+    fun explain(id: String, prompt: String, model: String, vararg points: Pair<String, List<String>>, minWords: Int = 25) =
+        marked(id, prompt, model, *points, minWords = minWords, form = WritingForm.EXPLANATION)
+
     fun listen(id: String, audio: String, question: String, options: List<String>, correct: Int, prompt: String = "Play the audio, then answer. You can play it twice, like the exam.") =
         Block.Exercise(Ex.Listen(id, prompt, audio.trimIndent().replace("\n", " ").trim(), question, options, correct))
     fun speak(id: String, target: String, en: String, prompt: String = "Listen, then say it. The phone checks your words.") = Block.Exercise(Ex.Speak(id, prompt, target, en))

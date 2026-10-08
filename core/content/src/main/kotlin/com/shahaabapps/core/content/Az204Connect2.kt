@@ -140,6 +140,14 @@ internal object Az204Connect2 {
             B.tryIt("Try it in 15 minutes", "A Basic namespace costs about a cent an hour.",
                 "Create a Basic namespace and a hub with 2 partitions", "Send 10 events with the az eventhubs CLI or a console app", "Read them with the Functions Event Hub trigger or the processor sample", "Check Metrics for incoming and outgoing messages",
             ),
+            B.explain(
+                "az-eventhubs-x1",
+                "Explain what a partition and a consumer group are, and how a reader resumes where it left off.",
+                "A partition is an ordered log inside the hub and the unit of parallelism: order is guaranteed within one, not across them. A consumer group is an independent view of the whole stream, so two applications each get their own position rather than competing for one. That position is a checkpoint, written to blob storage, which is what lets a restarted reader carry on instead of starting again.",
+                "A partition is an ordered log" to listOf("partition", "ordered", "order", "log"),
+                "A consumer group is an independent view" to listOf("consumer group", "independent", "own view", "separately"),
+                "Checkpoints in blob storage resume reading" to listOf("checkpoint", "checkpoints", "blob", "resume", "where it left"),
+            ),
             B.glossary(
                 "Partition" to "An ordered log inside a hub; the unit of parallelism.",
                 "Consumer group" to "An independent view of the stream with its own checkpoints.",
@@ -314,6 +322,14 @@ internal object Az204Connect2 {
             ),
             B.tryIt("Try it in 15 minutes", "A Basic Service Bus namespace is about a cent per million operations; Standard has a base fee.",
                 "Create a Standard namespace, a topic and two subscriptions", "Add a SQL filter rule to one and delete its default rule", "Send two messages with different properties from Service Bus Explorer in the portal", "Peek each subscription and the dead-letter queue",
+            ),
+            B.explain(
+                "az-servicebus-x1",
+                "Explain PeekLock and the four ways to settle a message, and when you would choose Queue Storage instead.",
+                "In PeekLock the message is locked rather than removed, so the receiver decides what happened to it. Complete says it was handled and removes it. Abandon releases the lock so it comes round again. Dead-letter moves it aside for something that can never be processed. Defer sets it apart to be fetched later by sequence number. Queue Storage is the choice when the queue is simply enormous, over 80 GB, and none of Service Bus's sessions, transactions or dead-lettering are needed.",
+                "The message is locked, not removed" to listOf("lock", "locked", "peeklock", "not removed"),
+                "Complete, abandon, dead-letter, defer" to listOf("complete", "abandon", "dead-letter", "dead letter", "defer"),
+                "Queue Storage for very large simple queues" to listOf("queue storage", "storage queue", "80 gb", "large", "huge", "simple"),
             ),
             B.glossary(
                 "PeekLock" to "Receive mode where the message is locked until you settle it.",

@@ -148,6 +148,14 @@ internal object Az204Compute2 {
             B.tryIt("Try it in 15 minutes", "Works locally with Azurite; no Azure resources needed.",
                 "func new with the Durable Functions orchestration template (dotnet-isolated)", "func start and POST to the HttpStart endpoint", "Open the statusQueryGetUri from the response", "Add a 30-second durable timer and watch runtimeStatus stay Running then Completed",
             ),
+            B.explain(
+                "az-durable-x1",
+                "Explain why an orchestrator function must be deterministic, and what to use instead of DateTime.UtcNow and Task.Delay.",
+                "An orchestrator does not stay in memory while it waits. It replays its history from the start each time it wakes, so any value that changes between replays would send it down a different path. The context supplies replay-safe versions: CurrentUtcDateTime for the clock and durable timers for waiting, both recorded in the history so they return the same answer every time.",
+                "The orchestrator replays its history" to listOf("replay", "replays", "replayed", "history"),
+                "A changing value breaks the replay" to listOf("different", "changes", "new value", "diverge", "different path"),
+                "Use the context clock and durable timers" to listOf("context", "currentutcdatetime", "durable timer", "createtimer"),
+            ),
             B.glossary(
                 "Orchestrator" to "The function that defines the workflow and replays from history.",
                 "Activity" to "A function that does one unit of real work; may run more than once.",
@@ -326,6 +334,14 @@ internal object Az204Compute2 {
             B.reorder("az-c-containers-re1", "Build the command that creates the registry.", "az acr create --name twotracksacr --sku Basic"),
             B.tryIt("Try it in 15 minutes", "ACR Basic and one ACI container cost a few cents; delete after.",
                 "Create a Basic ACR", "az acr build a hello-world Dockerfile into it", "az container create from that image with --restart-policy Never", "az container logs shows the output", "Delete the resource group",
+            ),
+            B.explain(
+                "az-containers-x1",
+                "A team wants to ship a container and move a tenth of traffic to a new version. Explain which Azure services do what.",
+                "The registry, ACR, stores the image and can build it in the cloud with an ACR Task. ACI runs a container or a group of them by the second, which suits a job or a sidecar. Container Apps is what gives you revisions: each deployment is an immutable version and traffic can be split across them by percentage, with KEDA scaling and scale to zero, without running Kubernetes yourself.",
+                "ACR stores and can build images" to listOf("acr", "registry", "image", "build"),
+                "ACI runs containers by the second" to listOf("aci", "container instances", "by the second", "per second"),
+                "Container Apps splits traffic across revisions" to listOf("revision", "revisions", "traffic", "percentage", "split"),
             ),
             B.glossary(
                 "Image" to "A packaged app with its runtime, stored in a registry and run as a container.",

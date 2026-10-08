@@ -135,6 +135,14 @@ internal object Az204Storage {
             B.tryIt("Try it in 15 minutes", "Free tier covers a few GB.",
                 "Create a StorageV2 account with LRS", "Upload a file to a private container", "Change its tier to Cool in the portal", "Add a lifecycle rule that deletes after 1 day", "Delete the resource group",
             ),
+            B.explain(
+                "az-blob-basics-x1",
+                "Explain the trade-off between access tiers, and what the redundancy letters tell you.",
+                "A tier trades the price of storing against the price of reading. Hot is dearest to keep and cheapest to read; Cool and Cold reverse that; Archive is cheapest of all and offline, so a blob has to be rehydrated over hours before anything can read it. Lifecycle rules move and delete blobs by age so nobody has to do it by hand. The redundancy letters say where the copies are: LRS keeps them in one facility, ZRS spreads them across availability zones, GRS puts copies in a second region.",
+                "Tiers trade storage price against access price" to listOf("tier", "tiers", "storage", "access", "trade", "cheaper"),
+                "Archive is offline and needs rehydrating" to listOf("archive", "rehydrate", "rehydration", "offline", "hours"),
+                "LRS, ZRS and GRS say where the copies are" to listOf("lrs", "zrs", "grs", "region", "zone", "copies"),
+            ),
             B.glossary(
                 "Container" to "A folder-like grouping of blobs with its own access level.",
                 "Access tier" to "Hot, Cool, Cold or Archive: the storage and access price trade-off.",
@@ -265,6 +273,14 @@ internal object Az204Storage {
             ),
             B.tryIt("Try it in 15 minutes", "Needs the Azure CLI and Storage Blob Data Contributor on your account.",
                 "Upload a text blob with az storage blob upload --auth-mode login", "Set metadata on it with az storage blob metadata update", "Generate a 10-minute read SAS with az storage blob generate-sas --as-user", "Open the URL in a browser, then again after it expires",
+            ),
+            B.explain(
+                "az-blob-sdk-x1",
+                "Explain the difference between metadata and index tags, and how you would hand someone a safe download link.",
+                "Metadata is your own name-value pairs stored with a blob: it travels with it, but there is no query across it. Index tags are also key-value, and are searchable across the whole account, which is the difference that matters. For a download link, issue a shared access signature from your API rather than sharing the account key. A user delegation SAS is signed with an Entra ID key, so it can be revoked and carries no account key, and a short expiry keeps the damage small if it leaks.",
+                "Metadata travels but cannot be queried" to listOf("metadata", "travels", "not searchable", "cannot query", "no query"),
+                "Index tags are searchable across the account" to listOf("index tag", "tags", "searchable", "query", "across the account"),
+                "A short user delegation SAS, not the key" to listOf("user delegation", "sas", "short", "expiry", "revoke"),
             ),
             B.glossary(
                 "Metadata" to "Your own name-value pairs stored with a blob.",
