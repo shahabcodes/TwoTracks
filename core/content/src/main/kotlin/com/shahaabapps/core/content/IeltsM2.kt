@@ -24,7 +24,7 @@ internal object IeltsM2 {
                     DNode("d", "listen for paraphrases", 0.92f, 0.5f, w = 0.14f, h = 0.32f),
                 ),
                 edges = listOf(DEdge("a", "b"), DEdge("b", "c"), DEdge("c", "d")),
-                aspect = 0.4f,
+                aspect = 0.65f,
             ),
             B.h("The five question types"),
             B.table(
@@ -77,7 +77,7 @@ internal object IeltsM2 {
                     DNode("b", "'…in the end Thursday suits everyone.'", 0.7f, 0.5f, w = 0.5f, h = 0.3f, tone = 1, sub = "B is the answer"),
                 ),
                 edges = listOf(DEdge("a", "b"), DEdge("c", "b")),
-                aspect = 0.45f,
+                aspect = 0.65f,
             ),
             B.listen("ie2-t-l1", "Tutor: So when shall we hold the seminar? Student: We thought about Tuesday, because the room's free then, or even Friday afternoon. But Tuesday clashes with the statistics lecture, and on Friday half the group leaves early. In the end Thursday suits everyone.",
                 "When will the seminar be held?", listOf("Tuesday", "Thursday", "Friday"), 1),

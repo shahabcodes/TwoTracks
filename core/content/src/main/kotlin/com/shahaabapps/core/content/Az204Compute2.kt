@@ -41,6 +41,7 @@ internal object Az204Compute2 {
                     DNode("store", "Task hub (storage)", 0.86f, 0.3f, w = 0.24f, h = 0.2f, kind = NodeKind.CYLINDER, tone = 2),
                 ),
                 edges = listOf(DEdge("client", "orch", label = "start"), DEdge("orch", "a1"), DEdge("orch", "a2"), DEdge("orch", "store", dashed = true, label = "checkpoints")),
+                aspect = 0.77f,
             ),
             B.h("Why the orchestrator must be deterministic"),
             B.p("""
@@ -292,7 +293,7 @@ internal object Az204Compute2 {
                     DNode("rev", "rev-1  70%  |  rev-2  30%", 0.72f, 0.9f, w = 0.4f, h = 0.1f, kind = NodeKind.NOTE, tone = 2),
                 ),
                 edges = listOf(DEdge("acr", "aci", label = "pull"), DEdge("acr", "aca", label = "pull")),
-                aspect = 0.66f,
+                aspect = 1.06f,
             ),
             B.steps("Deploy the API to Container Apps",
                 "az containerapp env create --name tt-env --resource-group tt-rg --location westeurope" to "An environment with its Log Analytics workspace.",

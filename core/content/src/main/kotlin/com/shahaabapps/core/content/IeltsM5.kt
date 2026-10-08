@@ -153,7 +153,7 @@ internal object IeltsM5 {
                     DNode("c", "consistent tone", 0.74f, 0.3f, w = 0.4f, h = 0.22f, tone = 2, sub = "you check"),
                     DNode("d", "grammar range and accuracy", 0.74f, 0.7f, w = 0.4f, h = 0.22f, tone = 2, sub = "you check"),
                 ),
-                aspect = 0.45f,
+                aspect = 0.7f,
             ),
             B.h("Task A: formal complaint"),
             B.p("You recently bought a mobile phone online, and it arrived with a cracked screen. Write a letter to the company. In your letter: explain what you bought and when; describe the problem; say what you want the company to do. Begin Dear Sir or Madam. Write at least 150 words."),

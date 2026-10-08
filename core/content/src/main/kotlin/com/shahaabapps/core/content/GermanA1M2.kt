@@ -152,7 +152,7 @@ internal object GermanA1M2 {
             B.diagram(
                 caption = "Lesen part 1: a short text, then true or false lines. Read everything first.",
                 nodes = listOf(DNode("p0", "Text", 0.14f, 0.5f, w = 0.22f, h = 0.34f, tone = 2, sub = "5 to 8 lines"), DNode("p1", "Statement", 0.38f, 0.5f, w = 0.22f, h = 0.34f, tone = 0, sub = "richtig / falsch"), DNode("p2", "Check", 0.62f, 0.5f, w = 0.22f, h = 0.34f, tone = 0, sub = "find the line"), DNode("p3", "Answer", 0.86f, 0.5f, w = 0.22f, h = 0.34f, tone = 2, sub = "tick one")),
-                aspect = 0.4f,
+                aspect = 0.65f,
             ),
             B.p("Ich heiße Sanya und bin 24 Jahre alt. Ich komme aus Pakistan und wohne in Karachi. Ich bin Lehrerin. Meine Familie ist groß: Ich habe zwei Schwestern und einen Bruder. Meine Eltern wohnen auch in Karachi. Mein Verlobter heißt Usaid. Er wohnt in Doha und ist Softwareentwickler. Wir sprechen Englisch und Urdu, und wir lernen Deutsch."),
             B.check("de2-practice-k1", "de2-practice", "Richtig oder falsch: Sanya hat einen Bruder.", listOf("Richtig", "Falsch"), 0, "The text says 'einen Bruder'. Richtig."),

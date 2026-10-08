@@ -94,7 +94,7 @@ internal object GermanA1M11 {
                     DNode("e", "Gruß: Viele Grüße, / Bis bald, / Mit freundlichen Grüßen, + Name", 0.5f, 0.9f, w = 0.9f, h = 0.14f, tone = 1),
                 ),
                 edges = listOf(DEdge("a", "b"), DEdge("b", "c"), DEdge("c", "d"), DEdge("d", "e")),
-                aspect = 0.62f,
+                aspect = 0.67f,
             ),
             B.h("du or Sie?"),
             B.table(
@@ -188,7 +188,7 @@ internal object GermanA1M11 {
                     DNode("b", "Teil 2: five situations, two adverts each", 0.5f, 0.5f, w = 0.3f, h = 0.5f, sub = "Which advert fits ALL conditions? a / b"),
                     DNode("c", "Teil 3: five signs or notices", 0.83f, 0.5f, w = 0.3f, h = 0.5f, tone = 2, sub = "Is the statement true here? Richtig / Falsch"),
                 ),
-                aspect = 0.42f,
+                aspect = 0.62f,
             ),
             B.h("Teil 1: Richtig or Falsch on a personal text"),
             B.bullets(

@@ -38,7 +38,7 @@ internal object GermanA1M1 {
                     DNode("n2", "Guten Tag · Auf Wiedersehen", 0.75f, 0.88f, w = 0.4f, h = 0.14f, kind = NodeKind.NOTE, tone = 2),
                 ),
                 edges = listOf(DEdge("you", "du"), DEdge("you", "sie"), DEdge("du", "n1", dashed = true), DEdge("sie", "n2", dashed = true)),
-                aspect = 0.7f,
+                aspect = 1.05f,
             ),
             B.remember("""
                 Germans switch between du and Sie. At the Ausländerbehörde, in a shop, or with a new colleague, start with

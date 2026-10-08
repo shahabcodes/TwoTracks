@@ -73,7 +73,7 @@ internal object GermanA1M4 {
                     DNode("o", "einen Apfel", 0.76f, 0.5f, w = 0.36f, h = 0.26f, tone = 1, sub = "object, masculine: ein → einen"),
                 ),
                 edges = listOf(DEdge("s", "v"), DEdge("v", "o")),
-                aspect = 0.42f,
+                aspect = 0.82f,
             ),
             B.table(
                 listOf("", "Nominative (subject)", "Accusative (object)"),
@@ -136,7 +136,7 @@ internal object GermanA1M4 {
                     DNode("o", "einen Kaffee / eine Cola / ein Wasser", 0.76f, 0.5f, w = 0.42f, h = 0.3f, sub = "accusative object"),
                 ),
                 edges = listOf(DEdge("a", "o"), DEdge("b", "o")),
-                aspect = 0.45f,
+                aspect = 0.5f,
             ),
             B.check("de4-dialogue-k1", "de4-dialogue", "'Sonst noch etwas?' means", listOf("Anything else?", "How much?", "Together?"), 0, "The shop asks whether you want anything else."),
             B.glossary("Brötchen" to "Bread roll (das).", "Das macht …" to "That comes to … (a total).", "getrennt" to "Separately."),
@@ -151,7 +151,7 @@ internal object GermanA1M4 {
             B.diagram(
                 caption = "Schreiben part 2: the four content points the marker looks for.",
                 nodes = listOf(DNode("p0", "Greeting", 0.14f, 0.5f, w = 0.22f, h = 0.34f, tone = 0, sub = "Hallo Sanya,"), DNode("p1", "Message", 0.38f, 0.5f, w = 0.22f, h = 0.34f, tone = 0, sub = "what and when"), DNode("p2", "Question", 0.62f, 0.5f, w = 0.22f, h = 0.34f, tone = 0, sub = "Was möchtest du?"), DNode("p3", "Sign-off", 0.86f, 0.5f, w = 0.22f, h = 0.34f, tone = 0, sub = "Bis später, Usaid")),
-                aspect = 0.4f,
+                aspect = 0.65f,
             ),
             B.p("Angebote diese Woche bei Rewe: Äpfel 1 kg 1,99 €. Milch 1 l 0,89 €. Brot 2,49 €. Hähnchen 1 kg 6,50 €. Reis 1 kg 2,20 €. Geöffnet Montag bis Samstag von 7 bis 22 Uhr. Sonntag geschlossen."),
             B.check("de4-practice-k1", "de4-practice", "Richtig oder falsch: Der Supermarkt ist am Sonntag offen.", listOf("Richtig", "Falsch"), 1, "Sonntag geschlossen = closed on Sunday. Falsch."),

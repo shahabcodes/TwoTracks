@@ -35,7 +35,7 @@ internal object Az204Connect2 {
                     DNode("cap", "Capture → Blob (Avro)", 0.8f, 0.85f, w = 0.3f, h = 0.14f, kind = NodeKind.NOTE),
                 ),
                 edges = listOf(DEdge("p", "hub", label = "partition key"), DEdge("hub", "cg1"), DEdge("hub", "cg2"), DEdge("hub", "cap")),
-                aspect = 0.5f,
+                aspect = 0.7f,
             ),
             B.h("Vocabulary"),
             B.table(
@@ -214,7 +214,7 @@ internal object Az204Connect2 {
                     DNode("dlq", "\$DeadLetterQueue", 0.8f, 0.82f, w = 0.3f, h = 0.14f, kind = NodeKind.NOTE),
                 ),
                 edges = listOf(DEdge("s", "t", label = "send"), DEdge("t", "s1"), DEdge("t", "s2"), DEdge("s1", "dlq", label = "after max deliveries")),
-                aspect = 0.5f,
+                aspect = 0.9f,
             ),
             B.h("Service Bus concepts"),
             B.table(

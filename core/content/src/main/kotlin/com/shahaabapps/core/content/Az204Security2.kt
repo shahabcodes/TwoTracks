@@ -30,12 +30,12 @@ internal object Az204Security2 {
                 caption = "The app's managed identity gets a token from the platform and reads the secret. No credential is stored anywhere in the app.",
                 nodes = listOf(
                     DNode("app", "App Service", 0.16f, 0.5f, w = 0.26f, h = 0.26f, tone = 1, sub = "system-assigned identity"),
-                    DNode("imds", "Identity endpoint", 0.5f, 0.18f, w = 0.3f, h = 0.16f, kind = NodeKind.CLOUD, tone = 2, sub = "token for vault.azure.net"),
+                    DNode("imds", "Identity endpoint", 0.5f, 0.2f, w = 0.34f, h = 0.26f, kind = NodeKind.CLOUD, tone = 2),
                     DNode("kv", "Key Vault", 0.5f, 0.72f, w = 0.3f, h = 0.22f, kind = NodeKind.CYLINDER, sub = "secret: CosmosConn"),
                     DNode("rbac", "Key Vault Secrets User role", 0.84f, 0.72f, w = 0.28f, h = 0.16f, kind = NodeKind.NOTE, tone = 2),
                 ),
                 edges = listOf(DEdge("app", "imds", label = "1 get token"), DEdge("app", "kv", label = "2 GET secret"), DEdge("rbac", "kv")),
-                aspect = 0.55f,
+                aspect = 1.15f,
             ),
             B.h("Vault basics"),
             B.table(
@@ -200,7 +200,7 @@ internal object Az204Security2 {
                     DNode("app", "API instances refresh on sentinel change", 0.5f, 0.92f, w = 0.7f, h = 0.12f, kind = NodeKind.NOTE),
                 ),
                 edges = listOf(DEdge("store", "k1"), DEdge("k3", "app")),
-                aspect = 0.68f,
+                aspect = 0.78f,
             ),
             B.table(
                 listOf("Concept", "Meaning", "Example"),

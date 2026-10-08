@@ -16,7 +16,7 @@ internal object IeltsM7 {
                     DNode("c", "Detail", 0.82f, 0.5f, w = 0.26f, h = 0.32f, sub = "For example, last week…"),
                 ),
                 edges = listOf(DEdge("a", "b"), DEdge("b", "c")),
-                aspect = 0.4f,
+                aspect = 0.65f,
             ),
             B.table(
                 listOf("Answer length", "Band effect"),
@@ -146,7 +146,7 @@ internal object IeltsM7 {
                     DNode("d", "Qualification", 0.87f, 0.5f, w = 0.24f, h = 0.32f, sub = "Although, that said…"),
                 ),
                 edges = listOf(DEdge("a", "b"), DEdge("b", "c"), DEdge("c", "d")),
-                aspect = 0.4f,
+                aspect = 0.65f,
             ),
             B.h("Hedging: the language of band 7 and 8"),
             B.p("Abstract questions have no right answer, so confident absolutes sound naive. Hedging shows judgement and gives you thinking time at the same time."),

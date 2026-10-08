@@ -96,7 +96,7 @@ internal object IeltsM4 {
                     DNode("c", "same meaning, different grammar: use both for range", 0.5f, 0.8f, w = 0.8f, h = 0.2f, kind = NodeKind.NOTE),
                 ),
                 edges = listOf(DEdge("a", "c"), DEdge("b", "c")),
-                aspect = 0.5f,
+                aspect = 0.65f,
             ),
             B.table(
                 listOf("Size of change", "Adverbs", "Adjectives"),

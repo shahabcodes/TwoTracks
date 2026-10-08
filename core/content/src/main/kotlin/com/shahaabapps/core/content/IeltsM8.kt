@@ -94,7 +94,7 @@ internal object IeltsM8 {
                     DNode("c", "a mix, mostly error-free", 0.72f, 0.5f, w = 0.4f, h = 0.3f, tone = 1, sub = "band 7+"),
                 ),
                 edges = listOf(DEdge("a", "c"), DEdge("b", "c")),
-                aspect = 0.45f,
+                aspect = 0.7f,
             ),
             B.h("1 Relative clauses"),
             B.table(
@@ -174,12 +174,12 @@ internal object IeltsM8 {
             B.diagram(
                 caption = "Two weeks: full papers under timing in the first, tapering and rehearsal in the second. Nothing new after day ten.",
                 nodes = listOf(
-                    DNode("a", "Days 1 to 7", 0.26f, 0.5f, w = 0.4f, h = 0.4f, tone = 1, sub = "two full tests, all four papers, timed; mark and log every error"),
-                    DNode("b", "Days 8 to 12", 0.68f, 0.5f, w = 0.4f, h = 0.4f, tone = 2, sub = "one paper a day, review the error log, rehearse Part 2 cards"),
-                    DNode("c", "Day 13 to 14", 0.93f, 0.5f, w = 0.14f, h = 0.4f, sub = "rest, admin, sleep"),
+                    DNode("a", "Days 1 to 7", 0.22f, 0.5f, w = 0.38f, h = 0.4f, tone = 1, sub = "two full tests, all four papers, timed; mark and log every error"),
+                    DNode("b", "Days 8 to 12", 0.62f, 0.5f, w = 0.38f, h = 0.4f, tone = 2, sub = "one paper a day, review the error log, rehearse Part 2 cards"),
+                    DNode("c", "Day 13 to 14", 0.91f, 0.5f, w = 0.16f, h = 0.4f, sub = "rest, admin, sleep"),
                 ),
                 edges = listOf(DEdge("a", "b"), DEdge("b", "c")),
-                aspect = 0.45f,
+                aspect = 0.8f,
             ),
             B.steps("The fortnight, day by day",
                 "Days 1 and 4: sit a complete test, all four papers, in one sitting, at the time of day your real test starts." to "Stamina is a real variable; three papers back to back is tiring.",

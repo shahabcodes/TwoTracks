@@ -35,7 +35,7 @@ internal object Az204Storage2 {
                     DNode("i", "{ id, owner, minutes }", 0.28f, 0.92f, w = 0.4f, h = 0.12f, kind = NodeKind.NOTE, tone = 2),
                 ),
                 edges = listOf(DEdge("acct", "db"), DEdge("db", "c1"), DEdge("db", "c2"), DEdge("c1", "i")),
-                aspect = 0.72f,
+                aspect = 0.82f,
             ),
             B.h("Pick the API when you create the account"),
             B.table(
@@ -221,7 +221,7 @@ internal object Az204Storage2 {
                     DNode("a", "p1", 0.6f, 0.6f, w = 0.12f, h = 0.16f, tone = 2), DNode("b", "p2", 0.75f, 0.6f, w = 0.12f, h = 0.16f, tone = 2), DNode("c", "p3", 0.9f, 0.6f, w = 0.12f, h = 0.16f, tone = 2),
                 ),
                 edges = listOf(DEdge("pr", "one"), DEdge("qx", "a"), DEdge("qx", "b"), DEdge("qx", "c")),
-                aspect = 0.5f,
+                aspect = 0.65f,
             ),
             B.h("Upsert, patch and optimistic concurrency"),
             B.bullets(

@@ -148,7 +148,7 @@ internal object GermanA1M3 {
             B.diagram(
                 caption = "Reading a timetable text: hunt for days and clock times before the questions.",
                 nodes = listOf(DNode("p0", "Days", 0.14f, 0.5f, w = 0.22f, h = 0.34f, tone = 0, sub = "von … bis"), DNode("p1", "Times", 0.38f, 0.5f, w = 0.22f, h = 0.34f, tone = 0, sub = "um … Uhr"), DNode("p2", "Verbs", 0.62f, 0.5f, w = 0.22f, h = 0.34f, tone = 2, sub = "arbeitet, lernt"), DNode("p3", "Questions", 0.86f, 0.5f, w = 0.22f, h = 0.34f, tone = 2, sub = "richtig / falsch")),
-                aspect = 0.4f,
+                aspect = 0.65f,
             ),
             B.p("Usaid arbeitet von Sonntag bis Donnerstag. Er beginnt um sieben Uhr und ist um fünfzehn Uhr dreißig fertig. Um sechzehn Uhr fünfzehn lernt er eine Stunde Deutsch. Am Freitag und am Samstag arbeitet er nicht. Am Samstag kauft er ein und telefoniert mit Sanya. Sanya arbeitet von Montag bis Freitag von acht bis vierzehn Uhr. Am Nachmittag hat sie von sechzehn bis achtzehn Uhr einen Englischkurs."),
             B.check("de3-practice-k1", "de3-practice", "Richtig oder falsch: Usaid lernt Deutsch um Viertel nach vier.", listOf("Richtig", "Falsch"), 0, "sechzehn Uhr fünfzehn = 16:15 = Viertel nach vier. Richtig."),
