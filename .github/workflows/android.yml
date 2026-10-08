@@ -60,8 +60,11 @@ jobs:
       # reference URLs, quiz shape, and that every writing model answer passes
       # its own marker), and the app tests cover the practice rule and the
       # review set.
-      - name: Unit tests (content, planner, seed, app)
-        run: gradle :core:content:test :core:planner:test :core:seed:test :app:testDebugUnitTest --no-daemon
+      # core:ui carries the contrast tests: whether the palette's own
+      # combinations clear the WCAG AA floor. A block shipped on an
+      # unreadable background once and nothing caught it.
+      - name: Unit tests (content, planner, seed, ui, app)
+        run: gradle :core:content:test :core:planner:test :core:seed:test :core:ui:testDebugUnitTest :app:testDebugUnitTest --no-daemon
 
       - name: Build debug APK (signed with the committed debug keystore)
         run: gradle :app:assembleDebug --no-daemon --stacktrace
