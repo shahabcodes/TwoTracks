@@ -5,6 +5,10 @@ build number is appended by CI (for example `0.1.0 (build 12)`).
 
 ## [Unreleased]
 
+## [0.40.0] - 2026-10-08
+### Fixed
+- Widgets actually show something now, and tapping one opens the screen it points at.
+
 ## [0.39.1] - 2026-10-08
 ### Fixed
 - Widgets are the right height now, instead of a tall card with the text stranded at the top.

@@ -15,6 +15,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
+import android.content.Intent
 import androidx.compose.ui.Modifier
 import androidx.fragment.app.FragmentActivity
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -30,6 +31,8 @@ import com.shahaabapps.twotracks.ui.MainNavGraph
 import com.shahaabapps.twotracks.ui.components.CelebrationOverlay
 import com.shahaabapps.twotracks.session.Celebrations
 import com.shahaabapps.twotracks.ui.ThemeViewModel
+import com.shahaabapps.twotracks.widget.WidgetLaunch
+import com.shahaabapps.twotracks.widget.WidgetRoutes
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
@@ -39,10 +42,12 @@ class MainActivity : FragmentActivity() {
 
     @Inject lateinit var appLock: AppLock
     @Inject lateinit var celebrations: Celebrations
+    @Inject lateinit var widgetLaunch: WidgetLaunch
 
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
+        widgetLaunch.offer(intent?.getStringExtra(WidgetRoutes.EXTRA))
         setContent {
             val themeViewModel: ThemeViewModel = hiltViewModel()
             val themeMode by themeViewModel.themeMode.collectAsStateWithLifecycle()
@@ -63,12 +68,19 @@ class MainActivity : FragmentActivity() {
             AppTheme(themeMode = themeMode, accentPalette = accentPalette) {
                 Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
                     Box(Modifier.fillMaxSize()) {
-                        AppRoot(appLock)
+                        AppRoot(appLock, widgetLaunch)
                         CelebrationOverlay(celebrations, accentPalette)
                     }
                 }
             }
         }
+    }
+
+    /** A second tap on a widget reaches a running activity here, not onCreate. */
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        widgetLaunch.offer(intent.getStringExtra(WidgetRoutes.EXTRA))
     }
 
     override fun onStart() {
@@ -83,7 +95,7 @@ class MainActivity : FragmentActivity() {
 }
 
 @Composable
-private fun AppRoot(appLock: AppLock, viewModel: AppViewModel = hiltViewModel()) {
+private fun AppRoot(appLock: AppLock, widgetLaunch: WidgetLaunch, viewModel: AppViewModel = hiltViewModel()) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val locked by appLock.locked.collectAsStateWithLifecycle()
     val signedIn = state is SessionState.Ready || state is SessionState.NoSpace
@@ -95,6 +107,6 @@ private fun AppRoot(appLock: AppLock, viewModel: AppViewModel = hiltViewModel())
         SessionState.Loading -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { TracksLoader(label = "Opening your space") }
         SessionState.SignedOut -> AuthScreen()
         is SessionState.NoSpace -> OnboardingScreen()
-        is SessionState.Ready -> MainNavGraph(session = current.session)
+        is SessionState.Ready -> MainNavGraph(session = current.session, widgetLaunch = widgetLaunch)
     }
 }

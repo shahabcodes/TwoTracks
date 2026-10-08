@@ -28,11 +28,14 @@ data class WidgetSnapshot(
     /** Questions the spaced schedule has brought back round, across all courses. */
     val questionsDue: Int = 0,
     val questionsCourseId: String = "",
-    /** One word to meet on the home screen. */
+    /** One thing to meet on the home screen: a vocabulary word, or a term a course defines. */
     val word: String = "",
     val wordMeaning: String = "",
     val wordExample: String = "",
     val wordCourseId: String = "",
+    val wordTopicId: String = "",
+    /** True when it came from a glossary rather than a vocabulary list, which changes where tapping goes. */
+    val wordIsTerm: Boolean = false,
     /** The shared run. */
     val togetherStreak: Int = 0,
     val partnerName: String = "",
@@ -44,13 +47,23 @@ data class WidgetSnapshot(
     val loopClosed: Boolean get() = stepsTotal > 0 && stepsDone == stepsTotal
     val hasWord: Boolean get() = word.isNotBlank()
 
+    /**
+     * True once the app has written a snapshot at all. An unwritten one is not
+     * a quiet day, it is a widget that has never been filled in, and the two
+     * must not read the same on the home screen.
+     */
+    val synced: Boolean get() = dateIso.isNotBlank()
+
     /** True when the snapshot was written on a different day and its counts may have moved on. */
     fun stale(today: LocalDate): Boolean = dateIso.isNotBlank() && dateIso != today.toString()
+
+    /** True when today's counts can be trusted: written, and written today. */
+    fun fresh(today: LocalDate): Boolean = synced && !stale(today)
 
     companion object {
         /**
          * Builds the snapshot from the same data the app shows, so the widgets
-         * cannot drift from the screens. [wordOfDay] is picked by the date
+         * cannot drift from the screens. [dayItem] is picked by the date
          * rather than at random, so it is the same word all day and a new one
          * tomorrow.
          */
@@ -71,7 +84,7 @@ data class WidgetSnapshot(
             val questions = courses
                 .map { it.id to (progressByCourse[it.id]?.dailyDueCount(today) ?: 0) }
                 .maxByOrNull { it.second }
-            val word = wordOfDay(owner, courses, topicProgress, today)
+            val word = dayItem(owner, courses, topicProgress, today)
             return WidgetSnapshot(
                 stepsDone = daily.doneCount,
                 stepsTotal = daily.total,
@@ -82,9 +95,11 @@ data class WidgetSnapshot(
                 questionsDue = questions?.second ?: 0,
                 questionsCourseId = if ((questions?.second ?: 0) > 0) questions!!.first else "",
                 word = word?.display.orEmpty(),
-                wordMeaning = word?.en.orEmpty(),
+                wordMeaning = word?.meaning.orEmpty(),
                 wordExample = word?.example.orEmpty(),
-                wordCourseId = word?.let { w -> courses.firstOrNull { c -> Courses.words(c).any { it.id == w.id } }?.id }.orEmpty(),
+                wordCourseId = word?.courseId.orEmpty(),
+                wordTopicId = word?.topicId.orEmpty(),
+                wordIsTerm = word?.isTerm == true,
                 togetherStreak = togetherStreak,
                 partnerName = partnerName,
                 togetherState = togetherState,
@@ -93,23 +108,57 @@ data class WidgetSnapshot(
         }
 
         /**
-         * One word for the day, chosen from the words this person has actually
-         * met. Picking by the date keeps it steady from breakfast to bedtime
-         * and turns it over at midnight, which is what makes seeing it twenty
+         * One thing for the day, chosen from what this person has met.
+         * Picking by the date keeps it steady from breakfast to bedtime and
+         * turns it over at midnight, which is what makes seeing it twenty
          * times a day worth anything.
+         *
+         * It draws on glossary terms as well as vocabulary, because only
+         * German has vocabulary: for someone working through a certification
+         * this was otherwise empty for good, and every one of those topics
+         * already defines its terms.
          */
-        fun wordOfDay(
+        fun dayItem(
             owner: PersonRole,
             courses: List<Course>,
             topicProgress: List<TopicProgress>,
             today: LocalDate,
-        ): Word? {
-            val met = courses.flatMap { c -> WordDeck.metWordIds(owner, c, topicProgress).map { c to it } }
-            if (met.isEmpty()) return null
-            val byId = courses.flatMap { Courses.words(it) }.associateBy { it.id }
+        ): DayItem? {
+            val learned = topicProgress.filter { it.owner == owner }
+                .groupBy({ it.courseId }, { it.topicId })
+                .mapValues { (_, ids) -> ids.toSet() }
+            val met = courses.flatMap { c -> itemsIn(c, c.allTopics.filter { it.id in learned[c.id].orEmpty() }) }
+            // Nothing marked learned yet is still no reason to show an empty
+            // card: the terms of the topic each course opens with are the ones
+            // about to be needed anyway.
+            val pool = met.ifEmpty { courses.flatMap { c -> itemsIn(c, c.allTopics.take(1)) } }
+            if (pool.isEmpty()) return null
             // Sorted so the choice does not depend on the order rows arrived in.
-            val ids = met.map { it.second }.distinct().sorted()
-            return byId[ids[(today.toEpochDay().mod(ids.size))]]
+            val ordered = pool.distinctBy { it.courseId to it.display }
+                .sortedWith(compareBy({ it.courseId }, { it.display }))
+            return ordered[today.toEpochDay().mod(ordered.size)]
+        }
+
+        private fun itemsIn(course: Course, topics: List<Topic>): List<DayItem> = topics.flatMap { t ->
+            t.blocks.filterIsInstance<Block.Vocab>().flatMap { it.words }.map { w ->
+                DayItem(w.display, w.en, w.example, course.id, t.id, isTerm = false)
+            } + t.blocks.filterIsInstance<Block.Glossary>().flatMap { it.terms }.map { term ->
+                DayItem(term.term, term.meaning, "", course.id, t.id, isTerm = true)
+            }
         }
     }
 }
+
+/**
+ * The one thing a widget shows all day. A vocabulary word carries an example
+ * sentence and belongs to a deck; a term carries neither and belongs to the
+ * topic that defines it, which is where tapping should land.
+ */
+data class DayItem(
+    val display: String,
+    val meaning: String,
+    val example: String,
+    val courseId: String,
+    val topicId: String,
+    val isTerm: Boolean,
+)
