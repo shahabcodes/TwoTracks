@@ -1,6 +1,7 @@
 package com.shahaabapps.core.content
 
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -136,6 +137,27 @@ class ContentTest {
         Az204.course.allTopics.forEach { t ->
             val checks = t.blocks.count { it is Block.Check }
             assertTrue("az-204/${t.id} has $checks check(s), wanted 3 or more", checks >= 3)
+        }
+    }
+
+    @Test
+    fun `picking a wrong option reaches the note written about it`() {
+        // The notes are authored by option index and B.check rotates the
+        // options, so this walks the path the screen walks: pick an option,
+        // ask the question for its note. 44 notes shipped unreachable once
+        // because the in-topic check never asked.
+        val checks = Courses.all.flatMap { c ->
+            c.allTopics.flatMap { t -> t.blocks.filterIsInstance<Block.Check>().map { c.id to it.question } }
+        }
+        val withNotes = checks.filter { it.second.whyWrong.isNotEmpty() }
+        assertTrue("expected checks carrying notes, saw ${withNotes.size}", withNotes.size > 40)
+        withNotes.forEach { (courseId, q) ->
+            q.whyWrong.forEach { (i, note) ->
+                assertEquals("$courseId/${q.id}: option $i should answer with its own note", note, q.whyWrongFor(setOf(i)))
+            }
+            q.correct.forEach { i ->
+                assertNull("$courseId/${q.id}: the right answer has nothing to excuse", q.whyWrongFor(setOf(i)))
+            }
         }
     }
 
