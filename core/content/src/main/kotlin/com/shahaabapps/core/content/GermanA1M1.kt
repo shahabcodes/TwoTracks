@@ -7,6 +7,12 @@ internal object GermanA1M1 {
     private val words = Topic(
         id = "de1-words", title = "Words: hello, goodbye and the basics", minutes = 15, references = refs,
         blocks = listOf(
+            B.warmup(
+                "de1-words-w1", "de1-words",
+                "You are introduced to someone you have never met. Which of these fits?",
+                listOf("Guten Tag", "Hallo", "Tschüss"), 0,
+                "German keeps the polite and the friendly greeting further apart than English does.",
+            ),
             B.plain("""
                 A1 is about surviving everyday situations. This first set of words lets you greet someone, be polite,
                 and say yes, no and thank you. Tap a card to see the English, and the speaker to hear it.
@@ -54,6 +60,12 @@ internal object GermanA1M1 {
     private val grammar = Topic(
         id = "de1-grammar", title = "Grammar: sounds, the alphabet and I am", minutes = 18, references = refs + B.ref("Goethe: German alphabet and pronunciation practice", GermanA1.GOETHE + "en/spr/ueb.html"),
         blocks = listOf(
+            B.warmup(
+                "de1-grammar-w1", "de1-grammar",
+                "In a plain German statement, where do you think the verb goes?",
+                listOf("Second, whatever comes first", "At the end, always", "Wherever it sounds right, as in English"), 0,
+                "Everything else moves around it. The verb is the one fixed thing in the sentence.",
+            ),
             B.plain("""
                 German spelling is regular: once you know the sounds, you can read any word aloud. This topic gives you
                 the sounds that differ from English, the alphabet for spelling your name, and the verb sein (to be).
@@ -122,6 +134,12 @@ internal object GermanA1M1 {
     private val dialogue = Topic(
         id = "de1-dialogue", title = "Dialogue: meeting someone for the first time", minutes = 14, references = refs,
         blocks = listOf(
+            B.warmup(
+                "de1-dialogue-w1", "de1-dialogue",
+                "Someone says \"Wie bitte?\" to you. What do they want?",
+                listOf("You to say it again", "You to speak more formally", "You to spell your name"), 0,
+                "Two words, and probably the most useful ones in the whole exam.",
+            ),
             B.plain("Listen to each line, then read it aloud. Tap a line to see the English. This is the exact shape of the exam's Sprechen part 1: introduce yourself."),
             B.dialogue("At the language school",
                 B.line("Lehrerin", "Guten Tag! Ich bin Frau Weber. Wie heißen Sie?", "Good day! I am Mrs Weber. What is your name?"),
@@ -163,6 +181,12 @@ internal object GermanA1M1 {
     private val practice = Topic(
         id = "de1-practice", title = "Practice: introduce yourself in writing and speech", minutes = 16, references = refs,
         blocks = listOf(
+            B.warmup(
+                "de1-practice-w1", "de1-practice",
+                "A German form asks for your Wohnort. What goes in the box?",
+                listOf("The town you live in", "Your full name", "Your date of birth"), 0,
+                "wohnen is to live somewhere. The rest of the word is the place.",
+            ),
             B.plain("The exam's Schreiben part 1 is a form; part 2 is a short message. Sprechen part 1 is the introduction. Practise all three here."),
             B.diagram(
                 caption = "The four exam papers. This topic rehearses the three in colour.",

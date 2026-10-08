@@ -7,6 +7,12 @@ internal object GermanA1M12 {
     private val overview = Topic(
         id = "de12-overview", title = "The exam: four papers, 100 points, what 60 looks like", minutes = 16, references = refs,
         blocks = listOf(
+            B.warmup(
+                "de12-overview-w1", "de12-overview",
+                "The A1 exam is four papers. What does passing take?",
+                listOf("60 of 100, with no minimum in any one paper", "60 in every paper", "25 in each paper"), 0,
+                "Whether a weak paper can be carried changes how you would revise.",
+            ),
             B.plain("Goethe-Zertifikat A1 (Start Deutsch 1) is about 65 minutes of written papers plus a 15-minute group oral. You pass with 60 of 100 points overall; there is no minimum per paper. Know the shape and the clock before you sit it."),
             B.table(
                 listOf("Paper", "Time", "Parts", "Points"),
@@ -54,6 +60,12 @@ internal object GermanA1M12 {
     private val listening = Topic(
         id = "de12-listening", title = "Hören: the three parts and the listening tricks", minutes = 24, references = refs,
         blocks = listOf(
+            B.warmup(
+                "de12-listening-w1", "de12-listening",
+                "You hear \"nicht am Montag, sondern am Dienstag\". Which day is the answer?",
+                listOf("Tuesday", "Monday", "Both are mentioned, so neither"), 0,
+                "Corrections are the listening paper's favourite trick.",
+            ),
             B.plain("Hören is where candidates lose points to panic, not to German. Every part has a reading window before the audio: use it to decide what to listen for. Then practise with the exercises below under exam rules."),
             B.diagram(
                 caption = "Before each audio: read the question, pick the detail type, and listen for just that.",
@@ -114,6 +126,12 @@ internal object GermanA1M12 {
     private val speaking = Topic(
         id = "de12-speaking", title = "Sprechen: the whole oral exam, rehearsed", minutes = 26, references = refs,
         blocks = listOf(
+            B.warmup(
+                "de12-speaking-w1", "de12-speaking",
+                "In the speaking exam you do not catch what the examiner said. What is the right move?",
+                listOf("Ask them to repeat it", "Say nothing and wait", "Answer something else and hope"), 0,
+                "There is a set phrase for this, and using it costs you nothing at all.",
+            ),
             B.plain("Sprechen is 15 minutes with other candidates and two examiners, and it is the paper people fear most. It is also the most predictable: the three parts never change. Rehearse them here until they are automatic."),
             B.diagram(
                 caption = "Three parts, three fixed shapes. Part 1 is yours alone; parts 2 and 3 go round the group with cards.",

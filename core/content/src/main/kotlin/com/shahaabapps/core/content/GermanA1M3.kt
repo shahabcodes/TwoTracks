@@ -7,6 +7,12 @@ internal object GermanA1M3 {
     private val words = Topic(
         id = "de3-words", title = "Words: days, times and the daily routine", minutes = 18, references = refs,
         blocks = listOf(
+            B.warmup(
+                "de3-words-w1", "de3-words",
+                "\"halb zehn\" is what time?",
+                listOf("Half past nine", "Half past ten", "Ten to ten"), 0,
+                "German counts towards the hour that is coming, not away from the one that has gone.",
+            ),
             B.plain("Hören part 1 is full of times and days: appointments, opening hours, trains. These words make those announcements understandable."),
             B.vocab(
                 B.w("montag", "Montag", "Monday", "Am Montag arbeite ich.", "On Monday I work.", article = "der"),
@@ -59,6 +65,12 @@ internal object GermanA1M3 {
     private val grammar = Topic(
         id = "de3-grammar", title = "Grammar: regular verbs and W-questions", minutes = 20, references = refs,
         blocks = listOf(
+            B.warmup(
+                "de3-grammar-w1", "de3-grammar",
+                "\"On Monday\" in German takes which little word?",
+                listOf("am", "um", "im"), 0,
+                "There are three of them: one for days, one for clock times, one for months.",
+            ),
             B.plain("Most German verbs follow one pattern in the present tense. Learn the endings once and you can use hundreds of verbs."),
             B.table(
                 listOf("Person", "Ending", "lernen", "arbeiten"),
@@ -113,6 +125,12 @@ internal object GermanA1M3 {
     private val dialogue = Topic(
         id = "de3-dialogue", title = "Dialogue: making an appointment", minutes = 14, references = refs,
         blocks = listOf(
+            B.warmup(
+                "de3-dialogue-w1", "de3-dialogue",
+                "You are ending a phone call in German. What do you say?",
+                listOf("Auf Wiederhören", "Auf Wiedersehen", "Bis gleich"), 0,
+                "sehen is to see and hören is to hear. A phone call picks the one that fits.",
+            ),
             B.plain("Appointments appear in Hören and in Sprechen part 3 (making requests). Listen for the day and the time."),
             B.dialogue("Calling the doctor's practice",
                 B.line("Praxis", "Praxis Dr. Berger, guten Tag.", "Dr Berger's practice, good day."),
@@ -144,6 +162,12 @@ internal object GermanA1M3 {
     private val practice = Topic(
         id = "de3-practice", title = "Practice: a week in Doha", minutes = 16, references = refs,
         blocks = listOf(
+            B.warmup(
+                "de3-practice-w1", "de3-practice",
+                "A reading text about somebody's week. What do you look for first?",
+                listOf("The days and the times", "Every word you do not know", "The last sentence"), 0,
+                "The questions are nearly always about when something happens.",
+            ),
             B.plain("Read Usaid's week, then answer. Watch the times: official form in the text."),
             B.diagram(
                 caption = "Reading a timetable text: hunt for days and clock times before the questions.",

@@ -7,6 +7,12 @@ internal object GermanA1M8 {
     private val words = Topic(
         id = "de8-words", title = "Words: the body, feeling ill and the doctor", minutes = 20, references = refs,
         blocks = listOf(
+            B.warmup(
+                "de8-words-w1", "de8-words",
+                "How do you think German builds \"I have a headache\"?",
+                listOf("Body part plus -schmerzen: Ich habe Kopfschmerzen", "An adjective: ich bin kopfkrank", "A verb of having: ich kopfe"), 0,
+                "There are two ways to say something hurts, and one of them makes a compound noun.",
+            ),
             B.plain("Sprechen part 3 and Hören part 1 both reach for the doctor: an appointment, a symptom, an instruction. These words let you say what hurts and understand what to do."),
             B.vocab(
                 B.w("m8-koerper", "Körper", "body", "Der Körper braucht Schlaf.", "The body needs sleep.", article = "der", plural = "Körper"),
@@ -74,6 +80,12 @@ internal object GermanA1M8 {
     private val grammar = Topic(
         id = "de8-grammar", title = "Grammar: the imperative, Sie and du, and 'mir geht es'", minutes = 22, references = refs,
         blocks = listOf(
+            B.warmup(
+                "de8-grammar-w1", "de8-grammar",
+                "A doctor tells you to drink more water. Which form do they use?",
+                listOf("Trinken Sie", "Trink", "Du trinkst"), 0,
+                "A stranger in a white coat uses the polite one, and it keeps its pronoun.",
+            ),
             B.plain("Doctors, signs and friends all give instructions. The imperative has three forms, and once you see that the Sie form is just the question turned round, it is easy."),
             B.h("Three imperatives"),
             B.table(
@@ -143,6 +155,12 @@ internal object GermanA1M8 {
     private val dialogue = Topic(
         id = "de8-dialogue", title = "Dialogue: making an appointment and at the doctor", minutes = 18, references = refs,
         blocks = listOf(
+            B.warmup(
+                "de8-dialogue-w1", "de8-dialogue",
+                "A friend is ill. What do you say as you leave?",
+                listOf("Gute Besserung", "Viel Glück", "Herzlichen Glückwunsch"), 0,
+                "besser is better, and the wish is for exactly that.",
+            ),
             B.plain("Two dialogues the exam reuses endlessly: the phone call to a surgery, and the conversation with the doctor. Listen first, then read, then say the patient's lines yourself."),
             B.dialogue("Phone call: an appointment",
                 B.line("Praxis", "Praxis Dr. Müller, guten Tag.", "Dr Müller's surgery, good morning."),
@@ -196,6 +214,12 @@ internal object GermanA1M8 {
     private val practice = Topic(
         id = "de8-practice", title = "Practice: a pharmacy leaflet, a get-well message and requests", minutes = 20, references = refs,
         blocks = listOf(
+            B.warmup(
+                "de8-practice-w1", "de8-practice",
+                "A pharmacy leaflet is full of opening hours. Which word flips a line's meaning?",
+                listOf("nicht", "auch", "oder"), 0,
+                "The reading paper likes to hide a negative in the middle of a sentence.",
+            ),
             B.plain("Lesen part 3 could be the opening hours of a surgery; Schreiben part 2 could be a message to a friend who is ill; Sprechen part 3 is requests, which are imperatives with bitte. All three here."),
             B.diagram(
                 caption = "Sprechen part 3: picture card to request to answer. Three fixed patterns cover every card.",

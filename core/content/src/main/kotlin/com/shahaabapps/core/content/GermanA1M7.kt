@@ -7,6 +7,12 @@ internal object GermanA1M7 {
     private val words = Topic(
         id = "de7-words", title = "Words: trains, tickets, the airport and the trip", minutes = 22, references = refs,
         blocks = listOf(
+            B.warmup(
+                "de7-words-w1", "de7-words",
+                "An announcement says the train goes at siebzehn Uhr. What time is that?",
+                listOf("Five in the afternoon", "Seven in the morning", "Half past seven"), 0,
+                "Official German does not use am and pm at all.",
+            ),
             B.plain("Hören part 2 is station and airport announcements; Lesen part 2 is timetables and travel adverts. These are the words that move you from Doha or Lahore to a German platform."),
             B.vocab(
                 B.w("m7-zug", "Zug", "train", "Der Zug nach Berlin fährt um neun.", "The train to Berlin leaves at nine.", article = "der", plural = "Züge"),
@@ -78,6 +84,12 @@ internal object GermanA1M7 {
     private val grammar = Topic(
         id = "de7-grammar", title = "Grammar: separable verbs, Wohin? with nach, zu and mit", minutes = 24, references = refs,
         blocks = listOf(
+            B.warmup(
+                "de7-grammar-w1", "de7-grammar",
+                "\"I am going to Berlin.\" Which little word?",
+                listOf("nach", "zu", "in"), 0,
+                "Cities and countries get one of these; people and places with an article get another.",
+            ),
             B.plain("Travel German is built from separable verbs, which split in two, and three small prepositions that say where to and how. Get those and every announcement makes sense."),
             B.h("Separable verbs: the prefix goes to the end"),
             B.diagram(
@@ -155,6 +167,12 @@ internal object GermanA1M7 {
     private val dialogue = Topic(
         id = "de7-dialogue", title = "Dialogue: at the ticket counter and the platform announcement", minutes = 18, references = refs,
         blocks = listOf(
+            B.warmup(
+                "de7-dialogue-w1", "de7-dialogue",
+                "At the ticket counter: \"einfach oder hin und zurück?\". What is being asked?",
+                listOf("One way or return", "First or second class", "Window or aisle"), 0,
+                "hin is there and zurück is back.",
+            ),
             B.plain("Hören part 2 is five announcements, each heard once only, with a Richtig or Falsch statement. Train the ear here: listen before you read, every time."),
             B.dialogue("At the ticket counter",
                 B.line("Usaid", "Guten Tag. Ich möchte eine Fahrkarte nach Hamburg, bitte.", "Good afternoon. I would like a ticket to Hamburg, please."),
@@ -211,6 +229,12 @@ internal object GermanA1M7 {
     private val practice = Topic(
         id = "de7-practice", title = "Practice: a timetable, a postcard and planning a trip together", minutes = 20, references = refs,
         blocks = listOf(
+            B.warmup(
+                "de7-practice-w1", "de7-practice",
+                "On a timetable, Abfahrt is…",
+                listOf("Departure", "Arrival", "The platform"), 0,
+                "fahren is to travel. The prefix says which end of the journey it is.",
+            ),
             B.plain("Lesen part 2 can be a timetable; Schreiben part 2 can be a postcard or a message about a trip; Sprechen part 3 can be making arrangements with picture cards. All three are here."),
             B.diagram(
                 caption = "Reading a timetable row: departure, arrival, changes, price. Compare two rows against the situation.",

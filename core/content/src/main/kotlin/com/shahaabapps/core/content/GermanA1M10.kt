@@ -7,6 +7,12 @@ internal object GermanA1M10 {
     private val words = Topic(
         id = "de10-words", title = "Words: yesterday, last week, and the verbs of a day", minutes = 20, references = refs,
         blocks = listOf(
+            B.warmup(
+                "de10-words-w1", "de10-words",
+                "Learning a German verb for talking about yesterday, what has to be learnt with it?",
+                listOf("Its participle, and whether it takes sein", "Only its participle", "Nothing; the rule is regular"), 0,
+                "Two verbs build the past tense, and which helper you get is not a free choice.",
+            ),
             B.plain("The Sprechen examiner may ask what you did yesterday or at the weekend; Lesen part 1 is often a text about a trip someone took. You need the time words and the everyday verbs in their past forms."),
             B.vocab(
                 B.w("m10-gestern", "gestern", "yesterday", "Gestern habe ich gearbeitet.", "Yesterday I worked."),
@@ -61,6 +67,12 @@ internal object GermanA1M10 {
     private val grammar = Topic(
         id = "de10-grammar", title = "Grammar: the Perfekt with haben and sein, war and hatte", minutes = 28, references = refs,
         blocks = listOf(
+            B.warmup(
+                "de10-grammar-w1", "de10-grammar",
+                "\"Ich ___ nach Berlin gefahren.\" Which helper?",
+                listOf("bin", "habe", "war"), 0,
+                "Movement and change take one helper. Everything else takes the other.",
+            ),
             B.plain("The Perfekt is the past tense of spoken German and of the exam. Two things to decide for every verb: haben or sein, and what the participle looks like. Plus two verbs that do not use the Perfekt at all: sein and haben themselves."),
             B.h("haben or sein?"),
             B.diagram(
@@ -132,6 +144,12 @@ internal object GermanA1M10 {
     private val dialogue = Topic(
         id = "de10-dialogue", title = "Dialogue: how was your weekend, and what happened?", minutes = 18, references = refs,
         blocks = listOf(
+            B.warmup(
+                "de10-dialogue-w1", "de10-dialogue",
+                "\"… weil ich krank war.\" What has weil done to the verb?",
+                listOf("Sent it to the end of the clause", "Left it where it was", "Removed it"), 0,
+                "A few small joining words rearrange everything after them.",
+            ),
             B.plain("Monday morning talk is a Perfekt workout. The second dialogue, an excuse for being late, is a Hören part 1 classic."),
             B.dialogue("Monday at work",
                 B.line("Lena", "Hallo Usaid, wie war dein Wochenende?", "Hi Usaid, how was your weekend?"),
@@ -182,6 +200,12 @@ internal object GermanA1M10 {
     private val practice = Topic(
         id = "de10-practice", title = "Practice: a holiday postcard, your yesterday, and Lesen part 1", minutes = 20, references = refs,
         blocks = listOf(
+            B.warmup(
+                "de10-practice-w1", "de10-practice",
+                "A holiday postcard in German. Which tense is it mostly in?",
+                listOf("The past: Ich war …, Ich habe … gesehen", "The present throughout", "The future"), 0,
+                "You are writing from somewhere about what has already happened.",
+            ),
             B.plain("Lesen part 1 is usually a short personal text in the past; Schreiben part 2 can be a postcard about a trip you took; the oral examiner may ask about yesterday. Practise all three."),
             B.diagram(
                 caption = "A postcard about a trip: where you were, what you did (two Perfekt sentences), the weather, when you come back.",
