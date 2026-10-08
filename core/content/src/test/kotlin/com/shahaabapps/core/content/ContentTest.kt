@@ -142,6 +142,27 @@ class ContentTest {
     }
 
     @Test
+    fun `every AZ-204 module test question explains the answer you picked`() {
+        // A test that only restates why the right answer is right teaches the
+        // person who was already right. The useful sentence is about the
+        // option you chose, so every question in a module test carries one.
+        //
+        // Module tests only: the mock exam runs with instantFeedback off, so
+        // a note on a mock question would never be rendered. Writing content
+        // nothing can show is how 44 notes sat invisible until 0.43.0.
+        Az204.course.modules.mapNotNull { m -> m.quiz?.let { m to it } }.forEach { (m, quiz) ->
+            assertTrue("${m.id} should give instant feedback for notes to appear", quiz.instantFeedback)
+            quiz.questions.forEach { q ->
+                val wrong = q.options.indices.filterNot { it in q.correct }
+                assertTrue(
+                    "az-204/${m.id}/${q.id} has no note on any wrong option",
+                    wrong.any { it in q.whyWrong.keys },
+                )
+            }
+        }
+    }
+
+    @Test
     fun `a warm-up guess never enters the schedule or the review set`() {
         // The one thing that would make warm-ups harmful. A guess made before
         // reading, recorded, would put every topic straight into the review
