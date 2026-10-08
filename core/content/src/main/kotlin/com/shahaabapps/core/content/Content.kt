@@ -252,8 +252,21 @@ data class Question(
     val explanation: String,
     /** Hören questions: text the app speaks and hides until the answer is in. */
     val listen: String? = null,
+    /**
+     * Why a particular wrong option is tempting, keyed by its index in
+     * [options]. Being told why the trap caught you teaches more than being
+     * told again why the right answer is right, so this is shown above the
+     * explanation when that option is the one picked.
+     *
+     * Indices move when [B.spread] rotates the options, and it rotates these
+     * keys with them.
+     */
+    val whyWrong: Map<Int, String> = emptyMap(),
 ) {
     val multi: Boolean get() = correct.size > 1
+    /** The note for the option picked, when it is wrong and has one. */
+    fun whyWrongFor(picked: Set<Int>): String? =
+        picked.singleOrNull()?.takeIf { it !in correct }?.let { whyWrong[it] }
 }
 
 /** Small helpers so content reads cleanly. */
@@ -304,10 +317,23 @@ object B {
         if (q.options.size < 3 || q.options.first().uppercase() in setOf("TRUE", "YES", "RICHTIG")) return@mapIndexed q
         val n = q.options.size
         val r = i % n
-        q.copy(options = q.options.drop(r) + q.options.take(r), correct = q.correct.map { (it - r + n) % n }.toSet())
+        // Every index into options moves by the same rotation, the per-option
+        // notes as much as the correct set. Missing one would pin an
+        // explanation to an answer it was never written about.
+        q.copy(
+            options = q.options.drop(r) + q.options.take(r),
+            correct = q.correct.map { (it - r + n) % n }.toSet(),
+            whyWrong = q.whyWrong.mapKeys { (k, _) -> (k - r + n) % n },
+        )
     }
-    fun q(id: String, topic: String, prompt: String, options: List<String>, correct: Set<Int>, explanation: String, scenario: String? = null, listen: String? = null) =
-        Question(id, topic, prompt, scenario, options, correct, explanation.trimIndent().replace("\n", " ").trim(), listen?.trimIndent()?.replace("\n", " ")?.trim())
+    fun q(
+        id: String, topic: String, prompt: String, options: List<String>, correct: Set<Int>, explanation: String,
+        scenario: String? = null, listen: String? = null, whyWrong: Map<Int, String> = emptyMap(),
+    ) = Question(
+        id, topic, prompt, scenario, options, correct, explanation.trimIndent().replace("\n", " ").trim(),
+        listen?.trimIndent()?.replace("\n", " ")?.trim(),
+        whyWrong.mapValues { (_, v) -> v.trimIndent().replace("\n", " ").trim() },
+    )
 }
 
 /** A sitting of a quiz: the whole paper, or a random draw when the quiz asks for one. */
