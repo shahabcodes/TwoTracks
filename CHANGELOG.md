@@ -5,6 +5,10 @@ build number is appended by CI (for example `0.1.0 (build 12)`).
 
 ## [Unreleased]
 
+## [0.46.0] - 2026-10-08
+### Added
+- After each worked example, the same problem again with one step left for you.
+
 ## [0.45.0] - 2026-10-08
 ### Added
 - Every AZ-204 topic opens with a guess before the reading, which is never marked against you.

@@ -104,6 +104,18 @@ internal object Az204Connect2 {
                 each person's stream ordered. The realtime consumer group feeds a live "studying now" badge; the
                 reports group aggregates minutes per day; Capture archives everything to the data lake for later analysis.
             """),
+            B.faded(
+                "az-eventhubs-f1",
+                "Same stream, a third reader. A fraud service must read every heartbeat without disturbing the realtime badge or the reports job.",
+                listOf(
+                    "The events are already partitioned by owner, and that stays as it is.",
+                    "Give the new service its own ___, so it has its own position in the stream.",
+                    "Its checkpoints go in its own blob container, so it can be reset without touching the others.",
+                ),
+                blank = 1,
+                answers = listOf("consumer group"),
+                note = "Readers are separated by consumer group, never by partition. A partition is only ever part of the stream.",
+            ),
             B.steps("Create and send",
                 "az eventhubs namespace create --name tt-events --resource-group tt-rg --sku Standard --enable-auto-inflate --maximum-throughput-units 4" to "A Standard namespace that grows to 4 TUs.",
                 "az eventhubs eventhub create --name sessions --namespace-name tt-events --resource-group tt-rg --partition-count 4 --retention-time 168" to "Four partitions, 7-day retention.",
@@ -292,6 +304,18 @@ internal object Az204Connect2 {
                 storage error, and dead-letters a malformed message. An operator inspects the DLQ in Service Bus Explorer.
                 Thumbnails for profile photos go through a Storage queue because the work is trivial and volume is high.
             """),
+            B.faded(
+                "az-servicebus-f1",
+                "Same worker, a worse message. It holds a message in PeekLock and finds the payload is malformed in a way no retry will fix.",
+                listOf(
+                    "Completing it would say the work succeeded, and lose it quietly.",
+                    "It ___-letters the message instead, moving it to the sub-queue where an operator can look at it.",
+                    "Abandoning it would release the lock and deliver it again until the delivery count ran out.",
+                ),
+                blank = 1,
+                answers = listOf("dead"),
+                note = "Complete, abandon, dead-letter, defer. Only one of the four is right for something that can never succeed.",
+            ),
             B.steps("Create a topic with a filtered subscription",
                 "az servicebus namespace create --name tt-bus --resource-group tt-rg --sku Standard" to "Topics need Standard.",
                 "az servicebus topic create --name lesson-events --namespace-name tt-bus --resource-group tt-rg --enable-duplicate-detection true" to "Repeat MessageIds are dropped.",

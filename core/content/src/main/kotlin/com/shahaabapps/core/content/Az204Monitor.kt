@@ -113,6 +113,18 @@ internal object Az204Monitor {
                 retry gave up. A KQL summarize by hour matched the nightly export job. The fix was autoscale on the
                 container and a TrackEvent on each export so the two can be correlated next time.
             """),
+            B.faded(
+                "az-appinsights-f1",
+                "Same tool, a different question. Requests are slow and you suspect one downstream call is responsible.",
+                listOf(
+                    "The dependencies table already holds every outbound call, with its duration.",
+                    "In Logs, query it and ___ by name to find which one is slowest on average.",
+                    "The end-to-end view then shows one request's whole chain, tied together by operation_Id.",
+                ),
+                blank = 1,
+                answers = listOf("summarize"),
+                note = "summarize is how KQL aggregates. operation_Id is what makes the end-to-end view possible at all.",
+            ),
             B.steps("Add Application Insights to a web app",
                 "az monitor app-insights component create --app tt-ai --location westeurope --resource-group tt-rg --workspace <workspace-id>" to "A workspace-based resource.",
                 "Copy the connectionString from the output into APPLICATIONINSIGHTS_CONNECTION_STRING." to "The SDK reads it at start-up.",
@@ -262,6 +274,18 @@ internal object Az204Monitor {
                 group (push via the Azure mobile app, plus email). Autoscale keeps one instance at night and adds up to
                 three when CPU passes 70 percent, with a 10-minute cooldown.
             """),
+            B.faded(
+                "az-availability-f1",
+                "Same watching, a harder target. The endpoint is inside a virtual network, so a probe from Microsoft's regions cannot reach it.",
+                listOf(
+                    "A standard availability test is out: it runs from public regions.",
+                    "Run your own probe inside the network and report the result with ___.",
+                    "The alert on it still goes to the same action group as everything else.",
+                ),
+                blank = 1,
+                answers = listOf("trackavailability"),
+                note = "Standard tests probe from outside. Anything private has to report in from inside instead.",
+            ),
             B.steps("Create a metric alert from the CLI",
                 "az monitor action-group create --name tt-ops --resource-group tt-rg --short-name ttops --action email usaid shahab@example.com" to "Who gets told.",
                 "az monitor metrics alert create --name api-5xx --resource-group tt-rg --scopes <webapp-id> --condition \"total Http5xx > 5\" --window-size 5m --evaluation-frequency 1m --action tt-ops --severity 1" to "The rule.",
@@ -421,6 +445,18 @@ internal object Az204Monitor {
                 plan:usaid:<date> so the next read rebuilds. The streak leaderboard for both partners is a sorted set
                 updated by the change-feed function.
             """),
+            B.faded(
+                "az-redis-f1",
+                "Same pattern, the write side. A user edits their profile and the cached copy must not be served again.",
+                listOf(
+                    "The read path is cache-aside with a ten minute TTL, and stays as it is.",
+                    "On the write, ___ the key so the next read rebuilds it from the source.",
+                    "Waiting for the TTL instead would serve stale data for up to ten minutes.",
+                ),
+                blank = 1,
+                answers = listOf("delete", "remove", "invalidate", "evict", "expire"),
+                note = "Cache-aside with a TTL, and invalidate on write. The TTL is the safety net, not the plan.",
+            ),
             B.steps("Create a cache and connect",
                 "az redis create --name tt-redis --resource-group tt-rg --location westeurope --sku Standard --vm-size c0" to "Standard C0: 250 MB, replicated.",
                 "az redis list-keys --name tt-redis --resource-group tt-rg" to "Or enable Entra ID auth and skip keys.",
@@ -559,6 +595,18 @@ internal object Az204Monitor {
                 needed. The help index.html is set to Cache-Control: max-age=300 so edits show within five minutes.
                 The API itself is routed with caching bypassed.
             """),
+            B.faded(
+                "az-cdn-f1",
+                "Same setup, an urgent fix. A diagram is wrong and a copy of it is sitting at every edge.",
+                listOf(
+                    "The help pages have a five minute max-age, but diagrams are cached far longer.",
+                    "Because diagrams are named with a content ___, publishing the fix gives it a new URL.",
+                    "No purge is needed, because no edge holds a copy of a URL it has never seen.",
+                ),
+                blank = 1,
+                answers = listOf("hash"),
+                note = "Purging works and is the tool for an emergency, but it is a request to every edge. A new URL cannot be served stale.",
+            ),
             B.steps("Serve a static site through Front Door",
                 "Enable the static website on the storage account and upload index.html." to "Origin is the web endpoint, not the blob endpoint.",
                 "Create a Front Door profile, endpoint, origin group and origin." to "Health probes watch the origin.",

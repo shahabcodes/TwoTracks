@@ -80,6 +80,18 @@ internal object Az204Compute {
                 double underscore to a colon, Configuration["Firestore:ProjectId"] now returns "two-tracks" with no code
                 change. The app restarts once when you save the setting, then every request sees the new value.
             """),
+            B.faded(
+                "az-app-service-f1",
+                "Same problem, a different key. The API reads Configuration[\"Cosmos:Database\"] and production needs a different value from the one in appsettings.json.",
+                listOf(
+                    "In appsettings.json the key is written Cosmos:Database.",
+                    "In Azure, add an app setting named ___ with the production value.",
+                    "Save it. The app restarts once, and from then on every request sees the new value.",
+                ),
+                blank = 1,
+                answers = listOf("Cosmos__Database"),
+                note = "A double underscore stands in for the colon, because a colon is not legal in an environment variable name on Linux.",
+            ),
             B.code("bash", """
                 # Set a setting with the CLI; the app reads it as an environment variable
                 az webapp config appsettings set \
@@ -271,6 +283,18 @@ internal object Az204Compute {
                 ?x-ms-routing-name=staging. After the hour, check failed requests per slot in Application Insights, then
                 set traffic back to 0 and swap if clean.
             """),
+            B.faded(
+                "az-slots-scaling-f1",
+                "Same problem, a different split. You want a quarter of real users on v3 for an afternoon.",
+                listOf(
+                    "In Deployment slots, set Traffic percent for staging to 25.",
+                    "To put your own browser on staging without moving anyone, open the production URL with ?___=staging",
+                    "If the failed requests stay flat, set traffic back to 0 and swap.",
+                ),
+                blank = 1,
+                answers = listOf("x-ms-routing-name"),
+                note = "The same name arrives as a cookie for a user who lands on staging, which is what keeps them there rather than bouncing between versions.",
+            ),
             B.h("Scaling up versus scaling out"),
             B.compare("Which scale?",
                 B.card("Scale up", "Each request needs more CPU or memory, or you need a feature of a higher tier.",
@@ -446,6 +470,18 @@ internal object Az204Compute {
                 queue by an output binding. There is no connection code at all; the names of the connection settings
                 come from app settings.
             """),
+            B.faded(
+                "az-functions-f1",
+                "Same shape, a different job. A cleanup must run at 02:00 daily, read yesterday's rows and drop the ones to delete on a queue.",
+                listOf(
+                    "A timer starts the function at 02:00. That is the trigger, and there is only ever one.",
+                    "Yesterday's rows are handed in by an input ___, so no connection code is written.",
+                    "The rows to delete are returned, and an output binding of the same kind puts them on the queue.",
+                ),
+                blank = 1,
+                answers = listOf("binding"),
+                note = "One trigger, any number of bindings. The connection settings they use are named in app settings, not in code.",
+            ),
             B.code("csharp", """
                 [Function("ReminderSweep")]
                 [QueueOutput("reminders")]

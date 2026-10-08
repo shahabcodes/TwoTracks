@@ -152,6 +152,28 @@ sealed interface Block {
      * about a topic is that you did not know it yet.
      */
     data class Warmup(val question: Question) : Block
+
+    /**
+     * The step after a worked example: the same kind of problem again, with
+     * one step taken out.
+     *
+     * Reading a full solution is easy and teaches less than finishing one.
+     * Someone who has only ever read solutions finds out at the test that
+     * they cannot start one, so the fade between the two belongs in the
+     * topic: worked example, then this, then the topic's own exercises with
+     * nothing given at all.
+     */
+    data class Faded(
+        val id: String,
+        /** A fresh instance of the same problem, never the one just worked through. */
+        val scenario: String,
+        val steps: List<String>,
+        /** Index into [steps] of the one step left blank, marked ___ in its text. */
+        val blank: Int,
+        val answers: List<String>,
+        /** What the step turned on, shown once it is right. */
+        val note: String,
+    ) : Block
     /** Terms used in this topic. */
     data class Glossary(val terms: List<Term>) : Block
     /** Vocabulary cards that flip and speak; every word joins the flashcard deck. */
@@ -318,6 +340,21 @@ object B {
             ),
         ),
     )
+    /**
+     * A worked example with one step removed. See [Block.Faded]. Place it
+     * directly after the [worked] callout it fades, on a new instance of the
+     * same problem.
+     */
+    fun faded(id: String, scenario: String, steps: List<String>, blank: Int, answers: List<String>, note: String) =
+        Block.Faded(
+            id,
+            scenario.trimIndent().replace("\n", " ").replace("  ", " ").trim(),
+            steps.map { it.trimIndent().replace("\n", " ").replace("  ", " ").trim() },
+            blank,
+            answers,
+            note.trimIndent().replace("\n", " ").trim(),
+        )
+
     /** A guess before the reading. See [Block.Warmup]: it is never recorded. */
     fun warmup(id: String, topic: String, prompt: String, options: List<String>, correct: Int, hint: String) =
         Block.Warmup(

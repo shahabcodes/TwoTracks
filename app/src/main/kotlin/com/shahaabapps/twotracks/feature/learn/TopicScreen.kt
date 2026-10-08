@@ -58,6 +58,9 @@ import com.shahaabapps.core.ui.theme.Spacing
 import com.shahaabapps.twotracks.ui.components.DetailScaffold
 import com.shahaabapps.twotracks.ui.components.PopIn
 import androidx.compose.ui.text.style.TextAlign
+import com.shahaabapps.core.ui.components.CupertinoTextField
+import com.shahaabapps.core.content.solved
+import com.shahaabapps.core.content.accepts
 
 /** One lesson: the blocks rendered in order, then "Mark as learned" which logs the reading time. */
 @Composable
@@ -149,6 +152,7 @@ fun BlockView(block: Block, speaker: Speaker? = null, recognizer: Recognizer? = 
         is Block.TryIt -> TryItBlock(block)
         is Block.Check -> CheckBlock(block, onChecked)
         is Block.Warmup -> WarmupBlock(block)
+        is Block.Faded -> FadedBlock(block)
         is Block.Glossary -> GlossaryBlock(block)
         is Block.Vocab -> VocabBlock(block, speaker)
         is Block.Dialogue -> DialogueBlock(block, speaker)
@@ -425,6 +429,68 @@ private fun WarmupBlock(block: Block.Warmup) {
                 color = if (right) AppTheme.colors.success else AppTheme.colors.secondaryLabel,
             )
             Text(q.explanation, style = MaterialTheme.typography.bodySmall, lineHeight = 19.sp, color = AppTheme.colors.secondaryLabel)
+        }
+    }
+}
+
+/**
+ * A worked example with one step removed, for the reader to finish.
+ *
+ * Nothing is recorded: this is practice placed between reading a solution and
+ * writing one, not an assessment. The answer can be revealed, because someone
+ * stuck on step two should not be stuck on the rest of the topic.
+ */
+@Composable
+private fun FadedBlock(block: Block.Faded) {
+    var typed by androidx.compose.runtime.remember(block.id) { androidx.compose.runtime.mutableStateOf("") }
+    var tried by androidx.compose.runtime.remember(block.id) { androidx.compose.runtime.mutableStateOf(false) }
+    var shown by androidx.compose.runtime.remember(block.id) { androidx.compose.runtime.mutableStateOf(false) }
+    val right = block.accepts(typed)
+    val done = right || shown
+    Column(
+        modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(14.dp))
+            .background(AppTheme.colors.accent.copy(alpha = 0.08f)).padding(Spacing.md),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        Text("NOW YOU FINISH IT", style = MaterialTheme.typography.labelMedium, color = AppTheme.colors.accent, fontWeight = FontWeight.SemiBold)
+        Text(block.scenario, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold, lineHeight = 21.sp)
+        block.steps.forEachIndexed { i, step ->
+            Row(verticalAlignment = Alignment.Top, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                Text("${i + 1}", style = MaterialTheme.typography.labelMedium, color = AppTheme.colors.secondaryLabel, fontWeight = FontWeight.Bold)
+                if (i == block.blank) {
+                    Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                        Text(
+                            if (done) block.solved() else step.replace("___", "______"),
+                            style = MaterialTheme.typography.bodyMedium, lineHeight = 20.sp,
+                            fontWeight = if (done) FontWeight.SemiBold else FontWeight.Normal,
+                            color = if (done) AppTheme.colors.success else MaterialTheme.colorScheme.onSurface,
+                        )
+                        if (!done) {
+                            CupertinoTextField(
+                                value = typed,
+                                onValueChange = { typed = it; tried = false },
+                                placeholder = "The missing step",
+                                singleLine = true,
+                                modifier = Modifier.fillMaxWidth(),
+                            )
+                        }
+                    }
+                } else {
+                    Text(step, style = MaterialTheme.typography.bodyMedium, lineHeight = 20.sp, modifier = Modifier.weight(1f), color = AppTheme.colors.secondaryLabel)
+                }
+            }
+        }
+        when {
+            done -> Text(block.note, style = MaterialTheme.typography.bodySmall, lineHeight = 19.sp, color = AppTheme.colors.secondaryLabel)
+            tried -> Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                Text("Not that. Try once more.", style = MaterialTheme.typography.bodySmall, color = AppTheme.colors.destructive, fontWeight = FontWeight.SemiBold)
+                Text(
+                    "Show me",
+                    style = MaterialTheme.typography.bodySmall, color = AppTheme.colors.accent, fontWeight = FontWeight.SemiBold,
+                    modifier = Modifier.clickable { shown = true },
+                )
+            }
+            else -> CupertinoTextButton(text = "Check", onClick = { tried = true })
         }
     }
 }
