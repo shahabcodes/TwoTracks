@@ -15,6 +15,8 @@ data class CourseProgress(
     val missedQuestionIds: Set<String>,
     /** Spaced-repetition state per question, folded from the sittings on record. */
     val questionCards: Map<String, Srs.Card> = emptyMap(),
+    /** When each topic was read, so spacing can offer the ones left longest. */
+    val learnedOn: Map<String, String> = emptyMap(),
 ) {
     fun moduleLearned(m: Module): Int = m.topics.count { it.id in learnedTopicIds }
     fun moduleFraction(m: Module): Float = if (m.topics.isEmpty()) 0f else moduleLearned(m).toFloat() / m.topics.size
@@ -66,6 +68,10 @@ data class CourseProgress(
             return CourseProgress(
                 mine.map { it.topicId }.toSet(), passed, best, missed,
                 questionCards = QuestionSrs.states(att, owner, courseId, course?.allQuestions?.map { it.id }?.toSet().orEmpty()),
+                // Latest reading wins, so a revisit moves the topic down the queue.
+                learnedOn = mine.filter { it.learnedAtIso.isNotBlank() }
+                    .groupBy { it.topicId }
+                    .mapValues { (_, rows) -> rows.maxOf { it.learnedAtIso } },
             )
         }
 

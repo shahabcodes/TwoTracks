@@ -53,6 +53,15 @@ import com.shahaabapps.core.ui.theme.Spacing
 import com.shahaabapps.twotracks.ui.components.DetailScaffold
 import com.shahaabapps.twotracks.ui.components.ProgressBar
 import com.shahaabapps.twotracks.ui.components.SectionLabel
+import java.time.LocalDate
+import androidx.compose.runtime.remember
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material3.CircularProgressIndicator
+import com.shahaabapps.core.content.revisits
+import com.shahaabapps.core.content.mastery
+import com.shahaabapps.core.content.TopicMastery
+import com.shahaabapps.core.content.Mastery
 
 /** Tab 4: the courses, with your progress and a one-tap "continue". */
 @Composable
@@ -215,6 +224,9 @@ fun CourseScreen(
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val course = Courses.byId(courseId)
     val p = state.progress[courseId]
+    val today = remember { LocalDate.now() }
+    val mastery = remember(course, p, today) { if (course == null || p == null) emptyMap() else course.mastery(p, today) }
+    val revisits = remember(course, p, today) { if (course == null || p == null) emptyList() else course.revisits(p, today) }
     DetailScaffold(title = course?.title ?: "Course", onBack = onBack) {
         if (course == null) return@DetailScaffold
         LazyColumn(verticalArrangement = Arrangement.spacedBy(Spacing.md), contentPadding = PaddingValues(bottom = Spacing.xl)) {
@@ -224,10 +236,47 @@ fun CourseScreen(
                     ProgressBar(fraction = p?.courseFraction(course) ?: 0f, modifier = Modifier.padding(top = Spacing.sm))
                 }
             }
+            if (revisits.isNotEmpty()) {
+                item { RevisitSection(course, revisits, onOpenTopic) }
+            }
             course.modules.forEach { m ->
-                item { ModuleSection(course, m, p, onOpenTopic, onOpenQuiz) }
+                item { ModuleSection(course, m, p, mastery, onOpenTopic, onOpenQuiz) }
             }
             item { ExamPracticeSection(course, p, state.dailyDue[courseId] ?: 0, onOpenQuiz) }
+        }
+    }
+}
+
+/**
+ * Topics worth going back to, rather than a course you walk once.
+ *
+ * Everything here is derived: a topic appears because one of its own questions
+ * is due again or was missed and never put right, not because anything decided
+ * to nag. Missed first, then the reading left longest.
+ */
+@Composable
+private fun RevisitSection(course: Course, revisits: List<TopicMastery>, onOpenTopic: (String, String) -> Unit) {
+    Column {
+        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(start = Spacing.listHorizontal + Spacing.sectionStart, end = Spacing.listHorizontal + Spacing.sectionStart, bottom = 6.dp)) {
+            Text("WORTH GOING BACK TO", style = MaterialTheme.typography.labelMedium, color = AppTheme.colors.secondaryLabel, modifier = Modifier.weight(1f))
+        }
+        CupertinoListSection(footer = "These came back round on their own schedule. Rereading one before it is missed is cheaper than after.") {
+            revisits.forEachIndexed { i, r ->
+                val t = Courses.topic(course.id, r.topicId)?.second
+                CupertinoListRow(
+                    title = t?.title?.substringBefore(":") ?: r.topicId,
+                    subtitle = buildList {
+                        if (r.missed > 0) add("${r.missed} missed")
+                        if (r.due > 0) add("${r.due} due again")
+                        r.readOn?.let { add("read $it") }
+                    }.joinToString(" · "),
+                    leadingIcon = Icons.Filled.Refresh,
+                    iconColor = if (r.missed > 0) AppTheme.colors.warn else AppTheme.colors.accent,
+                    showDivider = i < revisits.size - 1,
+                    onClick = { onOpenTopic(course.id, r.topicId) },
+                    trailing = { CupertinoDisclosure() },
+                )
+            }
         }
     }
 }
@@ -281,8 +330,48 @@ private fun ExamPracticeSection(course: Course, p: CourseProgress?, dailyDue: In
     }
 }
 
+/**
+ * Where a topic has got to, in 22dp. Held is a filled tick; practised and read
+ * are the same ring filling up, so the difference between "I pressed the
+ * button" and "I can answer its questions" is visible at a glance.
+ */
 @Composable
-private fun ModuleSection(course: Course, m: Module, p: CourseProgress?, onOpenTopic: (String, String) -> Unit, onOpenQuiz: (String, String) -> Unit) {
+private fun MasteryPip(mt: TopicMastery?) {
+    val level = mt?.level ?: Mastery.UNREAD
+    val tone = when {
+        mt?.needsRevisit == true -> AppTheme.colors.warn
+        level == Mastery.HELD -> AppTheme.colors.success
+        level == Mastery.UNREAD -> AppTheme.colors.fill
+        else -> AppTheme.colors.accent
+    }
+    if (level == Mastery.HELD && mt?.needsRevisit != true) {
+        Icon(Icons.Filled.CheckCircle, contentDescription = mt?.label ?: "Held", tint = tone, modifier = Modifier.size(22.dp))
+        return
+    }
+    Box(modifier = Modifier.size(22.dp), contentAlignment = Alignment.Center) {
+        Box(modifier = Modifier.size(22.dp).clip(CircleShape).background(AppTheme.colors.fill))
+        if (level != Mastery.UNREAD) {
+            CircularProgressIndicator(
+                progress = { mt?.fraction ?: 0f },
+                modifier = Modifier.size(22.dp),
+                color = tone,
+                trackColor = Color.Transparent,
+                strokeWidth = 3.dp,
+                strokeCap = StrokeCap.Round,
+            )
+        }
+    }
+}
+
+@Composable
+private fun ModuleSection(
+    course: Course,
+    m: Module,
+    p: CourseProgress?,
+    mastery: Map<String, TopicMastery>,
+    onOpenTopic: (String, String) -> Unit,
+    onOpenQuiz: (String, String) -> Unit,
+) {
     val learned = p?.moduleLearned(m) ?: 0
     val passed = p?.passedModuleIds?.contains(m.id) == true
     val best = p?.bestPercentByModule?.get(m.id)
@@ -296,16 +385,20 @@ private fun ModuleSection(course: Course, m: Module, p: CourseProgress?, onOpenT
                 CupertinoListRow(m.summary, leadingIcon = Icons.Filled.Lock, iconColor = AppTheme.colors.secondaryLabel, showDivider = false)
             }
             m.topics.forEachIndexed { i, t ->
-                val done = p?.learnedTopicIds?.contains(t.id) == true
+                // A rung, not a tick: reading a topic is one step of knowing it,
+                // and the row says which step rather than claiming it is finished.
+                val mt = mastery[t.id]
+                val base = "${t.title.substringAfter(": ", "").ifBlank { "" }}${if (t.title.contains(": ")) " · " else ""}${t.minutes} min"
                 CupertinoListRow(
                     title = t.title.substringBefore(":"),
-                    subtitle = "${t.title.substringAfter(": ", "").ifBlank { "" }}${if (t.title.contains(": ")) " · " else ""}${t.minutes} min",
+                    subtitle = when {
+                        mt == null || mt.level == Mastery.UNREAD -> base
+                        mt.needsRevisit -> "${mt.label} · worth another look"
+                        else -> "${mt.label} · ${t.minutes} min"
+                    },
                     showDivider = true,
                     onClick = { onOpenTopic(course.id, t.id) },
-                    trailing = {
-                        if (done) Icon(Icons.Filled.CheckCircle, contentDescription = "Learned", tint = AppTheme.colors.success, modifier = Modifier.size(22.dp))
-                        else Box(modifier = Modifier.size(22.dp).clip(CircleShape).background(AppTheme.colors.fill))
-                    },
+                    trailing = { MasteryPip(mt) },
                 )
             }
             if (m.quiz != null) {
