@@ -255,12 +255,34 @@ private fun Results(state: QuizUiState, onRetake: () -> Unit, onOpenTopic: (Stri
                     }
                 }
             }
+            // The weak area is a place to go, not a sentence about one. It is
+            // shown whether or not the paper was passed: passing at 82% with
+            // one area at 40% is exactly when nobody goes back on their own.
             val weak = areas.weakest(pass)
-            if (weak.isNotEmpty() && !state.passed) {
+            if (weak.isNotEmpty()) {
+                val byTopic = state.kind == QuizKind.MODULE
                 Text(
-                    "Weakest: ${weak.take(2).joinToString(" and ") { it.label }}. Start there.",
-                    style = MaterialTheme.typography.bodySmall, color = AppTheme.colors.secondaryLabel,
+                    if (state.passed) "Passed, but these were thin" else "Start here",
+                    style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.SemiBold,
                 )
+                weak.take(2).forEach { a ->
+                    // By topic the area is already a destination. By module,
+                    // the first topic it actually lost a question in is the
+                    // honest place to land.
+                    val destination = if (byTopic) a.id else {
+                        state.missedQuestions
+                            .firstOrNull { q -> state.course?.let { Courses.topic(it.id, q.topicId) }?.first?.id == a.id }
+                            ?.topicId
+                            ?: state.course?.modules?.firstOrNull { it.id == a.id }?.topics?.firstOrNull()?.id
+                    }
+                    CupertinoCard(onClick = destination?.let { { onOpenTopic(it) } }) {
+                        Text(a.label, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+                        Text(
+                            "${a.correct} of ${a.asked} · tap to reread",
+                            style = MaterialTheme.typography.bodySmall, color = AppTheme.colors.secondaryLabel,
+                        )
+                    }
+                }
             }
         }
         val missed = state.missedQuestions
