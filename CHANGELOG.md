@@ -5,6 +5,10 @@ build number is appended by CI (for example `0.1.0 (build 12)`).
 
 ## [Unreleased]
 
+## [0.48.0] - 2026-10-08
+### Added
+- Pick the voice that reads each language in Settings, male or female, and hear it before you keep it.
+
 ## [0.47.2] - 2026-10-08
 ### Fixed
 - The guess before a topic is readable now, and the amber, red and green text are no longer too pale.

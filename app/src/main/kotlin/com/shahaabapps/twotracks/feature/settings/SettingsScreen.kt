@@ -171,6 +171,10 @@ fun SettingsScreen(
                         )
                     }
                 }
+                // The voice each language is read in. Its own view model, so
+                // the list is loaded once per visit rather than on every
+                // recomposition of this screen.
+                VoiceSettingsSections(hiltViewModel())
                 CupertinoListSection(header = "About") {
                     CupertinoListRow(
                         "Version history", subtitle = "Version ${com.shahaabapps.twotracks.BuildConfig.VERSION_NAME}", leadingIcon = Icons.Filled.History, iconColor = IosColors.Indigo,
