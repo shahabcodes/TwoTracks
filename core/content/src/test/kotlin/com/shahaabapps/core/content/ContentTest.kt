@@ -1,6 +1,7 @@
 package com.shahaabapps.core.content
 
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -137,6 +138,38 @@ class ContentTest {
         Az204.course.allTopics.forEach { t ->
             val checks = t.blocks.count { it is Block.Check }
             assertTrue("az-204/${t.id} has $checks check(s), wanted 3 or more", checks >= 3)
+        }
+    }
+
+    @Test
+    fun `a warm-up guess never enters the schedule or the review set`() {
+        // The one thing that would make warm-ups harmful. A guess made before
+        // reading, recorded, would put every topic straight into the review
+        // set and teach the schedule that you do not know what you have not
+        // read yet. allQuestions is what feeds both, so it must not be there.
+        val scheduled = Courses.all.flatMap { it.allQuestions }.map { it.id }.toSet()
+        val warmups = Courses.all.flatMap { c ->
+            c.allTopics.flatMap { t -> t.blocks.filterIsInstance<Block.Warmup>().map { it.question } }
+        }
+        assertTrue("expected warm-ups to exist", warmups.isNotEmpty())
+        warmups.forEach { w ->
+            assertFalse("${w.id} is scheduled; a guess before reading must not be", w.id in scheduled)
+        }
+    }
+
+    @Test
+    fun `every AZ-204 topic opens with one warm-up, before any prose`() {
+        Az204.course.allTopics.forEach { t ->
+            val warmups = t.blocks.filterIsInstance<Block.Warmup>()
+            assertEquals("az-204/${t.id} should open with one guess", 1, warmups.size)
+            assertTrue(
+                "az-204/${t.id}: the guess must come first, or it is not a guess",
+                t.blocks.first() is Block.Warmup,
+            )
+            // A warm-up points at the reading; it does not do the reading's job.
+            val w = warmups.single().question
+            assertTrue("az-204/${t.id}: the warm-up needs its own topic id", w.topicId == t.id)
+            assertTrue("az-204/${t.id}: the hint should be a pointer, not an explanation", w.explanation.length < 160)
         }
     }
 

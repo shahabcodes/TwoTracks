@@ -15,6 +15,12 @@ internal object Az204Security2 {
             B.ref("Learn module: Implement managed identities", LEARN + "training/modules/implement-managed-identities/"),
         ),
         blocks = listOf(
+            B.warmup(
+                "az-keyvault-w1", "az-keyvault",
+                "An app needs to read a secret from Key Vault. Where do you think its own credential is stored?",
+                listOf("Nowhere; Azure gives the app an identity it manages", "In an app setting", "In the vault itself"), 0,
+                "The best answer to storing a credential turns out to be not having one.",
+            ),
             B.plain("""
                 Key Vault holds three kinds of things: secrets (connection strings, passwords), keys (for encryption
                 and signing, which never leave the vault), and certificates. A managed identity is an Entra identity
@@ -161,6 +167,12 @@ internal object Az204Security2 {
             B.ref("Learn module: Implement Azure App Configuration", LEARN + "training/modules/implement-azure-app-configuration/"),
         ),
         blocks = listOf(
+            B.warmup(
+                "az-appconfig-w1", "az-appconfig",
+                "Settings change in App Configuration and the app must pick them up without restarting. How many keys do you think it watches?",
+                listOf("One", "All of them", "None; it waits for a webhook"), 0,
+                "There is a pattern for this with a name, and the number is the point of it.",
+            ),
             B.plain("""
                 App Configuration is a central store for settings that are not secrets: feature flags, limits, URLs,
                 colours. All your apps read from one place, change a value once and every instance picks it up,

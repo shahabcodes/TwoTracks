@@ -14,6 +14,12 @@ internal object Az204Storage {
             B.ref("Learn module: Explore Azure Blob storage", LEARN + "training/modules/explore-azure-blob-storage/"),
         ),
         blocks = listOf(
+            B.warmup(
+                "az-blob-basics-w1", "az-blob-basics",
+                "A blob is in the Archive tier and something asks to read it. What do you think happens?",
+                listOf("It cannot be read until it is moved to another tier, which takes hours", "It is read, a bit more slowly", "It is read normally and charged more"), 0,
+                "Archive is cheaper than the others for a reason that is not about speed.",
+            ),
             B.plain("""
                 Blob Storage is a place to keep files of any size: images, backups, logs, exports. A storage account
                 holds containers, a container holds blobs. You pay for what you store and for how often you touch it.
@@ -168,6 +174,12 @@ internal object Az204Storage {
             B.ref("Learn module: Work with Azure Blob storage", LEARN + "training/modules/work-azure-blob-storage/"),
         ),
         blocks = listOf(
+            B.warmup(
+                "az-blob-sdk-w1", "az-blob-sdk",
+                "You need to find blobs anywhere in a storage account by a key-value pair you set. What do you think you use?",
+                listOf("Index tags", "Metadata", "The blob name"), 0,
+                "Two of these are key-value pairs on a blob. Only one of them can be searched.",
+            ),
             B.plain("The SDK has three objects: a service client for the account, a container client, and a blob client. Everything hangs off those."),
             B.diagram(
                 caption = "Client objects mirror the storage layers. Create them cheaply; they hold no connection until you call them.",

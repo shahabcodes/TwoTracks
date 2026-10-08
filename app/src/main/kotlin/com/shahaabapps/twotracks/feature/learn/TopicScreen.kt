@@ -148,6 +148,7 @@ fun BlockView(block: Block, speaker: Speaker? = null, recognizer: Recognizer? = 
         is Block.Compare -> CompareBlock(block)
         is Block.TryIt -> TryItBlock(block)
         is Block.Check -> CheckBlock(block, onChecked)
+        is Block.Warmup -> WarmupBlock(block)
         is Block.Glossary -> GlossaryBlock(block)
         is Block.Vocab -> VocabBlock(block, speaker)
         is Block.Dialogue -> DialogueBlock(block, speaker)
@@ -368,6 +369,61 @@ private fun CheckBlock(block: Block.Check, onChecked: (com.shahaabapps.core.cont
             q.whyWrongFor(setOfNotNull(picked))?.let { why ->
                 Text(why, style = MaterialTheme.typography.bodySmall, lineHeight = 19.sp, fontWeight = FontWeight.SemiBold)
             }
+            Text(q.explanation, style = MaterialTheme.typography.bodySmall, lineHeight = 19.sp, color = AppTheme.colors.secondaryLabel)
+        }
+    }
+}
+
+/**
+ * A guess before the reading.
+ *
+ * Nothing is recorded, by design: a wrong answer here is the point, not a
+ * weakness to be scheduled. The explanation is withheld too, and only the
+ * right option is shown — being told why would spend the reason to read on,
+ * which is the whole reason this is at the top of the page.
+ */
+@Composable
+private fun WarmupBlock(block: Block.Warmup) {
+    val q = block.question
+    var picked by androidx.compose.runtime.remember(q.id) { androidx.compose.runtime.mutableStateOf<Int?>(null) }
+    val answered = picked != null
+    val right = picked in q.correct
+    Column(
+        modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(14.dp))
+            .background(AppTheme.colors.fill.copy(alpha = 0.6f)).padding(Spacing.md),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        Text("BEFORE YOU READ", style = MaterialTheme.typography.labelMedium, color = AppTheme.colors.secondaryLabel, fontWeight = FontWeight.SemiBold)
+        Text(q.prompt, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold, lineHeight = 21.sp)
+        if (!answered) {
+            Text("Have a guess. You are not expected to know this yet.", style = MaterialTheme.typography.bodySmall, color = AppTheme.colors.secondaryLabel)
+        }
+        q.options.forEachIndexed { i, opt ->
+            val chosen = picked == i
+            val correct = answered && i in q.correct
+            Row(
+                verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp),
+                modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(10.dp))
+                    .background(
+                        when {
+                            correct -> AppTheme.colors.success.copy(alpha = 0.15f)
+                            answered && chosen -> AppTheme.colors.fill
+                            else -> AppTheme.colors.card
+                        },
+                    )
+                    .clickable(enabled = !answered) { picked = i }
+                    .padding(horizontal = 12.dp, vertical = 10.dp),
+            ) {
+                Text(('A' + i).toString(), style = MaterialTheme.typography.labelMedium, color = AppTheme.colors.secondaryLabel, fontWeight = FontWeight.Bold)
+                Text(opt, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.weight(1f))
+            }
+        }
+        if (answered) {
+            Text(
+                if (right) "That is it. Read on and see why." else "Not that one. Reading it now is what makes the answer stick.",
+                style = MaterialTheme.typography.bodySmall, lineHeight = 19.sp, fontWeight = FontWeight.SemiBold,
+                color = if (right) AppTheme.colors.success else AppTheme.colors.secondaryLabel,
+            )
             Text(q.explanation, style = MaterialTheme.typography.bodySmall, lineHeight = 19.sp, color = AppTheme.colors.secondaryLabel)
         }
     }

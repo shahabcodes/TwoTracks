@@ -14,6 +14,12 @@ internal object Az204Security {
             B.ref("Learn module: Explore the Microsoft identity platform", LEARN + "training/modules/explore-microsoft-identity-platform/"),
         ),
         blocks = listOf(
+            B.warmup(
+                "az-identity-w1", "az-identity",
+                "A nightly job runs with nobody signed in and needs to read everyone's calendar. What kind of permission do you think it needs?",
+                listOf("One the app holds itself, consented by an admin", "One delegated by each user", "Either kind works"), 0,
+                "There are two kinds, and which one applies is decided by whether a person is there.",
+            ),
             B.plain("""
                 The identity platform is the sign-in service behind Microsoft accounts and Entra ID (the new name for
                 Azure AD). You register your app once, it gets an id, and from then on users sign in with Microsoft
@@ -163,6 +169,12 @@ internal object Az204Security {
             B.ref("Learn module: Implement authentication by using MSAL", LEARN + "training/modules/implement-authentication-by-using-microsoft-authentication-library/"),
         ),
         blocks = listOf(
+            B.warmup(
+                "az-msal-w1", "az-msal",
+                "Your code asks MSAL for a token and gets MsalUiRequiredException. What do you think that is telling you?",
+                listOf("The user has to be asked something", "The token service is busy; retry", "The app registration is wrong"), 0,
+                "The name of the exception is doing more work than it looks.",
+            ),
             B.plain("MSAL is the library that talks to the identity platform for you. You tell it which app you are and which scopes you need; it handles the browser, the cache and the refresh."),
             B.diagram(
                 caption = "Always try silent first. Only fall back to an interactive prompt when the cache cannot help.",
@@ -302,6 +314,12 @@ internal object Az204Security {
             B.ref("Learn module: Explore Microsoft Graph", LEARN + "training/modules/microsoft-graph/"),
         ),
         blocks = listOf(
+            B.warmup(
+                "az-graph-w1", "az-graph",
+                "You have thirty independent Microsoft Graph calls to make. What do you think is the fewest HTTP requests you can do it in?",
+                listOf("Two", "One", "Thirty"), 0,
+                "Graph can take several requests at once, but there is a cap on how many.",
+            ),
             B.plain("Microsoft Graph is a single REST endpoint, https://graph.microsoft.com, for users, mail, calendar, files, Teams and more. You call it with an access token whose audience is Graph."),
             B.diagram(
                 caption = "Your app gets a Graph token from the identity platform and calls one endpoint for many services.",

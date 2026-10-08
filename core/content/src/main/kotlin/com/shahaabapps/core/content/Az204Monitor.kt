@@ -14,6 +14,12 @@ internal object Az204Monitor {
             B.ref("Learn module: Monitor app performance", LEARN + "training/modules/monitor-app-performance/"),
         ),
         blocks = listOf(
+            B.warmup(
+                "az-appinsights-w1", "az-appinsights",
+                "One web request made four database calls and threw an exception. What do you think ties those six telemetry items together?",
+                listOf("A shared operation id", "The timestamp", "The role name of the app"), 0,
+                "Correlation has a specific field behind it, and it is the one the traces are built on.",
+            ),
             B.plain("""
                 Application Insights is the part of Azure Monitor that watches your application: every request,
                 every dependency call, every exception, plus anything you choose to log. It stores all of it in a
@@ -179,6 +185,12 @@ internal object Az204Monitor {
             B.ref("Learn module: Monitor app performance (alerts)", LEARN + "training/modules/monitor-app-performance/"),
         ),
         blocks = listOf(
+            B.warmup(
+                "az-availability-w1", "az-availability",
+                "An autoscale rule adds an instance above 70% CPU and removes one below 70%. What do you think happens?",
+                listOf("The instance count flaps up and down", "It works as intended", "It scales out but never back in"), 0,
+                "Two rules that meet at the same number have a predictable argument.",
+            ),
             B.plain("Monitoring is only useful if somebody is told. Availability tests probe the site from outside, alerts turn a condition into a notification, and action groups say who gets it and how."),
             B.diagram(
                 caption = "Signal to action: a metric, log query or availability result crosses a threshold, the alert rule fires, the action group notifies and optionally runs automation.",
@@ -324,6 +336,12 @@ internal object Az204Monitor {
             B.ref("Learn module: Develop for Azure Cache for Redis", LEARN + "training/modules/develop-for-azure-cache-for-redis/"),
         ),
         blocks = listOf(
+            B.warmup(
+                "az-redis-w1", "az-redis",
+                "How many Redis connection objects do you think a web app should create?",
+                listOf("One, shared for the life of the app", "One per request", "One per cache key"), 0,
+                "The object in question is expensive, and getting this wrong exhausts the cache.",
+            ),
             B.plain("""
                 Redis is an in-memory key-value store. Reads take under a millisecond, which makes it the place to
                 keep anything you compute often and change rarely: a user's plan for today, a session, a
@@ -471,6 +489,12 @@ internal object Az204Monitor {
             B.ref("Learn module: Develop for storage on CDNs", LEARN + "training/modules/develop-for-storage-cdns/"),
         ),
         blocks = listOf(
+            B.warmup(
+                "az-cdn-w1", "az-cdn",
+                "A file is cached at the edge and you need it changed for everyone now. What do you think is the more dependable fix?",
+                listOf("Change the file name so the URL is new", "Purge the path from every edge", "Set the cache lifetime to one second"), 0,
+                "One of these cannot fail to work, because no cached copy can match it.",
+            ),
             B.plain("""
                 A content delivery network keeps copies of your static files on servers close to users. The first
                 visitor in Doha fetches the file from your origin; everyone after them in the region gets the edge
