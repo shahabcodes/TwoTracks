@@ -143,6 +143,11 @@ fun QuizScreen(onBack: () -> Unit, onOpenTopic: (String, String) -> Unit, viewMo
                     verticalArrangement = Arrangement.spacedBy(6.dp),
                 ) {
                     Text(if (right) "Correct" else "Not quite", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold, color = if (right) AppTheme.colors.success else AppTheme.colors.destructive)
+                    // Why the answer you picked was tempting, before why the right one is right.
+                    // Being told about your own mistake teaches more than hearing the model answer again.
+                    q.whyWrongFor(state.selected)?.let { why ->
+                        Text(why, style = MaterialTheme.typography.bodyMedium, lineHeight = 22.sp, fontWeight = FontWeight.SemiBold)
+                    }
                     Text(q.explanation, style = MaterialTheme.typography.bodyMedium, lineHeight = 22.sp)
                 }
             }
