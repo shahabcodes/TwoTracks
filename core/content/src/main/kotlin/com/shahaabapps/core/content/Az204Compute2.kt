@@ -14,6 +14,12 @@ internal object Az204Compute2 {
             B.ref("Learn module: Implement Durable Functions", LEARN + "training/modules/implement-durable-functions/"),
         ),
         blocks = listOf(
+            B.warmup(
+                "az-durable-w1", "az-durable",
+                "A workflow waits three days for a human to approve something. What do you think the waiting code is doing for those three days?",
+                listOf("Not running at all; it replays from the start when it wakes", "Sitting in memory, sleeping", "Polling the approval store on a timer"), 0,
+                "This is why one ordinary line of C# is forbidden inside that code.",
+            ),
             B.plain("""
                 Plain functions are stateless and short. Durable Functions let you write a workflow that runs for hours
                 or days, remembers where it is, and survives restarts. You write it as ordinary code that looks
@@ -183,6 +189,12 @@ internal object Az204Compute2 {
             B.ref("Scaling in Container Apps", LEARN + "azure/container-apps/scale-app"),
         ),
         blocks = listOf(
+            B.warmup(
+                "az-containers-w1", "az-containers",
+                "You want 10% of traffic on a new container version and 90% on the old. Which Azure container service do you think can do that on its own?",
+                listOf("Container Apps", "Container Instances", "Container Registry"), 0,
+                "One of the three has a concept of versions that traffic can be divided between.",
+            ),
             B.plain("""
                 A container is your app plus everything it needs, packed into one image that runs the same anywhere.
                 Azure gives you a place to store images, a quick way to run one, and a managed way to run many.

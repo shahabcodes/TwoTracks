@@ -19,6 +19,12 @@ internal object Az204Compute {
             B.ref("Learn module: Explore Azure App Service", LEARN + "training/modules/introduction-to-azure-app-service/"),
         ),
         blocks = listOf(
+            B.warmup(
+                "az-app-service-w1", "az-app-service",
+                "Two web apps are running in Azure and one needs far more instances than the other. What do you think has to be separate?",
+                listOf("The plan underneath them", "Their app settings", "Their deployment slots"), 0,
+                "Instance count turns out to belong to the thing underneath the app, not the app.",
+            ),
             B.plain("""
                 App Service is Azure's "just run my web app" service. You hand it your code (or a container) and it
                 gives you a URL, HTTPS, scaling and patching. You never log into a virtual machine.
@@ -196,6 +202,12 @@ internal object Az204Compute {
             B.ref("Learn module: Scale apps in Azure App Service", LEARN + "training/modules/scale-apps-app-service/"),
         ),
         blocks = listOf(
+            B.warmup(
+                "az-slots-scaling-w1", "az-slots-scaling",
+                "You deploy to a staging slot and swap it into production. Which do you think moves across with the code?",
+                listOf("Everything except settings you deliberately pin to the slot", "Everything, with no exceptions", "Only the code; all settings stay behind"), 0,
+                "There is a way to make one setting stay put, and the exam leans on it.",
+            ),
             B.plain("""
                 A deployment slot is a second copy of your app with its own URL. You deploy the new version there,
                 test it, then swap it with production. Users never see a restart.
@@ -370,6 +382,12 @@ internal object Az204Compute {
             B.ref("Learn module: Explore Azure Functions", LEARN + "training/modules/explore-azure-functions/"),
         ),
         blocks = listOf(
+            B.warmup(
+                "az-functions-w1", "az-functions",
+                "A function reads a message from a queue and writes a row to a table. How many things do you think start it?",
+                listOf("One", "Two", "As many as it talks to"), 0,
+                "One of those two connections starts the function. The other is just a connection.",
+            ),
             B.plain("""
                 A Function is a small piece of code that runs in response to an event: an HTTP request, a timer, a
                 new message in a queue, a new blob. You pay per run and do not manage a server.

@@ -14,6 +14,12 @@ internal object Az204Storage2 {
             B.ref("Learn module: Explore Azure Cosmos DB", LEARN + "training/modules/explore-azure-cosmos-db/"),
         ),
         blocks = listOf(
+            B.warmup(
+                "az-cosmos-model-w1", "az-cosmos-model",
+                "A Cosmos container is live and you realise the partition key was the wrong choice. What do you think you can do?",
+                listOf("Nothing to this container; the key is fixed at creation", "Change it in the portal", "Change it by rewriting every item"), 0,
+                "This is why the exam asks about choosing a partition key rather than fixing one.",
+            ),
             B.plain("""
                 Cosmos DB is a database that stores JSON documents, replicates them to any region you pick, and
                 answers in single-digit milliseconds. You pay in request units, a currency for work done.
@@ -172,6 +178,12 @@ internal object Az204Storage2 {
             B.ref("Learn module: Work with Azure Cosmos DB", LEARN + "training/modules/work-with-cosmos-db/"),
         ),
         blocks = listOf(
+            B.warmup(
+                "az-cosmos-sdk-w1", "az-cosmos-sdk",
+                "Two clients read the same Cosmos item and both write it back. What do you think stops the second overwriting the first?",
+                listOf("A version stamp sent with the write", "A stored procedure", "Strong consistency"), 0,
+                "Every item carries something that changes each time it is written.",
+            ),
             B.plain("The .NET SDK mirrors the hierarchy: CosmosClient, Database, Container. Reads by id plus partition key are the cheapest thing you can do."),
             B.code("csharp", """
                 var client = new CosmosClient("https://tt-cosmos.documents.azure.com:443/", new DefaultAzureCredential());

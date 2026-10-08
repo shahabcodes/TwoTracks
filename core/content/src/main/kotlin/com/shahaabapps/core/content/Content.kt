@@ -142,6 +142,16 @@ sealed interface Block {
     data class TryIt(val title: String, val intro: String, val checklist: List<String>) : Block
     /** A one-question check between sections; answered inline, not scored. */
     data class Check(val question: Question) : Block
+    /**
+     * A question asked before the prose, which nobody is expected to get right.
+     *
+     * Trying to answer something and failing makes the explanation that follows
+     * land harder than reading it cold. It is deliberately not part of
+     * [Course.allQuestions]: a guess made before reading must not enter the
+     * spaced schedule or the review set, or the first thing the app would learn
+     * about a topic is that you did not know it yet.
+     */
+    data class Warmup(val question: Question) : Block
     /** Terms used in this topic. */
     data class Glossary(val terms: List<Term>) : Block
     /** Vocabulary cards that flip and speak; every word joins the flashcard deck. */
@@ -308,6 +318,17 @@ object B {
             ),
         ),
     )
+    /** A guess before the reading. See [Block.Warmup]: it is never recorded. */
+    fun warmup(id: String, topic: String, prompt: String, options: List<String>, correct: Int, hint: String) =
+        Block.Warmup(
+            settle(
+                Question(
+                    id, topic, prompt, null, options, setOf(correct),
+                    hint.trimIndent().replace("\n", " ").trim(),
+                ),
+            ),
+        )
+
     fun glossary(vararg terms: Pair<String, String>) = Block.Glossary(terms.map { Term(it.first, it.second) })
     fun ref(title: String, url: String) = Reference(title, url)
     fun vocab(vararg words: Word) = Block.Vocab(words.toList())

@@ -14,6 +14,12 @@ internal object Az204Connect2 {
             B.ref("Learn module: Explore Azure Event Hubs", LEARN + "training/modules/azure-event-hubs/"),
         ),
         blocks = listOf(
+            B.warmup(
+                "az-eventhubs-w1", "az-eventhubs",
+                "Two separate applications both need to read every event in a stream. What do you think each one needs of its own?",
+                listOf("A consumer group", "A partition", "An event hub"), 0,
+                "One of these is an independent view of the whole stream; the others are slices or copies.",
+            ),
             B.plain("""
                 Event Hubs takes in millions of small events a second from many producers, keeps them for a retention
                 period, and lets consumers read them in order per partition, at their own pace, more than once. It
@@ -175,6 +181,12 @@ internal object Az204Connect2 {
             B.ref("Learn module: Discover Azure message queues", LEARN + "training/modules/discover-azure-message-queue/"),
         ),
         blocks = listOf(
+            B.warmup(
+                "az-servicebus-w1", "az-servicebus",
+                "A receiver takes a Service Bus message in PeekLock mode and cannot process it at all. What do you think it should do?",
+                listOf("Dead-letter it", "Abandon it", "Complete it"), 0,
+                "There are four ways to settle a locked message, and three of them are wrong here.",
+            ),
             B.plain("""
                 A message is a command or a piece of work: "send this email", "generate this certificate". It must
                 be processed, usually once, and the sender wants to carry on without waiting. Azure has two queue

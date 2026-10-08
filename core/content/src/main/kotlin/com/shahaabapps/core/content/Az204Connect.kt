@@ -14,6 +14,12 @@ internal object Az204Connect {
             B.ref("Learn module: Explore API Management", LEARN + "training/modules/explore-api-management/"),
         ),
         blocks = listOf(
+            B.warmup(
+                "az-apim-w1", "az-apim",
+                "A caller is making too many requests. Which answer do you think API Management gives when you have told it to smooth out bursts?",
+                listOf("429 Too Many Requests", "403 Forbidden", "503 Service Unavailable"), 0,
+                "There are two ways to limit a caller, and they answer with different codes on purpose.",
+            ),
             B.plain("""
                 API Management (APIM) sits between callers and your back-end APIs. It gives every API one address,
                 checks keys and tokens, limits how often a caller may hit you, rewrites requests and responses, and
@@ -211,6 +217,12 @@ internal object Az204Connect {
             B.ref("Learn module: Explore Azure Event Grid", LEARN + "training/modules/azure-event-grid/"),
         ),
         blocks = listOf(
+            B.warmup(
+                "az-eventgrid-w1", "az-eventgrid",
+                "Event Grid delivers an event to your webhook. How many times do you think it may arrive?",
+                listOf("At least once, so possibly more", "Exactly once, guaranteed", "At most once, and it may be lost"), 0,
+                "Whatever it is, it decides something about how your handler has to be written.",
+            ),
             B.plain("""
                 An event says "this happened": a blob was created, a resource was deleted, a user finished a lesson.
                 Event Grid routes events from sources to handlers with filters, retries and no polling. It is push,
