@@ -7,6 +7,12 @@ internal object GermanA1M6 {
     private val words = Topic(
         id = "de6-words", title = "Words: jobs, the workplace and school", minutes = 22, references = refs,
         blocks = listOf(
+            B.warmup(
+                "de6-words-w1", "de6-words",
+                "A woman who teaches is a Lehrerin. What is the -in doing?",
+                listOf("Marking the female form of the job", "Marking the plural", "Marking the polite form"), 0,
+                "It is the hardest-working ending in the whole of job vocabulary.",
+            ),
             B.plain("Sprechen part 1 asks what you do for a living; Lesen part 3 shows notices from offices and schools. These words cover both of your working lives: Usaid's software job and Sanya's classroom."),
             B.vocab(
                 B.w("m6-beruf", "Beruf", "profession, job", "Was sind Sie von Beruf?", "What do you do for a living?", article = "der", plural = "Berufe"),
@@ -74,6 +80,12 @@ internal object GermanA1M6 {
     private val grammar = Topic(
         id = "de6-grammar", title = "Grammar: können, müssen, möchten and the verb bracket", minutes = 26, references = refs,
         blocks = listOf(
+            B.warmup(
+                "de6-grammar-w1", "de6-grammar",
+                "\"Ich kann schwimmen.\" Where does the second verb sit?",
+                listOf("At the end of the sentence", "Straight after the first verb", "First, in front of ich"), 0,
+                "The two verbs make a bracket and everything else goes inside it.",
+            ),
             B.plain("Modal verbs are the most useful grammar in A1. With three of them you can say what you can do, must do and would like to do. The trick is where the second verb goes: at the very end."),
             B.table(
                 listOf("", "können (can)", "müssen (must)", "möchten (would like)", "wollen (want)", "dürfen (may)"),
@@ -148,6 +160,12 @@ internal object GermanA1M6 {
     private val dialogue = Topic(
         id = "de6-dialogue", title = "Dialogue: talking about your job and calling in sick", minutes = 18, references = refs,
         blocks = listOf(
+            B.warmup(
+                "de6-dialogue-w1", "de6-dialogue",
+                "You have to leave a voicemail saying you are ill. What does it need?",
+                listOf("Who you are, the problem, what should happen, when you are back", "Only that you are ill", "An apology and nothing more"), 0,
+                "It is marked by its parts, so there is a list to get through.",
+            ),
             B.plain("Sprechen part 1 is a short self-introduction with your job in it. Hören part 3 often has a voicemail from a colleague or an office. Both appear here."),
             B.dialogue("At a party: what do you do?",
                 B.line("Lena", "Und was machst du beruflich, Usaid?", "And what do you do for a living, Usaid?"),
@@ -200,6 +218,12 @@ internal object GermanA1M6 {
     private val practice = Topic(
         id = "de6-practice", title = "Practice: a job notice, an email to the boss, your introduction", minutes = 20, references = refs,
         blocks = listOf(
+            B.warmup(
+                "de6-practice-w1", "de6-practice",
+                "A formal German email to your manager opens with…",
+                listOf("Sehr geehrte Frau …", "Liebe Frau …", "Hallo"), 0,
+                "There is a formal pair and a friendly pair. Mixing the halves is what costs marks.",
+            ),
             B.plain("Lesen part 3 shows short notices and asks Richtig or Falsch. Schreiben part 2 might be an email to your boss or teacher. Sprechen part 1 is the introduction you give at the very start of the oral exam."),
             B.diagram(
                 caption = "Sprechen part 1: six words on the card, one sentence each. Name, Alter, Land, Wohnort, Sprachen, Beruf, Hobby.",

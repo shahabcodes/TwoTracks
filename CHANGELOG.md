@@ -5,6 +5,10 @@ build number is appended by CI (for example `0.1.0 (build 12)`).
 
 ## [Unreleased]
 
+## [0.49.0] - 2026-10-08
+### Added
+- Every German topic opens with a guess before the reading, as the AZ-204 ones do.
+
 ## [0.48.0] - 2026-10-08
 ### Added
 - Pick the voice that reads each language in Settings, male or female, and hear it before you keep it.

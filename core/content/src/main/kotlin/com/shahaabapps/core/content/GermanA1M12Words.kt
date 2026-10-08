@@ -7,6 +7,12 @@ internal object GermanA1M12Words {
     val topic = Topic(
         id = "de12-words", title = "Words: the rest of the A1 list", minutes = 30, references = refs,
         blocks = listOf(
+            B.warmup(
+                "de12-words-w1", "de12-words",
+                "The official Goethe A1 word list. Roughly how many words is it?",
+                listOf("About 650", "About 2,000", "About 200"), 0,
+                "It is a smaller number than most people fear, and the themed modules have already covered most of it.",
+            ),
             B.plain("The Goethe A1 word list has about 650 entries. The themed modules covered most of them; this topic sweeps up the rest: question words, colours, clothes, everyday objects, small connecting words. Mark it learned and they all join your deck."),
             B.diagram(
                 caption = "Where the list came from: eleven themed modules plus this sweep. Together they cover the official A1 Wortliste.",

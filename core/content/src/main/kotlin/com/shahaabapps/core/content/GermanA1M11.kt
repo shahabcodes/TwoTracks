@@ -7,6 +7,12 @@ internal object GermanA1M11 {
     private val forms = Topic(
         id = "de11-forms", title = "Schreiben part 1: filling in a form", minutes = 18, references = refs,
         blocks = listOf(
+            B.warmup(
+                "de11-forms-w1", "de11-forms",
+                "Schreiben part 1 is a form to fill in. Where do the answers come from?",
+                listOf("The situation text above it", "Your own real details", "Whatever plausibly fits each field"), 0,
+                "Nothing has to be invented, and inventing is how the marks go.",
+            ),
             B.plain("Schreiben part 1 gives you a short situation and a form with five gaps. Most of the answers are in the text; you copy them into the right field. It is worth five points and takes three minutes when you know the field names."),
             B.diagram(
                 caption = "The form fields the exam uses, in the order they usually appear. Learn them as vocabulary.",
@@ -83,6 +89,12 @@ internal object GermanA1M11 {
     private val messages = Topic(
         id = "de11-messages", title = "Schreiben part 2: the short message that scores full marks", minutes = 26, references = refs,
         blocks = listOf(
+            B.warmup(
+                "de11-messages-w1", "de11-messages",
+                "Schreiben part 2 wants a short message. How long?",
+                listOf("About thirty words, in five lines", "About a hundred words", "As long as you like"), 0,
+                "It is scored on the parts it covers rather than its length, and there are three to cover.",
+            ),
             B.plain("Schreiben part 2 gives you a situation and three content points. You write about 30 words: a greeting, the three points, a sign-off. Ten points are available and the three content points are most of them. This topic is the recipe."),
             B.diagram(
                 caption = "The recipe: five lines, every time. The three middle lines are the three content points from the task.",
@@ -180,6 +192,12 @@ internal object GermanA1M11 {
     private val reading = Topic(
         id = "de11-reading", title = "Lesen: the three parts and how to beat each one", minutes = 22, references = refs,
         blocks = listOf(
+            B.warmup(
+                "de11-reading-w1", "de11-reading",
+                "In Lesen Teil 2, how many of the conditions does the right advert meet?",
+                listOf("All of them", "Most of them", "The first one"), 0,
+                "Which is exactly what the decoy is designed to fail.",
+            ),
             B.plain("Lesen is 25 minutes and 15 points: two short texts with Richtig/Falsch (part 1), five adverts to match to situations (part 2), five notices with Richtig/Falsch (part 3). You have seen all three in the modules; this topic is the method."),
             B.diagram(
                 caption = "The three parts and the single question each one really asks.",

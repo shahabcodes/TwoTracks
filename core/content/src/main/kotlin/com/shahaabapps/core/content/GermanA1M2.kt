@@ -7,6 +7,12 @@ internal object GermanA1M2 {
     private val words = Topic(
         id = "de2-words", title = "Words: family, numbers and countries", minutes = 18, references = refs,
         blocks = listOf(
+            B.warmup(
+                "de2-words-w1", "de2-words",
+                "German says the number 21 as…",
+                listOf("one-and-twenty", "twenty-one, as in English", "two-tens-one"), 0,
+                "English used to do this too: four and twenty blackbirds.",
+            ),
             B.plain("The A1 exam loves family, age and origin. These words cover all three, plus the numbers you need for ages, prices and phone numbers."),
             B.vocab(
                 B.w("familie", "Familie", "family", "Meine Familie wohnt in Karachi.", "My family lives in Karachi.", article = "die", plural = "Familien"),
@@ -58,6 +64,12 @@ internal object GermanA1M2 {
     private val grammar = Topic(
         id = "de2-grammar", title = "Grammar: haben, pronouns and possessives", minutes = 20, references = refs,
         blocks = listOf(
+            B.warmup(
+                "de2-grammar-w1", "de2-grammar",
+                "To turn a German statement into a yes/no question, what moves?",
+                listOf("The verb goes first", "A question word goes at the start", "Nothing; only the tone changes"), 0,
+                "A statement puts the verb second. A yes/no question does something simpler than that.",
+            ),
             B.plain("haben (to have) is the second verb you cannot do without. With the pronouns and mein/dein, you can describe your whole family."),
             B.table(
                 listOf("Person", "haben", "Example"),
@@ -118,6 +130,12 @@ internal object GermanA1M2 {
     private val dialogue = Topic(
         id = "de2-dialogue", title = "Dialogue: talking about your family", minutes = 14, references = refs,
         blocks = listOf(
+            B.warmup(
+                "de2-dialogue-w1", "de2-dialogue",
+                "Someone tells you about their family and then says \"Und du?\". What is that doing?",
+                listOf("Handing the same question back to you", "Asking whether you agree", "Asking you to repeat it"), 0,
+                "Two words that keep a conversation alive, and the speaking exam rewards them.",
+            ),
             B.plain("A conversation with a new colleague. Listen, repeat each line, then check the English."),
             B.dialogue("In the office kitchen",
                 B.line("Lena", "Usaid, bist du verheiratet?", "Usaid, are you married?"),
@@ -148,6 +166,12 @@ internal object GermanA1M2 {
     private val practice = Topic(
         id = "de2-practice", title = "Practice: a family profile", minutes = 16, references = refs,
         blocks = listOf(
+            B.warmup(
+                "de2-practice-w1", "de2-practice",
+                "\"My sister\" in German. Does mein change?",
+                listOf("Yes, it follows the noun it owns and becomes meine", "No, mein never changes", "Only in writing"), 0,
+                "The ending follows the thing owned rather than the person owning it.",
+            ),
             B.plain("Lesen part 1 in the exam is a short text with true/false statements. Read Sanya's text, then answer."),
             B.diagram(
                 caption = "Lesen part 1: a short text, then true or false lines. Read everything first.",

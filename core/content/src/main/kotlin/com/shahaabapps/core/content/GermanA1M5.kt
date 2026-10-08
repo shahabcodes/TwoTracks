@@ -7,6 +7,12 @@ internal object GermanA1M5 {
     private val words = Topic(
         id = "de5-words", title = "Words: the flat, the furniture and the city", minutes = 22, references = refs,
         blocks = listOf(
+            B.warmup(
+                "de5-words-w1", "de5-words",
+                "A flat advert says hell. What is being promised?",
+                listOf("It is bright", "It is cheap", "It is quiet"), 0,
+                "Adverts lean on four or five adjectives over and over, and this is one of them.",
+            ),
             B.plain("Lesen part 2 loves flat adverts and Hören part 1 loves directions. These are the words for both: where you live, what is in it, and what is around the corner."),
             B.vocab(
                 B.w("m5-wohnung", "Wohnung", "flat, apartment", "Die Wohnung hat drei Zimmer.", "The flat has three rooms.", article = "die", plural = "Wohnungen"),
@@ -85,6 +91,12 @@ internal object GermanA1M5 {
     private val grammar = Topic(
         id = "de5-grammar", title = "Grammar: es gibt, Wo? and the dative after in, an, auf", minutes = 24, references = refs,
         blocks = listOf(
+            B.warmup(
+                "de5-grammar-w1", "de5-grammar",
+                "\"The book is on the table.\" Which case does German use after auf here?",
+                listOf("The dative, because it answers Wo?", "The accusative, because there is an object", "Neither; auf takes no case"), 0,
+                "Where a thing *is* and where it is *going* are treated differently.",
+            ),
             B.plain("Two small tools carry a lot of A1: 'es gibt' to say what exists, and the question 'Wo?' which puts in, an, auf and their friends into the dative."),
             B.h("es gibt + accusative"),
             B.p("'Es gibt' means 'there is' or 'there are' and never changes. The thing that exists is in the accusative, so a masculine noun takes einen."),
@@ -159,6 +171,12 @@ internal object GermanA1M5 {
     private val dialogue = Topic(
         id = "de5-dialogue", title = "Dialogue: a phone call about a flat and asking the way", minutes = 18, references = refs,
         blocks = listOf(
+            B.warmup(
+                "de5-dialogue-w1", "de5-dialogue",
+                "You ask the way and hear geradeaus. Which way do you go?",
+                listOf("Straight on", "Left", "Back the way you came"), 0,
+                "Three or four words carry every direction question in the exam.",
+            ),
             B.plain("Hören part 1 is short everyday conversations, each heard twice. The two below are exactly that kind. Listen first without reading, then read, then play again."),
             B.dialogue("Phone call: is the flat still free?",
                 B.line("Vermieter", "Weber, guten Tag.", "Weber, good afternoon."),
@@ -215,6 +233,12 @@ internal object GermanA1M5 {
     private val practice = Topic(
         id = "de5-practice", title = "Practice: reading adverts and writing about your new flat", minutes = 20, references = refs,
         blocks = listOf(
+            B.warmup(
+                "de5-practice-w1", "de5-practice",
+                "Lesen part 2 gives you a situation and several adverts. What makes one wrong?",
+                listOf("Failing a single one of the conditions", "Being shorter than the others", "Not giving a price"), 0,
+                "The decoy is built to look right in every way but one.",
+            ),
             B.plain("Lesen part 2 gives you two adverts and a situation: which one fits? Schreiben part 2 could ask you to tell a friend about your new flat. Both are below."),
             B.diagram(
                 caption = "Lesen part 2: read the situation first, underline the two or three conditions, then check each advert against them.",

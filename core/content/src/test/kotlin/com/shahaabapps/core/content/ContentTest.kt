@@ -179,18 +179,25 @@ class ContentTest {
     }
 
     @Test
-    fun `every AZ-204 topic opens with one warm-up, before any prose`() {
-        Az204.course.allTopics.forEach { t ->
+    fun `every topic of a warmed-up course opens with one guess, before any prose`() {
+        // Named rather than blanket, so bringing a course up to this is a
+        // deliberate act: add it here and the rule starts holding it.
+        // IELTS has none yet.
+        listOf(Az204.course, GermanA1.course).forEach { course -> warmupsHold(course) }
+    }
+
+    private fun warmupsHold(course: Course) {
+        course.allTopics.forEach { t ->
             val warmups = t.blocks.filterIsInstance<Block.Warmup>()
-            assertEquals("az-204/${t.id} should open with one guess", 1, warmups.size)
+            assertEquals("${course.id}/${t.id} should open with one guess", 1, warmups.size)
             assertTrue(
-                "az-204/${t.id}: the guess must come first, or it is not a guess",
+                "${course.id}/${t.id}: the guess must come first, or it is not a guess",
                 t.blocks.first() is Block.Warmup,
             )
             // A warm-up points at the reading; it does not do the reading's job.
             val w = warmups.single().question
-            assertTrue("az-204/${t.id}: the warm-up needs its own topic id", w.topicId == t.id)
-            assertTrue("az-204/${t.id}: the hint should be a pointer, not an explanation", w.explanation.length < 160)
+            assertTrue("${course.id}/${t.id}: the warm-up needs its own topic id", w.topicId == t.id)
+            assertTrue("${course.id}/${t.id}: the hint should be a pointer, not an explanation", w.explanation.length < 160)
         }
     }
 

@@ -7,6 +7,12 @@ internal object GermanA1M4 {
     private val words = Topic(
         id = "de4-words", title = "Words: food, drink and the supermarket", minutes = 18, references = refs,
         blocks = listOf(
+            B.warmup(
+                "de4-words-w1", "de4-words",
+                "\"Two kilos of apples\" in German. Does it need a word for \"of\"?",
+                listOf("No, the quantity sits straight in front of the noun", "Yes, von", "Yes, aus"), 0,
+                "German is shorter than English here rather than longer.",
+            ),
             B.plain("Shopping dialogues are a staple of Hören part 2 and Sprechen part 3. These words get you through a supermarket and a café."),
             B.vocab(
                 B.w("brot", "Brot", "bread", "Ich kaufe ein Brot.", "I buy a loaf of bread.", article = "das", plural = "Brote"),
@@ -55,6 +61,12 @@ internal object GermanA1M4 {
     private val grammar = Topic(
         id = "de4-grammar", title = "Grammar: der, die, das, plurals and the accusative", minutes = 22, references = refs,
         blocks = listOf(
+            B.warmup(
+                "de4-grammar-w1", "de4-grammar",
+                "A noun becomes the object of a sentence. Which articles actually change?",
+                listOf("Only the masculine ones", "All of them", "None; word order marks the object"), 0,
+                "This is the reason the accusative turns out to be less frightening than it sounds.",
+            ),
             B.plain("Every German noun has a gender. You cannot guess it reliably, so learn the article as part of the word. Then the accusative changes just one of the three."),
             B.table(
                 listOf("Gender", "Definite", "Indefinite", "Negative", "Example"),
@@ -111,6 +123,12 @@ internal object GermanA1M4 {
     private val dialogue = Topic(
         id = "de4-dialogue", title = "Dialogue: at the bakery and the café", minutes = 14, references = refs,
         blocks = listOf(
+            B.warmup(
+                "de4-dialogue-w1", "de4-dialogue",
+                "At the till you are asked \"Zusammen oder getrennt?\". What is the choice?",
+                listOf("Paying together or separately", "Eating in or taking away", "With or without a bag"), 0,
+                "It comes when you pay, not when you order.",
+            ),
             B.plain("Two short exchanges you will have in your first week in Germany. Note how the shop asks 'Sonst noch etwas?' (anything else?)."),
             B.dialogue("At the bakery",
                 B.line("Verkäuferin", "Guten Morgen! Was darf es sein?", "Good morning! What can I get you?"),
@@ -147,6 +165,12 @@ internal object GermanA1M4 {
     private val practice = Topic(
         id = "de4-practice", title = "Practice: a shopping list and a note", minutes = 16, references = refs,
         blocks = listOf(
+            B.warmup(
+                "de4-practice-w1", "de4-practice",
+                "A shop notice says geschlossen. What have you learnt?",
+                listOf("It is closed", "It is open all day", "It has moved"), 0,
+                "One word that settles half the questions in the reading paper.",
+            ),
             B.plain("Lesen part 2 shows adverts and notices; Schreiben part 2 is a short message. Practise both with a shopping errand."),
             B.diagram(
                 caption = "Schreiben part 2: the four content points the marker looks for.",

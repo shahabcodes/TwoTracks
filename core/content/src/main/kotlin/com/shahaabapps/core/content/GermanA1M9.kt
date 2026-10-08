@@ -7,6 +7,12 @@ internal object GermanA1M9 {
     private val words = Topic(
         id = "de9-words", title = "Words: hobbies, sport, weather and the seasons", minutes = 22, references = refs,
         blocks = listOf(
+            B.warmup(
+                "de9-words-w1", "de9-words",
+                "\"Ich lese gern.\" What is gern adding?",
+                listOf("That you like doing it", "That you do it often", "That you do it well"), 0,
+                "It is the word that turns an activity into a preference.",
+            ),
             B.plain("Hobby is on the Sprechen part 1 card, and the weather turns up in Hören part 3 and in every small talk. These words let you say what you like doing and what the sky is doing."),
             B.vocab(
                 B.w("m9-hobby", "Hobby", "hobby", "Mein Hobby ist Fußball.", "My hobby is football.", article = "das", plural = "Hobbys"),
@@ -85,6 +91,12 @@ internal object GermanA1M9 {
     private val grammar = Topic(
         id = "de9-grammar", title = "Grammar: gern, mögen, word order with time, and the Perfekt begins", minutes = 24, references = refs,
         blocks = listOf(
+            B.warmup(
+                "de9-grammar-w1", "de9-grammar",
+                "\"Tomorrow I am going swimming.\" If morgen comes first, what happens to ich?",
+                listOf("It moves to after the verb", "It stays in front of the verb", "It is left out"), 0,
+                "The verb's position is fixed, so something else has to give way.",
+            ),
             B.plain("Three small things: how to say you like something, where time words go in a sentence, and the first look at the past tense, which Module 10 then finishes."),
             B.h("gern versus mögen"),
             B.table(
@@ -166,6 +178,12 @@ internal object GermanA1M9 {
     private val dialogue = Topic(
         id = "de9-dialogue", title = "Dialogue: weekend plans and the weather report", minutes = 18, references = refs,
         blocks = listOf(
+            B.warmup(
+                "de9-dialogue-w1", "de9-dialogue",
+                "A plan says \"bei Regen im Café\". What is that telling you?",
+                listOf("What happens if it rains", "That it rains at the café", "That the café shuts in the rain"), 0,
+                "bei is setting a condition here rather than a place.",
+            ),
             B.plain("Hören part 3 is often a radio snippet: the weather, an announcement, a message. The weekend-plans chat is Sprechen part 2 territory: a card with Hobby, Wochenende or Wetter."),
             B.dialogue("What are you doing at the weekend?",
                 B.line("Lena", "Was machst du am Wochenende, Sanya?", "What are you doing at the weekend, Sanya?"),
@@ -215,6 +233,12 @@ internal object GermanA1M9 {
     private val practice = Topic(
         id = "de9-practice", title = "Practice: a club notice, an invitation and the Hobby card", minutes = 20, references = refs,
         blocks = listOf(
+            B.warmup(
+                "de9-practice-w1", "de9-practice",
+                "The text says jeden Abend. The statement says jeden Morgen. True or false?",
+                listOf("False, it is a different time of day", "True, both mean daily", "There is no way to tell"), 0,
+                "Lesen part 1 turns on one word like this almost every time.",
+            ),
             B.plain("Lesen part 1 is a short personal text with Richtig or Falsch statements. Schreiben part 2 might be a reply to an invitation. Sprechen part 2 is the word-card question game. All here."),
             B.diagram(
                 caption = "Sprechen part 2: the card says a topic and a word. Make a question from the word; your partner answers in a sentence.",
