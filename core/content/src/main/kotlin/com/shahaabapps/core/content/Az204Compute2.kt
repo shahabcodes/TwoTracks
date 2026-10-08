@@ -53,6 +53,16 @@ internal object Az204Compute2 {
             B.check("az-durable-k1", "az-durable", "Where should an HTTP call to a payment API live?",
                 listOf("In the orchestrator", "In an activity", "In the client function"), 1,
                 "Activities hold side effects. Orchestrators replay, so a payment call there would run again on every replay."),
+            B.check(
+                "az-durable-k2", "az-durable",
+                "Which line is safe inside an orchestrator function?",
+                listOf("context.CurrentUtcDateTime", "DateTime.UtcNow", "Task.Delay(1000)"), 0,
+                "An orchestrator replays its history, so every value has to come back the same. The context supplies a replay-safe clock and timers.",
+                whyWrong = mapOf(
+                    1 to "DateTime.UtcNow returns something new on every replay, so the orchestration takes a different path each time it runs through.",
+                    2 to "Task.Delay is not recorded in the history. A durable timer created from the context is.",
+                ),
+            ),
             B.h("Patterns the exam names"),
             B.table(
                 listOf("Pattern", "Shape", "Example"),
@@ -109,6 +119,16 @@ internal object Az204Compute2 {
                 Two Tracks could use a monitor pattern to nudge a partner: start when a session is planned, check every
                 hour whether it was logged, and after the slot ends send one gentle reminder, then stop.
             """),
+            B.check(
+                "az-durable-k3", "az-durable",
+                "A workflow sends a document for approval and waits up to three days for a person to answer. Which pattern?",
+                listOf("Human interaction: an external event raced against a durable timer", "Fan-out/fan-in", "Function chaining"), 0,
+                "A named external event carries the answer, and a durable timer races it so the wait cannot last for ever.",
+                whyWrong = mapOf(
+                    1 to "Fan-out/fan-in runs many activities at once and aggregates them. Nothing here is parallel.",
+                    2 to "Chaining runs steps one after another, with nothing from outside to wait for.",
+                ),
+            ),
             B.h("Check yourself"),
             B.match(
                 "az-c-durable-match", "Pair each piece of a durable workflow with its job.",
@@ -203,6 +223,16 @@ internal object Az204Compute2 {
             B.check("az-containers-k1", "az-containers", "A nightly export must retry if it crashes but not loop forever on success. Which restart policy?",
                 listOf("Always", "OnFailure", "Never"), 1,
                 "OnFailure restarts only on a non-zero exit. Always would restart after success too; Never would not retry."),
+            B.check(
+                "az-containers-k2", "az-containers",
+                "You need to build an image in Azure without running a Docker daemon of your own. What do you use?",
+                listOf("An ACR Task", "A container group", "A Container Apps revision"), 0,
+                "ACR Tasks build images in the cloud, on demand or when source or a base image changes.",
+                whyWrong = mapOf(
+                    1 to "A container group is several ACI containers sharing a host. That runs images; it does not build them.",
+                    2 to "A revision is an immutable version of a deployed Container App, which is the result of a build rather than the build.",
+                ),
+            ),
             B.h("Azure Container Apps"),
             B.p("""
                 Container Apps is the managed home for microservices. It runs on Kubernetes underneath but hides it.
@@ -233,6 +263,16 @@ internal object Az204Compute2 {
                 revision mode you can keep both and send, say, 30 percent of traffic to the new one. Revisions are how
                 Container Apps does the blue-green and canary releases that App Service does with slots.
             """),
+            B.check(
+                "az-containers-k3", "az-containers",
+                "You want a tenth of traffic on a new version and the rest on the old one, without managing Kubernetes. Which service?",
+                listOf("Container Apps, splitting traffic across revisions", "ACI, using a restart policy", "ACR, using image tags"), 0,
+                "Revisions are immutable versions, and traffic can be split across them by percentage.",
+                whyWrong = mapOf(
+                    1 to "A restart policy says what happens when a container exits. It cannot route anything.",
+                    2 to "Tags name images in the registry. They say nothing about how traffic reaches them.",
+                ),
+            ),
             B.h("Scaling"),
             B.p("""
                 Scale rules use KEDA: HTTP concurrency (the default), CPU, memory, or an event source such as a Service
