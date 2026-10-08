@@ -142,7 +142,7 @@ class ContentTest {
     }
 
     @Test
-    fun `every AZ-204 module test question explains the answer you picked`() {
+    fun `every module test question of a covered course explains the answer you picked`() {
         // A test that only restates why the right answer is right teaches the
         // person who was already right. The useful sentence is about the
         // option you chose, so every question in a module test carries one.
@@ -150,14 +150,17 @@ class ContentTest {
         // Module tests only: the mock exam runs with instantFeedback off, so
         // a note on a mock question would never be rendered. Writing content
         // nothing can show is how 44 notes sat invisible until 0.43.0.
-        Az204.course.modules.mapNotNull { m -> m.quiz?.let { m to it } }.forEach { (m, quiz) ->
-            assertTrue("${m.id} should give instant feedback for notes to appear", quiz.instantFeedback)
-            quiz.questions.forEach { q ->
-                val wrong = q.options.indices.filterNot { it in q.correct }
-                assertTrue(
-                    "az-204/${m.id}/${q.id} has no note on any wrong option",
-                    wrong.any { it in q.whyWrong.keys },
-                )
+        // Named, as the warm-up rule is: IELTS still to come.
+        listOf(Az204.course, GermanA1.course).forEach { course ->
+            course.modules.mapNotNull { m -> m.quiz?.let { m to it } }.forEach { (m, quiz) ->
+                assertTrue("${m.id} should give instant feedback for notes to appear", quiz.instantFeedback)
+                quiz.questions.forEach { q ->
+                    val wrong = q.options.indices.filterNot { it in q.correct }
+                    assertTrue(
+                        "${course.id}/${m.id}/${q.id} has no note on any wrong option",
+                        wrong.any { it in q.whyWrong.keys },
+                    )
+                }
             }
         }
     }
