@@ -95,7 +95,7 @@ internal object GermanA1M6 {
                     DNode("d", "arbeiten.", 0.84f, 0.5f, w = 0.22f, h = 0.3f, tone = 1, sub = "infinitive, last"),
                 ),
                 edges = listOf(DEdge("b", "d", label = "bracket", dashed = true)),
-                aspect = 0.4f,
+                aspect = 0.7f,
             ),
             B.table(
                 listOf("Meaning", "Example"),

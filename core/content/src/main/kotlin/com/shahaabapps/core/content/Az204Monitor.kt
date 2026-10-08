@@ -29,12 +29,12 @@ internal object Az204Monitor {
                 caption = "The SDK or agent sends telemetry to a workspace-based Application Insights resource. Dashboards, alerts and queries read from the workspace.",
                 nodes = listOf(
                     DNode("app", "Two Tracks API", 0.15f, 0.5f, w = 0.24f, h = 0.26f, tone = 1, sub = "SDK or auto-instrumentation"),
-                    DNode("ai", "Application Insights", 0.47f, 0.5f, w = 0.3f, h = 0.26f, kind = NodeKind.CLOUD, sub = "connection string"),
+                    DNode("ai", "Application Insights", 0.47f, 0.5f, w = 0.34f, h = 0.3f, kind = NodeKind.CLOUD),
                     DNode("la", "Log Analytics workspace", 0.8f, 0.22f, w = 0.3f, h = 0.18f, kind = NodeKind.CYLINDER, tone = 2),
                     DNode("alert", "alerts, workbooks, Live Metrics", 0.8f, 0.78f, w = 0.3f, h = 0.18f, kind = NodeKind.NOTE, tone = 2),
                 ),
                 edges = listOf(DEdge("app", "ai", label = "telemetry"), DEdge("ai", "la"), DEdge("la", "alert", label = "KQL")),
-                aspect = 0.5f,
+                aspect = 1.15f,
             ),
             B.h("What gets collected"),
             B.table(
@@ -210,10 +210,10 @@ internal object Az204Monitor {
                     DNode("sig", "Signal", 0.14f, 0.5f, w = 0.22f, h = 0.3f, tone = 1, sub = "metric, log, availability"),
                     DNode("rule", "Alert rule", 0.42f, 0.5f, w = 0.24f, h = 0.3f, sub = "condition + window"),
                     DNode("ag", "Action group", 0.7f, 0.5f, w = 0.24f, h = 0.3f, tone = 2, sub = "email, SMS, push, voice"),
-                    DNode("act", "webhook, Function, Logic App, runbook", 0.9f, 0.9f, w = 0.3f, h = 0.12f, kind = NodeKind.NOTE, tone = 2),
+                    DNode("act", "webhook, Function, Logic App, runbook", 0.84f, 0.88f, w = 0.3f, h = 0.14f, kind = NodeKind.NOTE, tone = 2),
                 ),
                 edges = listOf(DEdge("sig", "rule"), DEdge("rule", "ag", label = "fires"), DEdge("ag", "act")),
-                aspect = 0.45f,
+                aspect = 1.15f,
             ),
             B.h("Availability tests"),
             B.table(
@@ -375,12 +375,12 @@ internal object Az204Monitor {
                 caption = "Cache-aside: check the cache, miss, read the database, write the cache with a TTL, return. Next time it is a hit.",
                 nodes = listOf(
                     DNode("api", "API", 0.14f, 0.5f, w = 0.2f, h = 0.26f, tone = 1),
-                    DNode("redis", "Redis", 0.5f, 0.22f, w = 0.24f, h = 0.2f, kind = NodeKind.CYLINDER, tone = 2, sub = "plan:usaid, TTL 10 min"),
+                    DNode("redis", "Redis", 0.5f, 0.22f, w = 0.3f, h = 0.26f, kind = NodeKind.CYLINDER, tone = 2, sub = "plan:usaid, 10 min"),
                     DNode("db", "Cosmos DB", 0.5f, 0.78f, w = 0.24f, h = 0.2f, kind = NodeKind.CYLINDER),
                     DNode("n", "1 GET → miss, 2 read DB, 3 SET with expiry", 0.84f, 0.5f, w = 0.28f, h = 0.3f, kind = NodeKind.NOTE, tone = 2),
                 ),
                 edges = listOf(DEdge("api", "redis", label = "1 GET"), DEdge("api", "db", label = "2 miss"), DEdge("db", "redis", label = "3 SET")),
-                aspect = 0.5f,
+                aspect = 1.15f,
             ),
             B.h("Tiers"),
             B.table(
@@ -546,7 +546,7 @@ internal object Az204Monitor {
                     DNode("o", "origin: blob static website", 0.84f, 0.5f, w = 0.28f, h = 0.22f, kind = NodeKind.CYLINDER),
                 ),
                 edges = listOf(DEdge("u1", "e1"), DEdge("u2", "e2"), DEdge("e1", "o", label = "miss"), DEdge("e2", "o", label = "miss")),
-                aspect = 0.5f,
+                aspect = 0.9f,
             ),
             B.h("Products"),
             B.table(

@@ -74,7 +74,7 @@ internal object IeltsM6 {
                     DNode("d", "Conclusion", 0.5f, 0.88f, w = 0.6f, h = 0.14f, tone = 1, sub = "restate position, no new ideas"),
                 ),
                 edges = listOf(DEdge("a", "b"), DEdge("b", "c"), DEdge("c", "d")),
-                aspect = 0.66f,
+                aspect = 0.76f,
             ),
             B.h("The introduction: three sentences, no more"),
             B.table(
@@ -139,10 +139,10 @@ internal object IeltsM6 {
                 caption = "The marking loop. The rewrite is where the band moves; the model is read last, not first.",
                 nodes = listOf(
                     DNode("a", "plan 4 min", 0.12f, 0.5f, w = 0.2f, h = 0.3f, tone = 1),
-                    DNode("b", "write 32 min", 0.35f, 0.5f, w = 0.22f, h = 0.3f),
-                    DNode("c", "check 4 min", 0.58f, 0.5f, w = 0.2f, h = 0.3f, tone = 2),
-                    DNode("d", "mark", 0.78f, 0.5f, w = 0.16f, h = 0.3f),
-                    DNode("e", "rewrite", 0.94f, 0.5f, w = 0.14f, h = 0.3f, tone = 1),
+                    DNode("b", "write 32 min", 0.34f, 0.5f, w = 0.22f, h = 0.3f),
+                    DNode("c", "check 4 min", 0.56f, 0.5f, w = 0.2f, h = 0.3f, tone = 2),
+                    DNode("d", "mark", 0.75f, 0.5f, w = 0.16f, h = 0.3f),
+                    DNode("e", "rewrite", 0.91f, 0.5f, w = 0.14f, h = 0.3f, tone = 1),
                 ),
                 edges = listOf(DEdge("a", "b"), DEdge("b", "c"), DEdge("c", "d"), DEdge("d", "e")),
                 aspect = 0.36f,

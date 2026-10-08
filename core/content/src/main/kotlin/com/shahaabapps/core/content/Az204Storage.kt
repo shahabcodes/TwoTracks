@@ -35,7 +35,7 @@ internal object Az204Storage {
                     DNode("b2", "usaid.jpg", 0.75f, 0.84f, w = 0.3f, h = 0.14f),
                 ),
                 edges = listOf(DEdge("acct", "c1"), DEdge("acct", "c2"), DEdge("c1", "b1"), DEdge("c2", "b2")),
-                aspect = 0.68f,
+                aspect = 0.73f,
             ),
             B.table(
                 listOf("Blob type", "What it is for", "Note"),
@@ -201,7 +201,7 @@ internal object Az204Storage {
                     DNode("blob", "BlobClient", 0.84f, 0.5f, w = 0.26f, h = 0.26f, tone = 2, sub = "one blob"),
                 ),
                 edges = listOf(DEdge("svc", "cont", label = "GetBlobContainerClient"), DEdge("cont", "blob", label = "GetBlobClient")),
-                aspect = 0.4f,
+                aspect = 0.6f,
             ),
             B.code("csharp", """
                 var service = new BlobServiceClient(new Uri("https://ttstorage.blob.core.windows.net"), new DefaultAzureCredential());

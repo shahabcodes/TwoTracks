@@ -431,7 +431,7 @@ internal object Az204Compute {
                     DNode("out", "Output binding", 0.86f, 0.5f, w = 0.24f, h = 0.2f, tone = 2, sub = "write to a queue"),
                 ),
                 edges = listOf(DEdge("trig", "fn"), DEdge("in", "fn"), DEdge("fn", "out")),
-                aspect = 0.6f,
+                aspect = 1.05f,
             ),
             B.table(
                 listOf("Trigger", "Fires when", "Typical use"),

@@ -74,7 +74,7 @@ internal object GermanA1M9 {
                     DNode("c", "Ich lese am liebsten.", 0.83f, 0.5f, w = 0.3f, h = 0.3f, tone = 2, sub = "most of all"),
                 ),
                 edges = listOf(DEdge("a", "b"), DEdge("b", "c")),
-                aspect = 0.4f,
+                aspect = 0.5f,
             ),
             B.check("de9-words-k1", "de9-words", "'Es sind 30 Grad und die Sonne scheint' describes", listOf("a hot sunny day", "a cold snowy day", "a windy evening"), 0, "30 degrees and sunshine: heiß und sonnig."),
             B.glossary("sonnig / regnerisch" to "Sunny / rainy.", "Verein" to "Club (der), where Germans do their sport.", "Ausflug" to "Day trip (der)."),
@@ -110,7 +110,7 @@ internal object GermanA1M9 {
                     DNode("d", "Fußball.", 0.82f, 0.5f, w = 0.24f, h = 0.3f),
                 ),
                 edges = listOf(DEdge("a", "b"), DEdge("b", "c"), DEdge("c", "d")),
-                aspect = 0.4f,
+                aspect = 0.7f,
             ),
             B.table(
                 listOf("Subject first", "Time first"),

@@ -197,7 +197,7 @@ internal object Az204Security {
                     DNode("i", "AcquireTokenInteractive", 0.86f, 0.5f, w = 0.26f, h = 0.24f, sub = "browser prompt"),
                 ),
                 edges = listOf(DEdge("s", "ok", label = "hit"), DEdge("s", "ui", label = "miss"), DEdge("ui", "i")),
-                aspect = 0.45f,
+                aspect = 0.9f,
             ),
             B.code("csharp", """
                 var app = PublicClientApplicationBuilder.Create(clientId)
@@ -354,7 +354,7 @@ internal object Az204Security {
                     DNode("u", "users", 0.84f, 0.3f, w = 0.18f, h = 0.14f, tone = 2), DNode("m", "mail", 0.84f, 0.6f, w = 0.18f, h = 0.14f, tone = 2), DNode("c", "calendar", 0.84f, 0.9f, w = 0.2f, h = 0.14f, tone = 2),
                 ),
                 edges = listOf(DEdge("app", "id", label = "token"), DEdge("app", "g", label = "Bearer"), DEdge("g", "u"), DEdge("g", "m"), DEdge("g", "c")),
-                aspect = 0.5f,
+                aspect = 1f,
             ),
             B.h("The shape of a call"),
             B.code("http", """

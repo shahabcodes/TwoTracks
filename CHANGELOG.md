@@ -5,6 +5,10 @@ build number is appended by CI (for example `0.1.0 (build 12)`).
 
 ## [Unreleased]
 
+## [0.47.1] - 2026-10-08
+### Fixed
+- Diagram labels stay inside their shapes instead of spilling over the edges.
+
 ## [0.47.0] - 2026-10-08
 ### Added
 - Every AZ-204 module test now explains the answer you picked, not just the right one.

@@ -67,7 +67,7 @@ internal object GermanA1M7 {
                     DNode("c", "not halb neun", 0.82f, 0.5f, w = 0.26f, h = 0.3f, tone = 2, sub = "that is 8:30"),
                 ),
                 edges = listOf(DEdge("a", "b"), DEdge("b", "c", dashed = true)),
-                aspect = 0.4f,
+                aspect = 0.7f,
             ),
             B.check("de7-words-k1", "de7-words", "'halb acht' is", listOf("7:30", "8:30", "8:00"), 0, "halb means half way to the hour named: halb acht is 7:30."),
             B.glossary("Bahnsteig" to "Platform as a place (der); Gleis is the track number.", "Fahrplan" to "Timetable (der).", "Schalter" to "Ticket counter (der)."),

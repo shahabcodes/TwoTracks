@@ -35,7 +35,7 @@ internal object Az204Connect {
                     DNode("portal", "developer portal: docs, keys, try it", 0.42f, 0.92f, w = 0.5f, h = 0.12f, kind = NodeKind.NOTE, tone = 2),
                 ),
                 edges = listOf(DEdge("dev", "gw", label = "Ocp-Apim-Subscription-Key"), DEdge("gw", "be1"), DEdge("gw", "be2")),
-                aspect = 0.55f,
+                aspect = 0.95f,
             ),
             B.h("The building blocks"),
             B.table(
@@ -251,7 +251,7 @@ internal object Az204Connect {
                     DNode("h3", "Service Bus queue", 0.8f, 0.8f, w = 0.24f, h = 0.16f, tone = 2),
                 ),
                 edges = listOf(DEdge("src", "topic"), DEdge("src2", "topic"), DEdge("topic", "h1", label = "filter: .csv"), DEdge("topic", "h2"), DEdge("topic", "h3")),
-                aspect = 0.5f,
+                aspect = 0.85f,
             ),
             B.h("Vocabulary"),
             B.table(

@@ -125,7 +125,7 @@ internal object IeltsM1 {
                     DNode("c", "Error review (1 h)", 0.83f, 0.5f, w = 0.28f, h = 0.4f, tone = 2, sub = "why each answer was wrong"),
                 ),
                 edges = listOf(DEdge("a", "b"), DEdge("b", "c"), DEdge("c", "a", dashed = true)),
-                aspect = 0.4f,
+                aspect = 0.55f,
             ),
             B.h("The two habits"),
             B.bullets(
