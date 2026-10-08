@@ -152,10 +152,14 @@ fun ExerciseBlock(block: Block.Exercise, speaker: Speaker?, recognizer: Recogniz
     Column(modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(14.dp)).background(accent.copy(alpha = 0.08f)).padding(Spacing.md), verticalArrangement = Arrangement.spacedBy(10.dp)) {
         // German courses use the Goethe paper names; everything else uses plain English.
         val german = lang?.startsWith("de") == true
-        val label = when (block.exercise) {
+        val label = when (val e = block.exercise) {
             is Ex.Listen -> if (german) "Hören" else "Listening"
             is Ex.Speak -> if (german) "Sprechen" else "Speaking"
-            is Ex.Writing -> if (german) "Schreiben" else "Writing"
+            is Ex.Writing -> when {
+                e.form == com.shahaabapps.core.content.WritingForm.EXPLANATION -> "In your own words"
+                german -> "Schreiben"
+                else -> "Writing"
+            }
             else -> "Exercise"
         }
         Text(label, style = MaterialTheme.typography.labelMedium, color = accent, fontWeight = FontWeight.SemiBold)

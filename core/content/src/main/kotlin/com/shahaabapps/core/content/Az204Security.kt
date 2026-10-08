@@ -130,6 +130,14 @@ internal object Az204Security {
             B.tryIt("Try it in 15 minutes", "Any free Entra tenant works.",
                 "Register an app with a localhost redirect URI", "Note the client id and tenant id", "Add Microsoft Graph User.Read under API permissions", "Open Authentication and compare the public-client and web platform settings",
             ),
+            B.explain(
+                "az-identity-x1",
+                "Explain the difference between an ID token and an access token, and between a delegated and an application permission.",
+                "An ID token says who the user is and is for the client that signed them in. An access token says what an API may be asked to do, and that API validates its audience. A delegated permission means the app is acting on behalf of a signed-in user, and arrives in the scp claim. An application permission means the app is acting as itself, with no user present, arrives in the roles claim, and needs an administrator to consent.",
+                "ID token says who, access token says what" to listOf("id token", "access token", "who", "what", "audience"),
+                "Delegated means a user is present" to listOf("delegated", "on behalf", "signed-in user", "scp"),
+                "Application permission needs admin consent" to listOf("application permission", "admin consent", "roles", "no user", "daemon"),
+            ),
             B.glossary(
                 "Entra ID" to "The identity service formerly called Azure Active Directory.",
                 "Application object" to "The single registration in the home tenant.",
@@ -262,6 +270,14 @@ internal object Az204Security {
             B.tryIt("Try it in 15 minutes", "Use the app registration from the previous topic.",
                 "Create a .NET console app and add Microsoft.Identity.Client", "Acquire a token for User.Read interactively", "Paste the access token into jwt.ms and read aud and scp", "Run again and confirm the silent path succeeds",
             ),
+            B.explain(
+                "az-msal-x1",
+                "Explain the order MSAL should be asked for a token in, and what /.default is for.",
+                "Ask silently first: AcquireTokenSilent returns a cached or refreshed token with no prompt, which is the common case. When it throws MsalUiRequiredException that is the signal the user must be asked, so fall back to an interactive prompt; retrying silently will only throw again. A daemon with no user uses AcquireTokenForClient, and asks for /.default, which means every permission already consented for that resource, because there is no user to consent to anything narrower.",
+                "Silent first" to listOf("silent", "acquiretokensilent", "cached", "cache"),
+                "Interactive only on MsalUiRequiredException" to listOf("msaluirequired", "interactive", "prompt", "fall back"),
+                "/.default for client credentials" to listOf(".default", "default", "client credentials", "acquiretokenforclient"),
+            ),
             B.glossary(
                 "MSAL" to "Microsoft Authentication Library; gets and caches tokens.",
                 "AcquireTokenSilent" to "Returns a cached or refreshed token with no prompt.",
@@ -383,6 +399,14 @@ internal object Az204Security {
             ),
             B.tryIt("Try it in 10 minutes", "Graph Explorer needs no setup.",
                 "GET /me", "GET /me/messages?\$top=3&\$select=subject", "GET /users?\$count=true with the ConsistencyLevel header", "Look at the permissions tab for each",
+            ),
+            B.explain(
+                "az-graph-x1",
+                "Explain how to get a large list out of Microsoft Graph without making hundreds of calls.",
+                "Shape the request first: \$select to return only the fields needed, \$filter to narrow the set, \$top to ask for a bigger page. A response that has more carries an @odata.nextLink, which is the full URL of the next page, so follow it until a response arrives without one. Independent calls can be combined with \$batch, up to twenty in a single HTTP request. Advanced directory queries need the ConsistencyLevel eventual header, and a 429 means wait for the Retry-After value.",
+                "Shape with \$select, \$filter, \$top" to listOf("select", "filter", "top", "odata", "shape"),
+                "Follow @odata.nextLink for more" to listOf("nextlink", "next link", "next page", "paging", "page"),
+                "\$batch carries up to twenty" to listOf("batch", "twenty", "20", "one call"),
             ),
             B.glossary(
                 "Microsoft Graph" to "The unified REST API for Microsoft 365 and Entra data.",

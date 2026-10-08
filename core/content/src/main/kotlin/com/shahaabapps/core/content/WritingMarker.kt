@@ -68,6 +68,8 @@ object WritingMarker {
                 Check("Linking words (however, in addition, for example, in conclusion)", linking.count { n.contains(it) } >= 3),
                 Check("A clear position (I believe, in my opinion, I agree)", opinion.any { n.contains(it) }),
             )
+            // An explanation is judged on its ideas alone.
+            WritingForm.EXPLANATION -> emptyList()
             WritingForm.REPORT -> listOf(
                 Check("At least three paragraphs: introduction, overview, details", paragraphs(text) >= 3),
                 Check("An overview sentence (Overall, In general)", overview.any { n.contains(it) }),

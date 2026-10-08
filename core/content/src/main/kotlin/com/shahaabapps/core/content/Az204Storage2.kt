@@ -139,6 +139,14 @@ internal object Az204Storage2 {
             B.tryIt("Try it in 15 minutes", "The free tier gives 1000 RU/s and 25 GB on one account per subscription.",
                 "Create a free-tier NoSQL account", "Create a container with partition key /owner", "Insert two items with different owners in Data Explorer", "Run SELECT * FROM c WHERE c.owner = 'usaid' and read the RU charge in the query stats",
             ),
+            B.explain(
+                "az-cosmos-model-x1",
+                "Explain what makes a good partition key, and what consistency level you would start with.",
+                "A partition key decides which logical partition an item lives in, and all the items sharing a value live together with a 20 GB ceiling and their own throughput. So a good key has many values, spreads the writes evenly, and appears in the queries you run most, letting them hit one partition instead of fanning out. It cannot be changed after the container is created, which is what makes the choice matter. Session is the default consistency and the sensible start: a client reads its own writes, where Strong costs the most and Eventual promises least.",
+                "Many values, spread evenly" to listOf("many values", "spread", "even", "distribute", "hot partition"),
+                "The common query should include it" to listOf("query", "queries", "include", "single partition", "fan out"),
+                "It cannot be changed later" to listOf("cannot change", "cannot be changed", "fixed", "immutable", "creation"),
+            ),
             B.glossary(
                 "Request unit (RU)" to "The unit of work; about a 1 KB point read.",
                 "Partition key" to "The item property that decides which logical partition an item lives in.",
@@ -288,6 +296,14 @@ internal object Az204Storage2 {
             ),
             B.tryIt("Try it in 15 minutes", "Uses the free-tier account from the previous topic.",
                 "Insert an item from .NET with CreateItemAsync", "Read it back with ReadItemAsync and print RequestCharge", "Run the same as a query without the partition key and compare the charge", "Add ttl = 60 to an item and watch it vanish",
+            ),
+            B.explain(
+                "az-cosmos-sdk-x1",
+                "Explain the cheapest way to read an item, how to stop two writers overwriting each other, and what the change feed is for.",
+                "The cheapest read is a point read: ReadItem by id and partition key, which goes straight to one item rather than running a query. For concurrent writers, send the item's ETag back with an if-match condition, and the write fails if the item has moved on since you read it. The change feed is the ordered stream of inserts and updates per partition, so a processor or a Cosmos trigger can react to every write; a lease container keeps its place. Deletes are not in the feed, so a removal has to be modelled as a soft delete.",
+                "A point read by id and partition key" to listOf("point read", "readitem", "id and partition", "partition key"),
+                "The ETag gives optimistic concurrency" to listOf("etag", "if-match", "concurrency", "optimistic"),
+                "The change feed carries inserts and updates" to listOf("change feed", "inserts", "updates", "stream", "reacts"),
             ),
             B.glossary(
                 "Point read" to "ReadItem by id and partition key; the cheapest read.",

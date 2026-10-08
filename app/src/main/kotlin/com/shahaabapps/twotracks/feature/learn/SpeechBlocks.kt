@@ -164,19 +164,39 @@ fun MarkedWritingExercise(ex: Ex.Writing) {
     var text by remember(ex.id) { mutableStateOf("") }
     var result by remember(ex.id) { mutableStateOf<WritingMarker.Result?>(null) }
     val words = text.trim().split(Regex("\\s+")).filter { it.isNotBlank() }.size
-    CupertinoTextField(value = text, onValueChange = { text = it; result = null }, placeholder = if (ex.form == com.shahaabapps.core.content.WritingForm.LETTER) "Write here" else "Write here. Press return twice between paragraphs.", singleLine = false, modifier = Modifier.fillMaxWidth())
+    val placeholder = when (ex.form) {
+        com.shahaabapps.core.content.WritingForm.LETTER -> "Write here"
+        com.shahaabapps.core.content.WritingForm.EXPLANATION -> "Say it back in your own words. No need to match the wording."
+        else -> "Write here. Press return twice between paragraphs."
+    }
+    CupertinoTextField(value = text, onValueChange = { text = it; result = null }, placeholder = placeholder, singleLine = false, modifier = Modifier.fillMaxWidth())
     Text("$words words · aim for ${ex.minWords}+", style = MaterialTheme.typography.labelSmall, color = if (words >= ex.minWords) AppTheme.colors.success else AppTheme.colors.secondaryLabel)
     if (result == null) {
-        val formHint = when (ex.form) { com.shahaabapps.core.content.WritingForm.LETTER -> "a greeting and a sign-off"; com.shahaabapps.core.content.WritingForm.ESSAY -> "paragraphs, linking words and a clear position"; com.shahaabapps.core.content.WritingForm.REPORT -> "an overview, figures and comparisons" }
-        Text("The marker looks for: ${ex.points.joinToString(", ")}; plus $formHint.", style = MaterialTheme.typography.bodySmall, color = AppTheme.colors.secondaryLabel)
-        CupertinoPrimaryButton(text = "Mark my text", enabled = words >= 5, onClick = { result = WritingMarker.mark(ex, text) })
+        val formHint = when (ex.form) {
+            com.shahaabapps.core.content.WritingForm.LETTER -> "a greeting and a sign-off"
+            com.shahaabapps.core.content.WritingForm.ESSAY -> "paragraphs, linking words and a clear position"
+            com.shahaabapps.core.content.WritingForm.REPORT -> "an overview, figures and comparisons"
+            com.shahaabapps.core.content.WritingForm.EXPLANATION -> null
+        }
+        Text(
+            "The marker looks for: ${ex.points.joinToString(", ")}" + formHint?.let { "; plus $it." }.orEmpty().ifEmpty { "." },
+            style = MaterialTheme.typography.bodySmall, color = AppTheme.colors.secondaryLabel,
+        )
+        CupertinoPrimaryButton(
+            text = if (ex.form == com.shahaabapps.core.content.WritingForm.EXPLANATION) "Check what I covered" else "Mark my text",
+            enabled = words >= 5,
+            onClick = { result = WritingMarker.mark(ex, text) },
+        )
     }
     result?.let { r ->
         Column(modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(10.dp)).background(AppTheme.colors.card).padding(Spacing.sm), verticalArrangement = Arrangement.spacedBy(6.dp)) {
             Text("${r.score} of ${r.maxScore} points", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold, color = if (r.score >= r.maxScore - 1) AppTheme.colors.success else AppTheme.colors.warn)
             ex.points.forEachIndexed { i, p -> MarkRow(p, r.points[i]) }
             r.checks.forEach { c -> MarkRow(c.label, c.ok) }
-            Text("Model answer", style = MaterialTheme.typography.labelMedium, color = AppTheme.colors.accent, modifier = Modifier.padding(top = 4.dp))
+            Text(
+                if (ex.form == com.shahaabapps.core.content.WritingForm.EXPLANATION) "One way to put it" else "Model answer",
+                style = MaterialTheme.typography.labelMedium, color = AppTheme.colors.accent, modifier = Modifier.padding(top = 4.dp),
+            )
             Text(ex.model, style = MaterialTheme.typography.bodyMedium, lineHeight = 21.sp)
             CupertinoTextButton(text = "Edit and mark again", onClick = { result = null })
         }

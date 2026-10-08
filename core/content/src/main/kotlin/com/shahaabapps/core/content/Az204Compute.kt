@@ -163,6 +163,14 @@ internal object Az204Compute {
             B.tryIt("Try it in 15 minutes", "On a free Azure account, create a Linux web app on the Free tier, set one app setting, and watch the restart in the log stream.",
                 "Create web app, runtime .NET 8, Linux, Free F1", "Add app setting Hello=World and save", "Open Log stream and confirm the restart lines", "Browse the URL and see the default page", "Delete the resource group when done",
             ),
+            B.explain(
+                "az-app-service-x1",
+                "A colleague asks what the difference is between an App Service plan and a web app, and when they would need a second plan. Answer in your own words.",
+                "A plan is the compute: the region, the operating system, the pricing tier and how many instances run. A web app is the code and its own settings, domains and slots, running on a plan. Several apps can share one plan, which means they share its instances, so two apps that have to scale differently need two plans.",
+                "The plan is the hardware and tier" to listOf("plan", "compute", "hardware", "tier", "instance"),
+                "The app is the code and its settings" to listOf("app is", "web app", "code", "settings"),
+                "Apps on one plan share its instances" to listOf("share", "shared", "same plan", "together"),
+            ),
             B.glossary(
                 "App Service plan" to "The compute behind one or more web apps: region, OS, tier, instance count.",
                 "Web app" to "Your code and its settings, domains and slots, running on a plan.",
@@ -327,6 +335,14 @@ internal object Az204Compute {
             B.reorder("az-c-slots-re1", "Build the command that deploys to the staging slot.", "az webapp deploy --slot staging"),
             B.tryIt("Try it in 15 minutes", "Needs a Standard S1 plan, which the free credit covers for an hour. Delete it after.",
                 "Add a slot named staging to a web app", "Change the app title in staging only", "Swap and confirm production shows the new title", "Swap back", "Delete the plan",
+            ),
+            B.explain(
+                "az-slots-scaling-x1",
+                "Explain what happens during a slot swap, and why a setting might not move with the code.",
+                "A swap warms the staging slot first, then switches which slot answers the production hostname, so users never meet a cold instance. Everything travels with the code except settings marked as deployment slot settings: those are sticky and stay with their slot, which is how a staging connection string stays pointed at the staging database.",
+                "Staging is warmed before the switch" to listOf("warm", "warms", "warmed", "pre-warm", "loads"),
+                "Routing changes, not the code" to listOf("routing", "hostname", "production url", "switch", "swaps which"),
+                "Sticky settings stay with the slot" to listOf("sticky", "slot setting", "stays", "stay with"),
             ),
             B.glossary(
                 "Swap" to "Exchange which slot answers the production hostname, after warming the source.",
@@ -504,6 +520,14 @@ internal object Az204Compute {
             B.reorder("az-c-func-re1", "Build the command that publishes the project to Azure.", "func azure functionapp publish tt-functions"),
             B.tryIt("Try it in 15 minutes", "Free tier is enough; a Consumption app has a free monthly grant.",
                 "Create a Consumption function app in the portal", "Add an HTTP trigger function with the template", "Call it from the browser with ?name=you", "Add a timer function with 0 */1 * * * * and watch Monitor show runs every minute", "Delete the resource group",
+            ),
+            B.explain(
+                "az-functions-x1",
+                "Explain the difference between a trigger and a binding, and what the Consumption plan trades away.",
+                "A trigger is the one event that starts a function, and every function has exactly one. Bindings are declared connections to other services for input or output, so there is no connection code to write. Consumption scales to zero and bills per execution, and pays for that with cold starts and a limit on how long one run may take; Premium keeps instances warm and allows VNet access.",
+                "One trigger starts the function" to listOf("one trigger", "single trigger", "starts", "event"),
+                "Bindings replace connection code" to listOf("binding", "bindings", "input", "output", "no connection code"),
+                "Consumption trades cold starts for cost" to listOf("cold start", "scales to zero", "scale to zero", "per execution"),
             ),
             B.glossary(
                 "Trigger" to "The one event that starts a function.",

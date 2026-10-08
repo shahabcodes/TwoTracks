@@ -176,6 +176,14 @@ internal object Az204Connect {
             B.tryIt("Try it in 20 minutes", "Consumption tier is free for the first million calls each month.",
                 "Create a Consumption APIM", "Import https://conferenceapi.azurewebsites.net?format=json (the sample API)", "Add a rate-limit of 3 calls per 60 seconds", "Call four times from the test console and read the 429 and the trace",
             ),
+            B.explain(
+                "az-apim-x1",
+                "Explain what a policy is in API Management, and the difference between rate-limit and quota.",
+                "A policy is an XML statement the gateway runs against a call, in four sections: inbound, backend, outbound and on-error. rate-limit smooths bursts over a short window and answers 429 Too Many Requests, telling a caller to slow down. A quota is an allowance over a longer period, and a caller past it gets 403: a refusal rather than a delay. The base element is where the parent scope's policies run, so leaving it out silently skips them.",
+                "A policy runs in the gateway, in sections" to listOf("policy", "gateway", "inbound", "outbound", "xml"),
+                "rate-limit answers 429" to listOf("rate-limit", "rate limit", "429", "too many requests"),
+                "A quota is an allowance and answers 403" to listOf("quota", "403", "allowance", "forbidden"),
+            ),
             B.glossary(
                 "Gateway" to "The APIM component that receives calls and runs policies.",
                 "Product" to "A bundle of APIs with terms, quotas and subscription rules.",
@@ -335,6 +343,14 @@ internal object Az204Connect {
             ),
             B.tryIt("Try it in 15 minutes", "Event Grid's first 100,000 operations a month are free.",
                 "Create a storage account and an Event Grid trigger Function", "Add a system topic subscription for BlobCreated", "Upload a file and read the event JSON in the Function log", "Add a subject suffix filter for .png and upload a .txt to see it skipped",
+            ),
+            B.explain(
+                "az-eventgrid-x1",
+                "Explain how an event gets from an Azure service to your handler, and why your handler has to be idempotent.",
+                "A source publishes to a topic, either a system topic Azure creates for it or a custom topic your app writes to. An event subscription is a filtered route from that topic to one handler, filtering by event type, by subject prefix or suffix, or on the data. Delivery is at least once, with retries for 24 hours and dead-lettering for what never lands, so the same event can arrive twice and the handler has to give the same result both times.",
+                "Sources publish to topics" to listOf("topic", "topics", "system topic", "custom topic", "publish"),
+                "Subscriptions filter and route" to listOf("subscription", "filter", "filters", "route", "subject"),
+                "At-least-once delivery means duplicates" to listOf("at least once", "at-least-once", "twice", "duplicate", "retry", "retries"),
             ),
             B.glossary(
                 "System topic" to "A topic Azure creates for events from an Azure service.",
