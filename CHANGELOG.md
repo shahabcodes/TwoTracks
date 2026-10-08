@@ -5,6 +5,10 @@ build number is appended by CI (for example `0.1.0 (build 12)`).
 
 ## [Unreleased]
 
+## [0.39.0] - 2026-10-08
+### Added
+- Four home screen widgets: today's study, daily review, word of the day, and your shared streak.
+
 ## [0.38.0] - 2026-10-08
 ### Added
 - Tests now explain why the answer you picked was tempting, not just why the right one is right.
