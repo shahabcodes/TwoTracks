@@ -29,17 +29,17 @@ internal object Palette {
     val SeparatorDark = Color(0xFF3C4043)
 
     // Semantic (palette-independent)
-    val DestructiveLight = Color(0xFFFF3B30)         // ios_red
+    val DestructiveLight = Color(0xFFCC2A20)         // ios_red, darkened: 5.4:1 on a card, 4.8:1 on the page
     val DestructiveDark = Color(0xFFFF453A)
     val BlockedBgLight = Color(0xFFFFF3F2)
     val BlockedBgDark = Color(0xFF3A1D1A)
 
-    val SuccessLight = Color(0xFF188038)             // accent_green
+    val SuccessLight = Color(0xFF16752F)             // accent_green, darkened: 5.8:1 on a card, 5.2:1 on the page
     val SuccessDark = Color(0xFF81C995)
     val AllowedBgLight = Color(0xFFE4F1EA)
     val AllowedBgDark = Color(0xFF17301F)
 
-    val WarnLight = Color(0xFFC77700)                // status_warn
+    val WarnLight = Color(0xFF9E5A00)                // status_warn: 5.4:1 on a card, 4.8:1 on the page
     val WarnDark = Color(0xFFFBC02D)
 }
 

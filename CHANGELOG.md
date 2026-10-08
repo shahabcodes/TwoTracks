@@ -5,6 +5,10 @@ build number is appended by CI (for example `0.1.0 (build 12)`).
 
 ## [Unreleased]
 
+## [0.47.2] - 2026-10-08
+### Fixed
+- The guess before a topic is readable now, and the amber, red and green text are no longer too pale.
+
 ## [0.47.1] - 2026-10-08
 ### Fixed
 - Diagram labels stay inside their shapes instead of spilling over the edges.

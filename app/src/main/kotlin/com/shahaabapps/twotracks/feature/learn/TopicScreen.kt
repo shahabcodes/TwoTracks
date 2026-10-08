@@ -61,6 +61,7 @@ import androidx.compose.ui.text.style.TextAlign
 import com.shahaabapps.core.ui.components.CupertinoTextField
 import com.shahaabapps.core.content.solved
 import com.shahaabapps.core.content.accepts
+import androidx.compose.foundation.border
 
 /** One lesson: the blocks rendered in order, then "Mark as learned" which logs the reading time. */
 @Composable
@@ -392,9 +393,14 @@ private fun WarmupBlock(block: Block.Warmup) {
     var picked by androidx.compose.runtime.remember(q.id) { androidx.compose.runtime.mutableStateOf<Int?>(null) }
     val answered = picked != null
     val right = picked in q.correct
+    // The card surface, as every other panel in the app uses. This block
+    // shipped on fill at 0.6 alpha, which turns a 12% pill tint into a solid
+    // mid-grey slab: the label and the hint on it measured 2.7:1 in light and
+    // 2.9:1 in dark, where body text wants 4.5:1. On the card they are 6.1:1
+    // and 6.5:1.
     Column(
         modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(14.dp))
-            .background(AppTheme.colors.fill.copy(alpha = 0.6f)).padding(Spacing.md),
+            .background(AppTheme.colors.card).padding(Spacing.md),
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         Text("BEFORE YOU READ", style = MaterialTheme.typography.labelMedium, color = AppTheme.colors.secondaryLabel, fontWeight = FontWeight.SemiBold)
@@ -405,20 +411,36 @@ private fun WarmupBlock(block: Block.Warmup) {
         q.options.forEachIndexed { i, opt ->
             val chosen = picked == i
             val correct = answered && i in q.correct
+            // The option you chose was drawn in fill on a fill slab, which left
+            // it at 1.4:1 against its own background — you could not see which
+            // one you had picked. It is now tinted and outlined in the accent.
+            val outline = when {
+                correct -> AppTheme.colors.success
+                answered && chosen -> AppTheme.colors.accent
+                else -> AppTheme.colors.separator
+            }
             Row(
                 verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp),
                 modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(10.dp))
                     .background(
                         when {
                             correct -> AppTheme.colors.success.copy(alpha = 0.15f)
-                            answered && chosen -> AppTheme.colors.fill
-                            else -> AppTheme.colors.card
+                            answered && chosen -> AppTheme.colors.accent.copy(alpha = 0.18f)
+                            else -> AppTheme.colors.fill
                         },
                     )
+                    .border(if (correct || (answered && chosen)) 1.5.dp else 1.dp, outline, RoundedCornerShape(10.dp))
                     .clickable(enabled = !answered) { picked = i }
                     .padding(horizontal = 12.dp, vertical = 10.dp),
             ) {
-                Text(('A' + i).toString(), style = MaterialTheme.typography.labelMedium, color = AppTheme.colors.secondaryLabel, fontWeight = FontWeight.Bold)
+                Text(
+                    ('A' + i).toString(),
+                    style = MaterialTheme.typography.labelMedium,
+                    // The secondary label on a tinted row measures 4.3:1, just
+                    // under the floor, so a marked row gets the full ink.
+                    color = if (correct || (answered && chosen)) MaterialTheme.colorScheme.onSurface else AppTheme.colors.secondaryLabel,
+                    fontWeight = FontWeight.Bold,
+                )
                 Text(opt, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.weight(1f))
             }
         }
@@ -426,7 +448,9 @@ private fun WarmupBlock(block: Block.Warmup) {
             Text(
                 if (right) "That is it. Read on and see why." else "Not that one. Reading it now is what makes the answer stick.",
                 style = MaterialTheme.typography.bodySmall, lineHeight = 19.sp, fontWeight = FontWeight.SemiBold,
-                color = if (right) AppTheme.colors.success else AppTheme.colors.secondaryLabel,
+                // Not secondaryLabel: this is the sentence that matters when the
+                // guess was wrong, so it gets the full-strength ink.
+                color = if (right) AppTheme.colors.success else MaterialTheme.colorScheme.onSurface,
             )
             Text(q.explanation, style = MaterialTheme.typography.bodySmall, lineHeight = 19.sp, color = AppTheme.colors.secondaryLabel)
         }
