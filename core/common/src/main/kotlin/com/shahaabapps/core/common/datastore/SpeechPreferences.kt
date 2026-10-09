@@ -40,5 +40,35 @@ class SpeechPreferences @Inject constructor(
         }
     }
 
+    /**
+     * What a voice turned out to be, once somebody listened to it.
+     *
+     * Stored against the engine's own voice name rather than the language, so
+     * a voice labelled while picking a German reader is still labelled when it
+     * appears in the English list, and so the label survives the voice moving
+     * position as others are installed.
+     *
+     * The value is "GENDER" or "GENDER|CHARACTER", both from the app's own
+     * enums; anything unrecognised reads as unlabelled.
+     */
+    fun voiceLabels(): Flow<Map<String, String>> = context.speechDataStore.data
+        .map { prefs ->
+            prefs.asMap()
+                .filterKeys { it.name.startsWith(LABEL_PREFIX) }
+                .map { (k, v) -> k.name.removePrefix(LABEL_PREFIX) to v.toString() }
+                .toMap()
+        }
+
+    suspend fun setVoiceLabel(voiceName: String, value: String?) {
+        context.speechDataStore.edit { prefs ->
+            val k = stringPreferencesKey(LABEL_PREFIX + voiceName)
+            if (value == null) prefs.remove(k) else prefs[k] = value
+        }
+    }
+
     private fun key(languageTag: String) = stringPreferencesKey("voice_" + languageTag.lowercase())
+
+    private companion object {
+        const val LABEL_PREFIX = "label_"
+    }
 }

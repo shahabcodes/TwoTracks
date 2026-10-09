@@ -1,12 +1,17 @@
 package com.shahaabapps.twotracks.feature.learn
 
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /**
- * Reading a voice's gender out of its name, which is the only place Android
- * puts it. The names here are the shapes real engines use.
+ * Reading a text-to-speech voice's name: the gender where an engine states
+ * it, and otherwise what can honestly be told from the string.
+ *
+ * The names here are the shapes real engines use, and the long list at the end
+ * is verbatim what Google's engine reported on an Android 16 device — because
+ * that list is the whole reason the picker needed fixing.
  */
 class VoiceNamesTest {
 
@@ -60,14 +65,6 @@ class VoiceNamesTest {
     }
 
     @Test
-    fun `labels are numbered within their own group`() {
-        assertEquals("Female 1", VoiceNames.label(VoiceGender.FEMALE, 1))
-        assertEquals("Female 2", VoiceNames.label(VoiceGender.FEMALE, 2))
-        assertEquals("Male 1", VoiceNames.label(VoiceGender.MALE, 1))
-        assertEquals("Voice 3", VoiceNames.label(VoiceGender.UNKNOWN, 3))
-    }
-
-    @Test
     fun `the detail line says where the voice lives and whether it is better`() {
         assertTrue(VoiceNames.detail(networkOnly = true, quality = 300).contains("needs a connection"))
         assertTrue(VoiceNames.detail(networkOnly = false, quality = 300).contains("on the phone"))
@@ -76,5 +73,81 @@ class VoiceNamesTest {
         assertTrue(VoiceNames.detail(networkOnly = false, quality = 400).contains("higher quality"))
         assertTrue(!VoiceNames.detail(networkOnly = false, quality = 300).contains("higher quality"))
         assertTrue(!VoiceNames.detail(networkOnly = false, quality = 200).contains("higher quality"))
+    }
+
+    @Test
+    fun `a voice fetched two ways is one voice`() {
+        // This pairing is what doubled the list.
+        assertEquals(
+            VoiceNames.variantOf("en-us-x-iob-local"),
+            VoiceNames.variantOf("en-us-x-iob-network"),
+        )
+        assertEquals("iob", VoiceNames.variantOf("en-us-x-iob-local"))
+        assertEquals("nfh", VoiceNames.variantOf("de-de-x-nfh-network"))
+    }
+
+    @Test
+    fun `two countries' voices are not the same voice`() {
+        // Both end in "a", and collapsing on the variant alone would merge them.
+        assertEquals("GB", VoiceNames.regionOf("en-gb-x-gba-local"))
+        assertEquals("US", VoiceNames.regionOf("en-us-x-iob-local"))
+        assertEquals("DE", VoiceNames.regionOf("de-de-x-dea-local"))
+    }
+
+    @Test
+    fun `the engine's own default is not listed twice`() {
+        assertTrue(VoiceNames.isLegacyLocaleVoice("en-US-language"))
+        assertTrue(VoiceNames.isLegacyLocaleVoice("de-DE-language"))
+        assertFalse(VoiceNames.isLegacyLocaleVoice("en-us-x-iob-local"))
+    }
+
+    @Test
+    fun `an unlabelled voice keeps its name when others are installed`() {
+        // A numbered list renumbers itself, so the voice chosen last week
+        // becomes a different one the moment a voice is added above it. The
+        // placeholder is taken from the voice's own code instead.
+        val before = VoiceNames.placeholderLabel("en-us-x-iom-local")
+        val after = VoiceNames.placeholderLabel("en-us-x-iom-network")
+        assertEquals(before, after)
+        assertEquals("Voice M", before)
+    }
+
+    @Test
+    fun `a label says what was heard`() {
+        assertEquals("Female · warm", VoiceNames.label(VoiceGender.FEMALE, VoiceCharacter.WARM, "en-us-x-iob-local"))
+        assertEquals("Male", VoiceNames.label(VoiceGender.MALE, null, "en-us-x-iob-local"))
+        assertEquals("Voice B", VoiceNames.label(VoiceGender.UNKNOWN, null, "en-us-x-iob-local"))
+        // A character without a gender still beats a bare placeholder.
+        assertEquals("Voice B · crisp", VoiceNames.label(VoiceGender.UNKNOWN, VoiceCharacter.CRISP, "en-us-x-iob-local"))
+    }
+
+    @Test
+    fun `the real list collapses to something a person can read`() {
+        // Every English voice the device actually reported, verbatim.
+        val reported = listOf(
+            "en-AU-language", "en-GB-language", "en-IN-language", "en-NG-language", "en-US-language",
+            "en-au-x-aua-local", "en-au-x-aub-local", "en-au-x-auc-local", "en-au-x-aud-local",
+            "en-gb-x-gba-local", "en-gb-x-gbb-local", "en-gb-x-gbc-local", "en-gb-x-gbd-local",
+            "en-gb-x-gbg-local", "en-gb-x-rjs-local",
+            "en-in-x-ena-local", "en-in-x-enc-local", "en-in-x-end-local", "en-in-x-ene-local",
+            "en-ng-x-tfn-local",
+            "en-us-x-iob-local", "en-us-x-iog-local", "en-us-x-iol-local", "en-us-x-iom-local",
+            "en-us-x-sfg-local", "en-us-x-tpc-local", "en-us-x-tpd-local", "en-us-x-tpf-local",
+        ) + listOf(
+            "en-au-x-aua-network", "en-gb-x-gba-network", "en-us-x-iob-network", "en-us-x-iom-network",
+        )
+        // The ones the device marked notInstalled: every AU, IN and NG voice.
+        val notInstalled = reported.filter { it.contains("-au-") || it.contains("-in-") || it.contains("-ng-") || it.startsWith("en-AU") || it.startsWith("en-IN") || it.startsWith("en-NG") }.toSet()
+
+        val listed = reported
+            .filterNot { it in notInstalled }
+            .filterNot { VoiceNames.isLegacyLocaleVoice(it) }
+            .distinctBy { VoiceNames.regionOf(it) + "/" + VoiceNames.variantOf(it) }
+
+        // Six British and eight American, down from thirty-two rows.
+        assertEquals(14, listed.size)
+        assertEquals(6, listed.count { VoiceNames.regionOf(it) == "GB" })
+        assertEquals(8, listed.count { VoiceNames.regionOf(it) == "US" })
+        assertTrue(listed.none { VoiceNames.isLegacyLocaleVoice(it) })
     }
 }
