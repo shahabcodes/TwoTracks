@@ -10,7 +10,10 @@ import com.shahaabapps.twotracks.feature.auth.CompanionKind
 import com.shahaabapps.twotracks.feature.auth.Companion
 import com.shahaabapps.twotracks.ui.components.DialogButton
 import com.shahaabapps.twotracks.reminders.ReminderNotifications
+import com.shahaabapps.twotracks.ui.guide.GuideAnchors
 import com.shahaabapps.twotracks.ui.guide.LocalGuide
+import com.shahaabapps.twotracks.ui.guide.guideAnchor
+import com.shahaabapps.twotracks.ui.guide.guideScrollHost
 import com.shahaabapps.twotracks.ui.components.CupertinoDialog
 import com.shahaabapps.twotracks.ui.components.StartDateDialog
 import androidx.compose.ui.text.input.KeyboardType
@@ -118,15 +121,18 @@ fun SettingsScreen(
     val s = state.session
     DetailScaffold(title = "Settings", onBack = onBack) {
         Box {
-            Column(modifier = Modifier.verticalScroll(rememberScrollState()).padding(bottom = Spacing.xl), verticalArrangement = Arrangement.spacedBy(Spacing.md)) {
+            val pageScroll = rememberScrollState()
+                Column(modifier = Modifier.guideScrollHost(pageScroll).verticalScroll(pageScroll).padding(bottom = Spacing.xl), verticalArrangement = Arrangement.spacedBy(Spacing.md)) {
                 if (s != null) {
                     CupertinoListSection(header = "Profile") {
-                        CupertinoListRow("Name", leadingIcon = Icons.Filled.Person, iconColor = IosColors.Blue, onClick = { editName = true }, trailing = { CupertinoValue(s.me.name); CupertinoDisclosure() })
-                        CupertinoListRow("Track", subtitle = viewModel.roleLabel(s.myRole), leadingIcon = Icons.Filled.Timeline, iconColor = IosColors.Indigo)
+                        CupertinoListRow("Name", modifier = Modifier.guideAnchor(GuideAnchors.SET_NAME), leadingIcon = Icons.Filled.Person, iconColor = IosColors.Blue, onClick = { editName = true }, trailing = { CupertinoValue(s.me.name); CupertinoDisclosure() })
+                        CupertinoListRow("Track", modifier = Modifier.guideAnchor(GuideAnchors.SET_TRACK), subtitle = viewModel.roleLabel(s.myRole), leadingIcon = Icons.Filled.Timeline, iconColor = IosColors.Indigo)
                         CupertinoListRow("Email", subtitle = state.email, leadingIcon = Icons.Filled.Mail, iconColor = IosColors.Gray)
-                        CupertinoListRow("Password", subtitle = "Change it here or get a reset link by email", leadingIcon = Icons.Filled.Lock, iconColor = IosColors.Orange, onClick = { changePassword = true }, trailing = { CupertinoDisclosure() })
+                        CupertinoListRow("Password", modifier = Modifier.guideAnchor(GuideAnchors.SET_PASSWORD), subtitle = "Change it here or get a reset link by email", leadingIcon = Icons.Filled.Lock, iconColor = IosColors.Orange, onClick = { changePassword = true }, trailing = { CupertinoDisclosure() })
                         CupertinoListRow(
-                            "Timezone", leadingIcon = Icons.Filled.Public, iconColor = IosColors.Teal, showDivider = false,
+                            "Timezone",
+                            modifier = Modifier.guideAnchor(GuideAnchors.SET_TIMEZONE),
+                            leadingIcon = Icons.Filled.Public, iconColor = IosColors.Teal, showDivider = false,
                             onClick = { editTimezone = true },
                             trailing = { CupertinoValue(s.me.timezone); CupertinoDisclosure() },
                         )
@@ -137,7 +143,9 @@ fun SettingsScreen(
                         footer = if (s.partner == null) "Share this code with your partner. They choose Join in the app and enter it." else "You are both in the same space.",
                     ) {
                         CupertinoListRow(
-                            "Invite code", subtitle = s.couple.inviteCode, leadingIcon = Icons.Filled.Link, iconColor = IosColors.Green, showDivider = s.partner != null,
+                            "Invite code",
+                            modifier = Modifier.guideAnchor(GuideAnchors.SET_INVITE),
+                            subtitle = s.couple.inviteCode, leadingIcon = Icons.Filled.Link, iconColor = IosColors.Green, showDivider = s.partner != null,
                             trailing = { Chip(text = "Copy", onClick = { clipboard.setText(AnnotatedString(s.couple.inviteCode)) }) },
                         )
                         s.partner?.let { p -> CupertinoListRow(p.name, subtitle = "${viewModel.roleLabel(p.role)}, ${p.timezone}", leadingIcon = Icons.Filled.Favorite, iconColor = IosColors.Pink, showDivider = false) }
@@ -152,12 +160,14 @@ fun SettingsScreen(
                         val cls = state.availability.blocks.count { it.kind == com.shahaabapps.core.model.BlockKind.CLASS }
                         CupertinoListRow(
                             "Weekly template",
+                            modifier = Modifier.guideAnchor(GuideAnchors.SET_TEMPLATE),
                             leadingIcon = Icons.Filled.CalendarMonth, iconColor = IosColors.Orange,
                             subtitle = "$study study slots, $cls class slots, ${state.availability.weeklyStudyMinutes / 60}h ${state.availability.weeklyStudyMinutes % 60}m per week",
                             onClick = onOpenAvailability, trailing = { CupertinoDisclosure() },
                         )
                         CupertinoListRow(
                             "Start date",
+                            modifier = Modifier.guideAnchor(GuideAnchors.SET_START_DATE),
                             leadingIcon = Icons.Filled.PlayCircleOutline, iconColor = IosColors.Green,
                             subtitle = if (s.me.startDateIso == null) "Not set. The plan's own first day is used." else "The day your study counts from",
                             onClick = { editStartDate = true },
@@ -170,6 +180,7 @@ fun SettingsScreen(
                         if (fullScreenIntent != null) {
                             CupertinoListRow(
                                 "Reminders take over the screen",
+                                modifier = Modifier.guideAnchor(GuideAnchors.SET_FULL_SCREEN),
                                 leadingIcon = Icons.Filled.Alarm, iconColor = IosColors.Red, showDivider = false,
                                 subtitle = if (fullScreenAllowed) {
                                     "A reminder opens in front of whatever you are doing"
@@ -188,7 +199,9 @@ fun SettingsScreen(
                         else "Set up a fingerprint, face unlock or screen lock on this phone to use this.",
                     ) {
                         CupertinoListRow(
-                            "Unlock with biometrics", leadingIcon = Icons.Filled.Fingerprint, iconColor = IosColors.Green, showDivider = false,
+                            "Unlock with biometrics",
+                            modifier = Modifier.guideAnchor(GuideAnchors.SET_BIOMETRICS),
+                            leadingIcon = Icons.Filled.Fingerprint, iconColor = IosColors.Green, showDivider = false,
                             trailing = { CupertinoSwitch(checked = state.biometricEnabled, onCheckedChange = viewModel::setBiometricLock, enabled = state.biometricAvailable) },
                         )
                     }
@@ -196,7 +209,7 @@ fun SettingsScreen(
                     Column(modifier = Modifier.padding(horizontal = Spacing.listHorizontal)) {
                         ThemeSettingsSection(mode = mode, palette = palette, onModeChange = themeViewModel::setThemeMode, onPaletteChange = themeViewModel::setAccentPalette)
                         val companion by themeViewModel.companion.collectAsStateWithLifecycle()
-                        Text("SIGN-IN COMPANION", style = MaterialTheme.typography.labelMedium, color = AppTheme.colors.secondaryLabel, modifier = Modifier.padding(top = Spacing.md, start = Spacing.sectionStart))
+                        Text("SIGN-IN COMPANION", style = MaterialTheme.typography.labelMedium, color = AppTheme.colors.secondaryLabel, modifier = Modifier.padding(top = Spacing.md, start = Spacing.sectionStart).guideAnchor(GuideAnchors.SET_COMPANION))
                         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.md), modifier = Modifier.padding(top = Spacing.sm)) {
                             Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(Spacing.sm)) {
                                 SegmentedChoice(options = listOf(CompanionKind.BUDDY, CompanionKind.PLANE), selected = companion, label = { it.label }, onSelect = themeViewModel::setCompanion)
@@ -215,6 +228,7 @@ fun SettingsScreen(
                     ) {
                         CupertinoListRow(
                             if (state.seedOutdated) "Update to the latest guide content" else "Reset guide content",
+                            modifier = Modifier.guideAnchor(GuideAnchors.SET_SEED),
                             leadingIcon = Icons.Filled.Refresh, iconColor = IosColors.Red,
                             onClick = { confirmReset = true }, showDivider = false, trailing = { CupertinoDisclosure() },
                         )
@@ -223,18 +237,16 @@ fun SettingsScreen(
                 // The voice each language is read in. Its own view model, so
                 // the list is loaded once per visit rather than on every
                 // recomposition of this screen.
-                VoiceSettingsSections(hiltViewModel())
+                Box(modifier = Modifier.guideAnchor(GuideAnchors.SET_VOICES)) { VoiceSettingsSections(hiltViewModel()) }
                 CupertinoListSection(header = "About") {
                     val guide = LocalGuide.current
                     if (guide != null) {
                         CupertinoListRow(
                             "Show me around",
+                            modifier = Modifier.guideAnchor(GuideAnchors.SET_TOUR),
                             subtitle = "A short tour of the app, over the real screens",
                             leadingIcon = Icons.Filled.Explore, iconColor = IosColors.Teal,
-                            // Back out of Settings first: the tour runs over the
-                            // tabs, and starting it from here would ring a tab
-                            // bar nobody can see.
-                            onClick = { onBack(); guide.start() },
+                            onClick = guide::start,
                             trailing = { CupertinoDisclosure() },
                         )
                     }
@@ -243,7 +255,7 @@ fun SettingsScreen(
                         showDivider = false, onClick = onOpenChangelog, trailing = { CupertinoDisclosure() },
                     )
                 }
-                CupertinoTextButton(text = "Sign out", destructive = true, onClick = viewModel::signOut)
+                Box(modifier = Modifier.guideAnchor(GuideAnchors.SET_SIGN_OUT)) { CupertinoTextButton(text = "Sign out", destructive = true, onClick = viewModel::signOut) }
             }
             SnackbarHost(snackbar, modifier = Modifier.align(Alignment.BottomCenter))
         }

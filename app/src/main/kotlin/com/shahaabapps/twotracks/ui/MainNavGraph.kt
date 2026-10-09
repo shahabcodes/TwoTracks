@@ -51,7 +51,9 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.shahaabapps.twotracks.ui.guide.GuideAnchors
+import com.shahaabapps.twotracks.ui.guide.GuideViewModel
 import com.shahaabapps.twotracks.ui.guide.GuideOverlay
 import com.shahaabapps.twotracks.ui.guide.GuideState
 import com.shahaabapps.twotracks.ui.guide.LocalGuide
@@ -188,11 +190,29 @@ fun MainNavGraph(session: AppSession, widgetLaunch: WidgetLaunch) {
     }
     // One tour for the whole graph, so a step can point at the tab bar and at
     // a card on a screen without either knowing about the other.
-    val guide = remember { GuideState(guideSteps(Routes.LEARN, Routes.TODAY, Routes.LEVELS, Routes.US)) }
+    val guide = remember { GuideState(guideSteps(Routes.LEARN, Routes.TODAY, Routes.LEVELS, Routes.US, Routes.SETTINGS)) }
+    // Owed to whoever has just signed in, and cleared however the tour ends.
+    val guideViewModel: GuideViewModel = hiltViewModel()
+    val tourPending by guideViewModel.pending.collectAsStateWithLifecycle()
+    // Cleared the moment it starts rather than when it ends: a tour that has
+    // begun has been delivered, and clearing it at the end races the effect
+    // that starts it — which showed up as the tour beginning again from step
+    // one the instant it was finished.
+    LaunchedEffect(tourPending) {
+        if (tourPending && !guide.running) {
+            guideViewModel.markSeen()
+            guide.start()
+        }
+    }
     // Each step names the screen it belongs to and the app goes there, which
     // is what keeps the words and the thing being pointed at together.
     LaunchedEffect(guide.index) {
         val route = guide.step?.route ?: return@LaunchedEffect
+        // Only when it is somewhere else. Re-navigating to the screen already
+        // showing restores its saved state, which puts a long page like
+        // Settings back to the top — and the tour walks down Settings a row
+        // at a time, so every step after the first would lose its place.
+        if (navController.currentDestination?.route == route) return@LaunchedEffect
         navController.navigate(route) {
             popUpTo(navController.graph.findStartDestination().id) { saveState = true }
             launchSingleTop = true

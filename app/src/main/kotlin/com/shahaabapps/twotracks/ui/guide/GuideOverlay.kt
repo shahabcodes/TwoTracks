@@ -16,7 +16,10 @@ import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.foundation.ScrollState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.runtime.getValue
@@ -57,7 +60,22 @@ import com.shahaabapps.twotracks.ui.components.Chip
 @Composable
 fun Modifier.guideAnchor(key: String): Modifier {
     val guide = LocalGuide.current ?: return this
+    // Dropped when the composable leaves, so a step cannot ring where a
+    // control used to be on the screen before.
+    DisposableEffect(key) { onDispose { guide.remove(key) } }
     return onGloballyPositioned { guide.put(key, it.boundsInWindow()) }
+}
+
+/**
+ * Offers this scrolling screen to the tour, so a step can bring a row below
+ * the fold into view before ringing it. Only for screens that scroll as one
+ * piece; a lazy list has nothing composed down there to scroll to.
+ */
+@Composable
+fun Modifier.guideScrollHost(state: ScrollState): Modifier {
+    val guide = LocalGuide.current ?: return this
+    DisposableEffect(state) { onDispose { guide.clearScrollHost(state) } }
+    return onGloballyPositioned { guide.setScrollHost(state, it.boundsInWindow()) }
 }
 
 /**
@@ -72,6 +90,16 @@ fun Modifier.guideAnchor(key: String): Modifier {
 fun GuideOverlay(guide: GuideState) {
     AnimatedVisibility(visible = guide.running, enter = fadeIn(), exit = fadeOut()) {
         val step = guide.step ?: return@AnimatedVisibility
+        // Scroll the thing being explained into view first, then ring it.
+        // A step that has just navigated arrives before the new screen has
+        // been laid out and reported where anything is, so this waits a frame
+        // or two rather than scrolling to a position nobody has measured yet.
+        LaunchedEffect(step) {
+            repeat(3) {
+                guide.revealCurrent()
+                kotlinx.coroutines.delay(120)
+            }
+        }
         val density = LocalDensity.current
         val pad = with(density) { 8.dp.toPx() }
         val target = guide.target
