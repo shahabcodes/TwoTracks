@@ -9,6 +9,7 @@ import com.shahaabapps.twotracks.feature.auth.MascotState
 import com.shahaabapps.twotracks.feature.auth.CompanionKind
 import com.shahaabapps.twotracks.feature.auth.Companion
 import com.shahaabapps.twotracks.ui.components.DialogButton
+import com.shahaabapps.twotracks.reminders.ReminderNotifications
 import com.shahaabapps.twotracks.ui.components.CupertinoDialog
 import com.shahaabapps.twotracks.ui.components.StartDateDialog
 import androidx.compose.ui.text.input.KeyboardType
@@ -40,6 +41,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.text.AnnotatedString
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.shahaabapps.core.ui.components.CupertinoDisclosure
 import com.shahaabapps.core.ui.components.CupertinoListRow
@@ -50,6 +56,7 @@ import com.shahaabapps.core.ui.components.CupertinoTextField
 import com.shahaabapps.core.ui.components.CupertinoValue
 import com.shahaabapps.core.ui.theme.IosColors
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Alarm
 import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.Fingerprint
 import androidx.compose.material.icons.filled.PlayCircleOutline
@@ -88,6 +95,18 @@ fun SettingsScreen(
     var confirmReset by remember { mutableStateOf(false) }
     var changePassword by remember { mutableStateOf(false) }
     val notifPermission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { }
+    val context = LocalContext.current
+    // Re-read on resume: the switch is thrown in the system's own settings and
+    // the app comes back to a row that would otherwise still read "Off".
+    var fullScreenAllowed by remember { mutableStateOf(ReminderNotifications.canTakeOverScreen(context)) }
+    val lifecycleOwner = LocalLifecycleOwner.current
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) fullScreenAllowed = ReminderNotifications.canTakeOverScreen(context)
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+    }
 
     LaunchedEffect(state.message) { state.message?.let { snackbar.showSnackbar(it); viewModel.clearMessage() } }
     LaunchedEffect(Unit) {
@@ -137,11 +156,28 @@ fun SettingsScreen(
                         )
                         CupertinoListRow(
                             "Start date",
-                            leadingIcon = Icons.Filled.PlayCircleOutline, iconColor = IosColors.Green, showDivider = false,
+                            leadingIcon = Icons.Filled.PlayCircleOutline, iconColor = IosColors.Green,
                             subtitle = if (s.me.startDateIso == null) "Not set. The plan's own first day is used." else "The day your study counts from",
                             onClick = { editStartDate = true },
                             trailing = { CupertinoValue(s.me.startDateIso ?: "Not set"); CupertinoDisclosure() },
                         )
+                        // Only worth offering where the system can be asked. Below
+                        // Android 14 declaring the permission is enough and there
+                        // is no page to send anyone to.
+                        val fullScreenIntent = remember { ReminderNotifications.fullScreenSettingsIntent(context) }
+                        if (fullScreenIntent != null) {
+                            CupertinoListRow(
+                                "Reminders take over the screen",
+                                leadingIcon = Icons.Filled.Alarm, iconColor = IosColors.Red, showDivider = false,
+                                subtitle = if (fullScreenAllowed) {
+                                    "A reminder opens in front of whatever you are doing"
+                                } else {
+                                    "Off. Reminders arrive as a banner instead."
+                                },
+                                onClick = { context.startActivity(fullScreenIntent) },
+                                trailing = { CupertinoValue(if (fullScreenAllowed) "On" else "Off"); CupertinoDisclosure() },
+                            )
+                        }
                     }
 
                     CupertinoListSection(

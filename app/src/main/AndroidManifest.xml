@@ -5,6 +5,13 @@
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
+    <!--
+        Lets a study reminder take over the screen the way an alarm does.
+        From Android 14 this is granted on install only to apps whose whole
+        job is calls or alarms; everyone else has to ask for it, and the app
+        falls back to an ordinary heads-up notification until it is given.
+    -->
+    <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT" />
     <uses-permission android:name="android.permission.VIBRATE" />
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <queries>
@@ -32,6 +39,21 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <!--
+            The screen a reminder opens onto. It shows over the lock screen and
+            turns the display on, because a reminder you have to unlock to see
+            is a reminder you see an hour late. Its own task, so dismissing it
+            never takes the app with it.
+        -->
+        <activity
+            android:name=".reminders.StudyReminderActivity"
+            android:exported="false"
+            android:excludeFromRecents="true"
+            android:launchMode="singleTask"
+            android:showOnLockScreen="true"
+            android:taskAffinity=""
+            android:theme="@style/Theme.TwoTracks" />
 
         <receiver
             android:name=".reminders.ReminderReceiver"

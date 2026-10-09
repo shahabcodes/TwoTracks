@@ -88,7 +88,7 @@ object WidgetRoutes {
  * the kind is what keeps a card saying "Words: 15 waiting" from dropping the
  * reader on Today.
  */
-private fun WidgetSnapshot.nextRoute(): String? {
+internal fun WidgetSnapshot.nextRoute(): String? {
     if (nextCourseId.isBlank()) return null
     return when (nextKind) {
         StudyKind.TOPIC.name -> nextTopicId.takeIf { it.isNotBlank() }?.let { WidgetRoutes.topic(nextCourseId, it) }
