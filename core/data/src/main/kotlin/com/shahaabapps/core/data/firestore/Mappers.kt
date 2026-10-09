@@ -45,12 +45,13 @@ object Mappers {
 
     fun Profile.toMap() = mapOf(
         "name" to name, "role" to role.name, "timezone" to timezone, "dateOfBirthIso" to dateOfBirthIso,
-        "photoUrl" to photoUrl, "reminderMinutes" to reminderMinutes,
+        "photoUrl" to photoUrl, "reminderMinutes" to reminderMinutes, "startDateIso" to startDateIso,
     )
 
     fun DocumentSnapshot.toProfile() = Profile(
         uid = id, name = str("name"), role = enum("role", PersonRole.TECH), timezone = str("timezone").ifBlank { "UTC" },
         dateOfBirthIso = strOrNull("dateOfBirthIso"), photoUrl = strOrNull("photoUrl"), reminderMinutes = intOrNull("reminderMinutes"),
+        startDateIso = strOrNull("startDateIso"),
     )
 
     // ---------------- Availability ----------------

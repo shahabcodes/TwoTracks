@@ -5,6 +5,10 @@ build number is appended by CI (for example `0.1.0 (build 12)`).
 
 ## [Unreleased]
 
+## [0.51.0] - 2026-10-09
+### Added
+- Set the day your study starts, and nothing before it counts as missed.
+
 ## [0.50.0] - 2026-10-09
 ### Changed
 - The app opens on Learn, and Learn is the first tab.

@@ -26,6 +26,17 @@ data class Profile(
     val photoUrl: String? = null,
     /** Local time (minutes from midnight) for the daily reminder; null = off. */
     val reminderMinutes: Int? = null,
+    /**
+     * The day this person's study actually begins. Null until they say.
+     *
+     * A space can be made weeks before anyone studies in it, and the plan's
+     * own dates say nothing about that: they are seeded from the guide and
+     * rebased to the day the space was created. Without a date the person has
+     * chosen, every planned slot since then counts as a day they missed, and
+     * the app opens by telling someone who has not started yet that they are
+     * already behind.
+     */
+    val startDateIso: String? = null,
 )
 
 /** The shared space that holds all data for the two of them. */
