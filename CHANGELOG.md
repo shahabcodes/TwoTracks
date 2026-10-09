@@ -5,6 +5,10 @@ build number is appended by CI (for example `0.1.0 (build 12)`).
 
 ## [Unreleased]
 
+## [0.57.0] - 2026-10-10
+### Changed
+- The four weeks of dots on US is now a real calendar, with dates and weekdays.
+
 ## [0.56.2] - 2026-10-10
 ### Fixed
 - Opening Timezone no longer crashes the app.
