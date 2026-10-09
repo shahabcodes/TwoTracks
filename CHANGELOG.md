@@ -5,6 +5,10 @@ build number is appended by CI (for example `0.1.0 (build 12)`).
 
 ## [Unreleased]
 
+## [0.55.0] - 2026-10-09
+### Added
+- A guide button that walks you through the app over the real screens.
+
 ## [0.54.0] - 2026-10-09
 ### Added
 - Study reminders can take over the screen instead of waiting in the tray.

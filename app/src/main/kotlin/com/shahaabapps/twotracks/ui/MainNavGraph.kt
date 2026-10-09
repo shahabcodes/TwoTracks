@@ -50,6 +50,13 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import androidx.compose.runtime.CompositionLocalProvider
+import com.shahaabapps.twotracks.ui.guide.GuideAnchors
+import com.shahaabapps.twotracks.ui.guide.GuideOverlay
+import com.shahaabapps.twotracks.ui.guide.GuideState
+import com.shahaabapps.twotracks.ui.guide.LocalGuide
+import com.shahaabapps.twotracks.ui.guide.guideAnchor
+import com.shahaabapps.twotracks.ui.guide.guideSteps
 import com.shahaabapps.core.ui.theme.AppTheme
 import com.shahaabapps.twotracks.changelog.ChangelogScreen
 import com.shahaabapps.twotracks.feature.budget.BudgetScreen
@@ -124,6 +131,14 @@ private val tabs = listOf(
     Tab(Routes.LEVELS, "Levels", Icons.Filled.Flag),
 )
 
+/** Which tour anchor a tab reports itself as. */
+private fun guideAnchorFor(route: String): String = when (route) {
+    Routes.LEARN -> GuideAnchors.TAB_LEARN
+    Routes.TODAY -> GuideAnchors.TAB_TODAY
+    Routes.US -> GuideAnchors.TAB_US
+    else -> GuideAnchors.TAB_LEVELS
+}
+
 /** iOS tab bar: flat surface with a hairline on top, icon + 10sp label, accent when selected. */
 @Composable
 private fun CupertinoTabBar(selectedRoute: String?, onSelect: (String) -> Unit) {
@@ -141,7 +156,11 @@ private fun CupertinoTabBar(selectedRoute: String?, onSelect: (String) -> Unit) 
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Center,
-                    modifier = Modifier.weight(1f).clickable(interactionSource = interaction, indication = null) { onSelect(tab.route) }.padding(vertical = 4.dp),
+                    modifier = Modifier
+                        .weight(1f)
+                        .clickable(interactionSource = interaction, indication = null) { onSelect(tab.route) }
+                        .padding(vertical = 4.dp)
+                        .guideAnchor(guideAnchorFor(tab.route)),
                 ) {
                     Icon(tab.icon, contentDescription = tab.label, tint = tint, modifier = Modifier.size(24.dp))
                     Text(tab.label, style = MaterialTheme.typography.labelSmall, color = tint, modifier = Modifier.padding(top = 2.dp))
@@ -167,10 +186,25 @@ fun MainNavGraph(session: AppSession, widgetLaunch: WidgetLaunch) {
             launchSingleTop = true
         }
     }
+    // One tour for the whole graph, so a step can point at the tab bar and at
+    // a card on a screen without either knowing about the other.
+    val guide = remember { GuideState(guideSteps(Routes.LEARN, Routes.TODAY, Routes.LEVELS, Routes.US)) }
+    // Each step names the screen it belongs to and the app goes there, which
+    // is what keeps the words and the thing being pointed at together.
+    LaunchedEffect(guide.index) {
+        val route = guide.step?.route ?: return@LaunchedEffect
+        navController.navigate(route) {
+            popUpTo(navController.graph.findStartDestination().id) { saveState = true }
+            launchSingleTop = true
+            restoreState = true
+        }
+    }
+
     val backStack by navController.currentBackStackEntryAsState()
     val currentDestination = backStack?.destination
     val selectedTab = tabs.firstOrNull { tab -> currentDestination?.hierarchy?.any { it.route == tab.route } == true }?.route
 
+    CompositionLocalProvider(LocalGuide provides guide) {
     Scaffold(
         containerColor = AppTheme.colors.groupedBackground,
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
@@ -297,5 +331,10 @@ fun MainNavGraph(session: AppSession, widgetLaunch: WidgetLaunch) {
             }
             composable(Routes.AVAILABILITY) { AvailabilityScreen(onBack = { navController.popBackStack() }) }
         }
+    }
+
+    // Above the scaffold rather than inside it, so a step can ring the tab bar
+    // as readily as anything on a screen.
+    GuideOverlay(guide)
     }
 }

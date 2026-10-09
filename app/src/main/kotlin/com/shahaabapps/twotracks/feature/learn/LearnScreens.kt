@@ -48,6 +48,8 @@ import com.shahaabapps.core.ui.components.CupertinoListSection
 import com.shahaabapps.core.ui.components.CupertinoPrimaryButton
 import com.shahaabapps.core.ui.components.CupertinoScaffold
 import com.shahaabapps.core.ui.components.StatusChip
+import com.shahaabapps.twotracks.ui.guide.GuideAnchors
+import com.shahaabapps.twotracks.ui.guide.guideAnchor
 import com.shahaabapps.core.ui.theme.AppTheme
 import com.shahaabapps.core.ui.theme.Spacing
 import com.shahaabapps.twotracks.ui.components.DetailScaffold
@@ -77,6 +79,7 @@ fun LearnScreen(
         LazyColumn(verticalArrangement = Arrangement.spacedBy(Spacing.md), contentPadding = PaddingValues(bottom = Spacing.xl)) {
             if (state.daily.total > 0) {
                 item {
+                    Box(modifier = Modifier.guideAnchor(GuideAnchors.LEARN_TODAY_CARD)) {
                     TodayStudyCard(state.daily) { step ->
                         when (step.kind) {
                             StudyKind.TOPIC -> step.topicId?.let { onOpenTopic(step.courseId, it) }
@@ -84,13 +87,19 @@ fun LearnScreen(
                             StudyKind.QUESTIONS -> onOpenQuiz(step.courseId, Courses.DAILY_MODULE_ID)
                         }
                     }
+                    }
                 }
             }
             state.courses.forEach { course ->
                 val p = state.progress[course.id]
                 val next = p?.nextTopic(course)
                 item {
-                    CupertinoCard(modifier = Modifier.padding(horizontal = Spacing.listHorizontal), onClick = { onOpenCourse(course.id) }) {
+                    CupertinoCard(
+                        modifier = Modifier
+                            .padding(horizontal = Spacing.listHorizontal)
+                            .then(if (course.id == state.courses.firstOrNull()?.id) Modifier.guideAnchor(GuideAnchors.LEARN_COURSES) else Modifier),
+                        onClick = { onOpenCourse(course.id) },
+                    ) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Column(modifier = Modifier.weight(1f)) {
                                 Text(course.title, style = MaterialTheme.typography.headlineMedium)

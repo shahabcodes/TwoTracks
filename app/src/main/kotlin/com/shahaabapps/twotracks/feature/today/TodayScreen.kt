@@ -58,6 +58,7 @@ import com.shahaabapps.core.ui.theme.AppTheme
 import com.shahaabapps.core.ui.theme.Shapes
 import com.shahaabapps.core.ui.theme.Spacing
 import com.shahaabapps.twotracks.changelog.WhatsNewDialog
+import com.shahaabapps.twotracks.ui.guide.LocalGuide
 import com.shahaabapps.twotracks.session.Clock
 import com.shahaabapps.twotracks.ui.components.AnimatedSwap
 import com.shahaabapps.twotracks.ui.components.Chip
@@ -214,9 +215,17 @@ fun TodayScreen(
     }
 
     // After an update, What's new comes first; the daily brief follows once it is dismissed.
+    //
+    // Neither interrupts the tour. The tour walks onto this screen by itself,
+    // and a dialog opening on arrival lands on top of it, taking the taps and
+    // leaving a tour that cannot be advanced or dismissed. Both of these wait
+    // until it is over; neither is lost, as both are shown again next time.
+    val touring = LocalGuide.current?.running == true
     val whatsNew = state.whatsNew
     val brief = state.brief
-    if (whatsNew != null) {
+    if (touring) {
+        // nothing: the tour is talking
+    } else if (whatsNew != null) {
         WhatsNewDialog(release = whatsNew, onDismiss = viewModel::dismissWhatsNew, onViewMore = { viewModel.dismissWhatsNew(); onOpenChangelog() })
     } else if (brief != null && !state.loading) {
         DailyBriefSheet(brief = brief, onStart = viewModel::dismissBrief, onDismiss = viewModel::dismissBrief)
