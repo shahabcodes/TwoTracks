@@ -3,6 +3,7 @@ package com.shahaabapps.twotracks.feature.auth
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.shahaabapps.core.common.AppResult
+import com.shahaabapps.core.common.datastore.GuidePreferences
 import com.shahaabapps.core.data.auth.AuthRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -40,6 +41,7 @@ data class AuthUiState(
 @HiltViewModel
 class AuthViewModel @Inject constructor(
     private val authRepository: AuthRepository,
+    private val guidePreferences: GuidePreferences,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(AuthUiState())
@@ -63,8 +65,12 @@ class AuthViewModel @Inject constructor(
                 authRepository.signInWithEmail(current.email, current.password)
             }
             when (result) {
-                // Clear the form so the next person to sign in (after a sign-out) starts fresh.
-                is AppResult.Success -> _uiState.value = AuthUiState()
+                // Clear the form so the next person to sign in (after a sign-out) starts fresh,
+                // and owe them the tour: whoever just signed in may never have seen the app.
+                is AppResult.Success -> {
+                    _uiState.value = AuthUiState()
+                    guidePreferences.setPending(true)
+                }
                 is AppResult.Failure -> fail(friendly(result.error.message))
             }
         }
