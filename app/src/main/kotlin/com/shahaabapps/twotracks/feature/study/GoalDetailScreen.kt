@@ -53,8 +53,6 @@ import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import com.shahaabapps.twotracks.ui.components.Chip
 import com.shahaabapps.twotracks.ui.components.DetailScaffold
-import com.shahaabapps.twotracks.ui.components.LogMinutesSheet
-import com.shahaabapps.twotracks.ui.components.LogTarget
 import com.shahaabapps.twotracks.ui.components.NavAction
 import com.shahaabapps.twotracks.ui.components.ProgressBar
 import com.shahaabapps.twotracks.ui.components.SwipeToDelete
@@ -74,7 +72,6 @@ fun GoalDetailScreen(
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val snackbar = remember { SnackbarHostState() }
-    var logTarget by remember { mutableStateOf<LogTarget?>(null) }
     var showMock by remember { mutableStateOf(false) }
     var showDetails by remember { mutableStateOf(false) }
     var confirmPass by remember { mutableStateOf(false) }
@@ -107,11 +104,20 @@ fun GoalDetailScreen(
                 item {
                     CupertinoCard(modifier = Modifier.padding(horizontal = Spacing.listHorizontal)) {
                         Text(state.sentence, style = MaterialTheme.typography.titleMedium, color = if (state.sentenceGood) AppTheme.colors.success else AppTheme.colors.warn)
-                        ProgressBar(fraction = p.fraction.toFloat(), modifier = Modifier.padding(top = Spacing.sm, bottom = Spacing.xs))
-                        Text("%.0f of %.0f hours".format(p.hoursLogged, p.hoursRequired) + (p.targetDate?.let { " · by ${Clock.formatDate(it)}" } ?: ""), style = MaterialTheme.typography.bodyMedium)
+                        // Hours are shown only where a course records them. For
+                        // a goal no course feeds nothing can move the bar, and a
+                        // bar stuck on nought reads as failure rather than as a
+                        // goal that is simply measured another way.
+                        if (state.hoursCounted) {
+                            ProgressBar(fraction = p.fraction.toFloat(), modifier = Modifier.padding(top = Spacing.sm, bottom = Spacing.xs))
+                            Text("%.0f of %.0f hours".format(p.hoursLogged, p.hoursRequired) + (p.targetDate?.let { " · by ${Clock.formatDate(it)}" } ?: ""), style = MaterialTheme.typography.bodyMedium)
+                        } else {
+                            p.targetDate?.let { due ->
+                                Text("By ${Clock.formatDate(due)}", style = MaterialTheme.typography.bodyMedium, modifier = Modifier.padding(top = Spacing.sm))
+                            }
+                        }
                         if (goal.subtitle.isNotBlank()) Text(goal.subtitle, style = MaterialTheme.typography.bodySmall, color = AppTheme.colors.secondaryLabel, modifier = Modifier.padding(top = Spacing.xs))
                         if (state.isMine) {
-                            CupertinoPrimaryButton(text = "Log time", onClick = { logTarget = LogTarget(goalId = goal.id, componentId = null, dateIso = state.todayIso, isClass = goal.components.size > 1 && goal.kind == com.shahaabapps.core.model.GoalKind.LANGUAGE_TEST) }, modifier = Modifier.padding(top = Spacing.md))
                             if (goal.passed) {
                                 CupertinoTextButton(text = "Reopen (not passed after all)", onClick = { viewModel.setPassed(false) })
                             } else {
@@ -163,18 +169,31 @@ fun GoalDetailScreen(
                                 Row(verticalAlignment = Alignment.CenterVertically) {
                                     Column(modifier = Modifier.weight(1f)) {
                                         Text(c.component.name, style = MaterialTheme.typography.titleMedium)
-                                        Text(
+                                        // Same rule as the card above: an hours
+                                        // line only where a course keeps them.
+                                        // The skills are still worth listing —
+                                        // they say what the goal is made of.
+                                        val line = if (state.hoursCounted) {
                                             when {
                                                 c.finishedByCourse -> "Finished in the course · %.0f h logged".format(c.hoursLogged)
                                                 c.courseFraction != null -> "%.0f of %.0f h · course %.0f%%".format(c.hoursLogged, c.hoursRequired, c.courseFraction!! * 100)
                                                 else -> "%.0f of %.0f h".format(c.hoursLogged, c.hoursRequired)
-                                            } + (c.component.targetScore?.let { " · target $it" } ?: ""),
-                                            style = MaterialTheme.typography.bodySmall, color = if (c.finishedByCourse) AppTheme.colors.success else AppTheme.colors.secondaryLabel,
-                                        )
+                                            } + (c.component.targetScore?.let { " · target $it" } ?: "")
+                                        } else {
+                                            c.component.targetScore?.let { "Target $it" }.orEmpty()
+                                        }
+                                        if (line.isNotBlank()) {
+                                            Text(
+                                                line,
+                                                style = MaterialTheme.typography.bodySmall,
+                                                color = if (c.finishedByCourse) AppTheme.colors.success else AppTheme.colors.secondaryLabel,
+                                            )
+                                        }
                                     }
-                                    if (state.isMine) Chip(text = "Log", onClick = { logTarget = LogTarget(goalId = goal.id, componentId = c.component.id, dateIso = state.todayIso) })
                                 }
-                                ProgressBar(fraction = c.fraction.toFloat(), modifier = Modifier.padding(top = Spacing.xs), height = 6.dp)
+                                if (state.hoursCounted) {
+                                    ProgressBar(fraction = c.fraction.toFloat(), modifier = Modifier.padding(top = Spacing.xs), height = 6.dp)
+                                }
                             }
                         }
                     }
@@ -261,14 +280,6 @@ fun GoalDetailScreen(
             }
             SnackbarHost(snackbar, modifier = Modifier.align(Alignment.BottomCenter))
         }
-    }
-
-    logTarget?.let { target ->
-        LogMinutesSheet(
-            target = target, goals = state.goals, onDismiss = { logTarget = null },
-            onLog = { _, c, m, n -> viewModel.log(c, m, n, target.dateIso); logTarget = null },
-            onLogSplit = { _, map, n -> viewModel.logSplit(map, n, target.dateIso); logTarget = null },
-        )
     }
 
     if (confirmPass && goal != null) {

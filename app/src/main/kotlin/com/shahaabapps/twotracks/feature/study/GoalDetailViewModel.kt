@@ -44,6 +44,13 @@ data class GoalDetailUiState(
     /** Plain sentence for the top of the page. */
     val sentence: String = "",
     val sentenceGood: Boolean = true,
+    /**
+     * True when a course records this goal's hours, which since minutes stopped
+     * being entered by hand is the only way they move at all. False for the
+     * goals the roadmap tracks by its own checklist, where an hours bar could
+     * only ever read nought.
+     */
+    val hoursCounted: Boolean = false,
 )
 
 @HiltViewModel
@@ -71,7 +78,8 @@ class GoalDetailViewModel @Inject constructor(
         val progress = ProgressCalculator.compute(goal, logs, today, CourseBridge.statesFor(goal.owner, topicProgress, quizAttempts)[goal.id] ?: com.shahaabapps.core.planner.CourseState.NONE)
         val goalLogs = logs.filter { it.goalId == goal.id }
         val byDay = goalLogs.groupBy { it.dateIso }.mapValues { e -> e.value.sumOf { it.minutes } }
-        val (sentence, good) = sentenceFor(goal, progress)
+        val hoursCounted = course != null
+        val (sentence, good) = sentenceFor(goal, progress, hoursCounted)
         GoalDetailUiState(
             courseId = course?.id, modules = modules,
             goal = goal, progress = progress, isMine = session?.myRole == goal.owner,
@@ -79,12 +87,19 @@ class GoalDetailViewModel @Inject constructor(
             last14 = (13L downTo 0L).map { off -> val d = today.minusDays(off); DayBar(d, byDay[Dates.format(d)] ?: 0) },
             mockScores = scores.filter { it.goalId == goal.id }.sortedByDescending { it.dateIso },
             todayIso = Dates.format(today), message = msg, goals = goals, sentence = sentence, sentenceGood = good,
+            hoursCounted = hoursCounted,
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), GoalDetailUiState())
 
-    private fun sentenceFor(goal: StudyGoal, p: GoalProgress): Pair<String, Boolean> {
+    private fun sentenceFor(goal: StudyGoal, p: GoalProgress, hoursCounted: Boolean): Pair<String, Boolean> {
         if (goal.passed) return "Passed on ${Clock.formatDate(goal.passedAtIso)}." to true
         val due = p.targetDate?.let { Clock.formatDate(it) }
+        // Every sentence below reads the hours to work out a pace. Where no
+        // course records them there is no pace to report, and the old ones
+        // would have said "nothing logged yet" for good.
+        if (!hoursCounted) {
+            return (due?.let { "Due by $it. Tracked by its steps, not by hours." } ?: "Tracked by its steps, not by hours.") to true
+        }
         return when (p.feasibility) {
             com.shahaabapps.core.planner.Feasibility.DONE -> "All the hours are in. Mark it passed when the result is in." to true
             com.shahaabapps.core.planner.Feasibility.FITS -> "On track${due?.let { " for $it" } ?: ""}." to true
@@ -98,16 +113,6 @@ class GoalDetailViewModel @Inject constructor(
             }
             com.shahaabapps.core.planner.Feasibility.NO_TARGET -> "No date set. Add one in Edit to get a pace." to true
         }
-    }
-
-    fun log(componentId: String, minutes: Int, note: String, dateIso: String) = viewModelScope.launch {
-        message.value = actions.logMinutes(goalId, componentId, minutes, dateIso, note) ?: "Logged $minutes min"
-    }
-
-    fun logSplit(minutesByComponent: Map<String, Int>, note: String, dateIso: String) = viewModelScope.launch {
-        var error: String? = null
-        minutesByComponent.forEach { (c, m) -> error = error ?: actions.logMinutes(goalId, c, m, dateIso, note) }
-        message.value = error ?: "Logged ${minutesByComponent.values.sum()} min"
     }
 
     /** The most recently swiped-away entry, offered back through Undo. */

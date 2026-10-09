@@ -64,9 +64,9 @@ class ReminderScheduler @Inject constructor(
             buildList {
                 if (s.isClass) {
                     add(Candidate(start.minusMinutes(15).toInstant().toEpochMilli(), "Class in 15 minutes", what))
-                    add(Candidate(end.toInstant().toEpochMilli(), "How did class go?", "Log what today's $what class covered."))
+                    add(Candidate(end.toInstant().toEpochMilli(), "How did class go?", "Mark today's $what class done when you have a moment."))
                 } else {
-                    add(Candidate(start.toInstant().toEpochMilli(), "Time to study", "$what (${s.durationMinutes} min). Tap to log it when you are done."))
+                    add(Candidate(start.toInstant().toEpochMilli(), "Time to study", "$what (${s.durationMinutes} min). The minutes count themselves as you read."))
                 }
             }
         }

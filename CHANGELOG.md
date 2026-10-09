@@ -5,6 +5,10 @@ build number is appended by CI (for example `0.1.0 (build 12)`).
 
 ## [Unreleased]
 
+## [0.52.0] - 2026-10-09
+### Removed
+- Logging time by hand. Hours now come from the courses alone.
+
 ## [0.51.0] - 2026-10-09
 ### Added
 - Set the day your study starts, and nothing before it counts as missed.
