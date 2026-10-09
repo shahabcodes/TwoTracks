@@ -109,11 +109,19 @@ object Routes {
 
 private data class Tab(val route: String, val label: String, val icon: ImageVector)
 
+/**
+ * Learn comes first, and is where the app opens.
+ *
+ * The point of this app is the studying; everything else here measures it.
+ * A tab bar is read left to right and the first tab is the one the app lands
+ * on, so putting Today first meant opening every day on a summary of work
+ * rather than on the work.
+ */
 private val tabs = listOf(
+    Tab(Routes.LEARN, "Learn", Icons.Filled.MenuBook),
     Tab(Routes.TODAY, "Today", Icons.Filled.Today),
     Tab(Routes.US, "US", Icons.Filled.Favorite),
     Tab(Routes.LEVELS, "Levels", Icons.Filled.Flag),
-    Tab(Routes.LEARN, "Learn", Icons.Filled.MenuBook),
 )
 
 /** iOS tab bar: flat surface with a hairline on top, icon + 10sp label, accent when selected. */
@@ -182,7 +190,7 @@ fun MainNavGraph(session: AppSession, widgetLaunch: WidgetLaunch) {
         fun isTab(route: String?) = route in tabRoutes
         NavHost(
             navController = navController,
-            startDestination = Routes.TODAY,
+            startDestination = Routes.LEARN,
             modifier = Modifier.padding(padding),
             enterTransition = {
                 if (isTab(initialState.destination.route) && isTab(targetState.destination.route)) fadeIn(tween(220))
