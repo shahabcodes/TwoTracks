@@ -5,6 +5,10 @@ build number is appended by CI (for example `0.1.0 (build 12)`).
 
 ## [Unreleased]
 
+## [0.50.0] - 2026-10-09
+### Changed
+- The app opens on Learn, and Learn is the first tab.
+
 ## [0.49.2] - 2026-10-09
 ### Fixed
 - A widget that says words are waiting now opens the deck, not the Today screen.
