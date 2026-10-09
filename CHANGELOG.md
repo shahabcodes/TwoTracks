@@ -5,6 +5,10 @@ build number is appended by CI (for example `0.1.0 (build 12)`).
 
 ## [Unreleased]
 
+## [0.56.1] - 2026-10-10
+### Fixed
+- The guide no longer looks like the app, says less, and keeps clear of what it points at.
+
 ## [0.56.0] - 2026-10-09
 ### Changed
 - The guide now walks every Settings row, and runs itself whenever you sign in.

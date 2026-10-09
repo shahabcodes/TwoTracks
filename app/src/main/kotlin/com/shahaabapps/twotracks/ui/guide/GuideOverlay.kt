@@ -1,29 +1,42 @@
 package com.shahaabapps.twotracks.ui.guide
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateRectAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBarsPadding
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.foundation.ScrollState
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -34,21 +47,12 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.boundsInWindow
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
-import androidx.compose.animation.AnimatedVisibility
-import com.shahaabapps.core.ui.components.CupertinoPrimaryButton
-import com.shahaabapps.core.ui.components.CupertinoTextButton
-import com.shahaabapps.core.ui.theme.AppTheme
 import com.shahaabapps.core.ui.theme.Spacing
-import com.shahaabapps.twotracks.ui.components.Chip
 
 /**
  * Reports this composable's position to the tour, so a step can ring it.
@@ -128,58 +132,83 @@ fun GuideOverlay(guide: GuideState) {
                 }
             }
 
-            GuideCard(guide = guide, step = step, holeBottom = animated.bottom)
+            GuideCard(guide = guide, step = step, hole = animated)
         }
     }
 }
 
 /**
- * The words. It sits at the bottom unless the hole is down there, in which
- * case it moves to the top, because a card covering the thing it is pointing
- * at explains nothing.
+ * The words.
+ *
+ * Deliberately not dressed like the app. Everything behind the scrim is dimmed
+ * except the thing being ringed, which stays at full strength — so a card in
+ * the app's own colours, carrying the app's own accent button, reads as one
+ * more thing on the screen to press, and the ringed control and the Next
+ * button compete. This one is near-black with a white button: plainly the
+ * narrator, not the app.
+ *
+ * It takes whichever side of the ring has more room and is capped to that
+ * room, so it cannot grow over the thing it is pointing at.
  */
 @Composable
-private fun GuideCard(
-    guide: GuideState,
-    step: GuideStep,
-    holeBottom: Float,
-) {
+private fun BoxScope.GuideCard(guide: GuideState, step: GuideStep, hole: Rect) {
     val density = LocalDensity.current
-    val screenBottomThird = with(density) { 420.dp.toPx() }
-    val atTop = holeBottom > 0f && holeBottom > screenBottomThird
-    Box(modifier = Modifier.fillMaxSize().systemBarsPadding()) {
-        Column(
-            modifier = Modifier
-                .align(if (atTop) Alignment.TopCenter else Alignment.BottomCenter)
-                .padding(Spacing.lg)
-                .fillMaxWidth()
-                .clip(RoundedCornerShape(20.dp))
-                .background(AppTheme.colors.card)
-                .padding(Spacing.lg),
-            verticalArrangement = Arrangement.spacedBy(Spacing.xs),
+    var boxHeight by remember { mutableFloatStateOf(0f) }
+    val gap = with(density) { Spacing.md.toPx() }
+
+    val above = if (hole.isEmpty) 0f else hole.top
+    val below = if (hole.isEmpty || boxHeight == 0f) 0f else boxHeight - hole.bottom
+    // With nothing ringed there is no thing to avoid, so it sits low, where a
+    // thumb can reach it.
+    val atTop = !hole.isEmpty && above > below
+    val room = if (hole.isEmpty || boxHeight == 0f) boxHeight else if (atTop) above else below
+    val maxHeight = with(density) { (room - gap).coerceAtLeast(0f).toDp() }
+
+    Column(
+        modifier = Modifier
+            .align(if (atTop) Alignment.TopCenter else Alignment.BottomCenter)
+            .onGloballyPositioned { boxHeight = it.parentLayoutCoordinates?.size?.height?.toFloat() ?: boxHeight }
+            .systemBarsPadding()
+            .padding(Spacing.md)
+            .fillMaxWidth()
+            .heightIn(max = if (maxHeight > 0.dp) maxHeight else 420.dp)
+            .clip(RoundedCornerShape(20.dp))
+            .background(GuideSurface)
+            .verticalScroll(rememberScrollState())
+            .padding(Spacing.lg),
+        verticalArrangement = Arrangement.spacedBy(Spacing.xs),
+    ) {
+        Text(
+            "STEP ${guide.position} OF ${guide.total}",
+            style = MaterialTheme.typography.labelMedium,
+            color = Color.White.copy(alpha = 0.6f),
+        )
+        Text(
+            step.title,
+            style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
+            color = Color.White,
+        )
+        Text(step.body, style = MaterialTheme.typography.bodyMedium, color = Color.White.copy(alpha = 0.82f))
+        Spacer(Modifier.height(Spacing.sm))
+        Button(
+            onClick = guide::next,
+            modifier = Modifier.fillMaxWidth().height(48.dp),
+            shape = RoundedCornerShape(12.dp),
+            colors = ButtonDefaults.buttonColors(containerColor = Color.White, contentColor = GuideSurface),
         ) {
             Text(
-                "STEP ${guide.position} OF ${guide.total}",
-                style = MaterialTheme.typography.labelMedium,
-                color = AppTheme.colors.secondaryLabel,
+                if (guide.isLast) "Done" else "Next",
+                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
             )
-            Text(
-                step.title,
-                style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold),
-            )
-            Text(step.body, style = MaterialTheme.typography.bodyMedium, color = AppTheme.colors.secondaryLabel)
-            Spacer(Modifier.height(Spacing.sm))
-            CupertinoPrimaryButton(
-                text = if (guide.isLast) "Done" else "Next",
-                onClick = guide::next,
-                modifier = Modifier.fillMaxWidth(),
-            )
-            Row(horizontalArrangement = Arrangement.spacedBy(Spacing.sm), modifier = Modifier.fillMaxWidth()) {
-                if (guide.position > 1) {
-                    Chip(text = "Back", onClick = guide::back)
-                }
-                Chip(text = "Skip the tour", onClick = { guide.stop() })
+        }
+        Row(horizontalArrangement = Arrangement.spacedBy(Spacing.md), modifier = Modifier.fillMaxWidth()) {
+            if (guide.position > 1) {
+                TextButton(onClick = guide::back) { Text("Back", color = Color.White.copy(alpha = 0.8f)) }
             }
+            TextButton(onClick = guide::stop) { Text("Skip", color = Color.White.copy(alpha = 0.8f)) }
         }
     }
 }
+
+/** Near-black, so the narrator is never mistaken for the app. */
+private val GuideSurface = Color(0xFF1C1C1E)
