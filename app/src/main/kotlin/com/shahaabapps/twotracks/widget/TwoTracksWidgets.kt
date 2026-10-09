@@ -32,6 +32,7 @@ import androidx.glance.text.FontWeight
 import androidx.glance.text.Text
 import androidx.glance.text.TextStyle
 import com.shahaabapps.core.content.Courses
+import com.shahaabapps.core.content.StudyKind
 import com.shahaabapps.core.content.WidgetSnapshot
 import com.shahaabapps.twotracks.MainActivity
 import dagger.hilt.EntryPoint
@@ -77,9 +78,25 @@ object WidgetRoutes {
     fun dailyReview(courseId: String) = "learn/$courseId/quiz/${Courses.DAILY_MODULE_ID}"
 }
 
-/** The route to the next outstanding thing, or null when the snapshot does not name one. */
-private fun WidgetSnapshot.nextRoute(): String? =
-    nextTopicId.takeIf { it.isNotBlank() && nextCourseId.isNotBlank() }?.let { WidgetRoutes.topic(nextCourseId, it) }
+/**
+ * The route to the next outstanding thing, or null when the snapshot does not
+ * name one.
+ *
+ * Each kind of work lands somewhere different, and only a topic carries a
+ * topic id: the words step opens the deck and the questions step opens the
+ * daily sitting, both of which the course id alone is enough to name. Reading
+ * the kind is what keeps a card saying "Words: 15 waiting" from dropping the
+ * reader on Today.
+ */
+private fun WidgetSnapshot.nextRoute(): String? {
+    if (nextCourseId.isBlank()) return null
+    return when (nextKind) {
+        StudyKind.TOPIC.name -> nextTopicId.takeIf { it.isNotBlank() }?.let { WidgetRoutes.topic(nextCourseId, it) }
+        StudyKind.WORDS.name -> WidgetRoutes.deck(nextCourseId)
+        StudyKind.QUESTIONS.name -> WidgetRoutes.dailyReview(nextCourseId)
+        else -> null
+    }
+}
 
 // ------------------------------------------------------------------ pieces
 

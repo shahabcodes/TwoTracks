@@ -148,6 +148,35 @@ class WidgetSnapshotTest {
     }
 
     @Test
+    fun `the next step names which kind of work it is`() {
+        // A widget cannot route without this: the words and questions steps
+        // carry no topic id, so a blank kind and a blank topic read alike and
+        // the card lands the reader on Today instead of the deck it names.
+        val fresh = snapshot(emptyList())
+        assertEquals(StudyKind.TOPIC.name, fresh.nextKind)
+        assertTrue(fresh.nextTopicId.isNotBlank())
+        assertTrue(fresh.nextCourseId.isNotBlank())
+
+        // Every topic with vocabulary read, so reading is done for today and
+        // the words that came with it are what is left.
+        val read = vocabTopics(3).map {
+            TopicProgress(owner = me, courseId = german.id, topicId = it.id, learnedAtIso = today.toString())
+        }
+        val s = snapshot(read)
+        assertEquals(StudyKind.WORDS.name, s.nextKind)
+        assertEquals(german.id, s.nextCourseId)
+        // The step it points at has no topic, which is the whole reason the
+        // kind has to be carried separately.
+        assertEquals("", s.nextTopicId)
+    }
+
+    @Test
+    fun `a closed day names no next step at all`() {
+        val s = WidgetSnapshot()
+        assertEquals("", s.nextKind)
+    }
+
+    @Test
     fun `an empty snapshot is safe to render`() {
         val s = WidgetSnapshot()
         assertFalse(s.hasWord)

@@ -25,6 +25,13 @@ data class WidgetSnapshot(
     val nextLabel: String = "",
     val nextCourseId: String = "",
     val nextTopicId: String = "",
+    /**
+     * Which of the three kinds of work the next step is, as [StudyKind.name],
+     * or empty when the day is closed. A topic names a topic to open, but the
+     * words and questions steps have no topic at all, and without the kind a
+     * widget cannot tell "nothing left to do" from "the deck is what is left".
+     */
+    val nextKind: String = "",
     /** Questions the spaced schedule has brought back round, across all courses. */
     val questionsDue: Int = 0,
     val questionsCourseId: String = "",
@@ -92,6 +99,7 @@ data class WidgetSnapshot(
                 nextLabel = next?.title.orEmpty(),
                 nextCourseId = next?.courseId.orEmpty(),
                 nextTopicId = next?.topicId.orEmpty(),
+                nextKind = next?.kind?.name.orEmpty(),
                 questionsDue = questions?.second ?: 0,
                 questionsCourseId = if ((questions?.second ?: 0) > 0) questions!!.first else "",
                 word = word?.display.orEmpty(),

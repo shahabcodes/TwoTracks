@@ -32,6 +32,7 @@ object WidgetStore {
     private val NEXT_LABEL = stringPreferencesKey("next_label")
     private val NEXT_COURSE = stringPreferencesKey("next_course")
     private val NEXT_TOPIC = stringPreferencesKey("next_topic")
+    private val NEXT_KIND = stringPreferencesKey("next_kind")
     private val QUESTIONS_DUE = intPreferencesKey("questions_due")
     private val QUESTIONS_COURSE = stringPreferencesKey("questions_course")
     private val WORD = stringPreferencesKey("word")
@@ -53,6 +54,7 @@ object WidgetStore {
             p[NEXT_LABEL] = s.nextLabel
             p[NEXT_COURSE] = s.nextCourseId
             p[NEXT_TOPIC] = s.nextTopicId
+            p[NEXT_KIND] = s.nextKind
             p[QUESTIONS_DUE] = s.questionsDue
             p[QUESTIONS_COURSE] = s.questionsCourseId
             p[WORD] = s.word
@@ -79,6 +81,7 @@ object WidgetStore {
         nextLabel = this[NEXT_LABEL].orEmpty(),
         nextCourseId = this[NEXT_COURSE].orEmpty(),
         nextTopicId = this[NEXT_TOPIC].orEmpty(),
+        nextKind = this[NEXT_KIND].orEmpty(),
         questionsDue = this[QUESTIONS_DUE] ?: 0,
         questionsCourseId = this[QUESTIONS_COURSE].orEmpty(),
         word = this[WORD].orEmpty(),
