@@ -5,6 +5,10 @@ build number is appended by CI (for example `0.1.0 (build 12)`).
 
 ## [Unreleased]
 
+## [0.53.0] - 2026-10-09
+### Changed
+- The voice list only shows voices that work, and remembers what each one is.
+
 ## [0.52.0] - 2026-10-09
 ### Removed
 - Logging time by hand. Hours now come from the courses alone.

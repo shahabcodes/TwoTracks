@@ -44,6 +44,8 @@ class Speaker @Inject constructor(
         val label: String,
         val gender: VoiceGender,
         val detail: String,
+        /** Country the voice speaks for, e.g. "GB". Empty when the name does not say. */
+        val region: String = "",
     )
 
     private val _state = MutableStateFlow(State.INIT)
@@ -113,7 +115,15 @@ class Speaker @Inject constructor(
     private fun listVoices(engine: TextToSpeech): List<VoiceChoice> {
         val all = runCatching { engine.voices?.toList() }.getOrNull().orEmpty()
         val mine = all.filter { v ->
-            runCatching { v.locale.language == language.language }.getOrDefault(false)
+            runCatching {
+                v.locale.language == language.language &&
+                    // A voice the engine has listed but not downloaded cannot
+                    // speak. Offering it is how the picker came to be full of
+                    // voices that do nothing when tapped.
+                    VoiceNames.NOT_INSTALLED !in v.features.orEmpty() &&
+                    // The engine's own default, already the first row.
+                    !VoiceNames.isLegacyLocaleVoice(v.name)
+            }.getOrDefault(false)
         }.sortedWith(
             compareBy(
                 { it.isNetworkConnectionRequired },
@@ -121,18 +131,21 @@ class Speaker @Inject constructor(
                 { it.name },
             ),
         )
-        val seen = mutableMapOf<VoiceGender, Int>()
-        return mine.map { v ->
-            val gender = VoiceNames.genderOf(v.name)
-            val position = (seen[gender] ?: 0) + 1
-            seen[gender] = position
-            VoiceChoice(
-                name = v.name,
-                label = VoiceNames.label(gender, position),
-                gender = gender,
-                detail = VoiceNames.detail(v.isNetworkConnectionRequired, v.quality),
-            )
-        }
+        // One row per voice, not one per way of fetching it: the local and the
+        // network copy of `en-us-x-iob` are the same voice. Sorted local-first
+        // above, so the first of each pair is the one that works offline.
+        return mine
+            .distinctBy { VoiceNames.regionOf(it.name) + "/" + VoiceNames.variantOf(it.name) }
+            .map { v ->
+                val gender = VoiceNames.genderOf(v.name)
+                VoiceChoice(
+                    name = v.name,
+                    label = VoiceNames.placeholderLabel(v.name),
+                    gender = gender,
+                    detail = VoiceNames.detail(v.isNetworkConnectionRequired, v.quality),
+                    region = VoiceNames.regionOf(v.name),
+                )
+            }
     }
 
     /**
