@@ -7,6 +7,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
@@ -14,9 +15,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.DatePicker
+import androidx.compose.material3.DatePickerDialog
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -30,6 +35,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.shahaabapps.core.ui.components.CupertinoSegmentedControl
+import com.shahaabapps.core.ui.components.CupertinoTextButton
 import com.shahaabapps.core.ui.theme.AppTheme
 import com.shahaabapps.core.ui.theme.Shapes
 import com.shahaabapps.core.ui.theme.Spacing
@@ -148,6 +154,58 @@ fun TimezonePicker(selected: String, onSelect: (String) -> Unit) {
             .padding(horizontal = 16.dp, vertical = 14.dp),
     )
     if (open) TimezoneDialog(selected = selected, onSelect = onSelect, onDismiss = { open = false })
+}
+
+/**
+ * Picking the day your study starts counting.
+ *
+ * It offers "today" and "clear" alongside the calendar because those are the
+ * two answers people actually have: starting now, or undoing a date set by
+ * mistake. Future dates are allowed on purpose — someone setting up a space
+ * before a course begins is the case this exists for.
+ */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun StartDateDialog(selectedIso: String?, onPick: (String?) -> Unit, onDismiss: () -> Unit) {
+    val initial = remember(selectedIso) {
+        runCatching { java.time.LocalDate.parse(selectedIso) }.getOrNull()
+            ?.atStartOfDay(java.time.ZoneOffset.UTC)?.toInstant()?.toEpochMilli()
+    }
+    val pickerState = rememberDatePickerState(initialSelectedDateMillis = initial)
+    // Material's own dialog rather than CupertinoDialog: that one puts its
+    // content in a vertical scroll, and a DatePicker scrolls internally, so
+    // the calendar is measured with no height to fit in and the screen dies.
+    DatePickerDialog(
+        onDismissRequest = onDismiss,
+        confirmButton = {
+            TextButton(
+                onClick = {
+                    val iso = pickerState.selectedDateMillis?.let {
+                        java.time.Instant.ofEpochMilli(it).atZone(java.time.ZoneOffset.UTC).toLocalDate().toString()
+                    }
+                    onPick(iso)
+                    onDismiss()
+                },
+                enabled = pickerState.selectedDateMillis != null,
+            ) { Text("Save", color = AppTheme.colors.accent, fontWeight = FontWeight.SemiBold) }
+        },
+        dismissButton = {
+            Row {
+                if (selectedIso != null) {
+                    TextButton(onClick = { onPick(null); onDismiss() }) {
+                        Text("Clear", color = AppTheme.colors.secondaryLabel)
+                    }
+                }
+                TextButton(onClick = onDismiss) { Text("Cancel", color = AppTheme.colors.secondaryLabel) }
+            }
+        },
+    ) {
+        // Only the calendar: DatePickerDialog sizes itself around it, and
+        // anything added above is clipped off the top. What this date does is
+        // said on the Settings row and in its section footer, where it is
+        // read before the dialog is ever opened.
+        DatePicker(state = pickerState, title = null, headline = null, showModeToggle = false)
+    }
 }
 
 /** The timezone list as a dialog, for use behind a settings row. */

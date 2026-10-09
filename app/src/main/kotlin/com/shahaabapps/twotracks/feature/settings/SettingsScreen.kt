@@ -10,6 +10,7 @@ import com.shahaabapps.twotracks.feature.auth.CompanionKind
 import com.shahaabapps.twotracks.feature.auth.Companion
 import com.shahaabapps.twotracks.ui.components.DialogButton
 import com.shahaabapps.twotracks.ui.components.CupertinoDialog
+import com.shahaabapps.twotracks.ui.components.StartDateDialog
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.material.icons.filled.Lock
 import android.Manifest
@@ -51,6 +52,7 @@ import com.shahaabapps.core.ui.theme.IosColors
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.Fingerprint
+import androidx.compose.material.icons.filled.PlayCircleOutline
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Link
@@ -82,6 +84,7 @@ fun SettingsScreen(
     val clipboard = LocalClipboardManager.current
     var editName by remember { mutableStateOf(false) }
     var editTimezone by remember { mutableStateOf(false) }
+    var editStartDate by remember { mutableStateOf(false) }
     var confirmReset by remember { mutableStateOf(false) }
     var changePassword by remember { mutableStateOf(false) }
     val notifPermission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { }
@@ -121,7 +124,8 @@ fun SettingsScreen(
 
                     CupertinoListSection(
                         header = "Schedule",
-                        footer = "Reminders fire at the start of each planned study slot and 15 minutes before a class, in your timezone.",
+                        footer = "Reminders fire at the start of each planned study slot and 15 minutes before a class, in your timezone. " +
+                            "Nothing before your start date is counted as a day you missed.",
                     ) {
                         val study = state.availability.blocks.count { it.kind == com.shahaabapps.core.model.BlockKind.STUDY }
                         val cls = state.availability.blocks.count { it.kind == com.shahaabapps.core.model.BlockKind.CLASS }
@@ -129,7 +133,14 @@ fun SettingsScreen(
                             "Weekly template",
                             leadingIcon = Icons.Filled.CalendarMonth, iconColor = IosColors.Orange,
                             subtitle = "$study study slots, $cls class slots, ${state.availability.weeklyStudyMinutes / 60}h ${state.availability.weeklyStudyMinutes % 60}m per week",
-                            onClick = onOpenAvailability, trailing = { CupertinoDisclosure() }, showDivider = false,
+                            onClick = onOpenAvailability, trailing = { CupertinoDisclosure() },
+                        )
+                        CupertinoListRow(
+                            "Start date",
+                            leadingIcon = Icons.Filled.PlayCircleOutline, iconColor = IosColors.Green, showDivider = false,
+                            subtitle = if (s.me.startDateIso == null) "Not set. The plan's own first day is used." else "The day your study counts from",
+                            onClick = { editStartDate = true },
+                            trailing = { CupertinoValue(s.me.startDateIso ?: "Not set"); CupertinoDisclosure() },
                         )
                     }
 
@@ -199,6 +210,13 @@ fun SettingsScreen(
     }
     if (editTimezone && s != null) {
         TimezoneDialog(selected = s.me.timezone, onSelect = { z -> viewModel.saveProfile { p -> p.copy(timezone = z) } }, onDismiss = { editTimezone = false })
+    }
+    if (editStartDate && s != null) {
+        StartDateDialog(
+            selectedIso = s.me.startDateIso,
+            onPick = { iso -> viewModel.saveProfile { p -> p.copy(startDateIso = iso) } },
+            onDismiss = { editStartDate = false },
+        )
     }
     if (changePassword) {
         var current by remember { mutableStateOf("") }

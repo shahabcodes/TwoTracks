@@ -30,6 +30,7 @@ import com.shahaabapps.core.model.PersonRole
 import com.shahaabapps.core.data.study.forRole
 import com.shahaabapps.core.planner.Dates
 import com.shahaabapps.core.planner.MissedDays
+import com.shahaabapps.core.planner.PlanStart
 import com.shahaabapps.core.ui.components.Avatar
 import com.shahaabapps.core.ui.components.CupertinoCard
 import com.shahaabapps.core.ui.components.CupertinoDisclosure
@@ -74,7 +75,10 @@ class UsViewModel @Inject constructor(
         val dots = PersonRole.entries.associateWith { role ->
             val days = logs.filter { it.owner == role }.map { it.dateIso }.toSet()
             val person = plan.forRole(role)
-            val planStart = person.levels.minOfOrNull { it.level.startDateIso }
+            val planStart = PlanStart.effective(
+                plan.session.profileFor(role)?.startDateIso,
+                person.levels.map { it.level.startDateIso },
+            )
             MissedDays.report(person.today, availability.forRole(role), days, planStart)
         }
         val counts = PersonRole.entries.associateWith { role ->
