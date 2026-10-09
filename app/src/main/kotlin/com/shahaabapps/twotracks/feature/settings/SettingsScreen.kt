@@ -10,6 +10,7 @@ import com.shahaabapps.twotracks.feature.auth.CompanionKind
 import com.shahaabapps.twotracks.feature.auth.Companion
 import com.shahaabapps.twotracks.ui.components.DialogButton
 import com.shahaabapps.twotracks.reminders.ReminderNotifications
+import com.shahaabapps.twotracks.ui.guide.LocalGuide
 import com.shahaabapps.twotracks.ui.components.CupertinoDialog
 import com.shahaabapps.twotracks.ui.components.StartDateDialog
 import androidx.compose.ui.text.input.KeyboardType
@@ -58,6 +59,7 @@ import com.shahaabapps.core.ui.theme.IosColors
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Alarm
 import androidx.compose.material.icons.filled.CalendarMonth
+import androidx.compose.material.icons.filled.Explore
 import androidx.compose.material.icons.filled.Fingerprint
 import androidx.compose.material.icons.filled.PlayCircleOutline
 import androidx.compose.material.icons.filled.Favorite
@@ -223,6 +225,19 @@ fun SettingsScreen(
                 // recomposition of this screen.
                 VoiceSettingsSections(hiltViewModel())
                 CupertinoListSection(header = "About") {
+                    val guide = LocalGuide.current
+                    if (guide != null) {
+                        CupertinoListRow(
+                            "Show me around",
+                            subtitle = "A short tour of the app, over the real screens",
+                            leadingIcon = Icons.Filled.Explore, iconColor = IosColors.Teal,
+                            // Back out of Settings first: the tour runs over the
+                            // tabs, and starting it from here would ring a tab
+                            // bar nobody can see.
+                            onClick = { onBack(); guide.start() },
+                            trailing = { CupertinoDisclosure() },
+                        )
+                    }
                     CupertinoListRow(
                         "Version history", subtitle = "Version ${com.shahaabapps.twotracks.BuildConfig.VERSION_NAME}", leadingIcon = Icons.Filled.History, iconColor = IosColors.Indigo,
                         showDivider = false, onClick = onOpenChangelog, trailing = { CupertinoDisclosure() },
