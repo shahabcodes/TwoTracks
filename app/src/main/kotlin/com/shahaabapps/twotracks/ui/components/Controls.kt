@@ -224,7 +224,11 @@ fun TimezoneDialog(selected: String, onSelect: (String) -> Unit, onDismiss: () -
             confirmButton = { DialogButton(onClick = onDismiss) { Text("Close") } },
             title = { Text("Timezone") },
             text = {
-                Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
+                // No scroll of its own. CupertinoDialog already puts its text
+                // slot in a bounded, scrolling column, and a second scroller
+                // inside it is measured with no height to fit in, which threw
+                // the moment this dialog opened.
+                Column {
                     zones.forEach { z ->
                         Text(
                             text = z,
