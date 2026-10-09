@@ -61,8 +61,6 @@ import com.shahaabapps.twotracks.changelog.WhatsNewDialog
 import com.shahaabapps.twotracks.session.Clock
 import com.shahaabapps.twotracks.ui.components.AnimatedSwap
 import com.shahaabapps.twotracks.ui.components.Chip
-import com.shahaabapps.twotracks.ui.components.LogMinutesSheet
-import com.shahaabapps.twotracks.ui.components.LogTarget
 import com.shahaabapps.twotracks.ui.components.ProgressBar
 
 /**
@@ -81,7 +79,6 @@ fun TodayScreen(
     viewModel: TodayViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
-    var logTarget by remember { mutableStateOf<LogTarget?>(null) }
     val snackbar = remember { SnackbarHostState() }
     LaunchedEffect(state.message) { state.message?.let { snackbar.showSnackbar(it); viewModel.clearMessage() } }
 
@@ -135,18 +132,9 @@ fun TodayScreen(
                         Text("You", style = MaterialTheme.typography.labelMedium, color = AppTheme.colors.secondaryLabel)
                         if (me.isRestDay) {
                             Text("Rest day", style = MaterialTheme.typography.headlineMedium, modifier = Modifier.padding(top = 2.dp))
-                            Text("No slot today. Log something anyway if you studied.", style = MaterialTheme.typography.bodyMedium, color = AppTheme.colors.secondaryLabel)
-                            if (state.activeGoals.isNotEmpty()) {
-                                Row(horizontalArrangement = Arrangement.spacedBy(Spacing.sm), modifier = Modifier.padding(top = Spacing.sm)) {
-                                    state.activeGoals.take(3).forEach { g ->
-                                        Chip(text = "Log ${g.title}", onClick = { logTarget = LogTarget(goalId = g.id, componentId = null, dateIso = Clock.formatDateIso(state.today)) })
-                                    }
-                                }
-                            }
+                            Text("No slot today. Anything you read still counts.", style = MaterialTheme.typography.bodyMedium, color = AppTheme.colors.secondaryLabel)
                         }
-                        me.sessions.forEachIndexed { i, row -> SessionBlock(row, first = i == 0, onOpenGoal = onOpenGoal, onOpenTopic = onOpenTopic, onOpenQuiz = onOpenQuiz, onDone = { viewModel.done(row) }, onSkip = { viewModel.skip(row.session.id) }, onReopen = { viewModel.reopen(row.session.id) }, onLog = {
-                            logTarget = LogTarget(goalId = row.session.goalId, componentId = row.session.componentId, sessionId = row.session.id, defaultMinutes = row.session.durationMinutes, dateIso = row.session.dateIso, isClass = row.session.isClass)
-                        }) }
+                        me.sessions.forEachIndexed { i, row -> SessionBlock(row, first = i == 0, onOpenGoal = onOpenGoal, onOpenTopic = onOpenTopic, onOpenQuiz = onOpenQuiz, onDone = { viewModel.done(row) }, onSkip = { viewModel.skip(row.session.id) }, onReopen = { viewModel.reopen(row.session.id) }) }
                         Text(
                             "${me.todayMinutes} min today · ${me.streak}-day streak",
                             style = MaterialTheme.typography.bodySmall, color = AppTheme.colors.secondaryLabel, modifier = Modifier.padding(top = Spacing.sm),
@@ -225,14 +213,6 @@ fun TodayScreen(
         SnackbarHost(hostState = snackbar, modifier = Modifier.align(Alignment.BottomCenter))
     }
 
-    logTarget?.let { target ->
-        LogMinutesSheet(
-            target = target, goals = state.goals, onDismiss = { logTarget = null },
-            onLog = { g, c, m, n -> viewModel.logMinutes(g, c, m, n, target.sessionId, target.isClass); logTarget = null },
-            onLogSplit = { g, map, n -> viewModel.logSplit(g, map, n, target.sessionId); logTarget = null },
-        )
-    }
-
     // After an update, What's new comes first; the daily brief follows once it is dismissed.
     val whatsNew = state.whatsNew
     val brief = state.brief
@@ -303,7 +283,6 @@ private fun SessionBlock(
     onDone: () -> Unit,
     onSkip: () -> Unit,
     onReopen: () -> Unit,
-    onLog: () -> Unit,
 ) {
     val done = row.session.status == SessionStatus.DONE
     val skipped = row.session.status == SessionStatus.SKIPPED
@@ -328,8 +307,8 @@ private fun SessionBlock(
         }
         if (!done && !skipped) {
             CupertinoPrimaryButton(
-                text = if (row.session.isClass) "Done, log class" else "Done",
-                onClick = { haptic.performHapticFeedback(HapticFeedbackType.LongPress); if (row.session.isClass) onLog() else onDone() },
+                text = "Done",
+                onClick = { haptic.performHapticFeedback(HapticFeedbackType.LongPress); onDone() },
                 modifier = Modifier.padding(top = Spacing.sm),
             )
             row.nextTopic?.let { t ->
@@ -339,21 +318,15 @@ private fun SessionBlock(
                 CupertinoSecondaryButton(text = "Review ${r.count} missed question${if (r.count == 1) "" else "s"}", onClick = { onOpenQuiz(r.courseId, Courses.REVIEW_MODULE_ID) }, modifier = Modifier.padding(top = Spacing.sm))
             }
             Row(horizontalArrangement = Arrangement.spacedBy(Spacing.sm), modifier = Modifier.padding(top = Spacing.md)) {
-                // Where the course keeps the time there is nothing to enter by hand.
-                if (!row.timeFromCourse) Chip(text = "Different time", onClick = onLog)
                 Chip(text = "Skip today", onClick = onSkip)
             }
-            if (row.timeFromCourse) {
-                Text(
-                    "Minutes count themselves as you read, test and review.",
-                    style = MaterialTheme.typography.bodySmall, color = AppTheme.colors.secondaryLabel,
-                    modifier = Modifier.padding(top = Spacing.sm),
-                )
-            }
+            Text(
+                "Minutes count themselves as you read, test and review.",
+                style = MaterialTheme.typography.bodySmall, color = AppTheme.colors.secondaryLabel,
+                modifier = Modifier.padding(top = Spacing.sm),
+            )
         } else if (skipped) {
             CupertinoTextButton(text = "Reopen", onClick = onReopen)
-        } else if (!row.timeFromCourse) {
-            CupertinoTextButton(text = "Add more time", onClick = onLog)
         }
     }
 }

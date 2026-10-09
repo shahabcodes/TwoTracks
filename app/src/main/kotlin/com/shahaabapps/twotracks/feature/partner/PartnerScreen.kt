@@ -26,6 +26,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewModelScope
+import com.shahaabapps.core.content.Courses
 import com.shahaabapps.core.model.PlannedSession
 import com.shahaabapps.core.model.SessionStatus
 import com.shahaabapps.core.planner.Dates
@@ -196,14 +197,24 @@ fun PartnerScreen(
                     if (active.isEmpty()) CupertinoListRow("No open goals", showDivider = false)
                     active.forEachIndexed { i, g ->
                         val gp = p.goalProgress[g.id]
+                        // Hours only where a course records them; the rest of
+                        // the roadmap is measured by its steps and would show
+                        // a bar that can never move.
+                        val counted = Courses.forGoal(g.id) != null
                         CupertinoListRow(
                             title = g.title,
-                            subtitle = gp?.let { "%.0f of %.0f h".format(it.hoursLogged, it.hoursRequired) + (it.targetDate?.let { d -> " · by ${Clock.formatDate(d)}" } ?: "") },
+                            subtitle = gp?.let {
+                                val due = it.targetDate?.let { d -> "by ${Clock.formatDate(d)}" }
+                                if (counted) "%.0f of %.0f h".format(it.hoursLogged, it.hoursRequired) + (due?.let { d -> " · $d" } ?: "")
+                                else due
+                            },
                             showDivider = i < active.lastIndex,
                             onClick = { onOpenGoal(g.id) },
                             trailing = { CupertinoDisclosure() },
                         )
-                        gp?.let { ProgressBar(fraction = it.fraction.toFloat(), height = 4.dp, modifier = Modifier.padding(horizontal = 16.dp).padding(bottom = if (i < active.lastIndex) 8.dp else 12.dp)) }
+                        if (counted) {
+                            gp?.let { ProgressBar(fraction = it.fraction.toFloat(), height = 4.dp, modifier = Modifier.padding(horizontal = 16.dp).padding(bottom = if (i < active.lastIndex) 8.dp else 12.dp)) }
+                        }
                     }
                 }
             }

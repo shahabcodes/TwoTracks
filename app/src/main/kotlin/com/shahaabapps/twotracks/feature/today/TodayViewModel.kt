@@ -172,36 +172,17 @@ class TodayViewModel @Inject constructor(
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), TodayUiState())
 
     /**
-     * One-tap Done. Where a course keeps the time — reading, tests and the deck
-     * all log as you go — the session is only marked done; logging its planned
-     * duration on top would count the same study twice and flatter the pace the
-     * forecast reads. Everywhere else the planned minutes are still the record.
+     * One-tap Done, which marks the slot and nothing else.
+     *
+     * It used to log the slot's planned duration where no course kept the
+     * time, which made a session marked done worth an hour whether or not an
+     * hour had happened. Minutes now come from the courses alone — reading, a
+     * test, the deck — so Done says the slot was dealt with and the hours say
+     * what was actually studied.
      */
     fun done(row: SessionRow) = viewModelScope.launch {
-        val s = row.session
-        message.value = if (row.timeFromCourse) {
-            actions.markSessionDone(s.id) ?: "Session done. The course counts the time as you study."
-        } else {
-            actions.logMinutes(s.goalId, s.componentId, s.durationMinutes, s.dateIso, sessionId = s.id, fromClass = s.isClass)
-                ?: "Logged ${s.durationMinutes} min of ${row.goal?.title ?: "study"}"
-        }
-    }
-
-    fun logMinutes(goalId: String, componentId: String, minutes: Int, note: String, sessionId: String?, fromClass: Boolean) {
-        viewModelScope.launch {
-            message.value = actions.logMinutes(goalId, componentId, minutes, actions.todayIso(), note, sessionId, fromClass) ?: "Logged $minutes min"
-        }
-    }
-
-    fun logSplit(goalId: String, minutesByComponent: Map<String, Int>, note: String, sessionId: String?) {
-        viewModelScope.launch {
-            var error: String? = null
-            minutesByComponent.entries.forEachIndexed { index, (componentId, minutes) ->
-                val sid = if (index == 0) sessionId else null
-                error = error ?: actions.logMinutes(goalId, componentId, minutes, actions.todayIso(), note, sid, fromClass = true)
-            }
-            message.value = error ?: "Logged ${minutesByComponent.values.sum()} min across ${minutesByComponent.size} skills"
-        }
+        message.value = actions.markSessionDone(row.session.id)
+            ?: "Session done. The course counts the time as you study."
     }
 
     fun skip(sessionId: String) = viewModelScope.launch { message.value = actions.skipSession(sessionId) }
