@@ -5,6 +5,10 @@ build number is appended by CI (for example `0.1.0 (build 12)`).
 
 ## [Unreleased]
 
+## [0.58.1] - 2026-10-10
+### Fixed
+- Settings opens and scrolls without stuttering.
+
 ## [0.58.0] - 2026-10-10
 ### Changed
 - Settings opens without the stutter; the voices moved to their own screen.

@@ -1,12 +1,15 @@
 package com.shahaabapps.twotracks.ui.guide
 
 import androidx.compose.foundation.ScrollState
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.geometry.Rect
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.withTimeoutOrNull
 import kotlin.math.roundToInt
 
 /**
@@ -51,6 +54,15 @@ class GuideState(private val steps: List<GuideStep>) {
     private var scroll: ScrollState? = null
     private var viewport: Rect = Rect.Zero
 
+    /**
+     * A lazy screen offers itself differently: nothing below the fold has
+     * been composed, so there are no bounds to scroll towards. What it can
+     * give is which item each anchor lives in, which is enough to scroll
+     * there and let the anchor report itself once it exists.
+     */
+    private var lazyList: LazyListState? = null
+    private var lazyItems: Map<String, Int> = emptyMap()
+
     val running: Boolean get() = index in steps.indices
     val step: GuideStep? get() = steps.getOrNull(index)
     val position: Int get() = index + 1
@@ -77,6 +89,16 @@ class GuideState(private val steps: List<GuideStep>) {
         if (scroll === state) { scroll = null; viewport = Rect.Zero }
     }
 
+    fun setLazyHost(state: LazyListState, items: Map<String, Int>, bounds: Rect) {
+        lazyList = state
+        lazyItems = items
+        viewport = bounds
+    }
+
+    fun clearLazyHost(state: LazyListState) {
+        if (lazyList === state) { lazyList = null; lazyItems = emptyMap(); viewport = Rect.Zero }
+    }
+
     /**
      * Brings the current step's anchor into view, where the screen showing it
      * is one that scrolls as a whole.
@@ -88,6 +110,25 @@ class GuideState(private val steps: List<GuideStep>) {
      */
     suspend fun revealCurrent() {
         val key = step?.anchor ?: return
+        // A lazy screen scrolls by item; the anchor measures itself after.
+        // A lazy screen scrolls by item; the anchor measures itself after.
+        lazyList?.let { list ->
+            val index = lazyItems[key] ?: return@let
+            // The step can arrive before the screen has laid out, and a list
+            // with nothing in it yet cannot be scrolled: animateScrollToItem
+            // on an empty list simply never returns, which is how the tour
+            // came to sit on whatever happened to be on screen.
+            var waited = 0
+            while (list.layoutInfo.totalItemsCount == 0 && waited < 2_000) {
+                delay(50)
+                waited += 50
+            }
+            if (list.layoutInfo.totalItemsCount == 0) return
+            if (list.layoutInfo.visibleItemsInfo.none { it.index == index }) {
+                runCatching { withTimeoutOrNull(1_000) { list.animateScrollToItem(index) } }
+            }
+            return
+        }
         val bounds = anchors[key] ?: return
         val state = scroll ?: return
         if (viewport.isEmpty) return

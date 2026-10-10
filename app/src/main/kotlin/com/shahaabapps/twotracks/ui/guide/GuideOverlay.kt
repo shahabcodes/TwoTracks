@@ -7,6 +7,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.ScrollState
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -75,6 +76,18 @@ fun Modifier.guideAnchor(key: String): Modifier {
  * the fold into view before ringing it. Only for screens that scroll as one
  * piece; a lazy list has nothing composed down there to scroll to.
  */
+/**
+ * Offers a lazy screen to the tour, with the item each anchor lives in. The
+ * tour scrolls to the item and the anchor reports its bounds once it has been
+ * composed, which on a lazy list is the only order that works.
+ */
+@Composable
+fun Modifier.guideLazyScrollHost(state: LazyListState, items: Map<String, Int>): Modifier {
+    val guide = LocalGuide.current ?: return this
+    DisposableEffect(state) { onDispose { guide.clearLazyHost(state) } }
+    return onGloballyPositioned { guide.setLazyHost(state, items, it.boundsInWindow()) }
+}
+
 @Composable
 fun Modifier.guideScrollHost(state: ScrollState): Modifier {
     val guide = LocalGuide.current ?: return this
