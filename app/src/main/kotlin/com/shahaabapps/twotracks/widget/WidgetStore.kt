@@ -10,7 +10,9 @@ import androidx.datastore.preferences.preferencesDataStore
 import com.shahaabapps.core.content.WidgetSnapshot
 import kotlinx.coroutines.flow.first
 
-private val Context.widgetDataStore by preferencesDataStore(name = "widget_snapshot")
+// Shared with WidgetConfigStore: one file holds both the snapshots the
+// widgets read and the settings of each placed widget.
+internal val Context.widgetDataStore by preferencesDataStore(name = "widget_snapshot")
 
 /**
  * The widgets' own copy of what the app knows.
@@ -26,73 +28,81 @@ private val Context.widgetDataStore by preferencesDataStore(name = "widget_snaps
  */
 object WidgetStore {
 
-    private val STEPS_DONE = intPreferencesKey("steps_done")
-    private val STEPS_TOTAL = intPreferencesKey("steps_total")
-    private val MINUTES_LEFT = intPreferencesKey("minutes_left")
-    private val NEXT_LABEL = stringPreferencesKey("next_label")
-    private val NEXT_COURSE = stringPreferencesKey("next_course")
-    private val NEXT_TOPIC = stringPreferencesKey("next_topic")
-    private val NEXT_KIND = stringPreferencesKey("next_kind")
-    private val QUESTIONS_DUE = intPreferencesKey("questions_due")
-    private val QUESTIONS_COURSE = stringPreferencesKey("questions_course")
-    private val WORD = stringPreferencesKey("word")
-    private val WORD_MEANING = stringPreferencesKey("word_meaning")
-    private val WORD_EXAMPLE = stringPreferencesKey("word_example")
-    private val WORD_COURSE = stringPreferencesKey("word_course")
-    private val WORD_TOPIC = stringPreferencesKey("word_topic")
-    private val WORD_IS_TERM = booleanPreferencesKey("word_is_term")
-    private val TOGETHER_STREAK = intPreferencesKey("together_streak")
-    private val PARTNER_NAME = stringPreferencesKey("partner_name")
-    private val TOGETHER_STATE = intPreferencesKey("together_state")
-    private val DATE_ISO = stringPreferencesKey("date_iso")
+    private fun STEPS_DONE(k: String) = intPreferencesKey("$k.steps_done")
+    private fun STEPS_TOTAL(k: String) = intPreferencesKey("$k.steps_total")
+    private fun MINUTES_LEFT(k: String) = intPreferencesKey("$k.minutes_left")
+    private fun NEXT_LABEL(k: String) = stringPreferencesKey("$k.next_label")
+    private fun NEXT_COURSE(k: String) = stringPreferencesKey("$k.next_course")
+    private fun NEXT_TOPIC(k: String) = stringPreferencesKey("$k.next_topic")
+    private fun NEXT_KIND(k: String) = stringPreferencesKey("$k.next_kind")
+    private fun QUESTIONS_DUE(k: String) = intPreferencesKey("$k.questions_due")
+    private fun QUESTIONS_COURSE(k: String) = stringPreferencesKey("$k.questions_course")
+    private fun WORD(k: String) = stringPreferencesKey("$k.word")
+    private fun WORD_MEANING(k: String) = stringPreferencesKey("$k.word_meaning")
+    private fun WORD_EXAMPLE(k: String) = stringPreferencesKey("$k.word_example")
+    private fun WORD_COURSE(k: String) = stringPreferencesKey("$k.word_course")
+    private fun WORD_TOPIC(k: String) = stringPreferencesKey("$k.word_topic")
+    private fun WORD_IS_TERM(k: String) = booleanPreferencesKey("$k.word_is_term")
+    private fun TOGETHER_STREAK(k: String) = intPreferencesKey("$k.together_streak")
+    private fun PARTNER_NAME(k: String) = stringPreferencesKey("$k.partner_name")
+    private fun TOGETHER_STATE(k: String) = intPreferencesKey("$k.together_state")
+    private fun DATE_ISO(k: String) = stringPreferencesKey("$k.date_iso")
 
-    suspend fun write(context: Context, s: WidgetSnapshot) {
+    /**
+     * One snapshot per person and course, so a widget set to the partner's
+     * German can read its own without the app recomputing anything at the
+     * moment the launcher asks.
+     */
+    suspend fun write(context: Context, key: String, s: WidgetSnapshot) {
         context.widgetDataStore.edit { p ->
-            p[STEPS_DONE] = s.stepsDone
-            p[STEPS_TOTAL] = s.stepsTotal
-            p[MINUTES_LEFT] = s.minutesLeft
-            p[NEXT_LABEL] = s.nextLabel
-            p[NEXT_COURSE] = s.nextCourseId
-            p[NEXT_TOPIC] = s.nextTopicId
-            p[NEXT_KIND] = s.nextKind
-            p[QUESTIONS_DUE] = s.questionsDue
-            p[QUESTIONS_COURSE] = s.questionsCourseId
-            p[WORD] = s.word
-            p[WORD_MEANING] = s.wordMeaning
-            p[WORD_EXAMPLE] = s.wordExample
-            p[WORD_COURSE] = s.wordCourseId
-            p[WORD_TOPIC] = s.wordTopicId
-            p[WORD_IS_TERM] = s.wordIsTerm
-            p[TOGETHER_STREAK] = s.togetherStreak
-            p[PARTNER_NAME] = s.partnerName
-            p[TOGETHER_STATE] = s.togetherState
-            p[DATE_ISO] = s.dateIso
+            p[STEPS_DONE(key)] = s.stepsDone
+            p[STEPS_TOTAL(key)] = s.stepsTotal
+            p[MINUTES_LEFT(key)] = s.minutesLeft
+            p[NEXT_LABEL(key)] = s.nextLabel
+            p[NEXT_COURSE(key)] = s.nextCourseId
+            p[NEXT_TOPIC(key)] = s.nextTopicId
+            p[NEXT_KIND(key)] = s.nextKind
+            p[QUESTIONS_DUE(key)] = s.questionsDue
+            p[QUESTIONS_COURSE(key)] = s.questionsCourseId
+            p[WORD(key)] = s.word
+            p[WORD_MEANING(key)] = s.wordMeaning
+            p[WORD_EXAMPLE(key)] = s.wordExample
+            p[WORD_COURSE(key)] = s.wordCourseId
+            p[WORD_TOPIC(key)] = s.wordTopicId
+            p[WORD_IS_TERM(key)] = s.wordIsTerm
+            p[TOGETHER_STREAK(key)] = s.togetherStreak
+            p[PARTNER_NAME(key)] = s.partnerName
+            p[TOGETHER_STATE(key)] = s.togetherState
+            p[DATE_ISO(key)] = s.dateIso
         }
     }
 
-    suspend fun read(context: Context): WidgetSnapshot = runCatching {
-        context.widgetDataStore.data.first().toSnapshot()
+    suspend fun read(context: Context, key: String = DEFAULT_KEY): WidgetSnapshot = runCatching {
+        context.widgetDataStore.data.first().toSnapshot(key)
     }.getOrDefault(WidgetSnapshot())
 
-    private fun Preferences.toSnapshot() = WidgetSnapshot(
-        stepsDone = this[STEPS_DONE] ?: 0,
-        stepsTotal = this[STEPS_TOTAL] ?: 0,
-        minutesLeft = this[MINUTES_LEFT] ?: 0,
-        nextLabel = this[NEXT_LABEL].orEmpty(),
-        nextCourseId = this[NEXT_COURSE].orEmpty(),
-        nextTopicId = this[NEXT_TOPIC].orEmpty(),
-        nextKind = this[NEXT_KIND].orEmpty(),
-        questionsDue = this[QUESTIONS_DUE] ?: 0,
-        questionsCourseId = this[QUESTIONS_COURSE].orEmpty(),
-        word = this[WORD].orEmpty(),
-        wordMeaning = this[WORD_MEANING].orEmpty(),
-        wordExample = this[WORD_EXAMPLE].orEmpty(),
-        wordCourseId = this[WORD_COURSE].orEmpty(),
-        wordTopicId = this[WORD_TOPIC].orEmpty(),
-        wordIsTerm = this[WORD_IS_TERM] ?: false,
-        togetherStreak = this[TOGETHER_STREAK] ?: 0,
-        partnerName = this[PARTNER_NAME].orEmpty(),
-        togetherState = this[TOGETHER_STATE] ?: 0,
-        dateIso = this[DATE_ISO].orEmpty(),
+    /** What an unconfigured widget reads: the signed-in person, every course. */
+    const val DEFAULT_KEY = "ME|all"
+
+    private fun Preferences.toSnapshot(key: String) = WidgetSnapshot(
+        stepsDone = this[STEPS_DONE(key)] ?: 0,
+        stepsTotal = this[STEPS_TOTAL(key)] ?: 0,
+        minutesLeft = this[MINUTES_LEFT(key)] ?: 0,
+        nextLabel = this[NEXT_LABEL(key)].orEmpty(),
+        nextCourseId = this[NEXT_COURSE(key)].orEmpty(),
+        nextTopicId = this[NEXT_TOPIC(key)].orEmpty(),
+        nextKind = this[NEXT_KIND(key)].orEmpty(),
+        questionsDue = this[QUESTIONS_DUE(key)] ?: 0,
+        questionsCourseId = this[QUESTIONS_COURSE(key)].orEmpty(),
+        word = this[WORD(key)].orEmpty(),
+        wordMeaning = this[WORD_MEANING(key)].orEmpty(),
+        wordExample = this[WORD_EXAMPLE(key)].orEmpty(),
+        wordCourseId = this[WORD_COURSE(key)].orEmpty(),
+        wordTopicId = this[WORD_TOPIC(key)].orEmpty(),
+        wordIsTerm = this[WORD_IS_TERM(key)] ?: false,
+        togetherStreak = this[TOGETHER_STREAK(key)] ?: 0,
+        partnerName = this[PARTNER_NAME(key)].orEmpty(),
+        togetherState = this[TOGETHER_STATE(key)] ?: 0,
+        dateIso = this[DATE_ISO(key)].orEmpty(),
     )
 }
