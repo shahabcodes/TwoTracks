@@ -22,19 +22,54 @@ object Srs {
         val lastReviewIso: String = "",
         val correct: Int = 0,
         val misses: Int = 0,
+        /**
+         * The last answer was wrong and given quickly: a wrong belief rather
+         * than a known gap.
+         *
+         * A miss already falls to the bottom of the ladder and comes back
+         * tomorrow, so there is nothing left to take away from it; what this
+         * changes is the order of a capped day, where a question somebody is
+         * confidently wrong about should be asked before one they know they
+         * do not know. Cleared by any answer that is not another quick miss.
+         */
+        val shaky: Boolean = false,
     ) {
         val learned: Boolean get() = step >= LADDER.size - 1
     }
 
-    /** New state after a review on [today]. */
-    fun review(card: Card, correct: Boolean, today: LocalDate): Card {
+    /**
+     * New state after a review on [today].
+     *
+     * [pace] is how long the answer took against how long it should have
+     * taken, and it changes two of the four outcomes. A right answer that was
+     * worked out rather than known holds its place instead of climbing —
+     * stretching the gap is what loses it. A wrong answer given too fast to
+     * have read the question is marked [Card.shaky], which moves it up the
+     * queue rather than changing its schedule. Without a clock the pace is
+     * [Pace.Verdict.UNKNOWN] and this behaves exactly as it always did.
+     */
+    fun review(
+        card: Card,
+        correct: Boolean,
+        today: LocalDate,
+        pace: Pace.Verdict = Pace.Verdict.UNKNOWN,
+    ): Card {
         val iso = Dates.format(today)
-        return if (correct) {
-            val nextStep = (card.step + 1).coerceAtMost(LADDER.size - 1)
-            card.copy(step = nextStep, dueIso = Dates.format(today.plusDays(LADDER[card.step.coerceIn(0, LADDER.size - 1)])), lastReviewIso = iso, correct = card.correct + 1)
-        } else {
-            card.copy(step = 0, dueIso = Dates.format(today.plusDays(1)), lastReviewIso = iso, misses = card.misses + 1)
+        if (!correct) {
+            return card.copy(
+                step = 0, dueIso = Dates.format(today.plusDays(1)), lastReviewIso = iso,
+                misses = card.misses + 1, shaky = pace == Pace.Verdict.QUICK,
+            )
         }
+        // A reconstructed answer keeps the interval it last earned rather
+        // than earning a longer one.
+        val held = pace == Pace.Verdict.SLOW
+        val nextStep = if (held) card.step else (card.step + 1).coerceAtMost(LADDER.size - 1)
+        val grantIndex = if (held) (card.step - 1).coerceIn(0, LADDER.size - 1) else card.step.coerceIn(0, LADDER.size - 1)
+        return card.copy(
+            step = nextStep, dueIso = Dates.format(today.plusDays(LADDER[grantIndex])), lastReviewIso = iso,
+            correct = card.correct + 1, shaky = false,
+        )
     }
 
     fun isDue(card: Card, today: LocalDate): Boolean = card.dueIso.isEmpty() || !Dates.parse(card.dueIso).isAfter(today)

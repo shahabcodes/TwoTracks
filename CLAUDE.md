@@ -107,18 +107,16 @@ on a background that measured 2.7:1 and nothing caught it.
 
 **Do not write content a screen cannot show.** 44 per-option notes shipped
 invisible because the in-topic check never rendered them, and mock exams run
-with `instantFeedback` off so a note there would never appear. If you author
-content, confirm something displays it.
+with `instantFeedback` off, so a note there was invisible until the results
+page learned to show the one you actually picked. If you author content,
+confirm something displays it.
 
 ## Known gaps
 
 - IELTS has no warm-ups and none of its 108 module-test questions carry
   per-option notes. AZ-204 and German have both.
-- `QuizAttempt` records `asked` and `missed` but not which option was picked,
-  nor per-question timing. That one schema change is what blocks mock-exam
-  pacing, showing a wrong-option note on the mock results page, and letting a
-  confident miss be scheduled differently from an unsure one.
-- The small accent "eyebrow" labels ("Quick check", "In your own words")
-  measure 3.6–3.8:1 on the Blue, Pink and Green accents: fine for bold text by
-  the 3:1 rule, under the 4.5:1 body rule.
-- Nothing from 0.40.0 to 0.49.1 has been judged on a real device.
+- The in-topic check is still the only place an answer is recorded without a
+  clock, so a warm-up or a check never contributes a pace reading. The paper
+  sittings do.
+- Nothing has been judged on a real device. Everything from 0.40.0 onwards has
+  been exercised on an emulator only.
