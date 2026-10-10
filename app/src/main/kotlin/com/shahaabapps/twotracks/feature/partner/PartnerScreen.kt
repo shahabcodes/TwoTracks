@@ -145,7 +145,7 @@ fun PartnerScreen(
                             .padding(horizontal = Spacing.md, vertical = 12.dp),
                     ) {
                         Column(modifier = Modifier.weight(1f)) {
-                            Text("Level ${lvl.level.number} · ${lvl.level.name}", style = MaterialTheme.typography.titleMedium, color = AppTheme.colors.accent)
+                            Text("Level ${lvl.level.number} · ${lvl.level.name}", style = MaterialTheme.typography.titleMedium, color = AppTheme.colors.accentText)
                             Text(
                                 "${lvl.requiredDone} of ${lvl.requiredTotal} done · " + (lvl.daysLeft?.let { if (it >= 0) "$it days left" else "${-it} days overdue" } ?: ""),
                                 style = MaterialTheme.typography.bodySmall, color = AppTheme.colors.secondaryLabel,
@@ -247,7 +247,7 @@ fun PartnerScreen(
                             trailing = {
                                 when (lp.state) {
                                     LevelState.DONE -> StatusChip("Done", AppTheme.colors.success)
-                                    LevelState.OPEN -> StatusChip(if (lp.isOverdue) "Overdue" else "Open", if (lp.isOverdue) AppTheme.colors.warn else AppTheme.colors.accent)
+                                    LevelState.OPEN -> StatusChip(if (lp.isOverdue) "Overdue" else "Open", if (lp.isOverdue) AppTheme.colors.warn else AppTheme.colors.accentText)
                                     LevelState.LOCKED -> Icon(Icons.Filled.Lock, contentDescription = null, tint = AppTheme.colors.secondaryLabel)
                                 }
                                 CupertinoDisclosure()

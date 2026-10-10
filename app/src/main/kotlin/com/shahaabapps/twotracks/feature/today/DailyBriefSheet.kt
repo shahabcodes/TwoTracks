@@ -108,7 +108,7 @@ fun DailyBriefSheet(
                 brief.reasons.forEach { (icon, text) ->
                     Row(verticalAlignment = Alignment.Top, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                         Box(modifier = Modifier.size(28.dp).clip(CircleShape).background(AppTheme.colors.accent.copy(alpha = 0.14f)), contentAlignment = Alignment.Center) {
-                            Icon(icon, contentDescription = null, tint = AppTheme.colors.accent, modifier = Modifier.size(16.dp))
+                            Icon(icon, contentDescription = null, tint = AppTheme.colors.accentText, modifier = Modifier.size(16.dp))
                         }
                         Text(text, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.weight(1f))
                     }

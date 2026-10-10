@@ -51,8 +51,8 @@ fun DetailScaffold(
                         .clickable(onClick = onBack)
                         .padding(end = 8.dp),
                 ) {
-                    Icon(Icons.Filled.ChevronLeft, contentDescription = "Back", tint = AppTheme.colors.accent)
-                    Text(backLabel, color = AppTheme.colors.accent, style = MaterialTheme.typography.bodyLarge)
+                    Icon(Icons.Filled.ChevronLeft, contentDescription = "Back", tint = AppTheme.colors.accentText)
+                    Text(backLabel, color = AppTheme.colors.accentText, style = MaterialTheme.typography.bodyLarge)
                 }
                 Text(
                     text = title,
@@ -75,7 +75,7 @@ fun DetailScaffold(
 fun NavAction(text: String, onClick: () -> Unit) {
     Text(
         text = text,
-        color = AppTheme.colors.accent,
+        color = AppTheme.colors.accentText,
         style = MaterialTheme.typography.titleLarge,
         modifier = Modifier.clickable(onClick = onClick).padding(horizontal = 8.dp, vertical = 4.dp),
     )

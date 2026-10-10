@@ -39,6 +39,10 @@ internal object Palette {
     val AllowedBgLight = Color(0xFFE4F1EA)
     val AllowedBgDark = Color(0xFF17301F)
 
+    /** Ink for a solid accent or status fill; see [CupertinoColors.onSolid]. */
+    val OnSolidLight = Color(0xFFFFFFFF)
+    val OnSolidDark = Color(0xFF14151A)
+
     val WarnLight = Color(0xFF9E5A00)                // status_warn: 5.4:1 on a card, 4.8:1 on the page
     val WarnDark = Color(0xFFFBC02D)
 }
@@ -55,6 +59,23 @@ enum class AccentPalette(
     val groupedLight: Color = Palette.GroupedBackgroundLight,
     val fillLight: Color = Palette.FillLight,
     val groupedDark: Color = Palette.GroupedBackgroundDark,
+    /**
+     * The accent written as text, which is not the same colour as the accent
+     * filled in.
+     *
+     * An accent is picked to carry a button, a pill or a tint, where it is the
+     * background and white sits on it. Reading it the other way round — accent
+     * ink on a card, on the page, on its own 8% tint or on the idle fill — is a
+     * different measurement, and three of the four failed it: Pink managed
+     * 2.91:1 and Blue 3.17:1 against the 4.5:1 body rule. These are the same
+     * colours taken a shade further, which reads as the accent rather than as
+     * a second colour, and the tightest of them clears 4.6:1 on every surface
+     * the app writes them on. Qatar already did, so it keeps its own.
+     *
+     * [ContrastTest] measures every one of these; nothing here is by eye.
+     */
+    val accentTextLight: Color = accentLight,
+    val accentTextDark: Color = accentDark,
 ) {
     /** Qatar flag maroon (Browse Safe's Qatar country theme), the default. */
     QATAR(
@@ -69,6 +90,8 @@ enum class AccentPalette(
         accentLight = Color(0xFF007AFF),
         accentDark = Color(0xFF0A84FF),
         gradient = listOf(Color(0xFF3B6FF6), Color(0xFF5B63F7), Color(0xFF7C4DFF)),
+        accentTextLight = Color(0xFF0053AC),
+        accentTextDark = Color(0xFF3D9EFF),
     ),
     PINK(
         accentLight = Color(0xFFE0338B),
@@ -76,11 +99,13 @@ enum class AccentPalette(
         gradient = listOf(Color(0xFFFF8FB6), Color(0xFFE5588E), Color(0xFFC13C72)),
         groupedLight = Color(0xFFFBE4EE),
         fillLight = Color(0x24E0338B),
+        accentTextLight = Color(0xFFA42565),
     ),
     MEADOW(
         accentLight = Color(0xFF1E8E5A),
         accentDark = Color(0xFF7FD1A3),
         gradient = listOf(Color(0xFF14B8A6), Color(0xFF12A57E), Color(0xFF1E8E5A)),
+        accentTextLight = Color(0xFF176B44),
     ),
 }
 

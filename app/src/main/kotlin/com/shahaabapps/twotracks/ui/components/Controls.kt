@@ -105,7 +105,7 @@ fun Chip(
             text = text,
             style = MaterialTheme.typography.bodySmall,
             fontWeight = FontWeight.Medium,
-            color = if (selected) Color.White else AppTheme.colors.accent,
+            color = if (selected) AppTheme.colors.onSolid else AppTheme.colors.accentText,
         )
     }
 }
@@ -187,7 +187,7 @@ fun StartDateDialog(selectedIso: String?, onPick: (String?) -> Unit, onDismiss: 
                     onDismiss()
                 },
                 enabled = pickerState.selectedDateMillis != null,
-            ) { Text("Save", color = AppTheme.colors.accent, fontWeight = FontWeight.SemiBold) }
+            ) { Text("Save", color = AppTheme.colors.accentText, fontWeight = FontWeight.SemiBold) }
         },
         dismissButton = {
             Row {
@@ -233,7 +233,7 @@ fun TimezoneDialog(selected: String, onSelect: (String) -> Unit, onDismiss: () -
                         Text(
                             text = z,
                             style = MaterialTheme.typography.bodyLarge,
-                            color = if (z == selected) AppTheme.colors.accent else MaterialTheme.colorScheme.onSurface,
+                            color = if (z == selected) AppTheme.colors.accentText else MaterialTheme.colorScheme.onSurface,
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .clickable { onSelect(z); onDismiss() }

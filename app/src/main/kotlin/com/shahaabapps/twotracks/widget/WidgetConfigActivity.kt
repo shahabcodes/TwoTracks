@@ -197,5 +197,5 @@ private fun WidgetConfigScreen(
 
 @Composable
 private fun Chosen() {
-    Text("✓", color = AppThemeRoot.colors.accent, style = MaterialTheme.typography.titleMedium)
+    Text("✓", color = AppThemeRoot.colors.accentText, style = MaterialTheme.typography.titleMedium)
 }

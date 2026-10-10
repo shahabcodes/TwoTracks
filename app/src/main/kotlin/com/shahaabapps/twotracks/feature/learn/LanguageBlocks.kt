@@ -97,7 +97,7 @@ private fun WordCard(w: Word, speaker: Speaker?) {
                 }
             } else {
                 Column {
-                    Text(w.en, style = MaterialTheme.typography.titleMedium, color = AppTheme.colors.accent, fontWeight = FontWeight.SemiBold)
+                    Text(w.en, style = MaterialTheme.typography.titleMedium, color = AppTheme.colors.accentText, fontWeight = FontWeight.SemiBold)
                     Text(w.exampleEn, style = MaterialTheme.typography.bodySmall, color = AppTheme.colors.secondaryLabel, modifier = Modifier.padding(top = 2.dp))
                 }
             }
@@ -149,6 +149,7 @@ private fun norm(s: String): String = Normalizer.normalize(s.trim().lowercase(),
 @Composable
 fun ExerciseBlock(block: Block.Exercise, speaker: Speaker?, recognizer: Recognizer? = null, lang: String? = null) {
     val accent = AppTheme.colors.accent
+    val accentText = AppTheme.colors.accentText
     Column(modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(14.dp)).background(accent.copy(alpha = 0.08f)).padding(Spacing.md), verticalArrangement = Arrangement.spacedBy(10.dp)) {
         // German courses use the Goethe paper names; everything else uses plain English.
         val german = lang?.startsWith("de") == true
@@ -162,7 +163,7 @@ fun ExerciseBlock(block: Block.Exercise, speaker: Speaker?, recognizer: Recogniz
             }
             else -> "Exercise"
         }
-        Text(label, style = MaterialTheme.typography.labelMedium, color = accent, fontWeight = FontWeight.SemiBold)
+        Text(label, style = MaterialTheme.typography.labelMedium, color = accentText, fontWeight = FontWeight.SemiBold)
         Text(block.exercise.prompt, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold)
         when (val ex = block.exercise) {
             is Ex.Gap -> GapExercise(ex, speaker)
@@ -192,7 +193,7 @@ private fun GapExercise(ex: Ex.Gap, speaker: Speaker?) {
         Box(
             modifier = Modifier.size(44.dp).clip(RoundedCornerShape(12.dp)).background(AppTheme.colors.accent).clickable(enabled = text.isNotBlank()) { result = ex.answers.any { norm(it) == norm(text) } },
             contentAlignment = Alignment.Center,
-        ) { Icon(Icons.Filled.Check, contentDescription = "Check", tint = Color.White) }
+        ) { Icon(Icons.Filled.Check, contentDescription = "Check", tint = AppTheme.colors.onSolid) }
     }
     result?.let { ok ->
         val full = ex.sentence.replace("___", ex.answers.first())
@@ -229,7 +230,7 @@ private fun ReorderExercise(ex: Ex.Reorder, speaker: Speaker?) {
         }
     }
     if (chosen.isNotEmpty()) {
-        Text("Reset", style = MaterialTheme.typography.labelMedium, color = AppTheme.colors.accent, fontWeight = FontWeight.SemiBold, modifier = Modifier.clickable { chosen.clear() }.padding(vertical = 4.dp))
+        Text("Reset", style = MaterialTheme.typography.labelMedium, color = AppTheme.colors.accentText, fontWeight = FontWeight.SemiBold, modifier = Modifier.clickable { chosen.clear() }.padding(vertical = 4.dp))
     }
 }
 
@@ -290,7 +291,7 @@ private fun WritingExercise(ex: Ex.Writing) {
     if (!checked) CupertinoPrimaryButton(text = "Compare with a model answer", enabled = words >= 5, onClick = { checked = true })
     if (checked) {
         Column(modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(10.dp)).background(AppTheme.colors.card).padding(Spacing.sm)) {
-            Text("Model answer", style = MaterialTheme.typography.labelMedium, color = AppTheme.colors.accent)
+            Text("Model answer", style = MaterialTheme.typography.labelMedium, color = AppTheme.colors.accentText)
             Text(ex.model, style = MaterialTheme.typography.bodyMedium, lineHeight = 21.sp)
             Text("Tick the points you covered. ${ticks.size} of ${ex.points.size} is your score in the exam's terms.", style = MaterialTheme.typography.labelSmall, color = AppTheme.colors.secondaryLabel, modifier = Modifier.padding(top = 4.dp))
         }

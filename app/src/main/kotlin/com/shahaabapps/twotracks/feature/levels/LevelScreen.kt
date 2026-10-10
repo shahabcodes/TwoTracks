@@ -87,7 +87,7 @@ fun LevelScreen(
                             Text(p.level.name, style = MaterialTheme.typography.displayLarge, modifier = Modifier.weight(1f))
                             when (p.state) {
                                 LevelState.DONE -> StatusChip("Done", AppTheme.colors.success)
-                                LevelState.OPEN -> if (p.isOverdue) StatusChip("Overdue", AppTheme.colors.warn) else StatusChip("Current", AppTheme.colors.accent)
+                                LevelState.OPEN -> if (p.isOverdue) StatusChip("Overdue", AppTheme.colors.warn) else StatusChip("Current", AppTheme.colors.accentText)
                                 LevelState.LOCKED -> StatusChip("Locked", AppTheme.colors.secondaryLabel)
                             }
                         }
@@ -146,7 +146,7 @@ fun LevelScreen(
                                         } else {
                                             CupertinoDisclosure()
                                         }
-                                        LevelItemKind.COUNT -> Text("${ip.weekCount ?: 0}", style = MaterialTheme.typography.titleMedium, color = AppTheme.colors.accent)
+                                        LevelItemKind.COUNT -> Text("${ip.weekCount ?: 0}", style = MaterialTheme.typography.titleMedium, color = AppTheme.colors.accentText)
                                     }
                                 },
                             )

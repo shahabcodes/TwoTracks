@@ -120,7 +120,7 @@ fun QuizScreen(onBack: () -> Unit, onOpenTopic: (String, String) -> Unit, viewMo
                             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
                                 SpeakButton(audio, speaker, size = 44.dp)
                                 Column(modifier = Modifier.weight(1f)) {
-                                    Text(if (state.course?.speechLanguage?.startsWith("de") == true) "Hören" else "Listening", style = MaterialTheme.typography.labelMedium, color = AppTheme.colors.accent, fontWeight = FontWeight.SemiBold)
+                                    Text(if (state.course?.speechLanguage?.startsWith("de") == true) "Hören" else "Listening", style = MaterialTheme.typography.labelMedium, color = AppTheme.colors.accentText, fontWeight = FontWeight.SemiBold)
                                     Text(if (state.revealed && state.instant) audio else "Play the audio, then answer. The text appears after you answer.", style = MaterialTheme.typography.bodySmall, color = AppTheme.colors.secondaryLabel)
                                 }
                             }
@@ -243,7 +243,7 @@ private fun Results(state: QuizUiState, onRetake: () -> Unit, onOpenTopic: (Stri
                 areas.forEachIndexed { i, a ->
                     val tone = when {
                         a.clean -> AppTheme.colors.success
-                        a.percent >= pass -> AppTheme.colors.accent
+                        a.percent >= pass -> AppTheme.colors.accentText
                         else -> AppTheme.colors.warn
                     }
                     Column(modifier = Modifier.padding(top = if (i == 0) 0.dp else Spacing.sm)) {

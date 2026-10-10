@@ -168,7 +168,7 @@ private fun DayCard(day: DayPlan, editable: Boolean, onOpenGoal: (String) -> Uni
             Text(
                 Clock.formatDayMonth(day.date),
                 style = MaterialTheme.typography.titleMedium,
-                color = if (day.isToday) AppTheme.colors.accent else MaterialTheme.colorScheme.onSurface,
+                color = if (day.isToday) AppTheme.colors.accentText else MaterialTheme.colorScheme.onSurface,
                 fontWeight = if (day.isToday) FontWeight.Bold else FontWeight.SemiBold,
                 modifier = Modifier.weight(1f),
             )
@@ -180,11 +180,11 @@ private fun DayCard(day: DayPlan, editable: Boolean, onOpenGoal: (String) -> Uni
         day.blocks.forEach { row ->
             val color = when (row.block.kind) {
                 BlockKind.WORK -> AppTheme.colors.secondaryLabel
-                BlockKind.CLASS -> AppTheme.colors.accent
+                BlockKind.CLASS -> AppTheme.colors.accentText
                 BlockKind.STUDY -> when (row.session?.status) {
                     SessionStatus.DONE -> AppTheme.colors.success
                     SessionStatus.SKIPPED -> AppTheme.colors.warn
-                    else -> AppTheme.colors.accent
+                    else -> AppTheme.colors.accentText
                 }
             }
             Row(

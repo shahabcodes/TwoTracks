@@ -68,7 +68,7 @@ fun CupertinoPrimaryButton(
     ) {
         Text(
             text = text,
-            color = Color.White,
+            color = AppTheme.colors.onSolid,
             style = MaterialTheme.typography.bodyLarge,
             fontWeight = FontWeight.SemiBold,
         )
@@ -95,7 +95,7 @@ fun CupertinoSecondaryButton(
     ) {
         Text(
             text = text,
-            color = AppTheme.colors.accent,
+            color = AppTheme.colors.accentText,
             style = MaterialTheme.typography.bodyLarge,
             fontWeight = FontWeight.SemiBold,
         )
@@ -110,7 +110,7 @@ fun CupertinoTextButton(
     modifier: Modifier = Modifier,
     destructive: Boolean = false,
 ) {
-    val color = if (destructive) AppTheme.colors.destructive else AppTheme.colors.accent
+    val color = if (destructive) AppTheme.colors.destructive else AppTheme.colors.accentText
     Box(
         modifier = modifier
             .fillMaxWidth()
