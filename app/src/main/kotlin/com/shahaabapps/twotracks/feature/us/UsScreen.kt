@@ -29,8 +29,14 @@ import com.shahaabapps.core.model.Habit
 import com.shahaabapps.core.model.PersonRole
 import com.shahaabapps.core.data.study.forRole
 import com.shahaabapps.core.planner.Dates
+import androidx.compose.foundation.border
+import androidx.compose.ui.text.style.TextAlign
 import com.shahaabapps.core.planner.MissedDays
 import com.shahaabapps.core.planner.PlanStart
+import java.time.DayOfWeek
+import java.time.YearMonth
+import java.time.format.TextStyle
+import java.util.Locale
 import com.shahaabapps.core.ui.components.Avatar
 import com.shahaabapps.core.ui.components.CupertinoCard
 import com.shahaabapps.core.ui.components.CupertinoDisclosure
@@ -61,6 +67,8 @@ data class UsUiState(
     val plan: PlanSnapshot? = null,
     /** Per role: the last 28 days with studied / missed / rest / upcoming states and the impact of missed days. */
     val dots: Map<PersonRole, MissedDays.Report> = emptyMap(),
+    /** Per role: this calendar month, day by day. */
+    val month: Map<PersonRole, List<MissedDays.Day>> = emptyMap(),
     val counts: Map<PersonRole, List<CountRow>> = emptyMap(),
     val totalHours: Map<PersonRole, Double> = emptyMap(),
 )
@@ -81,6 +89,15 @@ class UsViewModel @Inject constructor(
             )
             MissedDays.report(person.today, availability.forRole(role), days, planStart)
         }
+        val months = PersonRole.entries.associateWith { role ->
+            val days = logs.filter { it.owner == role }.map { it.dateIso }.toSet()
+            val person = plan.forRole(role)
+            val planStart = PlanStart.effective(
+                plan.session.profileFor(role)?.startDateIso,
+                person.levels.map { it.level.startDateIso },
+            )
+            MissedDays.month(YearMonth.from(person.today), person.today, availability.forRole(role), days, planStart)
+        }
         val counts = PersonRole.entries.associateWith { role ->
             val weekIso = Dates.format(Dates.weekStart(plan.forRole(role).today))
             habits.filter { it.owner == role && it.active }.map { h ->
@@ -89,7 +106,7 @@ class UsViewModel @Inject constructor(
             }
         }
         val totals = PersonRole.entries.associateWith { role -> logs.filter { it.owner == role }.sumOf { it.minutes } / 60.0 }
-        UsUiState(plan, dots, counts, totals)
+        UsUiState(plan, dots, months, counts, totals)
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), UsUiState())
 }
 
@@ -137,22 +154,13 @@ private fun PersonCard(person: PersonPlan, plan: PlanSnapshot, state: UsUiState,
             }
         }
         state.dots[person.role]?.let { report ->
-            Text("Last 4 weeks", style = MaterialTheme.typography.labelMedium, color = AppTheme.colors.secondaryLabel, modifier = Modifier.padding(top = Spacing.md, bottom = 6.dp))
-            report.days.chunked(7).forEach { week ->
-                Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth().padding(horizontal = 6.dp, vertical = 4.dp)) {
-                    week.forEach { day ->
-                        val color = when (day.state) {
-                            MissedDays.DayState.LOGGED -> AppTheme.colors.accent
-                            MissedDays.DayState.MISSED -> AppTheme.colors.warn
-                            MissedDays.DayState.REST -> AppTheme.colors.fill
-                            MissedDays.DayState.UPCOMING -> AppTheme.colors.fill.copy(alpha = AppTheme.colors.fill.alpha * 0.4f)
-                        }
-                        Box(modifier = Modifier.size(16.dp).clip(CircleShape).background(color))
-                    }
-                }
-            }
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.sm), modifier = Modifier.padding(top = 2.dp)) {
-                Legend(AppTheme.colors.accent, "studied"); Legend(AppTheme.colors.warn, "missed"); Legend(AppTheme.colors.fill, "rest")
+            state.month[person.role]?.let { StudyCalendar(days = it, today = person.today) }
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.sm), modifier = Modifier.padding(top = Spacing.xs)) {
+                // The same tints the days are drawn in, or the key describes
+                // a calendar nobody is looking at.
+                Legend(AppTheme.colors.accent.copy(alpha = 0.28f), "studied")
+                Legend(AppTheme.colors.warn.copy(alpha = 0.28f), "missed")
+                Legend(AppTheme.colors.fill, "rest")
             }
             if (report.missedCount > 0) {
                 Text(
@@ -180,10 +188,102 @@ private fun PersonCard(person: PersonPlan, plan: PlanSnapshot, state: UsUiState,
     }
 }
 
+/**
+ * The month, as a calendar.
+ *
+ * What was here before was four rows of seven dots counted back from today.
+ * It looked like a calendar and was not one: no dates, and columns that each
+ * held a different weekday depending on what day it happened to be, so the
+ * one thing a calendar is for — seeing that it is always Thursdays you miss —
+ * could not be read off it.
+ *
+ * Now the columns are weekdays, the days carry their dates, and the month
+ * begins where it really begins. Days still to come are drawn faintly: they
+ * are not yet anything, and showing them as rest days would be a small lie
+ * every month.
+ */
+@Composable
+private fun StudyCalendar(days: List<MissedDays.Day>, today: LocalDate) {
+    if (days.isEmpty()) return
+    val first = days.first().date
+    // ISO weeks start on Monday, and so does the template's dayOfWeek.
+    val leading = first.dayOfWeek.value - 1
+    val weeks = (List<MissedDays.Day?>(leading) { null } + days).chunked(7)
+
+    Text(
+        first.month.getDisplayName(TextStyle.FULL, Locale.getDefault()),
+        style = MaterialTheme.typography.labelMedium,
+        color = AppTheme.colors.secondaryLabel,
+        modifier = Modifier.padding(top = Spacing.md, bottom = 6.dp),
+    )
+    Row(modifier = Modifier.fillMaxWidth()) {
+        DayOfWeek.entries.forEach { d ->
+            Text(
+                d.getDisplayName(TextStyle.NARROW, Locale.getDefault()),
+                style = MaterialTheme.typography.labelSmall,
+                color = AppTheme.colors.secondaryLabel,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.weight(1f),
+            )
+        }
+    }
+    weeks.forEach { week ->
+        Row(modifier = Modifier.fillMaxWidth().padding(vertical = 2.dp)) {
+            // A short last week is padded so its days stay under their own
+            // weekday rather than spreading across the row.
+            val padded = week + List(7 - week.size) { null }
+            padded.forEach { day ->
+                Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.Center) {
+                    if (day != null) CalendarDay(day, isToday = day.date == today)
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun CalendarDay(day: MissedDays.Day, isToday: Boolean) {
+    // Tinted rather than filled solid, with the page's own ink on top.
+    // A solid accent with a white date measured 4.02:1 on the Blue palette,
+    // under the 4.5:1 body rule — ContrastTest caught it. The tint is the
+    // same treatment the checks and warm-up blocks already use, and is
+    // readable on every accent.
+    val tint = when (day.state) {
+        MissedDays.DayState.LOGGED -> AppTheme.colors.accent.copy(alpha = 0.28f)
+        MissedDays.DayState.MISSED -> AppTheme.colors.warn.copy(alpha = 0.28f)
+        MissedDays.DayState.REST -> AppTheme.colors.fill
+        MissedDays.DayState.UPCOMING -> AppTheme.colors.fill.copy(alpha = AppTheme.colors.fill.alpha * 0.4f)
+    }
+    val ink = when (day.state) {
+        MissedDays.DayState.UPCOMING -> AppTheme.colors.secondaryLabel
+        else -> MaterialTheme.colorScheme.onSurface
+    }
+    Box(
+        modifier = Modifier
+            .size(30.dp)
+            .clip(CircleShape)
+            .background(tint)
+            .then(if (isToday) Modifier.border(2.dp, AppTheme.colors.accent, CircleShape) else Modifier),
+        contentAlignment = Alignment.Center,
+    ) {
+        Text(
+            day.date.dayOfMonth.toString(),
+            style = MaterialTheme.typography.labelSmall,
+            color = ink,
+        )
+    }
+}
+
 @Composable
 private fun Legend(color: androidx.compose.ui.graphics.Color, label: String) {
     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-        Box(modifier = Modifier.size(8.dp).clip(CircleShape).background(color))
+        Box(
+            modifier = Modifier
+                .size(10.dp)
+                .clip(CircleShape)
+                .background(color)
+                .border(1.dp, AppTheme.colors.separator, CircleShape),
+        )
         Text(label, style = MaterialTheme.typography.labelSmall, color = AppTheme.colors.secondaryLabel)
     }
 }

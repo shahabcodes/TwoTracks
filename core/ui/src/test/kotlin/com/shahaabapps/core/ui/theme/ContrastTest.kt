@@ -125,6 +125,20 @@ class ContrastTest {
     }
 
     @Test
+    fun `a day on the calendar keeps its date readable`() {
+        // The US calendar tints a day with the accent when it was studied and
+        // with warn when it was missed, and writes the date on top in the
+        // ordinary ink. A solid fill with a white date was tried first and
+        // measured 4.02:1 on Blue, which is what this guards against.
+        modes.forEach { m ->
+            assertReadable("${m.name}: date on a missed day", m.label, over(m.warn, 0.28f, m.card))
+            AccentPalette.entries.forEach { p ->
+                assertReadable("${m.name}: date on a studied day (${p.name})", m.label, over(m.accent(p), 0.28f, m.card))
+            }
+        }
+    }
+
+    @Test
     fun `a status tint keeps its text readable`() {
         // The check, warm-up and faded blocks tint a row with a status colour
         // at low alpha and keep the ordinary ink on top of it.
