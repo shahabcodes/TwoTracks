@@ -92,7 +92,7 @@ fun BudgetScreen(onBack: () -> Unit, viewModel: BudgetViewModel = hiltViewModel(
 
     DetailScaffold(
         title = "Budget", onBack = onBack,
-        actions = { IconButton(onClick = { editing = BudgetItem(owner = viewModel.myRole(), order = 999) }) { Icon(Icons.Filled.Add, "Add", tint = AppTheme.colors.accent) } },
+        actions = { IconButton(onClick = { editing = BudgetItem(owner = viewModel.myRole(), order = 999) }) { Icon(Icons.Filled.Add, "Add", tint = AppTheme.colors.accentText) } },
     ) {
         LazyColumn(verticalArrangement = Arrangement.spacedBy(Spacing.md), contentPadding = PaddingValues(bottom = Spacing.xl)) {
             item {

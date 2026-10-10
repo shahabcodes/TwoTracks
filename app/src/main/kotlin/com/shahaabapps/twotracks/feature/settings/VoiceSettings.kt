@@ -318,7 +318,7 @@ private fun DescribeVoiceDialog(
 
 @Composable
 private fun Chosen() {
-    Icon(Icons.Filled.Check, contentDescription = "Chosen", tint = AppTheme.colors.accent, modifier = Modifier.size(20.dp))
+    Icon(Icons.Filled.Check, contentDescription = "Chosen", tint = AppTheme.colors.accentText, modifier = Modifier.size(20.dp))
 }
 
 /**

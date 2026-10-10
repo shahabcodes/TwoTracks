@@ -82,7 +82,7 @@ fun CupertinoListRow(
     modifier: Modifier = Modifier,
     subtitle: String? = null,
     leadingIcon: ImageVector? = null,
-    iconColor: Color = AppTheme.colors.accent,
+    iconColor: Color = AppTheme.colors.accentText,
     showDivider: Boolean = true,
     onClick: (() -> Unit)? = null,
     titleColor: Color = MaterialTheme.colorScheme.onSurface,

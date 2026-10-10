@@ -69,6 +69,13 @@ class ContrastTest {
         val warn: Color,
         val destructive: Color,
         val accent: (AccentPalette) -> Color,
+        val accentText: (AccentPalette) -> Color,
+        /** The idle fill, which three of the four palettes tint themselves. */
+        val paletteFill: (AccentPalette) -> Color,
+        /** The page, which three of the four palettes tint themselves. */
+        val palettePage: (AccentPalette) -> Color,
+        /** The ink on anything filled solid with a palette colour. */
+        val onSolid: Color,
     )
 
     private val modes = listOf(
@@ -77,12 +84,14 @@ class ContrastTest {
             Palette.LabelLight, Palette.SecondaryLabelLight, Palette.FillLight,
             Palette.SeparatorLight, Palette.SuccessLight, Palette.WarnLight,
             Palette.DestructiveLight, { it.accentLight },
+            { it.accentTextLight }, { it.fillLight }, { it.groupedLight }, Palette.OnSolidLight,
         ),
         Mode(
             "dark", Palette.GroupedBackgroundDark, Palette.SurfaceDark,
             Palette.LabelDark, Palette.SecondaryLabelDark, Palette.FillDark,
             Palette.SeparatorDark, Palette.SuccessDark, Palette.WarnDark,
             Palette.DestructiveDark, { it.accentDark },
+            { it.accentTextDark }, { Palette.FillDark }, { it.groupedDark }, Palette.OnSolidDark,
         ),
     )
 
@@ -164,7 +173,77 @@ class ContrastTest {
                 val light = over(accent, 0.08f, m.card)
                 assertReadable("${m.name}/${p.name}: label on accent at 0.08", m.label, light)
                 assertReadable("${m.name}/${p.name}: secondary on accent at 0.08", m.secondary, light)
+                // 0.12 is the recap block, which holds prose.
+                assertReadable("${m.name}/${p.name}: label on accent at 0.12", m.label, over(accent, 0.12f, m.card))
                 assertReadable("${m.name}/${p.name}: label on accent at 0.18", m.label, over(accent, 0.18f, m.card))
+            }
+        }
+    }
+
+    @Test
+    fun `the accent written as text is readable wherever it is written`() {
+        // The accent is chosen to be filled in, with white on top. Read the
+        // other way round it was failing: Pink measured 2.91:1 on its own fill
+        // over the page and Blue 3.17:1, against the 4.5:1 body rule. The
+        // "Quick check" and "In your own words" labels, an idle chip, a status
+        // chip, a callout and a block's times are all the accent as ink, so
+        // they use accentText, and every surface they land on is here.
+        //
+        // The tints are the alphas the app actually draws: 0.08 for a check or
+        // faded block, 0.10 for a day's block row, 0.12 for a callout, 0.14
+        // for a status chip, 0.18 for a marked row. A tint is mixed from the
+        // accent itself, not from the text colour, except where the component
+        // takes one colour and does both — so both are measured.
+        modes.forEach { m ->
+            AccentPalette.entries.forEach { p ->
+                val accent = m.accent(p)
+                val ink = m.accentText(p)
+                val page = m.palettePage(p)
+                // 0.08 a check or faded block, 0.10 a day's block row,
+                // 0.12 a callout and the recap, 0.14 a status chip. 0.18
+                // is a marked quiz row, which is drawn in the accent
+                // itself with the ordinary ink, so it is not here.
+                val tints = listOf(0.08f, 0.10f, 0.12f, 0.14f)
+                val surfaces = buildList {
+                    add("card" to m.card)
+                    add("page" to page)
+                    add("fill over card" to fillOver(m.paletteFill(p), m.card))
+                    add("fill over page" to fillOver(m.paletteFill(p), page))
+                    tints.forEach { a ->
+                        add("accent at $a over card" to over(accent, a, m.card))
+                        add("accent at $a over page" to over(accent, a, page))
+                        add("its own tint at $a over card" to over(ink, a, m.card))
+                        add("its own tint at $a over page" to over(ink, a, page))
+                    }
+                }
+                surfaces.forEach { (name, bg) ->
+                    assertReadable("${m.name}/${p.name}: accentText on $name", ink, bg)
+                }
+            }
+        }
+    }
+
+    @Test
+    fun `anything filled solid carries its own ink`() {
+        // The other direction, and the reason onSolid exists. A primary
+        // button, a chosen chip, a ladder node and a numbered step are all a
+        // palette colour filled in with something written on it, and the dark
+        // palette is pastel by design: white on Warn measured 1.66:1 and on
+        // Meadow 1.82:1. onSolid is white in light and near-black in dark.
+        //
+        // These are buttons, chips and single bold figures, so 3:1 is the
+        // bar. Prose on a solid fill is not allowed at all — the recap block
+        // tried it and measured 4.02:1, so it is a tint now, like the
+        // calendar's days.
+        modes.forEach { m ->
+            val solids = buildList {
+                AccentPalette.entries.forEach { add(it.name to m.accent(it)) }
+                add("success" to m.success)
+                add("warn" to m.warn)
+                add("destructive" to m.destructive)
+            }
+            solids.forEach { (name, bg) ->
+                assertReadable("${m.name}: onSolid on $name", m.onSolid, bg, LARGE)
             }
         }
     }

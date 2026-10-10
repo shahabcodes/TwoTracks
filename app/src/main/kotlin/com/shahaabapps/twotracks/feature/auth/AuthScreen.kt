@@ -393,7 +393,7 @@ private fun ModeTabs(mode: AuthMode, onSelect: (AuthMode) -> Unit) {
                     Text(
                         label, style = MaterialTheme.typography.titleMedium,
                         fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Medium,
-                        color = androidx.compose.ui.graphics.lerp(AppTheme.colors.secondaryLabel, AppTheme.colors.accent, color),
+                        color = androidx.compose.ui.graphics.lerp(AppTheme.colors.secondaryLabel, AppTheme.colors.accentText, color),
                     )
                 }
             }
@@ -544,7 +544,7 @@ private fun LinkRow(mode: AuthMode, onSelect: (AuthMode) -> Unit) {
 @Composable
 private fun LinkText(text: String, onClick: () -> Unit) {
     Text(
-        text, style = MaterialTheme.typography.bodyMedium, color = AppTheme.colors.accent, fontWeight = FontWeight.Medium, textAlign = TextAlign.Center,
+        text, style = MaterialTheme.typography.bodyMedium, color = AppTheme.colors.accentText, fontWeight = FontWeight.Medium, textAlign = TextAlign.Center,
         modifier = Modifier.clickable(interactionSource = remember { MutableInteractionSource() }, indication = null, onClick = onClick).padding(8.dp),
     )
 }

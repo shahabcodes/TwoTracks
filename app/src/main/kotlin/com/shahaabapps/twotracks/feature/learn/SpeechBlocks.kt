@@ -195,7 +195,7 @@ fun MarkedWritingExercise(ex: Ex.Writing) {
             r.checks.forEach { c -> MarkRow(c.label, c.ok) }
             Text(
                 if (ex.form == com.shahaabapps.core.content.WritingForm.EXPLANATION) "One way to put it" else "Model answer",
-                style = MaterialTheme.typography.labelMedium, color = AppTheme.colors.accent, modifier = Modifier.padding(top = 4.dp),
+                style = MaterialTheme.typography.labelMedium, color = AppTheme.colors.accentText, modifier = Modifier.padding(top = 4.dp),
             )
             Text(ex.model, style = MaterialTheme.typography.bodyMedium, lineHeight = 21.sp)
             CupertinoTextButton(text = "Edit and mark again", onClick = { result = null })

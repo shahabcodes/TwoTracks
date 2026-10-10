@@ -138,9 +138,9 @@ private fun LadderRow(lp: LevelProgress, last: Boolean, onClick: () -> Unit) {
                 contentAlignment = Alignment.Center,
             ) {
                 when (lp.state) {
-                    LevelState.DONE -> PopIn { Icon(Icons.Filled.Check, contentDescription = null, tint = Color.White, modifier = Modifier.size(18.dp)) }
+                    LevelState.DONE -> PopIn { Icon(Icons.Filled.Check, contentDescription = null, tint = AppTheme.colors.onSolid, modifier = Modifier.size(18.dp)) }
                     LevelState.LOCKED -> Icon(Icons.Filled.Lock, contentDescription = null, tint = AppTheme.colors.secondaryLabel, modifier = Modifier.size(15.dp))
-                    LevelState.OPEN -> Text("${lp.level.number}", color = Color.White, fontWeight = FontWeight.Bold)
+                    LevelState.OPEN -> Text("${lp.level.number}", color = AppTheme.colors.onSolid, fontWeight = FontWeight.Bold)
                 }
             }
             if (!last) Box(modifier = Modifier.width(2.dp).height(44.dp).background(AppTheme.colors.separator))

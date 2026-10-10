@@ -124,7 +124,7 @@ fun LearnScreen(
                         val due = state.dailyDue[course.id] ?: 0
                         if (due > 0) {
                             Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = Spacing.sm).fillMaxWidth().clip(Shapes.field).background(AppTheme.colors.fill).clickable { onOpenQuiz(course.id, Courses.DAILY_MODULE_ID) }.padding(horizontal = Spacing.md, vertical = 10.dp)) {
-                                Icon(Icons.Filled.Schedule, contentDescription = null, tint = AppTheme.colors.accent, modifier = Modifier.size(20.dp))
+                                Icon(Icons.Filled.Schedule, contentDescription = null, tint = AppTheme.colors.accentText, modifier = Modifier.size(20.dp))
                                 Column(modifier = Modifier.weight(1f).padding(start = Spacing.sm)) {
                                     Text("Daily review: $due due", style = MaterialTheme.typography.titleMedium)
                                     Text("Questions coming back before they fade", style = MaterialTheme.typography.bodySmall, color = AppTheme.colors.secondaryLabel)
@@ -134,7 +134,7 @@ fun LearnScreen(
                         }
                         state.decks[course.id]?.let { d ->
                             Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = Spacing.sm).fillMaxWidth().clip(Shapes.field).background(AppTheme.colors.fill).clickable { onOpenDeck(course.id) }.padding(horizontal = Spacing.md, vertical = 10.dp)) {
-                                Icon(Icons.Filled.Style, contentDescription = null, tint = AppTheme.colors.accent, modifier = Modifier.size(20.dp))
+                                Icon(Icons.Filled.Style, contentDescription = null, tint = AppTheme.colors.accentText, modifier = Modifier.size(20.dp))
                                 Column(modifier = Modifier.weight(1f).padding(start = Spacing.sm)) {
                                     Text("Words: ${d.due} due · ${d.fresh} new", style = MaterialTheme.typography.titleMedium)
                                     Text(if (d.size == 0 && d.fresh == 0) "Read a Words topic to start the deck" else "${d.size} in the deck · a few minutes a day", style = MaterialTheme.typography.bodySmall, color = AppTheme.colors.secondaryLabel)

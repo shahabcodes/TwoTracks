@@ -206,7 +206,7 @@ fun TodayScreen(
                 item {
                     Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(horizontal = Spacing.listHorizontal + Spacing.sectionStart)) {
                         Text(d.title, style = MaterialTheme.typography.bodyMedium, color = AppTheme.colors.secondaryLabel, modifier = Modifier.weight(1f))
-                        Text("in ${state.daysToDeadline ?: 0} days", style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold, color = AppTheme.colors.accent)
+                        Text("in ${state.daysToDeadline ?: 0} days", style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold, color = AppTheme.colors.accentText)
                     }
                 }
             }
@@ -309,7 +309,7 @@ private fun SessionBlock(
                 when {
                     status == SessionStatus.DONE -> StatusChip("Done", AppTheme.colors.success)
                     status == SessionStatus.SKIPPED -> StatusChip("Skipped", AppTheme.colors.warn)
-                    row.session.isClass -> StatusChip("Class", AppTheme.colors.accent)
+                    row.session.isClass -> StatusChip("Class", AppTheme.colors.accentText)
                     else -> Box {}
                 }
             }

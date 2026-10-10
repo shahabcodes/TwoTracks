@@ -158,15 +158,19 @@ fun BlockView(block: Block, speaker: Speaker? = null, recognizer: Recognizer? = 
         is Block.Vocab -> VocabBlock(block, speaker)
         is Block.Dialogue -> DialogueBlock(block, speaker)
         is Block.Exercise -> ExerciseBlock(block, speaker, recognizer, lang)
+        // Tinted rather than filled. A solid accent slab with white prose on
+        // it measured 4.02:1 on Blue in light and 1.82:1 on Meadow in dark —
+        // the same number the US calendar rejected for a white date on a
+        // solid day. A tint with the ordinary ink reads on every palette.
         is Block.Recap -> Column(
-            modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(16.dp)).background(AppTheme.colors.accent).padding(Spacing.md),
+            modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(16.dp)).background(AppTheme.colors.accent.copy(alpha = 0.12f)).padding(Spacing.md),
             verticalArrangement = Arrangement.spacedBy(6.dp),
         ) {
-            Text("Remember these three", style = MaterialTheme.typography.labelMedium, color = Color.White.copy(alpha = 0.85f))
+            Text("Remember these three", style = MaterialTheme.typography.labelMedium, color = AppTheme.colors.accentText, fontWeight = FontWeight.SemiBold)
             block.items.forEachIndexed { i, item ->
                 Row(verticalAlignment = Alignment.Top) {
-                    Text("${i + 1}", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = Color.White, modifier = Modifier.width(22.dp))
-                    Text(item, style = MaterialTheme.typography.bodyMedium, color = Color.White, modifier = Modifier.weight(1f))
+                    Text("${i + 1}", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = AppTheme.colors.accentText, modifier = Modifier.width(22.dp))
+                    Text(item, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.weight(1f))
                 }
             }
         }
@@ -176,12 +180,12 @@ fun BlockView(block: Block, speaker: Speaker? = null, recognizer: Recognizer? = 
 @Composable
 private fun Callout(block: Block.Callout) {
     val (icon, label, tint) = when (block.kind) {
-        CalloutKind.PLAIN_WORDS -> Triple(Icons.Filled.Translate, "In plain words", AppTheme.colors.accent)
+        CalloutKind.PLAIN_WORDS -> Triple(Icons.Filled.Translate, "In plain words", AppTheme.colors.accentText)
         CalloutKind.EXAM_TIP -> Triple(Icons.Filled.School, "Exam tip", AppTheme.colors.warn)
         CalloutKind.REMEMBER -> Triple(Icons.Filled.PushPin, "Remember this", AppTheme.colors.success)
         CalloutKind.EXAMPLE -> Triple(Icons.Filled.Lightbulb, "For Two Tracks", AppTheme.colors.secondaryLabel)
         CalloutKind.MISTAKES -> Triple(Icons.Filled.Warning, "Common mistakes", AppTheme.colors.destructive)
-        CalloutKind.WORKED -> Triple(Icons.Filled.Build, "Worked example", AppTheme.colors.accent)
+        CalloutKind.WORKED -> Triple(Icons.Filled.Build, "Worked example", AppTheme.colors.accentText)
     }
     Column(
         modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(14.dp)).background(tint.copy(alpha = 0.12f)).padding(Spacing.md),
@@ -237,7 +241,7 @@ private fun StepsBlock(block: Block.Steps) {
         block.steps.forEachIndexed { i, st ->
             Row(verticalAlignment = Alignment.Top, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 Box(modifier = Modifier.size(24.dp).clip(CircleShape).background(AppTheme.colors.accent), contentAlignment = Alignment.Center) {
-                    Text("${i + 1}", style = MaterialTheme.typography.labelMedium, color = Color.White, fontWeight = FontWeight.Bold)
+                    Text("${i + 1}", style = MaterialTheme.typography.labelMedium, color = AppTheme.colors.onSolid, fontWeight = FontWeight.Bold)
                 }
                 Column(modifier = Modifier.weight(1f)) {
                     Text(st.action, style = MaterialTheme.typography.bodyMedium, lineHeight = 21.sp)
@@ -255,7 +259,7 @@ private fun CompareBlock(block: Block.Compare) {
         Row(modifier = Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
             block.cards.forEach { c ->
                 Column(modifier = Modifier.width(230.dp).clip(RoundedCornerShape(14.dp)).background(AppTheme.colors.card).padding(Spacing.md), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                    Text(c.title, style = MaterialTheme.typography.titleMedium, color = AppTheme.colors.accent, fontWeight = FontWeight.SemiBold)
+                    Text(c.title, style = MaterialTheme.typography.titleMedium, color = AppTheme.colors.accentText, fontWeight = FontWeight.SemiBold)
                     c.points.forEach { pt ->
                         Row(verticalAlignment = Alignment.Top) {
                             Box(modifier = Modifier.padding(top = 7.dp, end = 8.dp).size(5.dp).clip(CircleShape).background(AppTheme.colors.secondaryLabel))
@@ -302,7 +306,7 @@ private fun CheckBlock(block: Block.Check, onChecked: (com.shahaabapps.core.cont
     val right = picked in q.correct
 
     Column(modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(14.dp)).background(AppTheme.colors.accent.copy(alpha = 0.08f)).padding(Spacing.md), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        Text("Quick check", style = MaterialTheme.typography.labelMedium, color = AppTheme.colors.accent, fontWeight = FontWeight.SemiBold)
+        Text("Quick check", style = MaterialTheme.typography.labelMedium, color = AppTheme.colors.accentText, fontWeight = FontWeight.SemiBold)
         Text(q.prompt, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold, lineHeight = 21.sp)
         q.options.forEachIndexed { i, opt ->
             val state = when {
@@ -343,7 +347,7 @@ private fun CheckBlock(block: Block.Check, onChecked: (com.shahaabapps.core.cont
                         label,
                         style = MaterialTheme.typography.bodyMedium,
                         fontWeight = FontWeight.SemiBold,
-                        color = AppTheme.colors.accent,
+                        color = AppTheme.colors.accentText,
                         modifier = Modifier.weight(1f).clip(RoundedCornerShape(10.dp))
                             .background(AppTheme.colors.card)
                             .clickable { sure = value }
@@ -476,7 +480,7 @@ private fun FadedBlock(block: Block.Faded) {
             .background(AppTheme.colors.accent.copy(alpha = 0.08f)).padding(Spacing.md),
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        Text("NOW YOU FINISH IT", style = MaterialTheme.typography.labelMedium, color = AppTheme.colors.accent, fontWeight = FontWeight.SemiBold)
+        Text("NOW YOU FINISH IT", style = MaterialTheme.typography.labelMedium, color = AppTheme.colors.accentText, fontWeight = FontWeight.SemiBold)
         Text(block.scenario, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold, lineHeight = 21.sp)
         block.steps.forEachIndexed { i, step ->
             Row(verticalAlignment = Alignment.Top, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -510,7 +514,7 @@ private fun FadedBlock(block: Block.Faded) {
                 Text("Not that. Try once more.", style = MaterialTheme.typography.bodySmall, color = AppTheme.colors.destructive, fontWeight = FontWeight.SemiBold)
                 Text(
                     "Show me",
-                    style = MaterialTheme.typography.bodySmall, color = AppTheme.colors.accent, fontWeight = FontWeight.SemiBold,
+                    style = MaterialTheme.typography.bodySmall, color = AppTheme.colors.accentText, fontWeight = FontWeight.SemiBold,
                     modifier = Modifier.clickable { shown = true },
                 )
             }
@@ -549,8 +553,8 @@ private fun ReferencesBlock(refs: List<com.shahaabapps.core.content.Reference>) 
                 verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp),
                 modifier = Modifier.fillMaxWidth().clickable { uri.openUri(r.url) }.padding(vertical = 4.dp),
             ) {
-                Icon(Icons.Filled.OpenInNew, contentDescription = null, tint = AppTheme.colors.accent, modifier = Modifier.size(16.dp))
-                Text(r.title, style = MaterialTheme.typography.bodyMedium, color = AppTheme.colors.accent, modifier = Modifier.weight(1f))
+                Icon(Icons.Filled.OpenInNew, contentDescription = null, tint = AppTheme.colors.accentText, modifier = Modifier.size(16.dp))
+                Text(r.title, style = MaterialTheme.typography.bodyMedium, color = AppTheme.colors.accentText, modifier = Modifier.weight(1f))
             }
         }
         Text("Official pages open in your browser.", style = MaterialTheme.typography.labelSmall, color = AppTheme.colors.secondaryLabel)

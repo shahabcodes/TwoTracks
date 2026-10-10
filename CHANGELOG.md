@@ -5,6 +5,10 @@ build number is appended by CI (for example `0.1.0 (build 12)`).
 
 ## [Unreleased]
 
+## [0.59.1] - 2026-10-10
+### Fixed
+- Accent text and anything filled with the accent are readable on every theme.
+
 ## [0.59.0] - 2026-10-10
 ### Added
 - Widgets are configurable.
