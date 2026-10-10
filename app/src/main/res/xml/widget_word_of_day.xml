@@ -18,4 +18,6 @@
     android:updatePeriodMillis="1800000"
     android:widgetCategory="home_screen"
     android:description="@string/widget_word_of_day_description"
-    android:initialLayout="@layout/glance_default_loading_layout" />
+    android:initialLayout="@layout/glance_default_loading_layout"
+    android:configure="com.shahaabapps.twotracks.widget.WidgetConfigActivity"
+    android:widgetFeatures="reconfigurable|configuration_optional" />

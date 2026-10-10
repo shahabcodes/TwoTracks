@@ -144,6 +144,13 @@ fun guideSteps(
         "This tour",
         "It runs on every sign-in, and it is here whenever you want it again.",
     ),
+    // Widgets live on the home screen, so there is nothing in the app to
+    // ring. A step with no anchor shows its words on their own.
+    GuideStep(
+        settingsRoute, null,
+        "Home screen widgets",
+        "Four of them. Hold one on the home screen to pick what it shows, whose, and which course.",
+    ),
     GuideStep(
         settingsRoute, GuideAnchors.SET_SIGN_OUT,
         "That's everything",

@@ -87,7 +87,7 @@ class WidgetRefresher @Inject constructor(
      * leaves every widget reading as a quiet day, and it survives until the
      * app is next opened.
      */
-    private fun snapshots(): Flow<WidgetSnapshot> =
+    private fun snapshots(): Flow<Map<String, WidgetSnapshot>> =
         combine(
             sessionStore.state,
             dataStore.topicProgress,
@@ -95,30 +95,52 @@ class WidgetRefresher @Inject constructor(
             dataStore.flashcards,
             dataStore.logs,
         ) { state, progress, attempts, cards, logs ->
-            val session = (state as? SessionState.Ready)?.session ?: return@combine null
+            @Suppress("UNUSED_EXPRESSION")
+            val session = (state as? SessionState.Ready)?.session
+                ?: return@combine null as Map<String, WidgetSnapshot>?
             val me = session.myRole
             val them = if (me == PersonRole.TECH) PersonRole.TEACHER else PersonRole.TECH
             val today = Clock.today(session.me)
-            val byCourse = Courses.all.associate { it.id to CourseProgress.of(me, it.id, progress, attempts) }
             val mineDates = logs.filter { it.owner == me }.map { it.dateIso }
             val theirDates = logs.filter { it.owner == them }.map { it.dateIso }
-            WidgetSnapshot.of(
-                owner = me,
-                courses = Courses.all,
-                progressByCourse = byCourse,
-                topicProgress = progress,
-                attempts = attempts,
-                flashcards = cards,
-                togetherStreak = Streaks.together(mineDates, theirDates, today),
-                togetherState = togetherCode(Streaks.togetherToday(mineDates, theirDates, today)),
-                partnerName = session.partner?.name.orEmpty(),
-                today = today,
-            )
+            val streak = Streaks.together(mineDates, theirDates, today)
+            val togetherState = togetherCode(Streaks.togetherToday(mineDates, theirDates, today))
+
+            // One per person and course, because a widget is configured
+            // before anyone asks the app anything: the launcher renders it
+            // with no session, so whatever it might need has to be sitting
+            // there already. Four courses and two people is eight small
+            // flat values, which is cheaper than being clever about it.
+            buildMap<String, WidgetSnapshot> {
+                listOf(WidgetOwner.ME to me, WidgetOwner.PARTNER to them).forEach { (which, role) ->
+                    (listOf(null) + Courses.all.map { it.id }).forEach { courseId ->
+                        val courses = Courses.all.filter { courseId == null || it.id == courseId }
+                        val byCourse = courses.associate { it.id to CourseProgress.of(role, it.id, progress, attempts) }
+                        put(
+                            WidgetConfig.snapshotKey(which, courseId),
+                            WidgetSnapshot.of(
+                                owner = role,
+                                courses = courses,
+                                progressByCourse = byCourse,
+                                topicProgress = progress,
+                                attempts = attempts,
+                                flashcards = cards,
+                                togetherStreak = streak,
+                                togetherState = togetherState,
+                                // Whose name the Together card nudges: always
+                                // the other one from the reader's side.
+                                partnerName = if (which == WidgetOwner.ME) session.partner?.name.orEmpty() else session.me.name,
+                                today = today,
+                            ),
+                        )
+                    }
+                }
+            }
         }.filterNotNull().distinctUntilChanged()
 
-    private suspend fun push(snapshot: WidgetSnapshot) {
+    private suspend fun push(snapshots: Map<String, WidgetSnapshot>) {
         runCatching {
-            WidgetStore.write(context, snapshot)
+            snapshots.forEach { (key, snapshot) -> WidgetStore.write(context, key, snapshot) }
             lastPushedAt.set(System.currentTimeMillis())
             widgets.forEach { it.updateAll(context) }
         }

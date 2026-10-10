@@ -5,6 +5,10 @@ build number is appended by CI (for example `0.1.0 (build 12)`).
 
 ## [Unreleased]
 
+## [0.59.0] - 2026-10-10
+### Added
+- Widgets are configurable.
+
 ## [0.58.2] - 2026-10-10
 ### Fixed
 - The tour's invite-code step reads correctly for whoever joined the space.

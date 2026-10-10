@@ -55,6 +55,21 @@
             android:taskAffinity=""
             android:theme="@style/Theme.TwoTracks" />
 
+        <!--
+            What a widget shows, asked when it is dropped and reachable again
+            afterwards. exported because the launcher starts it, which is the
+            whole point of a configuration activity.
+        -->
+        <activity
+            android:name=".widget.WidgetConfigActivity"
+            android:exported="true"
+            android:excludeFromRecents="true"
+            android:theme="@style/Theme.TwoTracks">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_CONFIGURE" />
+            </intent-filter>
+        </activity>
+
         <receiver
             android:name=".reminders.ReminderReceiver"
             android:exported="false" />
