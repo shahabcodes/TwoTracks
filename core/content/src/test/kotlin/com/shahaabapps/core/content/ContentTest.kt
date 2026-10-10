@@ -149,9 +149,10 @@ class ContentTest {
         //
         // Module tests only: the mock exam runs with instantFeedback off, so
         // a note on a mock question would never be rendered. Writing content
-        // nothing can show is how 44 notes sat invisible until 0.43.0.
-        // Named, as the warm-up rule is: IELTS still to come.
-        listOf(Az204.course, GermanA1.course).forEach { course ->
+        // nothing can show is how 44 notes sat invisible until 0.43.0. The
+        // results page now shows the note for the option you picked, so the
+        // mock will come in here once its questions carry one.
+        listOf(Az204.course, GermanA1.course, Ielts.course).forEach { course ->
             course.modules.mapNotNull { m -> m.quiz?.let { m to it } }.forEach { (m, quiz) ->
                 assertTrue("${m.id} should give instant feedback for notes to appear", quiz.instantFeedback)
                 quiz.questions.forEach { q ->
@@ -184,9 +185,10 @@ class ContentTest {
     @Test
     fun `every topic of a warmed-up course opens with one guess, before any prose`() {
         // Named rather than blanket, so bringing a course up to this is a
-        // deliberate act: add it here and the rule starts holding it.
-        // IELTS has none yet.
-        listOf(Az204.course, GermanA1.course).forEach { course -> warmupsHold(course) }
+        // deliberate act: add it here and the rule starts holding it. All
+        // three courses are now in, which means a fourth would have to be
+        // written up to the rule rather than quietly skipping it.
+        listOf(Az204.course, GermanA1.course, Ielts.course).forEach { course -> warmupsHold(course) }
     }
 
     private fun warmupsHold(course: Course) {

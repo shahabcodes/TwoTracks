@@ -5,6 +5,10 @@ build number is appended by CI (for example `0.1.0 (build 12)`).
 
 ## [Unreleased]
 
+## [0.61.0] - 2026-10-11
+### Added
+- IELTS gets warm-ups and a note on every wrong answer.
+
 ## [0.60.0] - 2026-10-10
 ### Added
 - A test records what you picked and how long each question took.

@@ -7,6 +7,12 @@ internal object IeltsM2 {
     private val parts = Topic(
         id = "ie2-parts", title = "The four parts and the five question types", minutes = 22, references = refs,
         blocks = listOf(
+            B.warmup(
+                "ie2-parts-w1", "ie2-parts",
+                "The Listening recording plays once. Before each part you are given a little silence. What do you think it is for?",
+                listOf("Checking the answers you have already written", "Reading the questions that are coming", "Nothing in particular"), 1,
+                "It is the only moment you get to know what to listen for.",
+            ),
             B.plain("The recording plays once. Forty questions over four parts that get harder: a conversation about an everyday need, a monologue on an everyday topic, a conversation in an academic setting, a lecture. Everything is predictable except the words themselves."),
             B.table(
                 listOf("Part", "Audio", "Typical questions", "Where the points are"),
@@ -57,6 +63,12 @@ internal object IeltsM2 {
     private val traps = Topic(
         id = "ie2-traps", title = "Paraphrase, distractors and corrections: how questions are built", minutes = 24, references = refs,
         blocks = listOf(
+            B.warmup(
+                "ie2-traps-w1", "ie2-traps",
+                "A multiple-choice question offers Tuesday, Thursday and Friday, and the speakers mention all three. Which do you think is usually the answer?",
+                listOf("The first one mentioned", "The one they end on", "Whichever is said loudest"), 1,
+                "The other two are there on purpose, and they come first on purpose too.",
+            ),
             B.plain("Question writers follow rules. The question paraphrases the audio; the audio mentions two or three options before settling on one; speakers correct themselves. Once you hear the pattern, the test becomes predictable."),
             B.h("Pattern 1: the paraphrase"),
             B.table(
@@ -116,6 +128,12 @@ internal object IeltsM2 {
     private val details = Topic(
         id = "ie2-details", title = "Numbers, spellings, maps and Part 4 completion", minutes = 24, references = refs,
         blocks = listOf(
+            B.warmup(
+                "ie2-details-w1", "ie2-details",
+                "Of the forty Listening marks, roughly how many do you think turn on writing a name, number or date down correctly?",
+                listOf("One or two", "Closer to ten", "None; they are all comprehension"), 1,
+                "Part 1 is largely dictation, and a misspelling scores nothing.",
+            ),
             B.plain("Half of Part 1 is dictation: names spelt out, numbers, dates, prices, postcodes. Part 2 often has a map. Part 4 is a lecture where you fill gaps with single words. Each needs a specific drill."),
             B.h("Numbers the British way"),
             B.table(
@@ -182,20 +200,140 @@ internal object IeltsM2 {
         quiz = Quiz(
             id = "ie-m2-test", title = "Module 2 test", passPercent = 70,
             questions = B.spread(listOf(
-                B.q("ie2-q1", "ie2-parts", "Listening: what does the caller want to change?", listOf("the date of the booking", "the number of people", "the time of the booking"), setOf(1), "She keeps the date and time but changes from four people to six.", listen = "Hello, I booked a table for Saturday at seven for four people, and I'd like to keep the date and time but make it six people instead."),
-                B.q("ie2-q2", "ie2-parts", "Listening: how many words is 'the city museum' and does it fit NO MORE THAN TWO WORDS?", listOf("Two words, fits", "Three words, does not fit", "One word, fits"), setOf(1), "Articles count as words; 'city museum' would fit."),
-                B.q("ie2-q3", "ie2-parts", "Completion answers in Part 1", listOf("come in random order", "come in the order of the audio", "are all numbers"), setOf(1), "They follow the audio; if you hear a later answer, move on."),
-                B.q("ie2-q4", "ie2-traps", "Listening: which day is the trip?", listOf("Wednesday", "Saturday", "Sunday"), setOf(2), "Wednesday and Saturday are rejected; Sunday is settled on.", listen = "We could go on Wednesday, but the museum's closed then. Saturday's an option, though it'll be crowded. Let's go on Sunday, it's quieter."),
-                B.q("ie2-q5", "ie2-traps", "Listening: what is the fee?", listOf("40 pounds", "45 pounds", "50 pounds"), setOf(1), "The speaker corrects forty to forty-five.", listen = "The registration fee is forty pounds. Actually, I should say forty-five, since it went up in January."),
-                B.q("ie2-q6", "ie2-traps", "The audio says 'you have to register in advance'. The question says the course is", listOf("optional", "compulsory to register for", "free"), setOf(1), "'have to' paraphrases compulsory."),
-                B.q("ie2-q7", "ie2-details", "Listening: write down the number. Which is correct?", listOf("30175", "31075", "30715"), setOf(0), "three oh one seven five.", listen = "Your reference number is three, oh, one, seven, five."),
-                B.q("ie2-q8", "ie2-details", "Listening: the surname is spelt", listOf("Whitley", "Witley", "Whitely"), setOf(0), "The speaker spells it W-H-I-T-L-E-Y, so the H comes second and there is no second E.", listen = "The name is Whitley, that's W-H-I-T-L-E-Y."),
-                B.q("ie2-q9", "ie2-details", "Listening: where is the lab?", listOf("opposite the café", "next to the lecture hall", "at the end of the corridor"), setOf(1), "Next to the lecture hall; the café is the reference, not the location.", listen = "Walk past the café on your left and the lab is the next door along, right next to the lecture hall."),
-                B.q("ie2-q10", "ie2-details", "'Fifteen' and 'fifty' are told apart by", listOf("the first letter", "the stressed syllable", "the context only"), setOf(1), "fifTEEN stresses the second syllable; FIFty the first."),
-                B.q("ie2-q11", "ie2-details", "In Part 4 you miss a gap. The best action is", listOf("rewind mentally and guess", "move on to the next gap at once", "stop listening"), setOf(1), "Keeping pace saves the following answers."),
-                B.q("ie2-q12", "ie2-parts", "Map labelling: the first thing to find is", listOf("the compass or start point", "the biggest building", "the answer options"), setOf(0), "Directions only make sense from the start point."),
-                B.q("ie2-q13", "ie2-traps", "Listening: what may students bring?", listOf("phones", "calculators", "notes"), setOf(1), "Calculators are allowed; phones and notes are not.", listen = "You may bring a calculator into the exam, but not phones, and no notes of any kind."),
-                B.q("ie2-q14", "ie2-details", "Listening: what is the price per night?", listOf("95 pounds", "85 pounds", "115 pounds"), setOf(1), "Ninety-five with breakfast; eighty-five is the room only, which is what the question asks for.", listen = "The room is eighty-five pounds a night, or ninety-five if you want breakfast included. Just the room? Then eighty-five."),
+                B.q(
+                    "ie2-q1", "ie2-parts", "Listening: what does the caller want to change?",
+                    listOf("the date of the booking", "the number of people", "the time of the booking"), setOf(1),
+                    "She keeps the date and time but changes from four people to six.",
+                    listen = "Hello, I booked a table for Saturday at seven for four people, and I'd like to keep the date and time but make it six people instead.",
+                    whyWrong = mapOf(
+                        0 to "Saturday is said twice, which is what makes it tempting. She says she wants to keep it.",
+                        2 to "Seven o'clock is named and then explicitly kept. A detail you hear is not thereby the answer.",
+                    ),
+                ),
+                B.q(
+                    "ie2-q2", "ie2-parts", "Does 'the city museum' fit an instruction reading NO MORE THAN TWO WORDS?",
+                    listOf("Yes: two words", "No: three words", "Yes: it counts as one name"), setOf(1),
+                    "Articles count as words; 'city museum' would fit.",
+                    whyWrong = mapOf(
+                        0 to "'the' is a word on the answer sheet like any other. Drop it and you are inside the limit.",
+                        2 to "A name is not exempt. The limit counts words, not things.",
+                    ),
+                ),
+                B.q(
+                    "ie2-q3", "ie2-parts", "Completion answers in Part 1",
+                    listOf("come in random order", "come in the order of the audio", "are all numbers"), setOf(1),
+                    "They follow the audio; if you hear a later answer, move on.",
+                    whyWrong = mapOf(
+                        0 to "If they were random you could never tell you had missed one. In order is what makes moving on safe.",
+                        2 to "Part 1 is mostly names, numbers and dates, but not only numbers.",
+                    ),
+                ),
+                B.q(
+                    "ie2-q4", "ie2-traps", "Listening: which day is the trip?",
+                    listOf("Wednesday", "Saturday", "Sunday"), setOf(2),
+                    "Wednesday and Saturday are rejected; Sunday is settled on.",
+                    listen = "We could go on Wednesday, but the museum's closed then. Saturday's an option, though it'll be crowded. Let's go on Sunday, it's quieter.",
+                    whyWrong = mapOf(
+                        0 to "'but the museum's closed then' throws it away. Listen past the first day you hear.",
+                        1 to "'though it'll be crowded' is a rejection too. Both of the first two are distractors.",
+                    ),
+                ),
+                B.q(
+                    "ie2-q5", "ie2-traps", "Listening: what is the fee?",
+                    listOf("40 pounds", "45 pounds", "50 pounds"), setOf(1),
+                    "The speaker corrects forty to forty-five.",
+                    listen = "The registration fee is forty pounds. Actually, I should say forty-five, since it went up in January.",
+                    whyWrong = mapOf(
+                        0 to "That is the figure before 'actually'. A correction always beats what it corrects.",
+                        2 to "Fifty is never said. It is the sort of number you write when you half-heard a rise.",
+                    ),
+                ),
+                B.q(
+                    "ie2-q6", "ie2-traps", "The audio says 'you have to register in advance'. The question calls registration",
+                    listOf("optional", "compulsory", "free"), setOf(1),
+                    "'have to' paraphrases compulsory.",
+                    whyWrong = mapOf(
+                        0 to "'have to' is the opposite of optional. This is the paraphrase pair the question is built on.",
+                        2 to "Nothing was said about price. Having to do a thing says nothing about what it costs.",
+                    ),
+                ),
+                B.q(
+                    "ie2-q7", "ie2-details", "Listening: write down the reference number. Which is correct?",
+                    listOf("30175", "31075", "30715"), setOf(0),
+                    "Three, oh, one, seven, five, in that order.",
+                    listen = "Your reference number is three, oh, one, seven, five.",
+                    whyWrong = mapOf(
+                        1 to "The oh comes second, not third. Digits dictated one by one have to be written as they arrive.",
+                        2 to "The seven and the one have swapped. Write as you hear rather than reconstructing afterwards.",
+                    ),
+                ),
+                B.q(
+                    "ie2-q8", "ie2-details", "Listening: the surname is spelt",
+                    listOf("Whitley", "Witley", "Whitely"), setOf(0),
+                    "The speaker spells it W-H-I-T-L-E-Y, so the H comes second and there is no E before the L.",
+                    listen = "The name is Whitley, that's W-H-I-T-L-E-Y.",
+                    whyWrong = mapOf(
+                        1 to "The H is spelt out. Writing what the name sounds like instead of what was spelt is the commonest Part 1 loss.",
+                        2 to "The E comes after the L, not before it. Follow the letters in the order given.",
+                    ),
+                ),
+                B.q(
+                    "ie2-q9", "ie2-details", "Listening: where is the lab?",
+                    listOf("opposite the café", "next to the lecture hall", "at the end of the corridor"), setOf(1),
+                    "Next to the lecture hall; the café is the reference, not the location.",
+                    listen = "Walk past the café on your left and the lab is the next door along, right next to the lecture hall.",
+                    whyWrong = mapOf(
+                        0 to "The café is a landmark you walk past. Labelling the landmark instead of the destination is the standard map trap.",
+                        2 to "No end of a corridor is mentioned here. It is a direction from another question set.",
+                    ),
+                ),
+                B.q(
+                    "ie2-q10", "ie2-details", "'Fifteen' and 'fifty' are told apart by",
+                    listOf("the first letter", "the stressed syllable", "the context only"), setOf(1),
+                    "fifTEEN stresses the second syllable; FIFty the first.",
+                    whyWrong = mapOf(
+                        0 to "They begin identically, which is exactly why they are confused.",
+                        2 to "Context often cannot settle it: fifteen and fifty pounds are both plausible prices. The stress can.",
+                    ),
+                ),
+                B.q(
+                    "ie2-q11", "ie2-details", "In Part 4 you miss a gap. The best action is",
+                    listOf("work backwards from what you remember", "move on to the next gap at once", "stop and wait for a pause"), setOf(1),
+                    "Keeping pace saves the following answers.",
+                    whyWrong = mapOf(
+                        0 to "A lecture does not wait. Reconstructing one gap usually costs the next two.",
+                        2 to "Part 4 has no pause in the middle. There is nothing to wait for.",
+                    ),
+                ),
+                B.q(
+                    "ie2-q12", "ie2-parts", "Map labelling: the first thing to find is",
+                    listOf("the compass or start point", "the biggest building", "the answer options"), setOf(0),
+                    "Directions only make sense from the start point.",
+                    whyWrong = mapOf(
+                        1 to "Size tells you nothing. 'Turn right' means nothing until you know where you are standing.",
+                        2 to "The options are letters on the drawing. Reading them without a start point tells you nothing about where they are.",
+                    ),
+                ),
+                B.q(
+                    "ie2-q13", "ie2-traps", "Listening: what may students bring?",
+                    listOf("phones", "calculators", "notes"), setOf(1),
+                    "Calculators are allowed; phones and notes are not.",
+                    listen = "You may bring a calculator into the exam, but not phones, and no notes of any kind.",
+                    whyWrong = mapOf(
+                        0 to "'but not phones' is the whole point of the sentence. Hearing a thing named is not hearing it allowed.",
+                        2 to "'no notes of any kind' is as flat a refusal as the test gives.",
+                    ),
+                ),
+                B.q(
+                    "ie2-q14", "ie2-details", "Listening: the room alone costs, per night,",
+                    listOf("95 pounds", "85 pounds", "115 pounds"), setOf(1),
+                    "Eighty-five is the room; ninety-five is the room with breakfast, and the question asks for the room.",
+                    listen = "The room is eighty-five pounds a night, or ninety-five if you want breakfast included. Just the room? Then eighty-five.",
+                    whyWrong = mapOf(
+                        0 to "That is the price with breakfast. A conditional price answers only the case the question asks about.",
+                        2 to "A hundred and fifteen is never said. Adding the two figures is not what 'or' means.",
+                    ),
+                ),
             )),
         ),
     )

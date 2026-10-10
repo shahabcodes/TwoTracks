@@ -7,6 +7,12 @@ internal object IeltsM1 {
     private val format = Topic(
         id = "ie1-format", title = "The test: four papers, two versions, one morning", minutes = 18, references = refs,
         blocks = listOf(
+            B.warmup(
+                "ie1-format-w1", "ie1-format",
+                "Usaid sits General Training and Sanya sits Academic. How much of the test do you think the two of them have in common?",
+                listOf("All four papers", "Two of the four", "None of it"), 1,
+                "Two papers never change with the version. The other two do.",
+            ),
             B.plain("IELTS is about two hours and forty-five minutes of Listening, Reading and Writing in one sitting, plus a face-to-face Speaking interview of 11 to 14 minutes, often on another day. Academic and General Training share Listening and Speaking; they differ in Reading and in Writing Task 1."),
             B.table(
                 listOf("Paper", "Time", "Shape", "Same for both versions?"),
@@ -60,6 +66,12 @@ internal object IeltsM1 {
     private val bands = Topic(
         id = "ie1-bands", title = "How bands are calculated, and what band 7 means in each paper", minutes = 22, references = refs,
         blocks = listOf(
+            B.warmup(
+                "ie1-bands-w1", "ie1-bands",
+                "Band 7 in Listening. Of the 40 questions, how many do you think you are allowed to get wrong?",
+                listOf("Two", "Ten", "Twenty"), 1,
+                "More than most people guess. A misspelt answer is one of them.",
+            ),
             B.plain("Listening and Reading are counted: 40 questions, a raw score, a conversion table. Writing and Speaking are judged on four criteria each. Knowing the numbers tells you exactly how many mistakes you can afford."),
             B.h("Listening and Reading: raw score to band"),
             B.table(
@@ -96,7 +108,7 @@ internal object IeltsM1 {
                 listOf("Grammatical Range and Accuracy", "Range of complex structures with frequent error-free sentences"),
                 listOf("Pronunciation", "Easy to understand throughout; features of a 6 and an 8 mixed"),
             ),
-            B.tip("Each criterion is a whole band and the four are averaged. Two 7s and two 6s is 6.5. To get a 7 you need at least two criteria at 7 and the others no lower than 6.5 is impossible, since each is whole: you need three 7s and a 6, or better. Plan for four."),
+            B.tip("Each criterion is scored as a whole band and the four are averaged, then rounded to the nearest half. Two 7s and two 6s averages 6.5 exactly. Three 7s and a 6 averages 6.75, which rounds up to 7. So the cheapest route to a 7 is three criteria at 7 and none below 6 — but one criterion at 5 sinks the paper, so plan for four."),
             B.h("Overall band"),
             B.p("The overall band is the mean of the four, rounded to the nearest half. 7, 7, 6.5, 6.5 averages 6.75 and rounds up to 7. But the Australian teacher registration and many visas need a minimum in each paper, not just overall, so a strong Listening cannot rescue a weak Writing."),
             B.check("ie1-bands-k1", "ie1-bands", "Usaid scores 33 in General Reading. His band is", listOf("6", "6.5", "7"), 1, "34 to 35 is band 7; 32 to 33 is 6.5. One more right answer would have made the 7."),
@@ -116,6 +128,12 @@ internal object IeltsM1 {
     private val plan = Topic(
         id = "ie1-plan", title = "From your current level to a 7: the study plan this course follows", minutes = 16, references = refs,
         blocks = listOf(
+            B.warmup(
+                "ie1-plan-w1", "ie1-plan",
+                "Two people each sit ten practice papers. One works out why every wrong answer was wrong; the other just sits the next paper. What do you think separates them?",
+                listOf("Almost nothing; the hours are the same", "About a band", "Only speed"), 1,
+                "The hours count, but only the ones spent on what went wrong.",
+            ),
             B.plain("Moving one band takes most people 100 to 200 hours of focused work. The modules here are the method; the practice papers are the hours. This topic sets the weekly shape and the two habits that matter most."),
             B.diagram(
                 caption = "A week that moves a band: method from the modules, practice from the papers, review of every mistake.",
@@ -165,18 +183,114 @@ internal object IeltsM1 {
         quiz = Quiz(
             id = "ie-m1-test", title = "Module 1 test", passPercent = 70,
             questions = B.spread(listOf(
-                B.q("ie1-q1", "ie1-format", "Which two papers are identical in Academic and General Training?", listOf("Reading and Writing", "Listening and Speaking", "Writing and Speaking"), setOf(1), "Listening and Speaking are shared; Reading and Writing Task 1 differ."),
-                B.q("ie1-q2", "ie1-format", "In General Training, Writing Task 1 is", listOf("a chart description", "a letter", "an essay"), setOf(1), "General Task 1 is a letter; Academic Task 1 describes data."),
-                B.q("ie1-q3", "ie1-format", "On the computer-delivered test, Listening", listOf("has 10 minutes of transfer time", "has no transfer time because answers go straight in", "is heard twice"), setOf(1), "Only the paper test gives transfer time; the recording plays once in both."),
-                B.q("ie1-q4", "ie1-format", "Which is true about spelling in Listening answers?", listOf("Spelling is ignored", "Spelling must be correct; capitals do not matter", "Only capitals matter"), setOf(1), "A misspelt answer is wrong; case is not checked."),
-                B.q("ie1-q5", "ie1-bands", "How many correct answers of 40 give band 7 in Listening?", listOf("23 to 24", "30 to 31", "35 to 36"), setOf(1), "30 is the band 7 threshold; 35 is band 8."),
-                B.q("ie1-q6", "ie1-bands", "Why does General Training Reading need more correct answers for the same band?", listOf("It has more questions", "Its texts are easier, so the conversion is stricter", "It is marked by a different organisation"), setOf(1), "34 of 40 for a 7 in General, against 30 in Academic."),
-                B.q("ie1-q7", "ie1-bands", "A Speaking performance scores 7, 7, 7, 6. The Speaking band is", listOf("7", "6.75", "6.5"), setOf(2), "The mean 6.75 is rounded to the nearest half band for the paper score: 6.5 under the per-paper rounding, so aim for all four at 7."),
-                B.q("ie1-q8", "ie1-bands", "Overall bands of 7, 7, 6.5, 6.5 give an overall of", listOf("6.5", "7", "6.75"), setOf(1), "The mean 6.75 rounds up to 7.0."),
-                B.q("ie1-q9", "ie1-bands", "Which Writing criterion rewards paragraphing and linking?", listOf("Task Achievement", "Coherence and Cohesion", "Lexical Resource"), setOf(1), "Coherence and Cohesion covers organisation and linking devices."),
-                B.q("ie1-q10", "ie1-plan", "The habit that most improves a band is", listOf("Taking more tests without review", "Logging the reason for each miss and rewriting marked tasks", "Reading grammar books only"), setOf(1), "Review and second drafts turn practice into improvement."),
-                B.q("ie1-q11", "ie1-plan", "'The recording paraphrases the question' means the audio", listOf("repeats the question word for word", "says the same idea in different words", "skips the question"), setOf(1), "Paraphrase is the core skill in Listening and Reading."),
-                B.q("ie1-q12", "ie1-format", "The Speaking test lasts", listOf("5 minutes", "11 to 14 minutes", "30 minutes"), setOf(1), "Three parts over 11 to 14 minutes, recorded."),
+                B.q(
+                    "ie1-q1", "ie1-format", "Which two papers are identical in Academic and General Training?",
+                    listOf("Reading and Writing", "Listening and Speaking", "Writing and Speaking"), setOf(1),
+                    "Listening and Speaking are shared; Reading and Writing Task 1 differ.",
+                    whyWrong = mapOf(
+                        0 to "Reading is where the two versions differ most, and Writing Task 1 differs with it.",
+                        2 to "Speaking is shared, but Writing is not: Task 1 is a letter in General and a chart in Academic.",
+                    ),
+                ),
+                B.q(
+                    "ie1-q2", "ie1-format", "In General Training, Writing Task 1 is",
+                    listOf("a chart description", "a letter", "an essay"), setOf(1),
+                    "General Task 1 is a letter; Academic Task 1 describes data.",
+                    whyWrong = mapOf(
+                        0 to "That is Academic Task 1. General Training never asks you to describe data.",
+                        2 to "The essay is Task 2, in both versions. Task 1 is the shorter one that differs.",
+                    ),
+                ),
+                B.q(
+                    "ie1-q3", "ie1-format", "On the computer-delivered test, Listening",
+                    listOf("has 10 minutes of transfer time", "has no transfer time because answers go straight in", "is heard twice"), setOf(1),
+                    "Only the paper test gives transfer time; the recording plays once in both.",
+                    whyWrong = mapOf(
+                        0 to "Transfer time exists because paper answers have to be copied onto an answer sheet. Typed answers are already on it.",
+                        2 to "The recording plays once whichever mode you sit. There is no second hearing in IELTS.",
+                    ),
+                ),
+                B.q(
+                    "ie1-q4", "ie1-format", "Which is true about spelling in Listening answers?",
+                    listOf("Spelling is ignored", "Spelling must be correct; capitals do not matter", "Only capitals matter"), setOf(1),
+                    "A misspelt answer is wrong; case is not checked.",
+                    whyWrong = mapOf(
+                        0 to "A misspelt answer is marked wrong, which is why the spelling of names and numbers is worth drilling.",
+                        2 to "Case is the one thing not checked. Spelling is the thing that is.",
+                    ),
+                ),
+                B.q(
+                    "ie1-q5", "ie1-bands", "How many correct answers of 40 give band 7 in Listening?",
+                    listOf("23 to 24", "30 to 31", "35 to 36"), setOf(1),
+                    "30 is the band 7 threshold; 35 is band 8.",
+                    whyWrong = mapOf(
+                        0 to "That is band 6. Seven more right answers is what sits between a 6 and a 7.",
+                        2 to "35 is band 8. A 7 leaves you ten to miss, not five.",
+                    ),
+                ),
+                B.q(
+                    "ie1-q6", "ie1-bands", "Why does General Training Reading need more correct answers for the same band?",
+                    listOf("It has more questions", "Its texts are easier, so the conversion is stricter", "It is marked by a different organisation"), setOf(1),
+                    "34 of 40 for a 7 in General, against 30 in Academic.",
+                    whyWrong = mapOf(
+                        0 to "Both versions ask 40 questions. What differs is the table that turns a raw score into a band.",
+                        2 to "The same organisations run both versions. The texts differ, not the marker.",
+                    ),
+                ),
+                B.q(
+                    "ie1-q7", "ie1-bands", "A Speaking performance scores 7, 7, 7, 6 on the four criteria. The Speaking band is",
+                    listOf("7", "6.75", "6.5"), setOf(0),
+                    "The four criteria average 6.75, and a paper band is reported to the nearest half, so it rounds up to 7.",
+                    whyWrong = mapOf(
+                        1 to "That is the mean before rounding. No band is ever reported as 6.75.",
+                        2 to "6.5 is what two 7s and two 6s give. Three 7s pull the mean high enough to round up.",
+                    ),
+                ),
+                B.q(
+                    "ie1-q8", "ie1-bands", "Paper bands of 7, 7, 6.5, 6.5 give an overall of",
+                    listOf("6.5", "7", "6.75"), setOf(1),
+                    "The mean 6.75 rounds up to 7.0.",
+                    whyWrong = mapOf(
+                        0 to "Rounding goes to the nearest half, and 6.75 is nearer 7 than 6.5.",
+                        2 to "An overall band is only ever a whole or a half. 6.75 is the mean, not the band.",
+                    ),
+                ),
+                B.q(
+                    "ie1-q9", "ie1-bands", "Which Writing criterion rewards paragraphing and linking?",
+                    listOf("Task Achievement", "Coherence and Cohesion", "Lexical Resource"), setOf(1),
+                    "Coherence and Cohesion covers organisation and linking devices.",
+                    whyWrong = mapOf(
+                        0 to "Task Achievement asks whether you answered every part of the question, not how you arranged the answer.",
+                        2 to "Lexical Resource is about the words themselves. Where they sit is Coherence and Cohesion.",
+                    ),
+                ),
+                B.q(
+                    "ie1-q10", "ie1-plan", "The habit that most improves a band is",
+                    listOf("Taking more tests without review", "Logging the reason for each miss and rewriting marked tasks", "Reading grammar books only"), setOf(1),
+                    "Review and second drafts turn practice into improvement.",
+                    whyWrong = mapOf(
+                        0 to "Practice without review repeats the same mistakes under timing. The hours pass and the band does not move.",
+                        2 to "Grammar alone does not teach paraphrase, timing or task response, which is where most of the gap from 6 to 7 sits.",
+                    ),
+                ),
+                B.q(
+                    "ie1-q11", "ie1-plan", "A recording that paraphrases the question is one that",
+                    listOf("repeats the question word for word", "says the same idea in different words", "skips the question"), setOf(1),
+                    "Paraphrase is the core skill in Listening and Reading.",
+                    whyWrong = mapOf(
+                        0 to "If it repeated the words you could simply listen for them. The whole difficulty is that it does not.",
+                        2 to "The idea is always there somewhere. It is the wording that has changed.",
+                    ),
+                ),
+                B.q(
+                    "ie1-q12", "ie1-format", "The Speaking test lasts",
+                    listOf("5 minutes", "11 to 14 minutes", "30 minutes"), setOf(1),
+                    "Three parts over 11 to 14 minutes, recorded.",
+                    whyWrong = mapOf(
+                        0 to "Part 2 alone runs close to three minutes with its preparation. Five would not fit three parts.",
+                        2 to "Thirty minutes is roughly the Listening paper. Speaking is the shortest of the four.",
+                    ),
+                ),
             )),
         ),
     )

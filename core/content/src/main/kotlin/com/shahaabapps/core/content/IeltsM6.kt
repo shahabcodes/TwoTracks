@@ -7,6 +7,12 @@ internal object IeltsM6 {
     private val questions = Topic(
         id = "ie6-questions", title = "Five question types, and answering the one you were asked", minutes = 26, references = refs,
         blocks = listOf(
+            B.warmup(
+                "ie6-questions-w1", "ie6-questions",
+                "A band 6 essay is well written, 300 words, four tidy paragraphs. What do you think went wrong more often than the English?",
+                listOf("The handwriting", "It did not answer the whole question", "It was too long"), 1,
+                "One of the four criteria asks only whether you did what was asked.",
+            ),
             B.plain("Task 2 is the same in Academic and General: an essay of at least 250 words in 40 minutes, worth twice Task 1. More band 6 essays fail on the question than on the English. Read the task twice, decide its type, and answer every part of it."),
             B.table(
                 listOf("Type", "The prompt ends with", "What you must do"),
@@ -64,6 +70,12 @@ internal object IeltsM6 {
     private val structure = Topic(
         id = "ie6-structure", title = "Four paragraphs, and what goes in each sentence", minutes = 28, references = refs,
         blocks = listOf(
+            B.warmup(
+                "ie6-structure-w1", "ie6-structure",
+                "Two essays argue the same case in 270 words. One has four body paragraphs, one has two. Which do you think scores higher?",
+                listOf("The four, for range", "The two, if each is developed", "They score the same"), 1,
+                "The same words spread over twice as many paragraphs leaves each of them thin.",
+            ),
             B.plain("A band 7 essay has an obvious skeleton. Examiners read hundreds of scripts; clarity is rewarded, not cleverness. Four paragraphs, each with a defined job, each body paragraph built the same way."),
             B.diagram(
                 caption = "The skeleton. Each body paragraph is one idea, explained, exemplified and tied back to the question.",
@@ -134,6 +146,12 @@ internal object IeltsM6 {
     private val practice = Topic(
         id = "ie6-practice", title = "Write two essays and have them marked", minutes = 26, references = refs,
         blocks = listOf(
+            B.warmup(
+                "ie6-practice-w1", "ie6-practice",
+                "You have forty minutes for the essay. How many of them do you think should go on planning before you write a word?",
+                listOf("None; start writing", "About four", "Half"), 1,
+                "A few minutes buys the structure that the heaviest penalties are about.",
+            ),
             B.plain("Two essays, one opinion and one problem and solution. The marker checks the content points plus the essay form: four paragraphs, linking words and a clear position. Forty minutes each, including four minutes of planning."),
             B.diagram(
                 caption = "The marking loop. The rewrite is where the band moves; the model is read last, not first.",
@@ -210,20 +228,132 @@ internal object IeltsM6 {
         quiz = Quiz(
             id = "ie-m6-test", title = "Module 6 test", passPercent = 70,
             questions = B.spread(listOf(
-                B.q("ie6-q1", "ie6-questions", "The minimum length for Task 2 is", listOf("150 words", "250 words", "350 words"), setOf(1), "Under 250 words carries an automatic penalty on Task Response."),
-                B.q("ie6-q2", "ie6-questions", "'Discuss both views and give your own opinion' requires", listOf("your opinion only", "both views and your opinion", "both views without an opinion"), setOf(1), "Missing any of the three parts costs Task Response."),
-                B.q("ie6-q3", "ie6-questions", "'Do the advantages outweigh the disadvantages?' asks you to", listOf("list both sides only", "decide which side is greater", "describe advantages only"), setOf(1), "Outweigh demands a verdict."),
-                B.q("ie6-q4", "ie6-questions", "Writing 'there are arguments on both sides' and stopping there", listOf("shows balance and scores well", "caps Task Response because no position is taken", "is required in discussion essays"), setOf(1), "Band 7 needs a clear position throughout."),
-                B.q("ie6-q5", "ie6-questions", "A two-part question where you answer only the first part", listOf("is acceptable if the answer is long", "loses marks because the task is incomplete", "scores higher for depth"), setOf(1), "Every part of the prompt must be answered."),
-                B.q("ie6-q6", "ie6-structure", "The best number of body paragraphs is usually", listOf("one", "two well developed", "four short ones"), setOf(1), "Two developed ideas outscore four undeveloped ones."),
-                B.q("ie6-q7", "ie6-structure", "Which opening should you avoid?", listOf("It is frequently argued that…", "Nowadays, in this modern era…", "Opinion is divided on whether…"), setOf(1), "Nowadays openings are empty and strongly associated with low bands."),
-                B.q("ie6-q8", "ie6-structure", "A body paragraph should contain", listOf("several unrelated ideas", "one idea, explained and exemplified", "only statistics"), setOf(1), "Topic, explain, example, link."),
-                B.q("ie6-q9", "ie6-structure", "Inventing an example such as 'a study in Canada found'", listOf("is penalised as dishonest", "is acceptable since the English is what is marked", "must be cited"), setOf(1), "Examiners do not verify facts; unsupported paragraphs are what cost marks."),
-                B.q("ie6-q10", "ie6-structure", "A new idea introduced in the conclusion", listOf("shows range", "weakens Coherence and should be moved or cut", "is required"), setOf(1), "Conclusions restate; they do not introduce."),
-                B.q("ie6-q11", "ie6-structure", "Replacing a repeated noun with 'such measures' is an example of", listOf("referencing, which examiners reward", "repetition", "an error"), setOf(0), "Referencing is a cohesion device that band 7 uses naturally."),
-                B.q("ie6-q12", "ie6-practice", "How should the 40 minutes be divided?", listOf("40 writing", "4 planning, 32 writing, 4 checking", "10 planning, 30 writing"), setOf(1), "Planning prevents the structural errors that cost most marks."),
-                B.q("ie6-q13", "ie6-practice", "Task 2 is worth", listOf("the same as Task 1", "twice Task 1", "half of Task 1"), setOf(1), "Two thirds of the Writing band comes from Task 2."),
-                B.q("ie6-q14", "ie6-structure", "'However' and 'By contrast' signal", listOf("addition", "contrast", "conclusion"), setOf(1), "They introduce an opposing point."),
+                B.q(
+                    "ie6-q1", "ie6-questions", "The minimum length for Task 2 is",
+                    listOf("150 words", "250 words", "350 words"), setOf(1),
+                    "Under 250 words carries an automatic penalty on Task Response.",
+                    whyWrong = mapOf(
+                        0 to "150 is Task 1. An essay that length is a hundred words short of the floor.",
+                        2 to "350 is not required, and chasing it usually costs the four minutes that should have gone on checking.",
+                    ),
+                ),
+                B.q(
+                    "ie6-q2", "ie6-questions", "'Discuss both views and give your own opinion' requires",
+                    listOf("your opinion only", "both views and your opinion", "both views without an opinion"), setOf(1),
+                    "Missing any of the three parts costs Task Response.",
+                    whyWrong = mapOf(
+                        0 to "The word 'both' is doing work in that prompt. An opinion alone leaves two of the three parts undone.",
+                        2 to "'And give your own opinion' is the third instruction, not an optional extra.",
+                    ),
+                ),
+                B.q(
+                    "ie6-q3", "ie6-questions", "'Do the advantages outweigh the disadvantages?' asks you to",
+                    listOf("list both sides only", "decide which side is greater", "describe advantages only"), setOf(1),
+                    "Outweigh demands a verdict.",
+                    whyWrong = mapOf(
+                        0 to "Listing is the groundwork. 'Outweigh' is a question, and a question needs an answer.",
+                        2 to "The disadvantages are half the question. Leaving them out is leaving out a part of the task.",
+                    ),
+                ),
+                B.q(
+                    "ie6-q4", "ie6-questions", "Writing 'there are arguments on both sides' and stopping there",
+                    listOf("shows balance and scores well", "caps Task Response because no position is taken", "is required in discussion essays"), setOf(1),
+                    "Band 7 needs a clear position throughout.",
+                    whyWrong = mapOf(
+                        0 to "Balance is covering both views. Declining to choose between them is a different thing, and it is what the descriptor penalises.",
+                        2 to "A discussion essay still asks for your opinion. Refusing to give one is not the convention; it is the trap.",
+                    ),
+                ),
+                B.q(
+                    "ie6-q5", "ie6-questions", "A two-part question where you answer only the first part",
+                    listOf("is acceptable if the answer is long", "loses marks because the task is incomplete", "scores higher for depth"), setOf(1),
+                    "Every part of the prompt must be answered.",
+                    whyWrong = mapOf(
+                        0 to "Length cannot substitute for a missing part. The criterion asks what you covered, not how much you wrote.",
+                        2 to "Depth on half the question is still half the question.",
+                    ),
+                ),
+                B.q(
+                    "ie6-q6", "ie6-structure", "The best number of body paragraphs is usually",
+                    listOf("one", "two well developed", "four short ones"), setOf(1),
+                    "Two developed ideas outscore four undeveloped ones.",
+                    whyWrong = mapOf(
+                        0 to "One body paragraph cannot hold 250 words' worth of argument, and a discussion essay needs at least two sides.",
+                        2 to "Four short paragraphs split the same word count four ways, and none of them ends up explained or exemplified.",
+                    ),
+                ),
+                B.q(
+                    "ie6-q7", "ie6-structure", "Which opening should you avoid?",
+                    listOf("It is frequently argued that…", "Nowadays, in this modern era…", "Opinion is divided on whether…"), setOf(1),
+                    "Nowadays openings are empty and strongly associated with low bands.",
+                    whyWrong = mapOf(
+                        0 to "That is a perfectly good way into a discussion essay: it names the debate in the first clause.",
+                        2 to "Also fine, and it sets up both views before you choose between them.",
+                    ),
+                ),
+                B.q(
+                    "ie6-q8", "ie6-structure", "A body paragraph should contain",
+                    listOf("several unrelated ideas", "one idea, explained and exemplified", "only statistics"), setOf(1),
+                    "Topic, explain, example, link.",
+                    whyWrong = mapOf(
+                        0 to "Coherence asks for a clear central topic per paragraph. Several ideas means no central one.",
+                        2 to "Figures without an argument around them do not make a point, and Task 2 wants no data at all.",
+                    ),
+                ),
+                B.q(
+                    "ie6-q9", "ie6-structure", "Inventing an example such as 'a study in Canada found'",
+                    listOf("is penalised as dishonest", "is acceptable since the English is what is marked", "must be cited"), setOf(1),
+                    "Examiners do not verify facts; unsupported paragraphs are what cost marks.",
+                    whyWrong = mapOf(
+                        0 to "Nobody checks, and nothing in the descriptors mentions truth. An unsupported claim costs more than an invented example.",
+                        2 to "There is no citation in an IELTS essay. You have forty minutes and no sources.",
+                    ),
+                ),
+                B.q(
+                    "ie6-q10", "ie6-structure", "A new idea introduced in the conclusion",
+                    listOf("shows range", "weakens Coherence and should be moved or cut", "is required"), setOf(1),
+                    "Conclusions restate; they do not introduce.",
+                    whyWrong = mapOf(
+                        0 to "Range is rewarded in the body, where an idea can be developed. In the conclusion it arrives with nowhere to go.",
+                        2 to "The opposite is required: the conclusion should contain nothing the essay has not already argued.",
+                    ),
+                ),
+                B.q(
+                    "ie6-q11", "ie6-structure", "Replacing a repeated noun with 'such measures' is an example of",
+                    listOf("referencing, which examiners reward", "repetition", "an error"), setOf(0),
+                    "Referencing is a cohesion device that band 7 uses naturally.",
+                    whyWrong = mapOf(
+                        1 to "It is the cure for repetition, not an instance of it: the noun is precisely what has been avoided.",
+                        2 to "It is standard academic English, and one of the things Coherence and Cohesion looks for.",
+                    ),
+                ),
+                B.q(
+                    "ie6-q12", "ie6-practice", "How should the 40 minutes be divided?",
+                    listOf("40 writing", "4 planning, 32 writing, 4 checking", "10 planning, 30 writing"), setOf(1),
+                    "Planning prevents the structural errors that cost most marks.",
+                    whyWrong = mapOf(
+                        0 to "Writing without a plan is how an essay loses its position halfway through, and with nothing left for checking the slips stay in.",
+                        2 to "Ten minutes of planning is more than the plan needs and leaves nothing to check with.",
+                    ),
+                ),
+                B.q(
+                    "ie6-q13", "ie6-practice", "Task 2 is worth",
+                    listOf("the same as Task 1", "twice Task 1", "half of Task 1"), setOf(1),
+                    "Two thirds of the Writing band comes from Task 2.",
+                    whyWrong = mapOf(
+                        0 to "If they were equal the hour would split evenly. It does not, because they are not.",
+                        2 to "It is the heavier of the two, not the lighter.",
+                    ),
+                ),
+                B.q(
+                    "ie6-q14", "ie6-structure", "'However' and 'By contrast' signal",
+                    listOf("addition", "contrast", "conclusion"), setOf(1),
+                    "They introduce an opposing point.",
+                    whyWrong = mapOf(
+                        0 to "Addition is 'moreover' and 'in addition'. Using a contrast linker to add is a cohesion error examiners notice.",
+                        2 to "Conclusion is 'in conclusion' or 'to sum up'. These two turn the argument rather than ending it.",
+                    ),
+                ),
             )),
         ),
     )

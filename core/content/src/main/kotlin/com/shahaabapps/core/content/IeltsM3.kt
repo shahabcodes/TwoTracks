@@ -7,6 +7,12 @@ internal object IeltsM3 {
     private val timing = Topic(
         id = "ie3-timing", title = "Sixty minutes, forty questions: the timing that decides the band", minutes = 22, references = refs,
         blocks = listOf(
+            B.warmup(
+                "ie3-timing-w1", "ie3-timing",
+                "Somebody scores 6 in Reading. What do you think is most often the reason?",
+                listOf("Their English is not good enough yet", "They ran out of time", "They guessed too much"), 1,
+                "Most people who score 6 could answer every question. Not in an hour.",
+            ),
             B.plain("Most people who score 6 in Reading know enough English for a 7. They run out of time. There is no extra transfer time on paper, so the clock is the real examiner. This topic fixes the clock first and the techniques second."),
             B.diagram(
                 caption = "Twenty minutes a section, with the last three for transferring and guessing. Leave a section when its twenty minutes are gone, finished or not.",
@@ -56,6 +62,12 @@ internal object IeltsM3 {
     private val tfng = Topic(
         id = "ie3-tfng", title = "True, False, Not Given: the question type that costs most marks", minutes = 26, references = refs,
         blocks = listOf(
+            B.warmup(
+                "ie3-tfng-w1", "ie3-tfng",
+                "A passage describes two methods at length and never says which is better. A statement claims the first is more accurate. What do you think the answer is?",
+                listOf("TRUE, since it is described first", "FALSE, since the passage does not say so", "NOT GIVEN"), 2,
+                "There is a difference between a passage denying a thing and never raising it.",
+            ),
             B.plain("True/False/Not Given, and its opinion twin Yes/No/Not Given, catch more candidates than any other type. The fix is mechanical: decide what the statement claims, find the matching sentence, and compare only those two things."),
             B.diagram(
                 caption = "Three outcomes, one decision each. 'Not Given' is not 'I could not find it'; it is 'the passage does not say either way'.",
@@ -115,6 +127,12 @@ internal object IeltsM3 {
     private val headings = Topic(
         id = "ie3-headings", title = "Matching headings, matching information and summary completion", minutes = 26, references = refs,
         blocks = listOf(
+            B.warmup(
+                "ie3-headings-w1", "ie3-headings",
+                "A matching-headings task gives nine headings for six paragraphs. Why do you think there are three spare?",
+                listOf("A printing convention", "So that a near-match cannot be reached by elimination", "Some paragraphs take two"), 1,
+                "The spares are there to be tempting, not to be used.",
+            ),
             B.plain("These three types test whether you can tell a paragraph's main idea from its details. They are the reason skimming matters: the work is done before you read a single question if your skim was honest."),
             B.h("Matching headings"),
             B.bullets(
@@ -184,20 +202,132 @@ internal object IeltsM3 {
         quiz = Quiz(
             id = "ie-m3-test", title = "Module 3 test", passPercent = 70,
             questions = B.spread(listOf(
-                B.q("ie3-q1", "ie3-timing", "How long should one Reading section take?", listOf("about 10 minutes", "about 20 minutes", "as long as it needs"), setOf(1), "Three sections in sixty minutes means twenty each, with the last few minutes for transfer and guesses."),
-                B.q("ie3-q2", "ie3-timing", "On the paper test, transfer time for Reading is", listOf("10 minutes extra", "not given: it is inside the 60 minutes", "5 minutes extra"), setOf(1), "Unlike Listening, Reading has no extra transfer time."),
-                B.q("ie3-q3", "ie3-timing", "You meet a word you do not know in a question sentence. You should", listOf("skip the question", "use the surrounding sentence and any contrast after 'but'", "look for the word in every paragraph"), setOf(1), "Unknown vocabulary is designed in; the context carries the meaning."),
-                B.q("ie3-q4", "ie3-timing", "General Training Reading differs from Academic in that", listOf("it has fewer questions", "its texts are everyday and the pass mark is higher", "it has no long passage"), setOf(1), "Easier texts, stricter conversion: 34 of 40 for a 7."),
-                B.q("ie3-q5", "ie3-tfng", "The passage says 'sales rarely exceed 200 units'. Statement: 'Sales seldom go above 200 units.' The answer is", listOf("TRUE", "FALSE", "NOT GIVEN"), setOf(0), "'Seldom go above' paraphrases 'rarely exceed'."),
-                B.q("ie3-q6", "ie3-tfng", "The passage describes two methods in detail but never compares them. Statement: 'The first method is more accurate.' The answer is", listOf("TRUE", "FALSE", "NOT GIVEN"), setOf(2), "A comparison the passage never makes is NOT GIVEN."),
-                B.q("ie3-q7", "ie3-tfng", "The passage says 'most of the buildings survived'. Statement: 'All the buildings survived.' The answer is", listOf("TRUE", "FALSE", "NOT GIVEN"), setOf(1), "'All' contradicts 'most': FALSE."),
-                B.q("ie3-q8", "ie3-tfng", "Yes/No/Not Given questions ask about", listOf("facts in the passage", "the writer's opinion", "your own opinion"), setOf(1), "YNNG targets the writer's views; TFNG targets factual claims."),
-                B.q("ie3-q9", "ie3-tfng", "Writing 'NG' when the instruction says NOT GIVEN", listOf("is accepted", "is marked wrong", "depends on the examiner"), setOf(1), "Use the exact wording the instruction gives."),
-                B.q("ie3-q10", "ie3-headings", "A heading should match", listOf("the most interesting sentence", "the paragraph's main idea", "the first word of the paragraph"), setOf(1), "Headings are about the whole paragraph; details are distractors."),
-                B.q("ie3-q11", "ie3-headings", "There are nine headings for six paragraphs. This means", listOf("three paragraphs take two headings", "three headings are not used", "you have misread the task"), setOf(1), "Extra headings are always provided as distractors."),
-                B.q("ie3-q12", "ie3-headings", "Matching-information questions are best done", listOf("first, in order", "last, using keywords already located", "not at all"), setOf(1), "They are the slowest type and benefit from work already done."),
-                B.q("ie3-q13", "ie3-headings", "A summary gap follows the word 'the'. The answer is most likely", listOf("a verb", "a noun", "an adverb"), setOf(1), "Grammar narrows the word class before you search."),
-                B.q("ie3-q14", "ie3-timing", "With one minute left and four blanks, you should", listOf("guess all four", "leave them blank", "re-read the passage"), setOf(0), "There is no penalty for a wrong answer, so always guess."),
+                B.q(
+                    "ie3-q1", "ie3-timing", "How long should one Reading section take?",
+                    listOf("about 10 minutes", "about 20 minutes", "as long as it needs"), setOf(1),
+                    "Three sections in sixty minutes means twenty each, with the last few minutes for transfer and guesses.",
+                    whyWrong = mapOf(
+                        0 to "Ten each would leave half an hour spare, which nobody has ever had at the end of this paper.",
+                        2 to "'As long as it needs' is how section 3 ends up unread. The clock is the real examiner here.",
+                    ),
+                ),
+                B.q(
+                    "ie3-q2", "ie3-timing", "On the paper test, transfer time for Reading is",
+                    listOf("10 minutes extra", "not given: it is inside the 60 minutes", "5 minutes extra"), setOf(1),
+                    "Unlike Listening, Reading has no extra transfer time.",
+                    whyWrong = mapOf(
+                        0 to "Ten minutes of transfer is the Listening paper. Reading gives none, which is why the last three minutes have to be budgeted.",
+                        2 to "There is no transfer allowance at all, of any length.",
+                    ),
+                ),
+                B.q(
+                    "ie3-q3", "ie3-timing", "You meet a word you do not know in a question sentence. You should",
+                    listOf("skip the question", "use the surrounding sentence and any contrast after 'but'", "look for the word in every paragraph"), setOf(1),
+                    "Unknown vocabulary is designed in; the context carries the meaning.",
+                    whyWrong = mapOf(
+                        0 to "Every paper contains words you do not know. Skipping on that basis would cost you most of section 3.",
+                        2 to "Hunting one word through the passage is the slowest thing you can do, and the passage usually paraphrases it anyway.",
+                    ),
+                ),
+                B.q(
+                    "ie3-q4", "ie3-timing", "General Training Reading differs from Academic in that",
+                    listOf("it has fewer questions", "its texts are everyday and the conversion is stricter", "it has no long passage"), setOf(1),
+                    "Easier texts, stricter conversion: 34 of 40 for a 7.",
+                    whyWrong = mapOf(
+                        0 to "Both are 40 questions in 60 minutes. Only the texts and the conversion change.",
+                        2 to "General ends with one longer passage, after the shorter everyday texts.",
+                    ),
+                ),
+                B.q(
+                    "ie3-q5", "ie3-tfng", "The passage says 'sales rarely exceed 200 units'. Statement: 'Sales seldom go above 200 units.' The answer is",
+                    listOf("TRUE", "FALSE", "NOT GIVEN"), setOf(0),
+                    "'Seldom go above' paraphrases 'rarely exceed'.",
+                    whyWrong = mapOf(
+                        1 to "Nothing is contradicted. The statement says the same thing in other words, which is what TRUE means here.",
+                        2 to "The information is given; only the wording has changed. NOT GIVEN is for what the passage never addresses.",
+                    ),
+                ),
+                B.q(
+                    "ie3-q6", "ie3-tfng", "The passage describes two methods in detail but never compares them. Statement: 'The first method is more accurate.' The answer is",
+                    listOf("TRUE", "FALSE", "NOT GIVEN"), setOf(2),
+                    "A comparison the passage never makes is NOT GIVEN.",
+                    whyWrong = mapOf(
+                        0 to "Being described first, or at length, is not a claim about accuracy. You would be supplying the comparison yourself.",
+                        1 to "FALSE needs the passage to contradict the statement. Saying nothing is not contradicting.",
+                    ),
+                ),
+                B.q(
+                    "ie3-q7", "ie3-tfng", "The passage says 'most of the buildings survived'. Statement: 'All the buildings survived.' The answer is",
+                    listOf("TRUE", "FALSE", "NOT GIVEN"), setOf(1),
+                    "'All' contradicts 'most': FALSE.",
+                    whyWrong = mapOf(
+                        0 to "'Most' and 'all' are not the same claim. Quantifiers are the commonest place this type is won and lost.",
+                        2 to "The passage does address it: it says most. A statement the passage contradicts is FALSE, not NOT GIVEN.",
+                    ),
+                ),
+                B.q(
+                    "ie3-q8", "ie3-tfng", "Yes/No/Not Given questions ask about",
+                    listOf("facts in the passage", "the writer's opinion", "your own opinion"), setOf(1),
+                    "YNNG targets the writer's views; TFNG targets factual claims.",
+                    whyWrong = mapOf(
+                        0 to "Facts are TRUE/FALSE/NOT GIVEN. The change of label is the clue that you are now dealing with views.",
+                        2 to "Your opinion is never asked for anywhere in the Reading paper.",
+                    ),
+                ),
+                B.q(
+                    "ie3-q9", "ie3-tfng", "Writing 'NG' when the instruction says NOT GIVEN",
+                    listOf("is accepted", "is marked wrong", "depends on the examiner"), setOf(1),
+                    "Use the exact wording the instruction gives.",
+                    whyWrong = mapOf(
+                        0 to "Abbreviations you invent are not on the mark scheme, and this one costs a mark you had already earned.",
+                        2 to "Marking is against a fixed key. Nothing here is left to judgement.",
+                    ),
+                ),
+                B.q(
+                    "ie3-q10", "ie3-headings", "A heading should match",
+                    listOf("the most interesting sentence", "the paragraph's main idea", "the first word of the paragraph"), setOf(1),
+                    "Headings are about the whole paragraph; details are distractors.",
+                    whyWrong = mapOf(
+                        0 to "The striking detail is usually what the wrong heading is built from. A paragraph can mention a thing without being about it.",
+                        2 to "The main idea often arrives in the second or third sentence, after a lead-in.",
+                    ),
+                ),
+                B.q(
+                    "ie3-q11", "ie3-headings", "There are nine headings for six paragraphs. This means",
+                    listOf("three paragraphs take two headings", "three headings are not used", "you have misread the task"), setOf(1),
+                    "Extra headings are always provided as distractors.",
+                    whyWrong = mapOf(
+                        0 to "Each paragraph takes one heading. Doubling up is never allowed in this type.",
+                        2 to "It is the normal shape of the task. Spare headings are the point.",
+                    ),
+                ),
+                B.q(
+                    "ie3-q12", "ie3-headings", "Matching-information questions are best done",
+                    listOf("first, in order", "last, using keywords already located", "not at all"), setOf(1),
+                    "They are the slowest type and benefit from work already done.",
+                    whyWrong = mapOf(
+                        0 to "They do not run in passage order, so doing them first means reading the whole text with nothing to look for.",
+                        2 to "Skipping a question set guarantees the marks are lost, and there is no penalty for a guess.",
+                    ),
+                ),
+                B.q(
+                    "ie3-q13", "ie3-headings", "A summary gap follows the word 'the'. The answer is most likely",
+                    listOf("a verb", "a noun", "an adverb"), setOf(1),
+                    "Grammar narrows the word class before you search.",
+                    whyWrong = mapOf(
+                        0 to "'The' is not followed by a verb. Letting grammar rule options out is half the work of this type.",
+                        2 to "An adverb after 'the' would need a noun behind it, so the gap itself would still be the noun.",
+                    ),
+                ),
+                B.q(
+                    "ie3-q14", "ie3-timing", "With one minute left and four blanks, you should",
+                    listOf("guess all four", "leave them blank", "re-read the passage"), setOf(0),
+                    "There is no penalty for a wrong answer, so always guess.",
+                    whyWrong = mapOf(
+                        1 to "A blank scores nothing with certainty. A guess on a three-option question scores about a third of the time.",
+                        2 to "A minute is not enough to re-read anything, and it is the minute the guesses need.",
+                    ),
+                ),
             )),
         ),
     )

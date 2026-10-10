@@ -7,6 +7,12 @@ internal object IeltsM4 {
     private val structure = Topic(
         id = "ie4-structure", title = "The four-paragraph report that scores 7", minutes = 24, references = refs,
         blocks = listOf(
+            B.warmup(
+                "ie4-structure-w1", "ie4-structure",
+                "A Task 1 report describes every figure on the chart accurately and in good English, but never says what the chart shows overall. What band do you think Task Achievement can reach?",
+                listOf("7, since nothing is wrong", "6", "5 at most"), 2,
+                "One missing paragraph puts a ceiling on the whole criterion.",
+            ),
             B.plain("Academic Task 1 asks you to describe data: a line graph, bar chart, pie chart, table, process diagram or map. Twenty minutes, at least 150 words, one third of the Writing mark. There are no opinions and no reasons: only what the data shows."),
             B.diagram(
                 caption = "The same four paragraphs every time. The overview is the single thing that separates a 5 from a 7.",
@@ -78,6 +84,12 @@ internal object IeltsM4 {
     private val language = Topic(
         id = "ie4-language", title = "The language of data: trends, comparisons and approximation", minutes = 26, references = refs,
         blocks = listOf(
+            B.warmup(
+                "ie4-language-w1", "ie4-language",
+                "A bar sits a little below the halfway line. Which do you think is the safer thing to write?",
+                listOf("exactly 50 percent", "just under 50 percent", "roughly 45 percent"), 1,
+                "Precision you cannot read off the chart is a risk; approximation is expected.",
+            ),
             B.plain("Task 1 rewards a narrow, precise set of language used accurately. Learn these tables and you can describe any chart you are given. Repeating 'increase' eight times caps Lexical Resource at 5."),
             B.h("Movement"),
             B.table(
@@ -159,6 +171,12 @@ internal object IeltsM4 {
     private val kinds = Topic(
         id = "ie4-kinds", title = "Each chart type, plus processes and maps", minutes = 26, references = refs,
         blocks = listOf(
+            B.warmup(
+                "ie4-kinds-w1", "ie4-kinds",
+                "You open Task 1 and it is a map of a village in 1990 and today, with no numbers at all. Which of your trend verbs can you use?",
+                listOf("All of them", "None of them", "Only 'increase'"), 1,
+                "Rose and fell need a quantity to move. A map has none.",
+            ),
             B.plain("The four paragraphs never change, but what goes into the overview and the detail paragraphs depends on what you are given. Here is the decision for each type, and the two non-data tasks that catch people out."),
             B.table(
                 listOf("Type", "Overview says", "Group the detail by"),
@@ -243,6 +261,12 @@ internal object IeltsM4 {
     private val practice = Topic(
         id = "ie4-practice", title = "Write one, and have it marked", minutes = 22, references = refs,
         blocks = listOf(
+            B.warmup(
+                "ie4-practice-w1", "ie4-practice",
+                "You have sixty minutes for both Writing tasks. How much of it do you think Task 1 should get?",
+                listOf("Half", "Twenty minutes", "Whatever is left after Task 2"), 1,
+                "The two tasks are not worth the same, and the clock should follow the marks.",
+            ),
             B.plain("Reading about reports does not move a band; writing them does. Two full tasks below, marked by the app against the content points and the report checks: paragraphs, an overview, figures and comparison language."),
             B.diagram(
                 caption = "What the marker checks in a report. Each one is a mark you can see before an examiner ever does.",
@@ -312,20 +336,132 @@ internal object IeltsM4 {
         quiz = Quiz(
             id = "ie-m4-test", title = "Module 4 test", passPercent = 70,
             questions = B.spread(listOf(
-                B.q("ie4-q1", "ie4-structure", "The minimum word count for Academic Task 1 is", listOf("100", "150", "250"), setOf(1), "150 words for Task 1; 250 for Task 2. Under-length is penalised."),
-                B.q("ie4-q2", "ie4-structure", "Which must a band 6 or 7 report contain?", listOf("A prediction about the future", "A clear overview paragraph", "The reasons behind the trend"), setOf(1), "Without an overview, Task Achievement is capped at band 5."),
-                B.q("ie4-q3", "ie4-structure", "The overview should contain", listOf("the main features without specific figures", "every figure in the chart", "your opinion about the data"), setOf(0), "Figures belong in the detail paragraphs; opinions belong nowhere in Task 1."),
-                B.q("ie4-q4", "ie4-structure", "Copying the question wording into your introduction", listOf("saves time and is fine", "is not counted toward your word total", "is required"), setOf(1), "Copied text is discounted, so paraphrase instead."),
-                B.q("ie4-q5", "ie4-language", "Which is the correct noun form of 'Prices rose sharply'?", listOf("There was a sharp rise in prices.", "There was a sharply rise of prices.", "Prices had a sharp rising."), setOf(0), "Adjective plus noun, with 'in' after 'rise'."),
-                B.q("ie4-q6", "ie4-language", "The bar is a fraction below 50. You write", listOf("exactly 50 percent", "just under 50 percent", "about 45 percent"), setOf(1), "Approximation is expected and safer than a wrong exact value."),
-                B.q("ie4-q7", "ie4-language", "Which preposition pair is correct?", listOf("rose from 20 until 35", "rose from 20 to 35", "rose between 20 to 35"), setOf(1), "from … to, or between … and."),
-                B.q("ie4-q8", "ie4-language", "A figure that goes up and down repeatedly", listOf("plateaus", "fluctuates", "peaks"), setOf(1), "Fluctuate means to rise and fall irregularly."),
-                B.q("ie4-q9", "ie4-kinds", "For a map task, the detail paragraphs should use", listOf("trend verbs like rose and fell", "compass directions and the past passive", "percentages"), setOf(1), "Maps describe what was built, removed or kept, and where."),
-                B.q("ie4-q10", "ie4-kinds", "In a process description the usual voice is", listOf("active present", "passive present", "passive future"), setOf(1), "The beans are roasted: the agent is unimportant."),
-                B.q("ie4-q11", "ie4-kinds", "Given a graph and a table in one task, you should", listOf("describe only the graph", "write one detail paragraph for each and link them in the overview", "write 300 words"), setOf(1), "Both must be covered, still in about 150 to 180 words."),
-                B.q("ie4-q12", "ie4-kinds", "A process diagram overview should mention", listOf("the number of stages and whether it is a cycle", "the highest value", "why the process exists"), setOf(0), "Stages and shape are the big features of a process."),
-                B.q("ie4-q13", "ie4-practice", "Twenty minutes is the target for Task 1 because", listOf("Task 2 is worth twice as much and needs forty", "the examiner times you", "it is the maximum allowed"), setOf(0), "Task 2 carries two thirds of the Writing mark, so it gets two thirds of the hour."),
-                B.q("ie4-q14", "ie4-language", "'An increase of five percentage points' describes a move from", listOf("20 percent to 25 percent", "20 percent to 100 percent", "5 percent to 20 percent"), setOf(0), "Percentage points are the arithmetic difference between two percentages."),
+                B.q(
+                    "ie4-q1", "ie4-structure", "The minimum word count for Academic Task 1 is",
+                    listOf("100", "150", "250"), setOf(1),
+                    "150 words for Task 1; 250 for Task 2. Under-length is penalised.",
+                    whyWrong = mapOf(
+                        0 to "A hundred words would be marked down for length before the content was even weighed.",
+                        2 to "250 is Task 2. Writing that much on Task 1 costs the time Task 2 needs and earns nothing.",
+                    ),
+                ),
+                B.q(
+                    "ie4-q2", "ie4-structure", "Which must a band 6 or 7 report contain?",
+                    listOf("A prediction about the future", "A clear overview paragraph", "The reasons behind the trend"), setOf(1),
+                    "Without an overview, Task Achievement is capped at band 5.",
+                    whyWrong = mapOf(
+                        0 to "Task 1 describes what is shown. Predicting beyond the data is going outside the task.",
+                        2 to "Why the trend happened is never in the chart, so saying it is invention rather than description.",
+                    ),
+                ),
+                B.q(
+                    "ie4-q3", "ie4-structure", "The overview should contain",
+                    listOf("the main features without specific figures", "every figure in the chart", "your opinion about the data"), setOf(0),
+                    "Figures belong in the detail paragraphs; opinions belong nowhere in Task 1.",
+                    whyWrong = mapOf(
+                        1 to "That is the detail paragraphs' job. An overview crowded with numbers stops being an overview.",
+                        2 to "Task 1 has no opinion in it at all, in any paragraph.",
+                    ),
+                ),
+                B.q(
+                    "ie4-q4", "ie4-structure", "Copying the question wording into your introduction",
+                    listOf("saves time and is fine", "is not counted toward your word total", "is required"), setOf(1),
+                    "Copied text is discounted, so paraphrase instead.",
+                    whyWrong = mapOf(
+                        0 to "It costs rather than saves: the words are discounted, so an under-length script can result from it.",
+                        2 to "The opposite. Paraphrasing the prompt is what the introduction is for.",
+                    ),
+                ),
+                B.q(
+                    "ie4-q5", "ie4-language", "Which is the correct noun form of 'Prices rose sharply'?",
+                    listOf("There was a sharp rise in prices.", "There was a sharply rise of prices.", "Prices had a sharp rising."), setOf(0),
+                    "Adjective plus noun, with 'in' after 'rise'.",
+                    whyWrong = mapOf(
+                        1 to "'Sharply' is the adverb, which goes with the verb. The noun 'rise' needs the adjective 'sharp'.",
+                        2 to "'Rising' is not the noun here, and 'had a rising' is not English. The noun is 'rise'.",
+                    ),
+                ),
+                B.q(
+                    "ie4-q6", "ie4-language", "The bar is a fraction below 50. You write",
+                    listOf("exactly 50 percent", "just under 50 percent", "about 45 percent"), setOf(1),
+                    "Approximation is expected and safer than a wrong exact value.",
+                    whyWrong = mapOf(
+                        0 to "'Exactly' claims a precision the chart does not give, and the bar is not on the line.",
+                        2 to "Approximation has to stay near the value. 45 is a different reading, not a hedge.",
+                    ),
+                ),
+                B.q(
+                    "ie4-q7", "ie4-language", "Which preposition pair is correct?",
+                    listOf("rose from 20 until 35", "rose from 20 to 35", "rose between 20 to 35"), setOf(1),
+                    "from … to, or between … and.",
+                    whyWrong = mapOf(
+                        0 to "'Until' is for time, not for a quantity you have moved to.",
+                        2 to "'Between' takes 'and'. Mixing the two pairs is the commonest slip in this language set.",
+                    ),
+                ),
+                B.q(
+                    "ie4-q8", "ie4-language", "A figure that goes up and down repeatedly",
+                    listOf("plateaus", "fluctuates", "peaks"), setOf(1),
+                    "Fluctuate means to rise and fall irregularly.",
+                    whyWrong = mapOf(
+                        0 to "A plateau is the opposite: a stretch where the figure does not move.",
+                        2 to "A peak is the single highest point, one moment rather than a pattern.",
+                    ),
+                ),
+                B.q(
+                    "ie4-q9", "ie4-kinds", "For a map task, the detail paragraphs should use",
+                    listOf("trend verbs like rose and fell", "compass directions and the past passive", "percentages"), setOf(1),
+                    "Maps describe what was built, removed or kept, and where.",
+                    whyWrong = mapOf(
+                        0 to "Nothing on a map rises or falls. The trend verbs need a quantity, and a map has none.",
+                        2 to "There are no figures on a map task to turn into percentages.",
+                    ),
+                ),
+                B.q(
+                    "ie4-q10", "ie4-kinds", "In a process description the usual voice is",
+                    listOf("active present", "passive present", "passive future"), setOf(1),
+                    "The beans are roasted: the agent is unimportant.",
+                    whyWrong = mapOf(
+                        0 to "The active needs a subject doing each step, and a process diagram rarely names one.",
+                        2 to "A process is described as it always happens, not as something that will happen.",
+                    ),
+                ),
+                B.q(
+                    "ie4-q11", "ie4-kinds", "Given a graph and a table in one task, you should",
+                    listOf("describe only the graph", "write one detail paragraph for each and link them in the overview", "write 300 words"), setOf(1),
+                    "Both must be covered, still in about 150 to 180 words.",
+                    whyWrong = mapOf(
+                        0 to "Leaving one out is a missing part of the task, which is the heaviest Task Achievement penalty there is.",
+                        2 to "Two sources do not double the word count. They share the same 150 to 180 and the same twenty minutes.",
+                    ),
+                ),
+                B.q(
+                    "ie4-q12", "ie4-kinds", "A process diagram overview should mention",
+                    listOf("the number of stages and whether it is a cycle", "the highest value", "why the process exists"), setOf(0),
+                    "Stages and shape are the big features of a process.",
+                    whyWrong = mapOf(
+                        1 to "A process has no values to be highest. That is an overview for a chart.",
+                        2 to "Purpose is not in the diagram, so writing it is going beyond the data again.",
+                    ),
+                ),
+                B.q(
+                    "ie4-q13", "ie4-practice", "Twenty minutes is the target for Task 1 because",
+                    listOf("Task 2 is worth twice as much and needs forty", "the examiner times you", "it is the maximum allowed"), setOf(0),
+                    "Task 2 carries two thirds of the Writing mark, so it gets two thirds of the hour.",
+                    whyWrong = mapOf(
+                        1 to "Nobody times the two tasks separately. The split is yours to keep, which is why it has to be practised.",
+                        2 to "There is no per-task limit. You can spend the whole hour on Task 1 and lose most of the paper doing it.",
+                    ),
+                ),
+                B.q(
+                    "ie4-q14", "ie4-language", "'An increase of five percentage points' describes a move from",
+                    listOf("20 percent to 25 percent", "20 percent to 100 percent", "5 percent to 20 percent"), setOf(0),
+                    "Percentage points are the arithmetic difference between two percentages.",
+                    whyWrong = mapOf(
+                        1 to "That is a rise of eighty points. Five is the gap between the two figures, not a multiplier.",
+                        2 to "The five is the size of the move, not the figure it started from.",
+                    ),
+                ),
             )),
         ),
     )

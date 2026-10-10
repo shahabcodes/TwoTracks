@@ -7,6 +7,12 @@ internal object IeltsM5 {
     private val tone = Topic(
         id = "ie5-tone", title = "Three tones, one structure: choosing formal, semi-formal or informal", minutes = 24, references = refs,
         blocks = listOf(
+            B.warmup(
+                "ie5-tone-w1", "ie5-tone",
+                "A letter opens 'Dear Sir or Madam'. Which sign-off do you think goes with it?",
+                listOf("Yours sincerely", "Yours faithfully", "Either is fine"), 1,
+                "The pairing turns on one thing: whether you used a name.",
+            ),
             B.plain("General Training Task 1 is a letter: 150 words in 20 minutes, with three bullet points you must cover. The first decision is tone, because it changes the greeting, the sign-off and nearly every sentence after that. Get it wrong and Task Achievement drops however good the English."),
             B.diagram(
                 caption = "Who is the letter to? That single question sets the tone, and the tone sets the opening and closing.",
@@ -56,6 +62,12 @@ internal object IeltsM5 {
     private val types = Topic(
         id = "ie5-types", title = "The five letters that keep appearing, with the sentences to reuse", minutes = 26, references = refs,
         blocks = listOf(
+            B.warmup(
+                "ie5-types-w1", "ie5-types",
+                "How many different kinds of letter do you think General Training Task 1 actually sets?",
+                listOf("Dozens; it could be anything", "About five", "Only one, a complaint"), 1,
+                "Few enough that an opening and a closing line can be learnt for each.",
+            ),
             B.plain("Almost every General Task 1 is one of five letters. Learn an opening line, a middle structure and a closing line for each, and the twenty minutes become comfortable."),
             B.h("1 Complaint, formal"),
             B.table(
@@ -144,6 +156,12 @@ internal object IeltsM5 {
     private val practice = Topic(
         id = "ie5-practice", title = "Write two letters and have them marked", minutes = 22, references = refs,
         blocks = listOf(
+            B.warmup(
+                "ie5-practice-w1", "ie5-practice",
+                "The task gives three bullet points. You answer two of them very well and run out of time on the third. What do you think happens to Task Achievement?",
+                listOf("Nothing, if the English is strong", "It drops a long way", "It rises, for depth"), 1,
+                "A bullet is a part of the task, and a missing part is the heaviest penalty here.",
+            ),
             B.plain("Two full tasks, one formal and one informal. The marker checks each bullet and the letter form: a greeting, a sign-off and the length. Write, read the marks, then rewrite before you look at the model."),
             B.diagram(
                 caption = "What the marker checks in a letter, and what it cannot check. The second column is your job on the rewrite.",
@@ -222,18 +240,114 @@ internal object IeltsM5 {
         quiz = Quiz(
             id = "ie-m5-test", title = "Module 5 test", passPercent = 70,
             questions = B.spread(listOf(
-                B.q("ie5-q1", "ie5-tone", "A letter beginning Dear Sir or Madam should end", listOf("Yours sincerely", "Yours faithfully", "Best wishes"), setOf(1), "No name means Yours faithfully; a name means Yours sincerely."),
-                B.q("ie5-q2", "ie5-tone", "A letter beginning Dear Mrs Patel should end", listOf("Yours faithfully", "Yours sincerely", "Love"), setOf(1), "You have used her name, so sincerely is correct."),
-                B.q("ie5-q3", "ie5-tone", "Contractions such as I'm and don't belong in", listOf("formal letters", "informal letters", "all letters"), setOf(1), "Write them out in formal and semi-formal letters."),
-                B.q("ie5-q4", "ie5-tone", "The task gives three bullet points. You cover two in detail and skip one. The likely effect is", listOf("no effect if the English is good", "Task Achievement drops substantially", "a higher score for depth"), setOf(1), "All three must be covered; missing one is penalised heavily."),
-                B.q("ie5-q5", "ie5-tone", "Inventing a date, price or flat number to cover a bullet is", listOf("cheating and penalised", "expected and sensible", "only allowed in informal letters"), setOf(1), "Examiners do not check facts; specifics make a bullet convincing."),
-                B.q("ie5-q6", "ie5-types", "Which is the most appropriate formal request?", listOf("Send me the details.", "I would be grateful if you could send me further details.", "Can you send the details please?"), setOf(1), "The grateful formula is the standard polite request."),
-                B.q("ie5-q7", "ie5-types", "'Put up with' and 'sort out' are", listOf("formal verbs", "phrasal verbs better suited to informal letters", "incorrect English"), setOf(1), "Prefer tolerate and resolve in a formal letter."),
-                B.q("ie5-q8", "ie5-types", "A letter apologising for missing a meeting should include", listOf("only the apology", "the apology, a reason and what you have done about it", "a complaint about the organiser"), setOf(1), "Open, reason, repair, close is the standard shape."),
-                B.q("ie5-q9", "ie5-types", "Which opening suits an enquiry about a course?", listOf("I am writing to enquire about the evening courses advertised on your website.", "Tell me about your courses.", "Hi there, got any courses?"), setOf(0), "Formal, specific and states the purpose in one sentence."),
-                B.q("ie5-q10", "ie5-practice", "The minimum length for General Task 1 is", listOf("100 words", "150 words", "250 words"), setOf(1), "Under-length answers are penalised automatically."),
-                B.q("ie5-q11", "ie5-practice", "How long should Task 1 take?", listOf("20 minutes", "40 minutes", "60 minutes"), setOf(0), "Task 2 is worth twice as much and needs the remaining forty."),
-                B.q("ie5-q12", "ie5-tone", "Which phrase is too informal for a complaint to a company?", listOf("I was extremely disappointed", "Your service was rubbish", "The standard fell below what was advertised"), setOf(1), "Strong informal vocabulary breaks the register."),
+                B.q(
+                    "ie5-q1", "ie5-tone", "A letter beginning Dear Sir or Madam should end",
+                    listOf("Yours sincerely", "Yours faithfully", "Best wishes"), setOf(1),
+                    "No name means Yours faithfully; a name means Yours sincerely.",
+                    whyWrong = mapOf(
+                        0 to "Sincerely goes with a name. You have not used one, so faithfully is the pair.",
+                        2 to "Best wishes is for someone you know. It breaks the register of a formal letter.",
+                    ),
+                ),
+                B.q(
+                    "ie5-q2", "ie5-tone", "A letter beginning Dear Mrs Patel should end",
+                    listOf("Yours faithfully", "Yours sincerely", "Love"), setOf(1),
+                    "You have used her name, so sincerely is correct.",
+                    whyWrong = mapOf(
+                        0 to "Faithfully is for a letter with no name in the greeting. Here there is one.",
+                        2 to "Love is for family and close friends, never for a surname and a title.",
+                    ),
+                ),
+                B.q(
+                    "ie5-q3", "ie5-tone", "Contractions such as I'm and don't belong in",
+                    listOf("formal letters", "informal letters", "all letters"), setOf(1),
+                    "Write them out in formal and semi-formal letters.",
+                    whyWrong = mapOf(
+                        0 to "A formal letter writes them out in full. Contractions are one of the quickest ways to drop the register.",
+                        2 to "They are fine in one of the three tones and wrong in the other two, which is the whole point of choosing a tone.",
+                    ),
+                ),
+                B.q(
+                    "ie5-q4", "ie5-tone", "The task gives three bullet points. You cover two in detail and skip one. The likely effect is",
+                    listOf("no effect if the English is good", "Task Achievement drops substantially", "a higher score for depth"), setOf(1),
+                    "All three must be covered; missing one is penalised heavily.",
+                    whyWrong = mapOf(
+                        0 to "Good English is three of the four criteria. The fourth asks whether you did the task, and you did two thirds of it.",
+                        2 to "Depth on two bullets does not buy the third. Cover all three, briefly if need be.",
+                    ),
+                ),
+                B.q(
+                    "ie5-q5", "ie5-tone", "Inventing a date, price or flat number to cover a bullet is",
+                    listOf("cheating and penalised", "expected and sensible", "only allowed in informal letters"), setOf(1),
+                    "Examiners do not check facts; specifics make a bullet convincing.",
+                    whyWrong = mapOf(
+                        0 to "Nothing in the letter is verifiable, and nobody is checking. Vagueness costs marks; invention does not.",
+                        2 to "The tone of the letter has nothing to do with it. A formal complaint needs a date as much as a note to a friend does.",
+                    ),
+                ),
+                B.q(
+                    "ie5-q6", "ie5-types", "Which is the most appropriate formal request?",
+                    listOf("Send me the details.", "I would be grateful if you could send me further details.", "Can you send the details please?"), setOf(1),
+                    "The grateful formula is the standard polite request.",
+                    whyWrong = mapOf(
+                        0 to "A bare imperative reads as an order. It is grammatical and still wrong for the register.",
+                        2 to "'Can you … please' is polite enough for a colleague, but it is semi-formal at best.",
+                    ),
+                ),
+                B.q(
+                    "ie5-q7", "ie5-types", "'Put up with' and 'sort out' are",
+                    listOf("formal verbs", "phrasal verbs better suited to informal letters", "incorrect English"), setOf(1),
+                    "Prefer tolerate and resolve in a formal letter.",
+                    whyWrong = mapOf(
+                        0 to "Phrasal verbs are the informal half of most pairs. Their one-word equivalents are the formal half.",
+                        2 to "Both are perfectly good English. The question is where they belong, not whether they are right.",
+                    ),
+                ),
+                B.q(
+                    "ie5-q8", "ie5-types", "A letter apologising for missing a meeting should include",
+                    listOf("only the apology", "the apology, a reason and what you have done about it", "a complaint about the organiser"), setOf(1),
+                    "Open, reason, repair, close is the standard shape.",
+                    whyWrong = mapOf(
+                        0 to "An apology alone will not fill three bullets or 150 words, and the task always asks for more than one thing.",
+                        2 to "Turning an apology into a complaint answers a different task from the one set.",
+                    ),
+                ),
+                B.q(
+                    "ie5-q9", "ie5-types", "Which opening suits an enquiry about a course?",
+                    listOf("I am writing to enquire about the evening courses advertised on your website.", "Tell me about your courses.", "Hi there, got any courses?"), setOf(0),
+                    "Formal, specific and states the purpose in one sentence.",
+                    whyWrong = mapOf(
+                        1 to "It states the purpose but reads as an instruction, and it names nothing specific.",
+                        2 to "Informal greeting, contraction and a dropped subject: three register breaks in six words.",
+                    ),
+                ),
+                B.q(
+                    "ie5-q10", "ie5-practice", "The minimum length for General Task 1 is",
+                    listOf("100 words", "150 words", "250 words"), setOf(1),
+                    "Under-length answers are penalised automatically.",
+                    whyWrong = mapOf(
+                        0 to "A hundred words is under length, and the penalty applies before the content is weighed.",
+                        2 to "250 is Task 2. A letter that long is eating the time the essay needs.",
+                    ),
+                ),
+                B.q(
+                    "ie5-q11", "ie5-practice", "How long should Task 1 take?",
+                    listOf("20 minutes", "40 minutes", "60 minutes"), setOf(0),
+                    "Task 2 is worth twice as much and needs the remaining forty.",
+                    whyWrong = mapOf(
+                        1 to "Forty is Task 2's share. Spending it here leaves twenty for the essay that carries two thirds of the mark.",
+                        2 to "An hour covers both tasks, not one.",
+                    ),
+                ),
+                B.q(
+                    "ie5-q12", "ie5-tone", "Which phrase is too informal for a complaint to a company?",
+                    listOf("I was extremely disappointed", "Your service was rubbish", "The standard fell below what was advertised"), setOf(1),
+                    "Strong informal vocabulary breaks the register.",
+                    whyWrong = mapOf(
+                        0 to "Strong feeling is fine in a formal complaint as long as the words are formal, and 'extremely disappointed' is.",
+                        2 to "This is the most formal of the three: measured, specific and impersonal.",
+                    ),
+                ),
             )),
         ),
     )
