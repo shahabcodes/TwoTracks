@@ -249,8 +249,16 @@ fun MainNavGraph(session: AppSession, widgetLaunch: WidgetLaunch) {
             startDestination = Routes.LEARN,
             modifier = Modifier.padding(padding),
             enterTransition = {
-                if (isTab(initialState.destination.route) && isTab(targetState.destination.route)) fadeIn(tween(220))
-                else slideInHorizontally(tween(320, easing = FastOutSlowInEasing)) { it } + fadeIn(tween(200))
+                when {
+                    isTab(initialState.destination.route) && isTab(targetState.destination.route) -> fadeIn(tween(220))
+                    // Settings fades rather than slides. Its first composition
+                    // costs about 300ms of CPU whenever it happens, and a slide
+                    // puts that against moving content, where every dropped
+                    // frame is visible as a stutter. A fade has no position to
+                    // judge it by, so the same work is not seen.
+                    targetState.destination.route == Routes.SETTINGS -> fadeIn(tween(160))
+                    else -> slideInHorizontally(tween(320, easing = FastOutSlowInEasing)) { it } + fadeIn(tween(200))
+                }
             },
             exitTransition = {
                 if (isTab(initialState.destination.route) && isTab(targetState.destination.route)) fadeOut(tween(220))
