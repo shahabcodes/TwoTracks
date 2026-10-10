@@ -99,7 +99,10 @@ fun guideSteps(
     GuideStep(
         settingsRoute, GuideAnchors.SET_INVITE,
         "Invite code",
-        "Your partner enters these six letters to join your space.",
+        // Read by whoever created the space and by whoever joined it, so it
+        // cannot say "your partner enters this": for one of the two that
+        // already happened, and the other way round it is simply wrong.
+        "The six letters that put the two of you in one space.",
     ),
     GuideStep(
         settingsRoute, GuideAnchors.SET_TEMPLATE,
