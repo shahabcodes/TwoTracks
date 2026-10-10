@@ -13,8 +13,14 @@ object Ielts {
         B.ref("Free practice tests", ORG + "take-a-test/preparation-resources/free-practice-tests"),
     )
 
-    val course: Course
-        get() = Course(
+    /**
+     * Built once. This was a getter, so every read rebuilt the whole course —
+     * every module, topic, block and question — and the screens read it
+     * several times per state computation. The content never changes at run
+     * time, so one copy is both correct and all that is needed.
+     */
+    val course: Course by lazy {
+        Course(
             id = "ielts",
             title = "IELTS band 7+",
             subtitle = "Listening, Reading, Writing and Speaking for Academic and General Training, with the techniques that separate band 6 from band 7.",
@@ -26,4 +32,5 @@ object Ielts {
                 IeltsM1.module, IeltsM2.module, IeltsM3.module, IeltsM4.module, IeltsM5.module, IeltsM6.module, IeltsM7.module, IeltsM8.module,
             ),
         )
+    }
 }

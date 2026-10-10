@@ -12,8 +12,14 @@ object GermanA1 {
         B.ref("A1 practice materials and model papers", GOETHE + "en/spr/kup/prf/prf/gzsd1/ueb.html"),
     )
 
-    val course: Course
-        get() = Course(
+    /**
+     * Built once. This was a getter, so every read rebuilt the whole course —
+     * every module, topic, block and question — and the screens read it
+     * several times per state computation. The content never changes at run
+     * time, so one copy is both correct and all that is needed.
+     */
+    val course: Course by lazy {
+        Course(
             id = "de-a1",
             title = "German A1",
             subtitle = "Twelve modules to Goethe-Zertifikat A1, with words that come back until they stick.",
@@ -33,4 +39,5 @@ object GermanA1 {
                 GermanA1M12.module,
             ),
         )
+    }
 }

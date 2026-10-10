@@ -1,9 +1,15 @@
 package com.shahaabapps.twotracks.feature.settings
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
+import com.shahaabapps.twotracks.ui.components.DetailScaffold
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
@@ -92,6 +98,16 @@ class VoiceSettingsViewModel @Inject constructor(
     private val _languages = MutableStateFlow<List<LanguageVoices>>(emptyList())
     val languages: StateFlow<List<LanguageVoices>> = _languages
 
+    /**
+     * True until the engine has answered. Starting a text-to-speech engine
+     * takes about a second on a cold app and the list cannot be built before
+     * it has — measured at 1.1s of that one wait. It no longer blocks
+     * anything, but an empty screen for a second reads as broken, so it says
+     * what it is doing.
+     */
+    private val _loading = MutableStateFlow(true)
+    val loading: StateFlow<Boolean> = _loading
+
     init {
         // The engine holds one language at a time, so each is asked in turn and
         // the answers are kept. Doing it per row instead left every section
@@ -100,6 +116,7 @@ class VoiceSettingsViewModel @Inject constructor(
     }
 
     private suspend fun load() {
+        _loading.value = true
         val labels = runCatching { speechPreferences.voiceLabels().first() }.getOrDefault(emptyMap())
         _languages.value = Courses.all.mapNotNull { course ->
             val tag = course.speechLanguage ?: return@mapNotNull null
@@ -117,6 +134,7 @@ class VoiceSettingsViewModel @Inject constructor(
                 chosen = runCatching { speaker.storedVoiceName(tag).first() }.getOrNull(),
             )
         }
+        _loading.value = false
     }
 
     private fun row(choice: Speaker.VoiceChoice, labels: Map<String, String>): VoiceRow {
@@ -301,4 +319,34 @@ private fun DescribeVoiceDialog(
 @Composable
 private fun Chosen() {
     Icon(Icons.Filled.Check, contentDescription = "Chosen", tint = AppTheme.colors.accent, modifier = Modifier.size(20.dp))
+}
+
+/**
+ * The voices, on their own screen.
+ *
+ * They used to sit inside Settings, which is a plain scrolling column, so
+ * opening Settings built this view model and everything behind it before the
+ * screen could draw — about a second of dropped frames, every time. Measured
+ * by taking the section out: with it gone Settings had no jank at all.
+ *
+ * Here that cost is paid only by someone who has come looking for the voices,
+ * which is a handful of times ever.
+ */
+@Composable
+fun VoiceSettingsScreen(onBack: () -> Unit) {
+    val viewModel: VoiceSettingsViewModel = hiltViewModel()
+    val loading by viewModel.loading.collectAsStateWithLifecycle()
+    DetailScaffold(title = "Voices", onBack = onBack) {
+        Column(modifier = Modifier.verticalScroll(rememberScrollState()).padding(bottom = Spacing.xl), verticalArrangement = Arrangement.spacedBy(Spacing.md)) {
+            if (loading) {
+                Text(
+                    "Asking this phone what it can read with…",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = AppTheme.colors.secondaryLabel,
+                    modifier = Modifier.padding(horizontal = Spacing.listHorizontal, vertical = Spacing.md),
+                )
+            }
+            VoiceSettingsSections(viewModel)
+        }
+    }
 }

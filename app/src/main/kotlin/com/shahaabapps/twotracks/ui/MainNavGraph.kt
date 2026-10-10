@@ -70,6 +70,7 @@ import com.shahaabapps.twotracks.feature.levels.LevelsScreen
 import com.shahaabapps.twotracks.feature.partner.PartnerScreen
 import com.shahaabapps.twotracks.feature.settings.AvailabilityScreen
 import com.shahaabapps.twotracks.feature.settings.SettingsScreen
+import com.shahaabapps.twotracks.feature.settings.VoiceSettingsScreen
 import com.shahaabapps.twotracks.feature.study.GoalDetailScreen
 import com.shahaabapps.twotracks.feature.study.GoalEditScreen
 import com.shahaabapps.twotracks.feature.tests.TestsScreen
@@ -104,6 +105,7 @@ object Routes {
     const val BUDGET = "budget"
     const val SETTINGS = "settings"
     const val AVAILABILITY = "settings/availability"
+    const val VOICES = "settings/voices"
 
     fun level(id: String) = "level/$id"
     fun course(id: String) = "learn/$id"
@@ -346,10 +348,12 @@ fun MainNavGraph(session: AppSession, widgetLaunch: WidgetLaunch) {
                 SettingsScreen(
                     onBack = { navController.popBackStack() },
                     onOpenAvailability = { navController.navigate(Routes.AVAILABILITY) },
+                    onOpenVoices = { navController.navigate(Routes.VOICES) },
                     onOpenChangelog = { navController.navigate(Routes.CHANGELOG) },
                 )
             }
             composable(Routes.AVAILABILITY) { AvailabilityScreen(onBack = { navController.popBackStack() }) }
+            composable(Routes.VOICES) { VoiceSettingsScreen(onBack = { navController.popBackStack() }) }
         }
     }
 
