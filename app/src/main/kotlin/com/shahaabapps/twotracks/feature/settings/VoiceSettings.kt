@@ -1,9 +1,15 @@
 package com.shahaabapps.twotracks.feature.settings
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
+import com.shahaabapps.twotracks.ui.components.DetailScaffold
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
@@ -301,4 +307,24 @@ private fun DescribeVoiceDialog(
 @Composable
 private fun Chosen() {
     Icon(Icons.Filled.Check, contentDescription = "Chosen", tint = AppTheme.colors.accent, modifier = Modifier.size(20.dp))
+}
+
+/**
+ * The voices, on their own screen.
+ *
+ * They used to sit inside Settings, which is a plain scrolling column, so
+ * opening Settings built this view model and everything behind it before the
+ * screen could draw — about a second of dropped frames, every time. Measured
+ * by taking the section out: with it gone Settings had no jank at all.
+ *
+ * Here that cost is paid only by someone who has come looking for the voices,
+ * which is a handful of times ever.
+ */
+@Composable
+fun VoiceSettingsScreen(onBack: () -> Unit) {
+    DetailScaffold(title = "Voices", onBack = onBack) {
+        Column(modifier = Modifier.verticalScroll(rememberScrollState()).padding(bottom = Spacing.xl), verticalArrangement = Arrangement.spacedBy(Spacing.md)) {
+            VoiceSettingsSections(hiltViewModel())
+        }
+    }
 }

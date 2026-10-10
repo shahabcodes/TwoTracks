@@ -65,6 +65,7 @@ import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.Explore
 import androidx.compose.material.icons.filled.Fingerprint
 import androidx.compose.material.icons.filled.PlayCircleOutline
+import androidx.compose.material.icons.filled.RecordVoiceOver
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Link
@@ -85,6 +86,7 @@ import com.shahaabapps.twotracks.ui.components.TimezoneDialog
 fun SettingsScreen(
     onBack: () -> Unit,
     onOpenAvailability: () -> Unit,
+    onOpenVoices: () -> Unit,
     onOpenChangelog: () -> Unit = {},
     viewModel: SettingsViewModel = hiltViewModel(),
     themeViewModel: ThemeViewModel = hiltViewModel(),
@@ -237,7 +239,15 @@ fun SettingsScreen(
                 // The voice each language is read in. Its own view model, so
                 // the list is loaded once per visit rather than on every
                 // recomposition of this screen.
-                Box(modifier = Modifier.guideAnchor(GuideAnchors.SET_VOICES)) { VoiceSettingsSections(hiltViewModel()) }
+                CupertinoListSection(header = "Reading") {
+                    CupertinoListRow(
+                        "Voices",
+                        modifier = Modifier.guideAnchor(GuideAnchors.SET_VOICES),
+                        subtitle = "The voice each language is read in",
+                        leadingIcon = Icons.Filled.RecordVoiceOver, iconColor = IosColors.Indigo,
+                        showDivider = false, onClick = onOpenVoices, trailing = { CupertinoDisclosure() },
+                    )
+                }
                 CupertinoListSection(header = "About") {
                     val guide = LocalGuide.current
                     if (guide != null) {

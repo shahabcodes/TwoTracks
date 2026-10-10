@@ -8,8 +8,14 @@ package com.shahaabapps.core.content
  * Module order and weights follow the exam skills outline.
  */
 object Az204 {
-    val course: Course
-        get() = Course(
+    /**
+     * Built once. This was a getter, so every read rebuilt the whole course —
+     * every module, topic, block and question — and the screens read it
+     * several times per state computation. The content never changes at run
+     * time, so one copy is both correct and all that is needed.
+     */
+    val course: Course by lazy {
+        Course(
             id = "az-204",
             title = "AZ-204 Azure Developer",
             subtitle = "Five modules, one test each, then a mock exam.",
@@ -44,4 +50,5 @@ object Az204 {
                 ),
             ),
         )
+    }
 }

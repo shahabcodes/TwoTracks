@@ -14,6 +14,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.util.Locale
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -53,16 +54,34 @@ class Speaker @Inject constructor(
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
     private var language: Locale = Locale.GERMANY
+
+    /** Written on a background thread, read from several; hence volatile. */
+    @Volatile
     private var tts: TextToSpeech? = null
 
     init {
-        tts = TextToSpeech(context) { status ->
-            if (status != TextToSpeech.SUCCESS) { _state.value = State.UNAVAILABLE; return@TextToSpeech }
-            applyLanguage()
+        // Built off the main thread. This is a singleton injected into a view
+        // model, so it is constructed during composition — and constructing a
+        // TextToSpeech binds to the speech service and looks up the engine,
+        // which froze the Settings screen for about a second on first open.
+        scope.launch {
+            tts = TextToSpeech(context) { status ->
+                if (status != TextToSpeech.SUCCESS) { _state.value = State.UNAVAILABLE; return@TextToSpeech }
+                applyLanguage()
+            }
         }
     }
 
+    /**
+     * The engine's calls are binder round trips, and the init callback that
+     * gets us here runs on the main thread — so setting the language from it
+     * blocked the UI. Everything the engine is asked now happens off it.
+     */
     private fun applyLanguage() {
+        scope.launch { applyLanguageNow() }
+    }
+
+    private fun applyLanguageNow() {
         val engine = tts ?: return
         val r = engine.setLanguage(language)
         _state.value = if (r == TextToSpeech.LANG_MISSING_DATA || r == TextToSpeech.LANG_NOT_SUPPORTED) State.MISSING_LANGUAGE else State.READY
@@ -86,19 +105,19 @@ class Speaker @Inject constructor(
      * voices necessarily switches it there. The learn screens set their own
      * language when they open, which puts it back.
      */
-    suspend fun voicesFor(tag: String): List<VoiceChoice> {
-        if (awaitReady() == State.UNAVAILABLE) return emptyList()
+    suspend fun voicesFor(tag: String): List<VoiceChoice> = withContext(Dispatchers.IO) {
+        if (awaitReady() == State.UNAVAILABLE) return@withContext emptyList()
         setLanguage(tag)
-        val engine = tts ?: return emptyList()
-        if (_state.value != State.READY) return emptyList()
-        return listVoices(engine)
+        val engine = tts ?: return@withContext emptyList()
+        if (_state.value != State.READY) return@withContext emptyList()
+        listVoices(engine)
     }
 
     /** Whether [tag] can be spoken at all on this phone. */
-    suspend fun stateFor(tag: String): State {
-        if (awaitReady() == State.UNAVAILABLE) return State.UNAVAILABLE
+    suspend fun stateFor(tag: String): State = withContext(Dispatchers.IO) {
+        if (awaitReady() == State.UNAVAILABLE) return@withContext State.UNAVAILABLE
         setLanguage(tag)
-        return _state.value
+        _state.value
     }
 
     /** The voice stored for [tag], or null for the engine's own. */

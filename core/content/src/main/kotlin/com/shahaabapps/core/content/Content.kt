@@ -463,7 +463,8 @@ object Courses {
     const val DAILY_MODULE_ID = "daily"
     /** Attempts recorded for the one-question checks inside a topic. */
     const val CHECK_MODULE_ID = "checks"
-    val all: List<Course> get() = listOf(Az204.course, GermanA1.course, Ielts.course)
+    /** Built once; the courses behind it are immutable and so is this. */
+    val all: List<Course> by lazy { listOf(Az204.course, GermanA1.course, Ielts.course) }
     fun forGoal(goalId: String): Course? = all.firstOrNull { it.feeds(goalId) }
 
     /**
