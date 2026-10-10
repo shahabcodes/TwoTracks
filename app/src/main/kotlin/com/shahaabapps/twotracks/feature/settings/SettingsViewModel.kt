@@ -25,7 +25,9 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -68,7 +70,13 @@ class SettingsViewModel @Inject constructor(
             biometricAvailable = appLock.isAvailable(),
             biometricEnabled = lockEnabled,
         )
-    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), SettingsUiState())
+    }
+        // Off the main thread. The block asks BiometricManager whether this
+        // phone can authenticate, which is a binder call into the biometric
+        // service, and reads the signed-in email — and a combine is evaluated
+        // wherever it is collected, which here is the UI.
+        .flowOn(Dispatchers.Default)
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), SettingsUiState())
 
     fun setBiometricLock(enabled: Boolean) {
         appLock.setEnabled(enabled)
