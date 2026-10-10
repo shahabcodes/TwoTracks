@@ -67,7 +67,11 @@ data class CourseProgress(
             }
             return CourseProgress(
                 mine.map { it.topicId }.toSet(), passed, best, missed,
-                questionCards = QuestionSrs.states(att, owner, courseId, course?.allQuestions?.map { it.id }?.toSet().orEmpty()),
+                questionCards = QuestionSrs.states(
+                    att, owner, courseId,
+                    course?.allQuestions?.map { it.id }?.toSet().orEmpty(),
+                    course?.allQuestions?.associate { it.id to it.expectedSeconds }.orEmpty(),
+                ),
                 // Latest reading wins, so a revisit moves the topic down the queue.
                 learnedOn = mine.filter { it.learnedAtIso.isNotBlank() }
                     .groupBy { it.topicId }

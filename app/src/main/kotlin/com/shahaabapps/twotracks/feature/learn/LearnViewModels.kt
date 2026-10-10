@@ -17,6 +17,7 @@ import com.shahaabapps.core.content.Quiz
 import com.shahaabapps.core.content.Topic
 import com.shahaabapps.core.content.WordDeck
 import com.shahaabapps.core.data.learning.LearningRepository
+import com.shahaabapps.core.planner.Pace
 import com.shahaabapps.core.model.PersonRole
 import com.shahaabapps.core.model.QuizAttempt
 import com.shahaabapps.core.model.TopicProgress
@@ -109,12 +110,26 @@ class LearningActions @Inject constructor(
         return (learningRepository.clearLearned(s.coupleId, s.myRole, topicId) as? AppResult.Failure)?.error?.message
     }
 
-    suspend fun recordAttempt(course: Course, module: Module, quiz: Quiz, score: Int, missed: List<String>, minutes: Int, asked: List<String> = quiz.questions.map { it.id }): String? {
+    suspend fun recordAttempt(
+        course: Course,
+        module: Module,
+        quiz: Quiz,
+        score: Int,
+        missed: List<String>,
+        minutes: Int,
+        asked: List<String> = quiz.questions.map { it.id },
+        picked: Map<String, List<Int>> = emptyMap(),
+        seconds: Map<String, Int> = emptyMap(),
+    ): String? {
         val s = sessionStore.current() ?: return "Not signed in"
         val today = Clock.todayIso(s.me)
         val total = asked.size.coerceAtLeast(1)
         val passed = score * 100 / total >= quiz.passPercent
-        val attempt = QuizAttempt(owner = s.myRole, courseId = course.id, moduleId = module.id, dateIso = today, score = score, total = total, passed = passed, missed = missed, asked = asked, at = System.currentTimeMillis())
+        val attempt = QuizAttempt(
+            owner = s.myRole, courseId = course.id, moduleId = module.id, dateIso = today, score = score,
+            total = total, passed = passed, missed = missed, asked = asked, at = System.currentTimeMillis(),
+            picked = picked, seconds = seconds,
+        )
         val r = learningRepository.addAttempt(s.coupleId, attempt)
         if (r is AppResult.Failure) return r.error.message ?: "Could not save"
         val cap = quiz.timeLimitMinutes ?: 60
@@ -242,6 +257,10 @@ data class QuizUiState(
     val selected: Set<Int> = emptySet(),
     val revealed: Boolean = false,
     val answers: Map<String, Boolean> = emptyMap(),
+    /** What was chosen for each question answered, for the notes on the results page. */
+    val picked: Map<String, Set<Int>> = emptyMap(),
+    /** How long each answered question took. A question the clock beat has no entry. */
+    val seconds: Map<String, Int> = emptyMap(),
     val finished: Boolean = false,
     val saved: Boolean = false,
     /** Seconds left on a timed test, or null when untimed. */
@@ -258,6 +277,10 @@ data class QuizUiState(
     val missedQuestions: List<Question> get() = asked.filter { answers[it.id] != true }
     val instant: Boolean get() = quiz?.instantFeedback != false
     val clock: String? get() = secondsLeft?.let { "%d:%02d".format(it / 60, it % 60) }
+
+    /** How each answered question was paced, which is what the results page reads. */
+    val pace: Map<String, Pace.Verdict>
+        get() = asked.associate { it.id to Pace.verdict(seconds[it.id], it.expectedSeconds) }
 }
 
 @HiltViewModel
@@ -271,6 +294,14 @@ class QuizViewModel @Inject constructor(
     private val courseId: String = savedStateHandle.get<String>("courseId").orEmpty()
     private val moduleId: String = savedStateHandle.get<String>("moduleId").orEmpty()
     private val startedAt = System.currentTimeMillis()
+
+    /**
+     * When the question on screen was first shown.
+     *
+     * Kept here rather than in the state because it is not drawn, and a value
+     * that changes every second would recompose the whole paper.
+     */
+    private var questionShownAt = System.currentTimeMillis()
     private val _uiState = MutableStateFlow(QuizUiState())
     val uiState: StateFlow<QuizUiState> = _uiState.asStateFlow()
     private var timer: Job? = null
@@ -339,7 +370,17 @@ class QuizViewModel @Inject constructor(
         val s = _uiState.value
         val q = s.question ?: return
         if (s.selected.isEmpty()) return
-        _uiState.update { it.copy(revealed = true, answers = it.answers + (q.id to (it.selected == q.correct))) }
+        // Measured to here, not to Next: on instant feedback the explanation
+        // is read after answering, and reading it is not deciding.
+        val took = ((System.currentTimeMillis() - questionShownAt) / 1_000L).toInt().coerceAtLeast(1)
+        _uiState.update {
+            it.copy(
+                revealed = true,
+                answers = it.answers + (q.id to (it.selected == q.correct)),
+                picked = it.picked + (q.id to it.selected),
+                seconds = it.seconds + (q.id to took),
+            )
+        }
         if (!s.instant) next()
     }
 
@@ -349,6 +390,7 @@ class QuizViewModel @Inject constructor(
             _uiState.update { it.copy(finished = true) }
             save()
         } else {
+            questionShownAt = System.currentTimeMillis()
             _uiState.update { it.copy(index = it.index + 1, selected = emptySet(), revealed = false) }
         }
     }
@@ -358,12 +400,16 @@ class QuizViewModel @Inject constructor(
         val c = s.course ?: return@launch; val m = s.module ?: return@launch; val q = s.quiz ?: return@launch
         if (s.saved) return@launch
         val minutes = ((System.currentTimeMillis() - startedAt) / 60_000L).toInt()
-        val err = actions.recordAttempt(c, m, q, s.correctCount, s.missedQuestions.map { it.id }, minutes, s.asked.map { it.id })
+        val err = actions.recordAttempt(
+            c, m, q, s.correctCount, s.missedQuestions.map { it.id }, minutes, s.asked.map { it.id },
+            picked = s.picked.mapValues { (_, v) -> v.sorted() }, seconds = s.seconds,
+        )
         _uiState.update { it.copy(saved = err == null, message = err) }
     }
 
     /** A retake draws again, so a randomised paper is a different paper. */
     fun retake() {
+        questionShownAt = System.currentTimeMillis()
         _uiState.update {
             QuizUiState(
                 course = it.course, module = it.module, quiz = it.quiz, asked = it.quiz?.draw().orEmpty(), kind = it.kind,

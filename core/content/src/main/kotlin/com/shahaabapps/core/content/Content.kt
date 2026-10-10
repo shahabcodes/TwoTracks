@@ -1,5 +1,7 @@
 package com.shahaabapps.core.content
 
+import com.shahaabapps.core.planner.Pace
+
 /**
  * A course a person can study inside the app. Content ships with the app
  * and is written as Kotlin so it is type-checked and tested like code.
@@ -303,6 +305,12 @@ data class Question(
     val whyWrong: Map<Int, String> = emptyMap(),
 ) {
     val multi: Boolean get() = correct.size > 1
+
+    /**
+     * How long this ought to take to read and answer, which is the yardstick
+     * the clock on a sitting is measured against. See [Pace.expectedSeconds].
+     */
+    val expectedSeconds: Int get() = Pace.expectedSeconds(prompt, scenario, options)
     /** The note for the option picked, when it is wrong and has one. */
     fun whyWrongFor(picked: Set<Int>): String? =
         picked.singleOrNull()?.takeIf { it !in correct }?.let { whyWrong[it] }

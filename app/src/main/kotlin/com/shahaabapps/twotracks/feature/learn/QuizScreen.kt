@@ -46,6 +46,7 @@ import com.shahaabapps.core.content.Question
 import com.shahaabapps.core.content.ScoreBy
 import com.shahaabapps.core.content.breakdown
 import com.shahaabapps.core.content.weakest
+import com.shahaabapps.core.planner.Pace
 import com.shahaabapps.core.ui.components.CupertinoCard
 import com.shahaabapps.core.ui.components.CupertinoPrimaryButton
 import com.shahaabapps.core.ui.components.CupertinoSecondaryButton
@@ -285,6 +286,7 @@ private fun Results(state: QuizUiState, onRetake: () -> Unit, onOpenTopic: (Stri
                 }
             }
         }
+        PaceCard(state)
         val missed = state.missedQuestions
         if (missed.isNotEmpty()) {
             Text("Review these", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.SemiBold)
@@ -298,7 +300,17 @@ private fun Results(state: QuizUiState, onRetake: () -> Unit, onOpenTopic: (Stri
                     Text("${qs.size} missed · tap to reread", style = MaterialTheme.typography.bodySmall, color = AppTheme.colors.secondaryLabel)
                     qs.forEach { q ->
                         Text("· ${q.prompt}", style = MaterialTheme.typography.bodySmall, modifier = Modifier.padding(top = 4.dp))
+                        // Why the option you picked was tempting, before why
+                        // the right one is right. An in-topic check has said
+                        // this since the notes were written; a paper never
+                        // could, because it never recorded what was picked.
+                        q.whyWrongFor(state.picked[q.id].orEmpty())?.let { note ->
+                            Text(note, style = MaterialTheme.typography.bodySmall, color = AppTheme.colors.warn, modifier = Modifier.padding(start = 10.dp, top = 2.dp))
+                        }
                         if (!state.instant) Text("  ${q.options.filterIndexed { i, _ -> i in q.correct }.joinToString(", ")}. ${q.explanation}", style = MaterialTheme.typography.bodySmall, color = AppTheme.colors.secondaryLabel, modifier = Modifier.padding(start = 10.dp))
+                        state.seconds[q.id]?.let { t ->
+                            Text(paceNote(t, state.pace[q.id]), style = MaterialTheme.typography.bodySmall, color = AppTheme.colors.secondaryLabel, modifier = Modifier.padding(start = 10.dp))
+                        }
                     }
                 }
             }
@@ -308,6 +320,67 @@ private fun Results(state: QuizUiState, onRetake: () -> Unit, onOpenTopic: (Stri
         if (done) CupertinoPrimaryButton(text = "Back to the course", onClick = onDone) else CupertinoPrimaryButton(text = "Try again", onClick = onRetake)
         // A spaced sitting is not retaken: the schedule decides when each question returns.
         if (done) { if (!keeping) CupertinoSecondaryButton(text = "Take it again", onClick = onRetake) } else CupertinoTextButton(text = "Back to the course", onClick = onDone)
+    }
+}
+
+/**
+ * Where the time went.
+ *
+ * A paper's total was already in the logged minutes, which tells nobody
+ * anything: the useful reading is the shape of it. Two answers given faster
+ * than the question can be read is a different sitting from two that took
+ * three minutes each, and until a sitting kept a clock per question neither
+ * could be said.
+ *
+ * Only shown where there is a clock and more than a couple of questions.
+ * Older attempts carry no seconds at all and simply do not get this.
+ */
+@Composable
+private fun PaceCard(state: QuizUiState) {
+    val timed = state.asked.filter { state.seconds[it.id] != null }
+    if (timed.size < 3) return
+    val snap = timed.filter { state.pace[it.id] == Pace.Verdict.QUICK }
+    val worked = timed.filter { state.pace[it.id] == Pace.Verdict.SLOW }
+    if (snap.isEmpty() && worked.isEmpty()) return
+    val snapWrong = snap.count { state.answers[it.id] != true }
+    val total = timed.sumOf { state.seconds[it.id] ?: 0 }
+
+    Text("Pace", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.SemiBold)
+    CupertinoCard {
+        Text(
+            "${total / 60} min ${total % 60} sec across ${timed.size} questions.",
+            style = MaterialTheme.typography.bodyMedium,
+        )
+        if (snap.isNotEmpty()) {
+            Text(
+                if (snapWrong > 0) {
+                    "${snap.size} answered faster than the question can be read, and $snapWrong of those were wrong. Those are the ones to be careful of: you were sure."
+                } else {
+                    "${snap.size} answered faster than the question can be read. All of them right, so you know those."
+                },
+                style = MaterialTheme.typography.bodySmall,
+                color = if (snapWrong > 0) AppTheme.colors.warn else AppTheme.colors.secondaryLabel,
+                modifier = Modifier.padding(top = Spacing.xs),
+            )
+        }
+        if (worked.isNotEmpty()) {
+            Text(
+                "${worked.size} took more than twice as long as they should. Those were worked out, not known, so they come back on the same gap rather than a longer one.",
+                style = MaterialTheme.typography.bodySmall,
+                color = AppTheme.colors.secondaryLabel,
+                modifier = Modifier.padding(top = Spacing.xs),
+            )
+        }
+    }
+}
+
+/** How long one question took, said the way it matters. */
+private fun paceNote(seconds: Int, verdict: Pace.Verdict?): String {
+    val clock = if (seconds >= 60) "${seconds / 60}m ${seconds % 60}s" else "${seconds}s"
+    return when (verdict) {
+        Pace.Verdict.QUICK -> "  $clock — too fast to have read it"
+        Pace.Verdict.SLOW -> "  $clock — worked out"
+        else -> "  $clock"
     }
 }
 

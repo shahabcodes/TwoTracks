@@ -92,6 +92,22 @@ fun DocumentSnapshot.mapList(field: String): List<Map<String, Any?>> = (get(fiel
 fun DocumentSnapshot.stringMap(field: String): Map<String, String> =
     (get(field) as? Map<String, Any?>)?.mapValues { it.value?.toString().orEmpty() }.orEmpty()
 
+/** A map of question id to a whole number, which Firestore hands back as Long. */
+@Suppress("UNCHECKED_CAST")
+fun DocumentSnapshot.intMap(field: String): Map<String, Int> =
+    (get(field) as? Map<String, Any?>)
+        ?.mapNotNull { (k, v) -> (v as? Number)?.let { k to it.toInt() } }
+        ?.toMap()
+        .orEmpty()
+
+/** A map of question id to a list of whole numbers. */
+@Suppress("UNCHECKED_CAST")
+fun DocumentSnapshot.intListMap(field: String): Map<String, List<Int>> =
+    (get(field) as? Map<String, Any?>)
+        ?.mapNotNull { (k, v) -> (v as? List<Any?>)?.let { l -> k to l.mapNotNull { (it as? Number)?.toInt() } } }
+        ?.toMap()
+        .orEmpty()
+
 inline fun <reified E : Enum<E>> DocumentSnapshot.enum(field: String, default: E): E =
     getString(field)?.let { v -> enumValues<E>().firstOrNull { it.name == v } } ?: default
 

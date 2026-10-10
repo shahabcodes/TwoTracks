@@ -19,11 +19,18 @@ class QuestionSrsTest {
         at: Long = 0,
         owner: PersonRole = me,
         courseId: String = "az-204",
+        seconds: Map<String, Int> = emptyMap(),
     ) = QuizAttempt(
         id = "$date-$at", owner = owner, courseId = courseId, moduleId = "m1", dateIso = date,
         score = asked.size - missed.size, total = asked.size, passed = missed.isEmpty(),
-        missed = missed, asked = asked, at = at,
+        missed = missed, asked = asked, at = at, seconds = seconds,
     )
+
+    /** Every question in these tests is reckoned to take half a minute. */
+    private val expected = known.associateWith { 30 }
+
+    private fun paced(vararg attempts: QuizAttempt) =
+        QuestionSrs.states(attempts.toList(), me, "az-204", known, expected)
 
     private fun states(vararg attempts: QuizAttempt) = QuestionSrs.states(attempts.toList(), me, "az-204", known)
 
@@ -135,5 +142,73 @@ class QuestionSrsTest {
         assertEquals(Srs.LADDER.size - 1, s.getValue("q1").step)
         assertTrue(s.getValue("q1").learned)
         assertEquals(1, QuestionSrs.matureCount(s))
+    }
+
+    // ------------------------------------------------------------ the clock
+
+    @Test
+    fun `a right answer that was worked out holds its place instead of climbing`() {
+        // Two clean sittings put q1 on step 2, due three days out. A third
+        // that takes four times as long as it should is not knowledge: the
+        // step stays and the gap repeats rather than stretching to seven.
+        val climbed = paced(
+            sitting("2026-10-01", listOf("q1"), seconds = mapOf("q1" to 30)),
+            sitting("2026-10-02", listOf("q1"), seconds = mapOf("q1" to 30)),
+        )
+        assertEquals(2, climbed.getValue("q1").step)
+        assertEquals("2026-10-05", climbed.getValue("q1").dueIso)
+
+        val held = paced(
+            sitting("2026-10-01", listOf("q1"), seconds = mapOf("q1" to 30)),
+            sitting("2026-10-02", listOf("q1"), seconds = mapOf("q1" to 30)),
+            sitting("2026-10-05", listOf("q1"), at = 1, seconds = mapOf("q1" to 120)),
+        )
+        assertEquals("the step should not climb on a worked-out answer", 2, held.getValue("q1").step)
+        assertEquals("2026-10-08", held.getValue("q1").dueIso)
+        assertEquals("it was still right", 3, held.getValue("q1").correct)
+    }
+
+    @Test
+    fun `a wrong answer given too fast to have read the question is marked`() {
+        val snap = paced(sitting("2026-10-01", listOf("q1"), missed = listOf("q1"), seconds = mapOf("q1" to 3)))
+        assertTrue(snap.getValue("q1").shaky)
+
+        val considered = paced(sitting("2026-10-01", listOf("q1"), missed = listOf("q1"), seconds = mapOf("q1" to 40)))
+        assertTrue("a wrong answer that took its time is a known gap", !considered.getValue("q1").shaky)
+    }
+
+    @Test
+    fun `a confident miss is asked before an unsure one`() {
+        // Both fall to the bottom and come back tomorrow, so the schedule
+        // cannot separate them. The order of a capped day can.
+        val states = paced(
+            sitting("2026-10-01", listOf("q1", "q2"), missed = listOf("q1", "q2"), seconds = mapOf("q1" to 40, "q2" to 3)),
+        )
+        assertEquals(listOf("q2", "q1"), QuestionSrs.due(states, LocalDate.parse("2026-10-02")))
+    }
+
+    @Test
+    fun `the mark clears once the question is got right`() {
+        val states = paced(
+            sitting("2026-10-01", listOf("q1"), missed = listOf("q1"), seconds = mapOf("q1" to 3)),
+            sitting("2026-10-02", listOf("q1"), seconds = mapOf("q1" to 30)),
+        )
+        assertTrue(!states.getValue("q1").shaky)
+    }
+
+    @Test
+    fun `a sitting with no clock schedules exactly as it always did`() {
+        // Every attempt recorded before this existed, and this must not move.
+        val old = states(
+            sitting("2026-10-01", listOf("q1")),
+            sitting("2026-10-02", listOf("q1")),
+        )
+        val sameWithExpectations = paced(
+            sitting("2026-10-01", listOf("q1")),
+            sitting("2026-10-02", listOf("q1")),
+        )
+        assertEquals(old.getValue("q1"), sameWithExpectations.getValue("q1"))
+        assertEquals(2, old.getValue("q1").step)
+        assertEquals("2026-10-05", old.getValue("q1").dueIso)
     }
 }
