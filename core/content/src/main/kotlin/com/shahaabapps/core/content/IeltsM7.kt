@@ -7,6 +7,12 @@ internal object IeltsM7 {
     private val part1 = Topic(
         id = "ie7-part1", title = "Part 1: familiar questions, answered the band 7 way", minutes = 24, references = refs,
         blocks = listOf(
+            B.warmup(
+                "ie7-part1-w1", "ie7-part1",
+                "The examiner asks 'Do you like music?'. You answer 'Yes.' The answer is true and grammatical. What do you think it costs you?",
+                listOf("Nothing; the question was closed", "Fluency, because the examiner has to prompt again", "Pronunciation"), 1,
+                "Part 1 questions are easy on purpose. The band is in how much you do with them.",
+            ),
             B.plain("The interview opens with four to five minutes of questions about you: your home, work or study, and two or three everyday topics. The questions are easy on purpose. The band comes from how you answer, not what you answer."),
             B.diagram(
                 caption = "The shape of every Part 1 answer: a direct answer, a reason, and a detail. Two or three sentences, then stop.",
@@ -66,6 +72,12 @@ internal object IeltsM7 {
     private val part2 = Topic(
         id = "ie7-part2", title = "Part 2: the long turn, planned in sixty seconds", minutes = 26, references = refs,
         blocks = listOf(
+            B.warmup(
+                "ie7-part2-w1", "ie7-part2",
+                "You have one minute to prepare the long turn and paper to write on. What do you think you should write?",
+                listOf("Full sentences to read out", "A word or two per prompt", "Nothing; think instead"), 1,
+                "Whatever you write, you will have to speak from it for two minutes.",
+            ),
             B.plain("You get a card with a topic and three or four prompts, one minute to prepare with paper and pencil, then one to two minutes to speak alone. Most candidates run out at ninety seconds. The planning method below prevents that."),
             B.diagram(
                 caption = "Sixty seconds of planning: one or two words per prompt, then one extra idea for the ending. Never write sentences.",
@@ -128,6 +140,12 @@ internal object IeltsM7 {
     private val part3 = Topic(
         id = "ie7-part3", title = "Part 3: the discussion that decides your band", minutes = 26, references = refs,
         blocks = listOf(
+            B.warmup(
+                "ie7-part3-w1", "ie7-part3",
+                "In Part 3 the examiner disagrees with something you said. What do you think that means?",
+                listOf("You got it wrong", "It is a prompt to reason, and both defending and conceding score", "Time is running out"), 1,
+                "Nothing in Part 3 is scored on being right.",
+            ),
             B.plain("Part 3 lasts four to five minutes and moves from your own life to society in general. The questions are abstract and the examiner may push back. This is where a 6 and an 8 separate, because it demands reasoning, not recall."),
             B.table(
                 listOf("Question type", "Example", "What it wants"),
@@ -200,20 +218,134 @@ internal object IeltsM7 {
         quiz = Quiz(
             id = "ie-m7-test", title = "Module 7 test", passPercent = 70,
             questions = B.spread(listOf(
-                B.q("ie7-q1", "ie7-part1", "A good Part 1 answer is usually", listOf("one word", "two to three sentences", "two minutes long"), setOf(1), "Enough to show range without turning into a speech."),
-                B.q("ie7-q2", "ie7-part1", "Listening: why does this answer score poorly?", listOf("The grammar is wrong", "It is a single word with no reason or detail", "It is off topic"), setOf(1), "Minimal answers force the examiner to prompt and lower Fluency.", listen = "Examiner: Do you like music? Candidate: Yes."),
-                B.q("ie7-q3", "ie7-part1", "Hesitating because you cannot find a word", listOf("affects Fluency more than hesitating for an idea", "is never penalised", "improves naturalness"), setOf(0), "Searching for language is the kind of hesitation that lowers the band."),
-                B.q("ie7-q4", "ie7-part1", "Which is a natural way to buy thinking time?", listOf("Er, er, er…", "That's an interesting question, actually.", "Repeating the question word for word"), setOf(1), "A short natural phrase keeps the flow; repeated fillers do not."),
-                B.q("ie7-q5", "ie7-part2", "How long do you have to prepare in Part 2?", listOf("No preparation", "One minute with paper and pencil", "Five minutes"), setOf(1), "One minute, and you may make notes."),
-                B.q("ie7-q6", "ie7-part2", "You should speak for", listOf("30 seconds", "one to two minutes", "as long as you like"), setOf(1), "The examiner stops you at two minutes."),
-                B.q("ie7-q7", "ie7-part2", "In your preparation minute you should write", listOf("full sentences", "a word or two per prompt plus one spare idea", "the examiner's questions"), setOf(1), "Notes keep you going; sentences get read aloud and sound flat."),
-                B.q("ie7-q8", "ie7-part2", "The last bullet on the card usually begins with 'and explain'. It", listOf("can be skipped", "carries the most speaking time because it invites reasons", "must be answered first"), setOf(1), "It is where candidates who planned only facts run out."),
-                B.q("ie7-q9", "ie7-part2", "Listening: what should this candidate add?", listOf("More difficult grammar", "Detail and an example for each prompt", "A faster pace"), setOf(1), "Each prompt needs development, not just a sentence.", listen = "Candidate: The book I would like to talk about is a novel. I read it last year. I liked it because it was interesting. That's all."),
-                B.q("ie7-q10", "ie7-part3", "Part 3 questions are mostly about", listOf("your own daily life", "society and abstract issues", "the Part 2 card"), setOf(1), "Part 3 moves from the personal to the general."),
-                B.q("ie7-q11", "ie7-part3", "'People tend to prefer convenience' is better than 'People always prefer convenience' because", listOf("it is shorter", "hedging shows judgement and avoids a naive absolute", "'always' is ungrammatical"), setOf(1), "Hedging is a marker of band 7 and above."),
-                B.q("ie7-q12", "ie7-part3", "The examiner challenges your view. You should", listOf("go silent", "defend it or partly concede, with a reason", "change the subject"), setOf(1), "The challenge tests reasoning; both defending and conceding score well."),
-                B.q("ie7-q13", "ie7-part3", "Listening: which feature makes this answer strong?", listOf("It is long", "It compares two periods with an example and reaches a qualified judgement", "It agrees with the examiner"), setOf(1), "Comparison, example and nuance are what Part 3 rewards.", listen = "Candidate: In some respects yes, particularly for education. That said, my parents could buy a house on one salary, which is unthinkable now. So the opportunities have shifted rather than increased."),
-                B.q("ie7-q14", "ie7-part1", "A memorised answer that does not quite fit the question", listOf("usually scores well", "is recognised by examiners and lowers the band", "is required for Part 2"), setOf(1), "Examiners hear memorised chunks immediately; specifics sound real."),
+                B.q(
+                    "ie7-q1", "ie7-part1", "A good Part 1 answer is usually",
+                    listOf("one word", "two to three sentences", "two minutes long"), setOf(1),
+                    "Enough to show range without turning into a speech.",
+                    whyWrong = mapOf(
+                        0 to "A one-word answer gives the examiner nothing to score and forces another prompt.",
+                        2 to "Two minutes is Part 2. Running that long in Part 1 means the examiner has to cut you off.",
+                    ),
+                ),
+                B.q(
+                    "ie7-q2", "ie7-part1", "Listening: why does this answer score poorly?",
+                    listOf("The grammar is wrong", "It is a single word with no reason or detail", "It is off topic"), setOf(1),
+                    "Minimal answers force the examiner to prompt and lower Fluency.",
+                    listen = "Examiner: Do you like music? Candidate: Yes.",
+                    whyWrong = mapOf(
+                        0 to "'Yes' has nothing wrong with it grammatically. That is the problem: there is nothing in it at all.",
+                        2 to "It answers the question asked. It just answers nothing else.",
+                    ),
+                ),
+                B.q(
+                    "ie7-q3", "ie7-part1", "Hesitating because you cannot find a word",
+                    listOf("affects Fluency more than hesitating for an idea", "is never penalised", "improves naturalness"), setOf(0),
+                    "Searching for language is the kind of hesitation that lowers the band.",
+                    whyWrong = mapOf(
+                        1 to "The descriptor names hesitation explicitly. It distinguishes the two kinds rather than ignoring both.",
+                        2 to "Pausing to think is natural; groping for a word is not, and the examiner can hear the difference.",
+                    ),
+                ),
+                B.q(
+                    "ie7-q4", "ie7-part1", "Which is a natural way to buy thinking time?",
+                    listOf("Er, er, er…", "That's an interesting question, actually.", "Repeating the question word for word"), setOf(1),
+                    "A short natural phrase keeps the flow; repeated fillers do not.",
+                    whyWrong = mapOf(
+                        0 to "Filled pauses are exactly what the Fluency descriptor is about. They buy time and spend band.",
+                        2 to "Echoing the question is audibly a stalling tactic, and it uses none of your own language.",
+                    ),
+                ),
+                B.q(
+                    "ie7-q5", "ie7-part2", "How long do you have to prepare in Part 2?",
+                    listOf("No preparation", "One minute with paper and pencil", "Five minutes"), setOf(1),
+                    "One minute, and you may make notes.",
+                    whyWrong = mapOf(
+                        0 to "There is a preparation minute, and candidates who do not use it are the ones who run out at ninety seconds.",
+                        2 to "Five minutes would be longer than the whole long turn. The card gives one.",
+                    ),
+                ),
+                B.q(
+                    "ie7-q6", "ie7-part2", "You should speak for",
+                    listOf("30 seconds", "one to two minutes", "as long as you like"), setOf(1),
+                    "The examiner stops you at two minutes.",
+                    whyWrong = mapOf(
+                        0 to "Half a minute is well short, and stopping early is the commonest Part 2 failure.",
+                        2 to "The examiner cuts in at two minutes. The skill is filling them, not exceeding them.",
+                    ),
+                ),
+                B.q(
+                    "ie7-q7", "ie7-part2", "In your preparation minute you should write",
+                    listOf("full sentences", "a word or two per prompt plus one spare idea", "the examiner's questions"), setOf(1),
+                    "Notes keep you going; sentences get read aloud and sound flat.",
+                    whyWrong = mapOf(
+                        0 to "A minute is not enough to write sentences, and reading them out loses the naturalness the criteria reward.",
+                        2 to "The prompts are already printed on the card. Copying them uses the minute and adds nothing.",
+                    ),
+                ),
+                B.q(
+                    "ie7-q8", "ie7-part2", "The last bullet on the card usually begins with 'and explain'. It",
+                    listOf("can be skipped", "carries the most speaking time because it invites reasons", "must be answered first"), setOf(1),
+                    "It is where candidates who planned only facts run out.",
+                    whyWrong = mapOf(
+                        0 to "It is a prompt like the others, and it is the one that fills the second minute.",
+                        2 to "The prompts work as an order to follow. Starting with the explanation leaves nothing to explain.",
+                    ),
+                ),
+                B.q(
+                    "ie7-q9", "ie7-part2", "Listening: what should this candidate add?",
+                    listOf("More difficult grammar", "Detail and an example for each prompt", "A faster pace"), setOf(1),
+                    "Each prompt needs development, not just a sentence.",
+                    whyWrong = mapOf(
+                        0 to "The grammar here is not the gap. The answer is twenty seconds long because nothing is developed.",
+                        2 to "Speaking faster would end it sooner. The problem is that there is not enough being said.",
+                    ),
+                ),
+                B.q(
+                    "ie7-q10", "ie7-part3", "Part 3 questions are mostly about",
+                    listOf("your own daily life", "society and abstract issues", "the Part 2 card"), setOf(1),
+                    "Part 3 moves from the personal to the general.",
+                    whyWrong = mapOf(
+                        0 to "Your own life is Part 1. Part 3 deliberately widens out from it.",
+                        2 to "The card's topic is the starting point, but the questions leave it behind quickly.",
+                    ),
+                ),
+                B.q(
+                    "ie7-q11", "ie7-part3", "'People tend to prefer convenience' is better than 'People always prefer convenience' because",
+                    listOf("it is shorter", "hedging shows judgement and avoids a naive absolute", "'always' is ungrammatical"), setOf(1),
+                    "Hedging is a marker of band 7 and above.",
+                    whyWrong = mapOf(
+                        0 to "It is barely shorter, and length is not what is being scored.",
+                        2 to "'Always' is fine English. It is the claim it makes that is too strong.",
+                    ),
+                ),
+                B.q(
+                    "ie7-q12", "ie7-part3", "The examiner challenges your view. You should",
+                    listOf("go silent", "defend it or partly concede, with a reason", "change the subject"), setOf(1),
+                    "The challenge tests reasoning; both defending and conceding score well.",
+                    whyWrong = mapOf(
+                        0 to "Silence is the one response that scores nothing. The challenge is an invitation to speak more, not less.",
+                        2 to "Moving off the question reads as avoidance, and Part 3 is scored on handling exactly this.",
+                    ),
+                ),
+                B.q(
+                    "ie7-q13", "ie7-part3", "Listening: which feature makes this answer strong?",
+                    listOf("It is long", "It compares two periods with an example and reaches a qualified judgement", "It agrees with the examiner"), setOf(1),
+                    "Comparison, example and nuance are what Part 3 rewards.",
+                    listen = "Candidate: In some respects yes, particularly for education. That said, my parents could buy a house on one salary, which is unthinkable now. So the opportunities have shifted rather than increased.",
+                    whyWrong = mapOf(
+                        0 to "It is three sentences. What makes it work is the shape of them, not the length.",
+                        2 to "It does not simply agree: 'that said' turns it, and the conclusion is a qualification rather than a yes.",
+                    ),
+                ),
+                B.q(
+                    "ie7-q14", "ie7-part1", "A memorised answer that does not quite fit the question",
+                    listOf("usually scores well", "is recognised by examiners and lowers the band", "is required for Part 2"), setOf(1),
+                    "Examiners hear memorised chunks immediately; specifics sound real.",
+                    whyWrong = mapOf(
+                        0 to "A rehearsed passage changes rhythm and register the moment it starts, and it answers a question nobody asked.",
+                        2 to "Part 2 is planned in the minute you are given, from the card in front of you.",
+                    ),
+                ),
             )),
         ),
     )

@@ -7,6 +7,12 @@ internal object IeltsM8 {
     private val lexis = Topic(
         id = "ie8-lexis", title = "Lexical Resource: collocation, topic banks and paraphrase", minutes = 28, references = refs,
         blocks = listOf(
+            B.warmup(
+                "ie8-lexis-w1", "ie8-lexis",
+                "Two essays. One uses three rare words, two of them slightly wrong. The other uses ordinary words that all sit with the right partners. Which do you think scores higher on Lexical Resource?",
+                listOf("The rare one, for range", "The ordinary one", "They tie"), 1,
+                "The criterion is not about how unusual a word is.",
+            ),
             B.plain("Lexical Resource is a quarter of your Writing and Speaking band. It does not reward rare words; it rewards the right word in the right company, used naturally. Three things move it: collocation, a bank of topic language, and the ability to say a thing another way."),
             B.h("Collocation: words that travel together"),
             B.diagram(
@@ -85,6 +91,12 @@ internal object IeltsM8 {
     private val grammar = Topic(
         id = "ie8-grammar", title = "Grammatical Range and Accuracy: the four structures that lift a band", minutes = 28, references = refs,
         blocks = listOf(
+            B.warmup(
+                "ie8-grammar-w1", "ie8-grammar",
+                "Band 7 wants 'a variety of complex structures'. How many different ones do you think you actually need to have ready?",
+                listOf("As many as possible", "About four, used accurately", "One, used everywhere"), 1,
+                "Variety is about mixing a handful well, not collecting them.",
+            ),
             B.plain("Band 7 asks for a variety of complex structures and a majority of error-free sentences. You do not need exotic grammar. Four structures, used accurately and mixed with simple sentences, are enough."),
             B.diagram(
                 caption = "Range and accuracy pull against each other. Band 7 needs both: complex structures you can actually control.",
@@ -170,6 +182,12 @@ internal object IeltsM8 {
     private val finalWeeks = Topic(
         id = "ie8-final", title = "The last two weeks, and the test day itself", minutes = 20, references = refs,
         blocks = listOf(
+            B.warmup(
+                "ie8-final-w1", "ie8-final",
+                "Three days to go. What do you think is the best use of them?",
+                listOf("A new grammar book", "Consolidating what you have and sleeping", "Two full tests a day"), 1,
+                "Nothing learnt in three days arrives in time to be reliable.",
+            ),
             B.plain("By this point the technique is known and the language is being built. The last fortnight is about simulation and sleep, not new material. Here is exactly what to do with it."),
             B.diagram(
                 caption = "Two weeks: full papers under timing in the first, tapering and rehearsal in the second. Nothing new after day ten.",
@@ -222,20 +240,132 @@ internal object IeltsM8 {
         quiz = Quiz(
             id = "ie-m8-test", title = "Module 8 test", passPercent = 70,
             questions = B.spread(listOf(
-                B.q("ie8-q1", "ie8-lexis", "Which is the correct collocation?", listOf("do a decision", "make a decision", "have a decision"), setOf(1), "Make is the verb that partners decision."),
-                B.q("ie8-q2", "ie8-lexis", "'Air pollution ___ a serious threat to health.'", listOf("poses", "does", "makes"), setOf(0), "Pose a threat, pose a risk, pose a challenge."),
-                B.q("ie8-q3", "ie8-lexis", "Lexical Resource rewards", listOf("the rarest words you know", "accurate collocation and natural phrasing", "long words used once each"), setOf(1), "A misused rare word costs more than a simple correct one."),
-                B.q("ie8-q4", "ie8-lexis", "'Many people work from home now' paraphrased formally is", listOf("Remote working has become widespread.", "People are working in their houses.", "Home is where people work now."), setOf(0), "Precise, formal and compressed."),
-                B.q("ie8-q5", "ie8-lexis", "Which words belong to the environment topic bank?", listOf("curriculum, tuition fees", "carbon footprint, renewable sources", "redundancy, productivity"), setOf(1), "The others belong to education and work."),
-                B.q("ie8-q6", "ie8-grammar", "Which sentence is error-free?", listOf("The number of applicants are growing.", "The number of applicants is growing.", "The numbers of applicant is growing."), setOf(1), "'The number of' takes a singular verb."),
-                B.q("ie8-q7", "ie8-grammar", "Choose the correct second conditional.", listOf("If transport was cheap, people will drive less.", "If transport were cheaper, fewer people would drive.", "If transport is cheaper, fewer people would drive."), setOf(1), "Past form in the if-clause, would in the main clause."),
-                B.q("ie8-q8", "ie8-grammar", "'Despite' is correctly followed by", listOf("a full clause: Despite it was expensive", "a noun phrase: Despite the expense", "a question"), setOf(1), "Use Although with a clause, Despite with a noun phrase."),
-                B.q("ie8-q9", "ie8-grammar", "Which is an uncountable noun with no plural?", listOf("information", "application", "measure"), setOf(0), "Information, advice and research take no -s."),
-                B.q("ie8-q10", "ie8-grammar", "'Rapid urban growth creates problems' rather than 'Cities grow fast and this creates problems' is an example of", listOf("nominalisation", "the passive voice", "a comma splice"), setOf(0), "The verb becomes a noun, compressing the idea and raising the register."),
-                B.q("ie8-q11", "ie8-grammar", "'It is cheap, it is popular.' is", listOf("correct", "a comma splice needing a connector or semicolon", "a relative clause"), setOf(1), "Two independent clauses cannot be joined by a comma alone."),
-                B.q("ie8-q12", "ie8-final", "In the last three days before the test you should", listOf("start a new grammar book", "consolidate, rehearse and rest", "sit two full tests a day"), setOf(1), "New material unsettles; consolidation and sleep help."),
-                B.q("ie8-q13", "ie8-final", "You finish Task 2 with five minutes left. The best use of them is", listOf("adding another paragraph", "checking articles, agreement and plural -s", "recopying the essay"), setOf(1), "Those three fixes raise Grammatical Accuracy most per minute."),
-                B.q("ie8-q14", "ie8-final", "Listening went badly. For the Reading paper you should", listOf("assume the day is lost", "treat it as independent, because papers are marked separately", "ask to restart"), setOf(1), "Carrying a bad paper into the next one costs real marks."),
+                B.q(
+                    "ie8-q1", "ie8-lexis", "Which is the correct collocation?",
+                    listOf("do a decision", "make a decision", "have a decision"), setOf(1),
+                    "Make is the verb that partners decision.",
+                    whyWrong = mapOf(
+                        0 to "'Do' partners homework, business and the washing-up. Decisions are made.",
+                        2 to "You can have a thought or an idea, but a decision is made.",
+                    ),
+                ),
+                B.q(
+                    "ie8-q2", "ie8-lexis", "'Air pollution ___ a serious threat to health.'",
+                    listOf("poses", "does", "makes"), setOf(0),
+                    "Pose a threat, pose a risk, pose a challenge.",
+                    whyWrong = mapOf(
+                        1 to "'Do a threat' is not a pairing English makes at all.",
+                        2 to "'Make' works with decisions and progress, not with threats.",
+                    ),
+                ),
+                B.q(
+                    "ie8-q3", "ie8-lexis", "Lexical Resource rewards",
+                    listOf("the rarest words you know", "accurate collocation and natural phrasing", "long words used once each"), setOf(1),
+                    "A misused rare word costs more than a simple correct one.",
+                    whyWrong = mapOf(
+                        0 to "The descriptor says less common words with awareness of style. The awareness is the part being scored.",
+                        2 to "A long word dropped in once reads as decoration, and the examiner has seen the same ones many times.",
+                    ),
+                ),
+                B.q(
+                    "ie8-q4", "ie8-lexis", "'Many people work from home now' paraphrased formally is",
+                    listOf("Remote working has become widespread.", "People are working in their houses.", "Home is where people work now."), setOf(0),
+                    "Precise, formal and compressed.",
+                    whyWrong = mapOf(
+                        1 to "That is a rewording, not an upgrade: 'in their houses' is plainer than the original.",
+                        2 to "It changes the emphasis rather than the register, and it reads as a slogan.",
+                    ),
+                ),
+                B.q(
+                    "ie8-q5", "ie8-lexis", "Which words belong to the environment topic bank?",
+                    listOf("curriculum, tuition fees", "carbon footprint, renewable sources", "redundancy, productivity"), setOf(1),
+                    "The others belong to education and work.",
+                    whyWrong = mapOf(
+                        0 to "Both of those are education. Topic banks are only useful if they are kept apart.",
+                        2 to "Redundancy and productivity are the employment bank.",
+                    ),
+                ),
+                B.q(
+                    "ie8-q6", "ie8-grammar", "Which sentence is error-free?",
+                    listOf("The number of applicants are growing.", "The number of applicants is growing.", "The numbers of applicant is growing."), setOf(1),
+                    "'The number of' takes a singular verb.",
+                    whyWrong = mapOf(
+                        0 to "The subject is 'the number', which is singular. The plural noun next to the verb is what pulls people into 'are'.",
+                        2 to "'Applicant' has to be plural after 'of', and 'numbers' is wrong here.",
+                    ),
+                ),
+                B.q(
+                    "ie8-q7", "ie8-grammar", "Choose the correct second conditional.",
+                    listOf("If transport was cheap, people will drive less.", "If transport were cheaper, fewer people would drive.", "If transport is cheaper, fewer people would drive."), setOf(1),
+                    "Past form in the if-clause, would in the main clause.",
+                    whyWrong = mapOf(
+                        0 to "'Will' belongs to the first conditional. Mixing the halves is the commonest conditional error in Task 2.",
+                        2 to "Present 'is' with 'would' is the same mix the other way round.",
+                    ),
+                ),
+                B.q(
+                    "ie8-q8", "ie8-grammar", "'Despite' is correctly followed by",
+                    listOf("a full clause: Despite it was expensive", "a noun phrase: Despite the expense", "a question"), setOf(1),
+                    "Use Although with a clause, Despite with a noun phrase.",
+                    whyWrong = mapOf(
+                        0 to "That is Although's job. 'Despite the fact that' is the way to get a clause after despite.",
+                        2 to "Despite never introduces a question in any register.",
+                    ),
+                ),
+                B.q(
+                    "ie8-q9", "ie8-grammar", "Which is an uncountable noun with no plural?",
+                    listOf("information", "application", "measure"), setOf(0),
+                    "Information, advice and research take no -s.",
+                    whyWrong = mapOf(
+                        1 to "Applications is perfectly good English: you can count them.",
+                        2 to "Measures is common in Task 2, as in 'such measures'.",
+                    ),
+                ),
+                B.q(
+                    "ie8-q10", "ie8-grammar", "'Rapid urban growth creates problems' rather than 'Cities grow fast and this creates problems' is an example of",
+                    listOf("nominalisation", "the passive voice", "a comma splice"), setOf(0),
+                    "The verb becomes a noun, compressing the idea and raising the register.",
+                    whyWrong = mapOf(
+                        1 to "Nothing here is passive: 'growth creates' is active. What changed is that the verb turned into a noun.",
+                        2 to "A comma splice is two clauses joined by a comma, and there is no comma in either version.",
+                    ),
+                ),
+                B.q(
+                    "ie8-q11", "ie8-grammar", "'It is cheap, it is popular.' is",
+                    listOf("correct", "a comma splice needing a connector or semicolon", "a relative clause"), setOf(1),
+                    "Two independent clauses cannot be joined by a comma alone.",
+                    whyWrong = mapOf(
+                        0 to "Both halves could stand alone as sentences, and that is exactly when a comma is not enough.",
+                        2 to "A relative clause needs which, who or that. There is none here.",
+                    ),
+                ),
+                B.q(
+                    "ie8-q12", "ie8-final", "In the last three days before the test you should",
+                    listOf("start a new grammar book", "consolidate, rehearse and rest", "sit two full tests a day"), setOf(1),
+                    "New material unsettles; consolidation and sleep help.",
+                    whyWrong = mapOf(
+                        0 to "Nothing begun three days out becomes reliable in time, and half-learnt grammar produces new errors.",
+                        2 to "Two full tests a day arrives at the exam tired, which costs more than the practice gains.",
+                    ),
+                ),
+                B.q(
+                    "ie8-q13", "ie8-final", "You finish Task 2 with five minutes left. The best use of them is",
+                    listOf("adding another paragraph", "checking articles, agreement and plural -s", "recopying the essay"), setOf(1),
+                    "Those three fixes raise Grammatical Accuracy most per minute.",
+                    whyWrong = mapOf(
+                        0 to "A fifth paragraph written in five minutes is undeveloped, and it unbalances the structure you already had.",
+                        2 to "Recopying cannot be finished in five minutes, and it introduces fresh slips rather than removing them.",
+                    ),
+                ),
+                B.q(
+                    "ie8-q14", "ie8-final", "Listening went badly. For the Reading paper you should",
+                    listOf("assume the day is lost", "treat it as independent, because papers are marked separately", "ask to restart"), setOf(1),
+                    "Carrying a bad paper into the next one costs real marks.",
+                    whyWrong = mapOf(
+                        0 to "Each paper has its own band, and most requirements are per paper. One weak result does not touch the next.",
+                        2 to "There is no restart. The papers run back to back with no break.",
+                    ),
+                ),
             )),
         ),
     )

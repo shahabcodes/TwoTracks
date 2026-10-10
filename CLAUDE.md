@@ -98,6 +98,8 @@ that the rules about it can be unit tests. `ContentTest`, `DiagramTest`,
 When a rule is scoped to one course, the test **names** the courses it holds,
 so bringing another up to it is a deliberate act rather than a silent
 omission. Those named lists have twice caught a topic a survey had missed.
+All three courses are now in both of them, which means a fourth has to be
+written up to the rule rather than quietly skipping it.
 
 **Colour pairs are checked, not eyeballed.** `core:ui`'s `ContrastTest` walks
 the combinations the app actually draws — text on cards and on the page, on
@@ -113,8 +115,9 @@ confirm something displays it.
 
 ## Known gaps
 
-- IELTS has no warm-ups and none of its 108 module-test questions carry
-  per-option notes. AZ-204 and German have both.
+- The three mock exams carry no per-option notes. They now could: the
+  results page shows the note for the option you picked. 60 IELTS mock
+  questions and the AZ-204 pair are the remaining set.
 - The in-topic check is still the only place an answer is recorded without a
   clock, so a warm-up or a check never contributes a pace reading. The paper
   sittings do.
