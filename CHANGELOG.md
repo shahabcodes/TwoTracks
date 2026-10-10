@@ -5,6 +5,10 @@ build number is appended by CI (for example `0.1.0 (build 12)`).
 
 ## [Unreleased]
 
+## [0.56.2] - 2026-10-10
+### Fixed
+- Opening Timezone no longer crashes the app.
+
 ## [0.56.1] - 2026-10-10
 ### Fixed
 - The guide no longer looks like the app, says less, and keeps clear of what it points at.

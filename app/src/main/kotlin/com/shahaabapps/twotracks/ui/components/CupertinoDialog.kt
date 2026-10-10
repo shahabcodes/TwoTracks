@@ -61,6 +61,13 @@ private val LocalDialogButtonRole = compositionLocalOf { DialogButtonRole.SECOND
  * rounded card that springs in with a haptic tap, a centred title, free-form
  * content, a full-width filled primary action and lighter secondary actions.
  * The slot names match AlertDialog so screens only swap the composable.
+ *
+ * **[text] already scrolls.** It is wrapped in a height-capped scrolling
+ * column, so anything put in it must not scroll vertically itself: a second
+ * scroller is measured with no height to fit in and throws the moment the
+ * dialog opens. That has shipped twice — a timezone list and a date picker —
+ * and neither failed until it was opened on a device. Where a control scrolls
+ * internally, as DatePicker does, use its own dialog instead.
  */
 @Composable
 fun CupertinoDialog(
