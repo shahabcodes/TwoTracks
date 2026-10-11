@@ -58,7 +58,7 @@ data class MascotState(
  * a blink every few seconds and a mouth that smiles or flattens.
  */
 @Composable
-fun Mascot(state: MascotState, modifier: Modifier = Modifier) {
+fun Mascot(state: MascotState, modifier: Modifier = Modifier, lively: Boolean = true) {
     val secret = state.focus == FieldFocus.PASSWORD || state.focus == FieldFocus.CONFIRM
     val closed by animateFloatAsState(if (secret) 1f else 0f, spring(dampingRatio = 0.8f, stiffness = Spring.StiffnessMedium), label = "closed")
     val peek by animateFloatAsState(if (secret && state.passwordShown) 1f else 0f, spring(dampingRatio = 0.6f, stiffness = Spring.StiffnessLow), label = "peek")
@@ -78,14 +78,15 @@ fun Mascot(state: MascotState, modifier: Modifier = Modifier) {
     val arrive = remember { Animatable(0f) }
     LaunchedEffect(Unit) { arrive.animateTo(1f, spring(dampingRatio = 0.55f, stiffness = Spring.StiffnessLow)) }
 
-    val transition = rememberInfiniteTransition(label = "mascot")
-    val blink by transition.animateFloat(
+    // Still when not lively: eyes open, level, wings down. See [Mascot].
+    val transition = if (lively) rememberInfiniteTransition(label = "mascot") else null
+    val blink = transition?.animateFloat(
         0f, 0f,
         infiniteRepeatable(keyframes { durationMillis = 4300; 0f at 0; 0f at 3950; 1f at 4040; 1f at 4090; 0f at 4200 }, RepeatMode.Restart),
         label = "blink",
-    )
-    val hover by transition.animateFloat(0f, 1f, infiniteRepeatable(tween(1400, easing = LinearEasing), RepeatMode.Restart), label = "hover")
-    val flap by transition.animateFloat(0f, 1f, infiniteRepeatable(tween(190, easing = LinearEasing), RepeatMode.Restart), label = "flap")
+    )?.value ?: 0f
+    val hover = transition?.animateFloat(0f, 1f, infiniteRepeatable(tween(1400, easing = LinearEasing), RepeatMode.Restart), label = "hover")?.value ?: 0f
+    val flap = transition?.animateFloat(0f, 1f, infiniteRepeatable(tween(190, easing = LinearEasing), RepeatMode.Restart), label = "flap")?.value ?: 0f
     val gradient = AppTheme.colors.gradient
     val lid = gradient.first()
     Canvas(modifier = modifier) {

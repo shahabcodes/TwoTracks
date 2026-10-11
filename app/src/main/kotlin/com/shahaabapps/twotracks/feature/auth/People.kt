@@ -47,7 +47,7 @@ enum class Person { SANYA, USAID }
  * with arms up when the form is ready.
  */
 @Composable
-fun PersonCompanion(person: Person, state: MascotState, modifier: Modifier = Modifier) {
+fun PersonCompanion(person: Person, state: MascotState, modifier: Modifier = Modifier, lively: Boolean = true) {
     val secret = state.focus == FieldFocus.PASSWORD || state.focus == FieldFocus.CONFIRM
     val closed by animateFloatAsState(if (secret) 1f else 0f, spring(dampingRatio = 0.8f, stiffness = Spring.StiffnessMedium), label = "closed")
     val peek by animateFloatAsState(if (secret && state.passwordShown) 1f else 0f, spring(dampingRatio = 0.6f, stiffness = Spring.StiffnessLow), label = "peek")
@@ -67,14 +67,16 @@ fun PersonCompanion(person: Person, state: MascotState, modifier: Modifier = Mod
     val arrive = remember { Animatable(0f) }
     LaunchedEffect(Unit) { arrive.animateTo(1f, spring(dampingRatio = 0.6f, stiffness = Spring.StiffnessLow)) }
 
-    val transition = rememberInfiniteTransition(label = "person")
-    val blink by transition.animateFloat(
+    // Still when not lively. Breathing and the hair sway rest at their
+    // midpoint, which is the neutral pose rather than either extreme.
+    val transition = if (lively) rememberInfiniteTransition(label = "person") else null
+    val blink = transition?.animateFloat(
         0f, 0f,
         infiniteRepeatable(keyframes { durationMillis = 4300; 0f at 0; 0f at 3950; 1f at 4040; 1f at 4090; 0f at 4200 }, RepeatMode.Restart),
         label = "blink",
-    )
-    val breathe by transition.animateFloat(0f, 1f, infiniteRepeatable(tween(2200, easing = LinearEasing), RepeatMode.Reverse), label = "breathe")
-    val hairSway by transition.animateFloat(0f, 1f, infiniteRepeatable(tween(3000, easing = LinearEasing), RepeatMode.Reverse), label = "hair")
+    )?.value ?: 0f
+    val breathe = transition?.animateFloat(0f, 1f, infiniteRepeatable(tween(2200, easing = LinearEasing), RepeatMode.Reverse), label = "breathe")?.value ?: 0.5f
+    val hairSway = transition?.animateFloat(0f, 1f, infiniteRepeatable(tween(3000, easing = LinearEasing), RepeatMode.Reverse), label = "hair")?.value ?: 0.5f
     val gradient = AppTheme.colors.gradient
     Canvas(modifier = modifier) {
         val h = size.height

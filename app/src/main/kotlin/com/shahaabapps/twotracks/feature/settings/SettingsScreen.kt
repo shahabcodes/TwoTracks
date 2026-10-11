@@ -258,7 +258,7 @@ fun SettingsScreen(
                                     SegmentedChoice(options = listOf(CompanionKind.SANYA, CompanionKind.USAID), selected = companion, label = { it.label }, onSelect = themeViewModel::setCompanion)
                                 }
                                 Box(modifier = Modifier.size(width = 120.dp, height = 150.dp), contentAlignment = Alignment.Center) {
-                                    Companion(kind = companion, state = MascotState(mood = 0.8f), modifier = Modifier.fillMaxSize())
+                                    Companion(kind = companion, state = MascotState(mood = 0.8f), modifier = Modifier.fillMaxSize(), lively = false)
                                 }
                             }
                             Text("Lives on the sign-in screen and reacts to what you type.", style = MaterialTheme.typography.bodySmall, color = AppTheme.colors.secondaryLabel, modifier = Modifier.padding(top = Spacing.xs, start = Spacing.sectionStart))

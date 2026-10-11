@@ -5,6 +5,10 @@ build number is appended by CI (for example `0.1.0 (build 12)`).
 
 ## [Unreleased]
 
+## [0.62.1] - 2026-10-11
+### Fixed
+- Settings stops redrawing itself when nothing is happening.
+
 ## [0.62.0] - 2026-10-11
 ### Changed
 - The published app is a release build, so screens open at speed.
