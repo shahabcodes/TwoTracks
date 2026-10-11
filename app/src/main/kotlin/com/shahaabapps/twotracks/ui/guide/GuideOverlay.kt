@@ -111,10 +111,16 @@ fun GuideOverlay(guide: GuideState) {
         // A step that has just navigated arrives before the new screen has
         // been laid out and reported where anything is, so this waits a frame
         // or two rather than scrolling to a position nobody has measured yet.
+        // Keep at it until the ring is actually up. Three tries over a third
+        // of a second was not enough: navigating to Settings, composing it
+        // and scrolling to a row took longer than that, and a reader tapping
+        // at their own pace saw step after step with nothing ringed.
         LaunchedEffect(step) {
-            repeat(3) {
+            var waited = 0
+            while (!guide.revealed && waited < 4_000) {
                 guide.revealCurrent()
-                kotlinx.coroutines.delay(120)
+                kotlinx.coroutines.delay(100)
+                waited += 100
             }
         }
         val density = LocalDensity.current

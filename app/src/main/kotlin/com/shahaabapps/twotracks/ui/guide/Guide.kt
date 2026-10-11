@@ -1,6 +1,7 @@
 package com.shahaabapps.twotracks.ui.guide
 
 import androidx.compose.foundation.ScrollState
+import androidx.compose.foundation.gestures.animateScrollBy
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
@@ -99,19 +100,28 @@ class GuideState(private val steps: List<GuideStep>) {
         if (lazyList === state) { lazyList = null; lazyItems = emptyMap(); viewport = Rect.Zero }
     }
 
+    /** Whether the ring for the current step is on screen and inside the page. */
+    val revealed: Boolean
+        get() {
+            val key = step?.anchor ?: return true
+            val bounds = anchors[key] ?: return false
+            if (viewport.isEmpty) return true
+            return bounds.top >= viewport.top && bounds.bottom <= viewport.bottom
+        }
+
     /**
-     * Brings the current step's anchor into view, where the screen showing it
-     * is one that scrolls as a whole.
+     * Brings the current step's anchor into view.
      *
-     * Only a plain scrolling screen can be driven this way. A lazy list has
-     * not composed what is below the fold, so there is nothing there to
-     * measure and nothing to scroll to; on those screens the tour rings what
-     * is already on display and says the rest in words.
+     * A plain scrolling screen is driven by measuring: the anchor has already
+     * reported where it is, so the distance to move is known. A lazy screen
+     * has not composed what is below the fold, so it is driven in two moves —
+     * scroll to the item the anchor lives in, which composes it, and then
+     * measure and close the rest of the gap. The second move is what several
+     * steps needed: Settings puts four rows in one item, and landing the top
+     * of that item at the top of the page leaves the fourth row off it.
      */
     suspend fun revealCurrent() {
         val key = step?.anchor ?: return
-        // A lazy screen scrolls by item; the anchor measures itself after.
-        // A lazy screen scrolls by item; the anchor measures itself after.
         lazyList?.let { list ->
             val index = lazyItems[key] ?: return@let
             // The step can arrive before the screen has laid out, and a list
@@ -124,16 +134,47 @@ class GuideState(private val steps: List<GuideStep>) {
                 waited += 50
             }
             if (list.layoutInfo.totalItemsCount == 0) return
-            if (list.layoutInfo.visibleItemsInfo.none { it.index == index }) {
+            // Always, not only when the item is off screen. One pixel of a
+            // tall item counts as visible, and Settings puts four rows in a
+            // single item: the sliver test kept deciding there was nothing to
+            // do while the row the step meant sat well below the fold. That
+            // is why half the Settings steps ringed nothing.
+            if (!revealed) {
                 runCatching { withTimeoutOrNull(1_000) { list.animateScrollToItem(index) } }
+            }
+            // The item is composed now, so the anchor inside it can say where
+            // it is. Give it a frame or two, then close what is left.
+            waited = 0
+            while (anchors[key] == null && waited < 600) {
+                delay(50)
+                waited += 50
+            }
+            val delta = gapToAnchor(key) ?: return
+            // Clamped to one page: a measurement taken before the scroll had
+            // settled would otherwise fling the list the length of Settings.
+            runCatching {
+                withTimeoutOrNull(1_000) {
+                    list.animateScrollBy(delta.coerceIn(-viewport.height, viewport.height))
+                }
             }
             return
         }
-        val bounds = anchors[key] ?: return
         val state = scroll ?: return
-        if (viewport.isEmpty) return
-        // Leave room for the card, which sits at whichever end the anchor is
-        // not: landing a ring hard against either edge reads as cut off.
+        val delta = gapToAnchor(key) ?: return
+        val to = (state.value + delta).roundToInt().coerceIn(0, state.maxValue)
+        state.animateScrollTo(to)
+    }
+
+    /**
+     * How far the page must move for the anchor to sit inside it, or null
+     * when it already does.
+     *
+     * The margin leaves room for the card, which sits at whichever end the
+     * anchor is not: landing a ring hard against either edge reads as cut off.
+     */
+    private fun gapToAnchor(key: String): Float? {
+        val bounds = anchors[key] ?: return null
+        if (viewport.isEmpty) return null
         val margin = viewport.height * 0.28f
         val top = viewport.top + margin
         val bottom = viewport.bottom - margin
@@ -142,9 +183,7 @@ class GuideState(private val steps: List<GuideStep>) {
             bounds.bottom > bottom -> bounds.bottom - bottom
             else -> 0f
         }
-        if (delta == 0f) return
-        val to = (state.value + delta).roundToInt().coerceIn(0, state.maxValue)
-        state.animateScrollTo(to)
+        return delta.takeIf { it != 0f }
     }
 }
 
@@ -177,6 +216,7 @@ object GuideAnchors {
     const val SET_APPEARANCE = "set.appearance"
     const val SET_COMPANION = "set.companion"
     const val SET_VOICES = "set.voices"
+    const val SET_WIDGETS = "set.widgets"
     const val SET_SEED = "set.seed"
     const val SET_TOUR = "set.tour"
     const val SET_SIGN_OUT = "set.signOut"

@@ -14,10 +14,11 @@ package com.shahaabapps.twotracks.ui.guide
  * looking at.
  *
  * Settings is walked row by row because it is where everything is decided and
- * none of it is guessable. It scrolls as one piece, so each row can be brought
- * into view and ringed. The other screens are lazy lists, where anything below
- * the fold has not been composed and cannot be measured, so those steps ring
- * the tab instead.
+ * none of it is guessable. Every one of its rows can be brought into view and
+ * ringed: the list is told which item each row lives in, scrolls there, and
+ * then closes the rest of the gap once the row has said where it is. The other
+ * screens ring the tab instead, which is a choice about what is worth pointing
+ * at rather than a limit.
  */
 fun guideSteps(
     learnRoute: String,
@@ -144,12 +145,10 @@ fun guideSteps(
         "This tour",
         "It runs on every sign-in, and it is here whenever you want it again.",
     ),
-    // Widgets live on the home screen, so there is nothing in the app to
-    // ring. A step with no anchor shows its words on their own.
     GuideStep(
-        settingsRoute, null,
+        settingsRoute, GuideAnchors.SET_WIDGETS,
         "Home screen widgets",
-        "Four of them. Hold one on the home screen to pick what it shows, whose, and which course.",
+        "Four of them. This is where you say what each one shows, whose, and which course.",
     ),
     GuideStep(
         settingsRoute, GuideAnchors.SET_SIGN_OUT,
