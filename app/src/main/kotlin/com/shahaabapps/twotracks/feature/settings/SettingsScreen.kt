@@ -2,6 +2,9 @@ package com.shahaabapps.twotracks.feature.settings
 
 import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.layout.fillMaxSize
+import com.shahaabapps.twotracks.feature.auth.companionAspect
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.Row
 import com.shahaabapps.twotracks.ui.components.SegmentedChoice
@@ -108,6 +111,15 @@ private val SETTINGS_GUIDE_ITEMS = mapOf(
     GuideAnchors.SET_TOUR to 7,
     GuideAnchors.SET_SIGN_OUT to 8,
 )
+
+/**
+ * The slot the Settings chooser gives the companion preview.
+ *
+ * Wide enough that the people, which are all but square, fill its 150dp of
+ * height exactly. The other two are about twice as wide as they are tall, so
+ * the same width makes them short rather than cut off.
+ */
+private val CompanionPreview = 148.dp
 
 @Composable
 fun SettingsScreen(
@@ -257,8 +269,17 @@ fun SettingsScreen(
                                     SegmentedChoice(options = listOf(CompanionKind.BUDDY, CompanionKind.PLANE), selected = companion, label = { it.label }, onSelect = themeViewModel::setCompanion)
                                     SegmentedChoice(options = listOf(CompanionKind.SANYA, CompanionKind.USAID), selected = companion, label = { it.label }, onSelect = themeViewModel::setCompanion)
                                 }
-                                Box(modifier = Modifier.size(width = 120.dp, height = 150.dp), contentAlignment = Alignment.Center) {
-                                    Companion(kind = companion, state = MascotState(mood = 0.8f), modifier = Modifier.fillMaxSize(), lively = false)
+                                // A fixed slot, so switching kind does not make the
+                                // row jump, with the drawing inside it at its own
+                                // shape. fillMaxSize gave all four the same tall box
+                                // and the wide ones drew out over the controls.
+                                Box(modifier = Modifier.size(width = CompanionPreview, height = 150.dp), contentAlignment = Alignment.Center) {
+                                    Companion(
+                                        kind = companion,
+                                        state = MascotState(mood = 0.8f),
+                                        modifier = Modifier.width(CompanionPreview).aspectRatio(companionAspect(companion)),
+                                        lively = false,
+                                    )
                                 }
                             }
                             Text("Lives on the sign-in screen and reacts to what you type.", style = MaterialTheme.typography.bodySmall, color = AppTheme.colors.secondaryLabel, modifier = Modifier.padding(top = Spacing.xs, start = Spacing.sectionStart))

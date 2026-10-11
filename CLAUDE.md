@@ -129,7 +129,3 @@ confirm something displays it.
   three attempts to bisect a difference out of it all landed inside the noise.
   Measuring a change this size needs a macrobenchmark module, and generating a
   baseline profile needs a rootable image, which the `tt_test` emulator is not.
-- The Buddy and Plane drawings overflow the 120x150 box the Settings chooser
-  gives them; the Plane overlaps the segmented control beside it. Pre-existing,
-  and clipping would cut a wing off, so it wants a layout answer rather than a
-  clip.

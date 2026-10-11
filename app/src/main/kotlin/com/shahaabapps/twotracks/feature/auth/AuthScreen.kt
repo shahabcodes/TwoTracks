@@ -549,8 +549,5 @@ private fun LinkText(text: String, onClick: () -> Unit) {
     )
 }
 
-/** Full-body companions need more room than the floating ones. */
-private fun companionHeight(kind: CompanionKind): Dp = when (kind) {
-    CompanionKind.SANYA, CompanionKind.USAID -> 190.dp
-    else -> MascotSize
-}
+// Full-body companions need more room than the floating ones, which is why
+// companionHeight now lives beside the drawings, in Mascot.kt.
