@@ -36,13 +36,24 @@ import kotlin.math.sin
 enum class CompanionKind(val label: String) { BUDDY("Buddy"), PLANE("Plane"), SANYA("Sanya"), USAID("Usaid") }
 
 /** Picks the companion by [kind]; both react to the same [MascotState]. */
+/**
+ * @param lively whether the idle animations run.
+ *
+ * They never stop by design — the propeller, the blink, the breathing — and
+ * on the sign-in screen that is the whole point. In a list it is a defect: an
+ * animation that never ends keeps the screen it sits on redrawing for as long
+ * as it is on screen, and Settings measured 310 frames in five seconds with
+ * nobody touching it, against none on every other screen. Pass false for a
+ * preview, which is what the Settings chooser wants anyway: you are picking a
+ * character, not watching it perform.
+ */
 @Composable
-fun Companion(kind: CompanionKind, state: MascotState, modifier: Modifier = Modifier) {
+fun Companion(kind: CompanionKind, state: MascotState, modifier: Modifier = Modifier, lively: Boolean = true) {
     when (kind) {
-        CompanionKind.BUDDY -> Mascot(state, modifier)
-        CompanionKind.PLANE -> PlaneCompanion(state, modifier)
-        CompanionKind.SANYA -> PersonCompanion(Person.SANYA, state, modifier)
-        CompanionKind.USAID -> PersonCompanion(Person.USAID, state, modifier)
+        CompanionKind.BUDDY -> Mascot(state, modifier, lively)
+        CompanionKind.PLANE -> PlaneCompanion(state, modifier, lively)
+        CompanionKind.SANYA -> PersonCompanion(Person.SANYA, state, modifier, lively)
+        CompanionKind.USAID -> PersonCompanion(Person.USAID, state, modifier, lively)
     }
 }
 
@@ -53,7 +64,7 @@ fun Companion(kind: CompanionKind, state: MascotState, modifier: Modifier = Modi
  * form is ready. The propeller never stops.
  */
 @Composable
-fun PlaneCompanion(state: MascotState, modifier: Modifier = Modifier) {
+fun PlaneCompanion(state: MascotState, modifier: Modifier = Modifier, lively: Boolean = true) {
     val secret = state.focus == FieldFocus.PASSWORD || state.focus == FieldFocus.CONFIRM
     val closed by animateFloatAsState(if (secret) 1f else 0f, spring(dampingRatio = 0.8f, stiffness = Spring.StiffnessMedium), label = "closed")
     val peek by animateFloatAsState(if (secret && state.passwordShown) 1f else 0f, spring(dampingRatio = 0.6f, stiffness = Spring.StiffnessLow), label = "peek")
@@ -71,14 +82,15 @@ fun PlaneCompanion(state: MascotState, modifier: Modifier = Modifier) {
     val arrive = remember { Animatable(0f) }
     LaunchedEffect(Unit) { arrive.animateTo(1f, spring(dampingRatio = 0.7f, stiffness = Spring.StiffnessLow)) }
 
-    val transition = rememberInfiniteTransition(label = "plane")
-    val blink by transition.animateFloat(
+    // Still when not lively: level, eyes open, propeller stopped. See [Companion].
+    val transition = if (lively) rememberInfiniteTransition(label = "plane") else null
+    val blink = transition?.animateFloat(
         0f, 0f,
         infiniteRepeatable(keyframes { durationMillis = 4300; 0f at 0; 0f at 3950; 1f at 4040; 1f at 4090; 0f at 4200 }, RepeatMode.Restart),
         label = "blink",
-    )
-    val hover by transition.animateFloat(0f, 1f, infiniteRepeatable(tween(1600, easing = LinearEasing), RepeatMode.Restart), label = "hover")
-    val prop by transition.animateFloat(0f, 1f, infiniteRepeatable(tween(120, easing = LinearEasing), RepeatMode.Restart), label = "prop")
+    )?.value ?: 0f
+    val hover = transition?.animateFloat(0f, 1f, infiniteRepeatable(tween(1600, easing = LinearEasing), RepeatMode.Restart), label = "hover")?.value ?: 0f
+    val prop = transition?.animateFloat(0f, 1f, infiniteRepeatable(tween(120, easing = LinearEasing), RepeatMode.Restart), label = "prop")?.value ?: 0f
     val gradient = AppTheme.colors.gradient
     Canvas(modifier = modifier) {
         val r = size.height / 2f * 0.62f

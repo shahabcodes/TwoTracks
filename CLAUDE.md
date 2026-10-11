@@ -123,7 +123,13 @@ confirm something displays it.
   sittings do.
 - Nothing has been judged on a real device. Everything from 0.40.0 onwards has
   been exercised on an emulator only.
-- Opening Settings still costs one frame of about 60ms on a warm open, which
-  is composing and drawing its visible rows. The 520ms version of this was the
-  debug build; what is left is real work. A baseline profile is the next thing
-  worth trying, and it needs a macrobenchmark module to generate one honestly.
+- Every push transition runs at about 20ms a frame and 10 per cent janky on
+  the emulator, Settings and a course screen alike. That is the floor there,
+  not a bug in one screen, and the emulator cannot resolve anything smaller:
+  three attempts to bisect a difference out of it all landed inside the noise.
+  Measuring a change this size needs a macrobenchmark module, and generating a
+  baseline profile needs a rootable image, which the `tt_test` emulator is not.
+- The Buddy and Plane drawings overflow the 120x150 box the Settings chooser
+  gives them; the Plane overlaps the segmented control beside it. Pre-existing,
+  and clipping would cut a wing off, so it wants a layout answer rather than a
+  clip.
