@@ -54,6 +54,14 @@ class AndroidApplicationConventionPlugin : Plugin<Project> {
                             getDefaultProguardFile("proguard-android-optimize.txt"),
                             "proguard-rules.pro",
                         )
+                        // Signed with the same key as debug, deliberately. This
+                        // is the build that is published, and an install has to
+                        // update the one already on the phone rather than fail
+                        // on a signature mismatch. It is not a Play key and is
+                        // not pretending to be one; the keystore is in the repo.
+                        if (sharedDebugKeystore.exists()) {
+                            signingConfig = signingConfigs.getByName("debug")
+                        }
                     }
                 }
                 packaging {

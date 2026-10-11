@@ -151,7 +151,11 @@ fun SettingsScreen(
     DetailScaffold(title = "Settings", onBack = onBack) {
         Box {
             val pageScroll = rememberLazyListState()
-                LazyColumn(modifier = Modifier.guideLazyScrollHost(pageScroll, SETTINGS_GUIDE_ITEMS), contentPadding = PaddingValues(bottom = Spacing.xl), verticalArrangement = Arrangement.spacedBy(Spacing.md)) {
+                // state, not only the guide host: the tour was handed a
+                // LazyListState this list never used, so every scroll it asked
+                // for went to a list with nothing in it. That is why the rings
+                // on this screen landed sometimes and not others.
+                LazyColumn(state = pageScroll, modifier = Modifier.guideLazyScrollHost(pageScroll, SETTINGS_GUIDE_ITEMS), contentPadding = PaddingValues(bottom = Spacing.xl), verticalArrangement = Arrangement.spacedBy(Spacing.md)) {
                 if (s != null) {
                     item {
                         CupertinoListSection(header = "Profile") {

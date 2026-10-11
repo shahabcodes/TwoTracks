@@ -66,14 +66,24 @@ jobs:
       - name: Unit tests (content, planner, seed, ui, app)
         run: gradle :core:content:test :core:planner:test :core:seed:test :core:ui:testDebugUnitTest :app:testDebugUnitTest --no-daemon
 
-      - name: Build debug APK (signed with the committed debug keystore)
-        run: gradle :app:assembleDebug --no-daemon --stacktrace
+      # Release, not debug. The published APK was the debug one for a long
+      # time, and a debuggable build runs the interpreter where a release
+      # build runs compiled code: opening Settings verified 164 classes on
+      # the main thread and dropped a 520ms frame, against 90ms and nothing
+      # verified once released. It is also 5.7MB rather than 28MB.
+      #
+      # Signed with the same committed debug keystore, so an install updates
+      # the app already on the phone instead of failing on a signature
+      # mismatch. Building it here is also the only thing that catches an R8
+      # rule that is missing, since the unit tests all run against debug.
+      - name: Build release APK (minified, signed with the committed keystore)
+        run: gradle :app:assembleRelease --no-daemon --stacktrace
 
       - name: Collect APK
         run: |
           set -euo pipefail
           mkdir -p dist
-          cp app/build/outputs/apk/debug/*.apk "dist/TwoTracks_${APP_VERSION_NAME}.apk"
+          cp app/build/outputs/apk/release/*.apk "dist/TwoTracks_${APP_VERSION_NAME}.apk"
           ls -la dist
 
       # APKs are delivered through GitHub Releases (below), not Actions artifacts:

@@ -5,6 +5,10 @@ build number is appended by CI (for example `0.1.0 (build 12)`).
 
 ## [Unreleased]
 
+## [0.62.0] - 2026-10-11
+### Changed
+- The published app is a release build, so screens open at speed.
+
 ## [0.61.0] - 2026-10-11
 ### Added
 - IELTS gets warm-ups and a note on every wrong answer.
