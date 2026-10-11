@@ -28,6 +28,7 @@ import androidx.compose.ui.graphics.drawscope.withTransform
 import androidx.compose.animation.core.Animatable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.shahaabapps.core.ui.theme.AppTheme
 import kotlin.math.PI
@@ -274,3 +275,24 @@ private fun wobble(t: Float): Float = sin(t * 2f * PI.toFloat())
 
 val MascotSize = 96.dp
 val MascotWidth = 200.dp
+
+/**
+ * The height a companion wants when it is [MascotWidth] wide.
+ *
+ * These drawings paint outside the middle of their box on purpose — wings,
+ * a propeller, a tuft of hair — so the box has to be the shape they expect or
+ * the extremities land outside it. A Canvas does not clip, so what lands
+ * outside is drawn over whatever is next to it, which is how the Plane came
+ * to overlap the control beside it in the Settings chooser.
+ *
+ * Anywhere that shows a companion should size it from here rather than
+ * picking a box, and the people are nearly square where the other two are
+ * nearly twice as wide as they are tall.
+ */
+fun companionHeight(kind: CompanionKind): Dp = when (kind) {
+    CompanionKind.SANYA, CompanionKind.USAID -> 190.dp
+    else -> MascotSize
+}
+
+/** Width over height, for [androidx.compose.foundation.layout.aspectRatio]. */
+fun companionAspect(kind: CompanionKind): Float = MascotWidth / companionHeight(kind)
