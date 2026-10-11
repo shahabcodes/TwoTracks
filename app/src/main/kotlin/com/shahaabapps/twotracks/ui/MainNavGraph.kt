@@ -71,6 +71,7 @@ import com.shahaabapps.twotracks.feature.partner.PartnerScreen
 import com.shahaabapps.twotracks.feature.settings.AvailabilityScreen
 import com.shahaabapps.twotracks.feature.settings.SettingsScreen
 import com.shahaabapps.twotracks.feature.settings.VoiceSettingsScreen
+import com.shahaabapps.twotracks.feature.settings.WidgetsScreen
 import com.shahaabapps.twotracks.feature.study.GoalDetailScreen
 import com.shahaabapps.twotracks.feature.study.GoalEditScreen
 import com.shahaabapps.twotracks.feature.tests.TestsScreen
@@ -106,6 +107,7 @@ object Routes {
     const val SETTINGS = "settings"
     const val AVAILABILITY = "settings/availability"
     const val VOICES = "settings/voices"
+    const val WIDGETS = "settings/widgets"
 
     fun level(id: String) = "level/$id"
     fun course(id: String) = "learn/$id"
@@ -278,6 +280,7 @@ fun MainNavGraph(session: AppSession, widgetLaunch: WidgetLaunch) {
                 )
             }
             composable(Routes.CHANGELOG) { ChangelogScreen(onBack = { navController.popBackStack() }) }
+            composable(Routes.WIDGETS) { WidgetsScreen(onBack = { navController.popBackStack() }) }
             composable(Routes.US) {
                 UsScreen(onNavigate = { navController.navigate(it) }, onOpenLevel = { navController.navigate(Routes.level(it)) })
             }
@@ -356,6 +359,7 @@ fun MainNavGraph(session: AppSession, widgetLaunch: WidgetLaunch) {
                     onBack = { navController.popBackStack() },
                     onOpenAvailability = { navController.navigate(Routes.AVAILABILITY) },
                     onOpenVoices = { navController.navigate(Routes.VOICES) },
+                    onOpenWidgets = { navController.navigate(Routes.WIDGETS) },
                     onOpenChangelog = { navController.navigate(Routes.CHANGELOG) },
                 )
             }

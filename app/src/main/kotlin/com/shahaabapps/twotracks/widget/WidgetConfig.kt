@@ -90,3 +90,29 @@ object WidgetConfigStore {
 
     private fun key(appWidgetId: Int, name: String) = "w${appWidgetId}_$name"
 }
+
+/** One widget actually on the home screen, with the settings it is running. */
+data class PlacedWidget(val appWidgetId: Int, val config: WidgetConfig)
+
+/**
+ * Every widget of ours the launcher is currently showing.
+ *
+ * Asked of each provider in turn, because a placed widget belongs to the one
+ * it was dropped from even though its settings decide what it draws. Ordered
+ * by id so the list does not reshuffle between visits.
+ */
+suspend fun placedWidgets(context: android.content.Context): List<PlacedWidget> = runCatching {
+    val manager = androidx.glance.appwidget.GlanceAppWidgetManager(context)
+    val providers = listOf(
+        TodayStudyWidget::class.java,
+        DailyReviewWidget::class.java,
+        WordOfDayWidget::class.java,
+        TogetherWidget::class.java,
+    )
+    providers
+        .flatMap { runCatching { manager.getGlanceIds(it) }.getOrDefault(emptyList()) }
+        .mapNotNull { glanceId -> runCatching { manager.getAppWidgetId(glanceId) }.getOrNull() }
+        .distinct()
+        .sorted()
+        .map { id -> PlacedWidget(id, WidgetConfigStore.read(context, id)) }
+}.getOrDefault(emptyList())

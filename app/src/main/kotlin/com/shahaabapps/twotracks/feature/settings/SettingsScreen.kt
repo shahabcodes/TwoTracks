@@ -20,6 +20,7 @@ import com.shahaabapps.twotracks.ui.guide.guideLazyScrollHost
 import com.shahaabapps.twotracks.ui.components.CupertinoDialog
 import com.shahaabapps.twotracks.ui.components.StartDateDialog
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.material.icons.filled.Dashboard
 import androidx.compose.material.icons.filled.Lock
 import android.Manifest
 import android.os.Build
@@ -108,6 +109,7 @@ private val SETTINGS_GUIDE_ITEMS = mapOf(
     GuideAnchors.SET_COMPANION to 4,
     GuideAnchors.SET_SEED to 5,
     GuideAnchors.SET_VOICES to 6,
+    GuideAnchors.SET_WIDGETS to 6,
     GuideAnchors.SET_TOUR to 7,
     GuideAnchors.SET_SIGN_OUT to 8,
 )
@@ -126,6 +128,7 @@ fun SettingsScreen(
     onBack: () -> Unit,
     onOpenAvailability: () -> Unit,
     onOpenVoices: () -> Unit,
+    onOpenWidgets: () -> Unit,
     onOpenChangelog: () -> Unit = {},
     viewModel: SettingsViewModel = hiltViewModel(),
     themeViewModel: ThemeViewModel = hiltViewModel(),
@@ -310,7 +313,16 @@ fun SettingsScreen(
                             modifier = Modifier.guideAnchor(GuideAnchors.SET_VOICES),
                             subtitle = "The voice each language is read in",
                             leadingIcon = Icons.Filled.RecordVoiceOver, iconColor = IosColors.Indigo,
-                            showDivider = false, onClick = onOpenVoices, trailing = { CupertinoDisclosure() },
+                            onClick = onOpenVoices, trailing = { CupertinoDisclosure() },
+                        )
+                        // The home screen can already do this by holding a
+                        // widget, and nothing anywhere said so.
+                        CupertinoListRow(
+                            "Widgets",
+                            modifier = Modifier.guideAnchor(GuideAnchors.SET_WIDGETS),
+                            subtitle = "What each one on your home screen shows",
+                            leadingIcon = Icons.Filled.Dashboard, iconColor = IosColors.Teal,
+                            showDivider = false, onClick = onOpenWidgets, trailing = { CupertinoDisclosure() },
                         )
                     }
                 }
