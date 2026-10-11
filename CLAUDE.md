@@ -110,14 +110,12 @@ on a background that measured 2.7:1 and nothing caught it.
 **Do not write content a screen cannot show.** 44 per-option notes shipped
 invisible because the in-topic check never rendered them, and mock exams run
 with `instantFeedback` off, so a note there was invisible until the results
-page learned to show the one you actually picked. If you author content,
-confirm something displays it.
+page learned to show the one you actually picked — which is now the only
+place a mock ever shows one. If you author content, confirm something
+displays it.
 
 ## Known gaps
 
-- The three mock exams carry no per-option notes. They now could: the
-  results page shows the note for the option you picked. 60 IELTS mock
-  questions and the AZ-204 pair are the remaining set.
 - A warm-up contributes nothing to the schedule, which is deliberate: a guess
   made before reading must not teach the app that you do not know something
   you have not read yet. Checks and paper sittings both feed it.

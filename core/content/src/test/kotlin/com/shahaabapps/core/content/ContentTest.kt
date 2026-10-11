@@ -142,27 +142,43 @@ class ContentTest {
     }
 
     @Test
-    fun `every module test question of a covered course explains the answer you picked`() {
+    fun `every test question of a covered course explains the answer you picked`() {
         // A test that only restates why the right answer is right teaches the
         // person who was already right. The useful sentence is about the
-        // option you chose, so every question in a module test carries one.
+        // option you chose, so every question carries one.
         //
-        // Module tests only: the mock exam runs with instantFeedback off, so
-        // a note on a mock question would never be rendered. Writing content
+        // The mock exams are in here now. They were not, and the reason was
+        // sound at the time: they run with instantFeedback off, so a note on
+        // a mock question could never be rendered, and writing content
         // nothing can show is how 44 notes sat invisible until 0.43.0. The
-        // results page now shows the note for the option you picked, so the
-        // mock will come in here once its questions carry one.
+        // results page shows the note for the option you picked now, which
+        // is the only place a mock can ever show one.
         listOf(Az204.course, GermanA1.course, Ielts.course).forEach { course ->
-            course.modules.mapNotNull { m -> m.quiz?.let { m to it } }.forEach { (m, quiz) ->
-                assertTrue("${m.id} should give instant feedback for notes to appear", quiz.instantFeedback)
+            val papers = course.modules.mapNotNull { m -> m.quiz?.let { m.id to it } } +
+                listOfNotNull(course.mockExam).map { "mock" to it }
+            papers.forEach { (where, quiz) ->
                 quiz.questions.forEach { q ->
                     val wrong = q.options.indices.filterNot { it in q.correct }
                     assertTrue(
-                        "${course.id}/${m.id}/${q.id} has no note on any wrong option",
+                        "${course.id}/$where/${q.id} has no note on any wrong option",
                         wrong.any { it in q.whyWrong.keys },
                     )
                 }
             }
+        }
+    }
+
+    @Test
+    fun `a module test gives instant feedback and a mock does not`() {
+        // Two different jobs. A module test teaches as it goes; a mock is a
+        // rehearsal of the real sitting, which tells you nothing until the
+        // end. The note on the option you picked is how a mock says it
+        // afterwards instead.
+        listOf(Az204.course, GermanA1.course, Ielts.course).forEach { course ->
+            course.modules.mapNotNull { it.quiz }.forEach { quiz ->
+                assertTrue("${quiz.id} should give instant feedback", quiz.instantFeedback)
+            }
+            course.mockExam?.let { assertFalse("${it.id} should not give instant feedback", it.instantFeedback) }
         }
     }
 
