@@ -97,7 +97,7 @@ fun TopicScreen(
                         )
                     }
                 }
-                items(topic.blocks.size) { i -> BlockView(topic.blocks[i], speaker, viewModel.recognizer, course.speechLanguage, viewModel::checkAnswered) }
+                items(topic.blocks.size) { i -> BlockView(topic.blocks[i], speaker, viewModel.recognizer, course.speechLanguage, viewModel::checkAnswered, viewModel::checkConfidence) }
                 if (topic.references.isNotEmpty()) {
                     item { ReferencesBlock(topic.references) }
                 }
@@ -132,7 +132,14 @@ fun TopicScreen(
 }
 
 @Composable
-fun BlockView(block: Block, speaker: Speaker? = null, recognizer: Recognizer? = null, lang: String? = null, onChecked: (com.shahaabapps.core.content.Question, Boolean) -> Unit = { _, _ -> }) {
+fun BlockView(
+    block: Block,
+    speaker: Speaker? = null,
+    recognizer: Recognizer? = null,
+    lang: String? = null,
+    onChecked: (com.shahaabapps.core.content.Question, Boolean, Int, Int) -> Unit = { _, _, _, _ -> },
+    onConfidence: (com.shahaabapps.core.content.Question, Boolean) -> Unit = { _, _ -> },
+) {
     when (block) {
         is Block.Heading -> Text(block.text, style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(top = Spacing.sm))
         is Block.Paragraph -> Text(block.text, style = MaterialTheme.typography.bodyLarge, lineHeight = 24.sp)
@@ -151,7 +158,7 @@ fun BlockView(block: Block, speaker: Speaker? = null, recognizer: Recognizer? = 
         is Block.Steps -> StepsBlock(block)
         is Block.Compare -> CompareBlock(block)
         is Block.TryIt -> TryItBlock(block)
-        is Block.Check -> CheckBlock(block, onChecked)
+        is Block.Check -> CheckBlock(block, onChecked, onConfidence)
         is Block.Warmup -> WarmupBlock(block)
         is Block.Faded -> FadedBlock(block)
         is Block.Glossary -> GlossaryBlock(block)
@@ -296,12 +303,19 @@ private fun TryItBlock(block: Block.TryIt) {
 }
 
 @Composable
-private fun CheckBlock(block: Block.Check, onChecked: (com.shahaabapps.core.content.Question, Boolean) -> Unit = { _, _ -> }) {
+private fun CheckBlock(
+    block: Block.Check,
+    onChecked: (com.shahaabapps.core.content.Question, Boolean, Int, Int) -> Unit = { _, _, _, _ -> },
+    onConfidence: (com.shahaabapps.core.content.Question, Boolean) -> Unit = { _, _ -> },
+) {
     val q = block.question
     var picked by androidx.compose.runtime.remember(q.id) { androidx.compose.runtime.mutableStateOf<Int?>(null) }
     // Null until the answer is committed. Asking before the reveal is the
     // whole point: afterwards everyone remembers having been fairly sure.
     var sure by androidx.compose.runtime.remember(q.id) { androidx.compose.runtime.mutableStateOf<Boolean?>(null) }
+    // When this check came into being, which in a lazy list is about when it
+    // was scrolled towards rather than when the topic was opened.
+    val shownAt = androidx.compose.runtime.remember(q.id) { System.currentTimeMillis() }
     val revealed = picked != null && sure != null
     val right = picked in q.correct
 
@@ -329,7 +343,11 @@ private fun CheckBlock(block: Block.Check, onChecked: (com.shahaabapps.core.cont
                     )
                     // Recorded on the pick, as it always was: someone who answers
                     // and scrolls on should not lose the answer to a new step.
-                    .clickable(enabled = !revealed) { picked = i; onChecked(q, i in q.correct) }
+                    .clickable(enabled = !revealed) {
+                        picked = i
+                        val took = ((System.currentTimeMillis() - shownAt) / 1_000L).toInt().coerceAtLeast(1)
+                        onChecked(q, i in q.correct, i, took)
+                    }
                     .padding(horizontal = 12.dp, vertical = 10.dp),
             ) {
                 Text(('A' + i).toString(), style = MaterialTheme.typography.labelMedium, color = AppTheme.colors.secondaryLabel, fontWeight = FontWeight.Bold)
@@ -350,7 +368,7 @@ private fun CheckBlock(block: Block.Check, onChecked: (com.shahaabapps.core.cont
                         color = AppTheme.colors.accentText,
                         modifier = Modifier.weight(1f).clip(RoundedCornerShape(10.dp))
                             .background(AppTheme.colors.card)
-                            .clickable { sure = value }
+                            .clickable { sure = value; onConfidence(q, value) }
                             .padding(vertical = 10.dp),
                         textAlign = TextAlign.Center,
                     )

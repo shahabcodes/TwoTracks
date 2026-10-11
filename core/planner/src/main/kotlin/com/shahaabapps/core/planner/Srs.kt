@@ -8,6 +8,13 @@ import java.time.LocalDate
  * Simple on purpose: no ease factors to tune, and easy to explain in the app.
  */
 object Srs {
+
+    /**
+     * How sure the person was, which is what the schedule actually wants to
+     * know. [Pace] estimates it from the clock; an in-topic check asks and is
+     * told, which is better, so a stated answer wins where there is one.
+     */
+    enum class Confidence { HIGH, NEUTRAL, LOW, UNKNOWN }
     /** Days until the next review after the Nth consecutive correct answer. */
     val LADDER = listOf(1L, 3L, 7L, 14L, 30L, 60L)
 
@@ -40,30 +47,29 @@ object Srs {
     /**
      * New state after a review on [today].
      *
-     * [pace] is how long the answer took against how long it should have
-     * taken, and it changes two of the four outcomes. A right answer that was
-     * worked out rather than known holds its place instead of climbing —
-     * stretching the gap is what loses it. A wrong answer given too fast to
-     * have read the question is marked [Card.shaky], which moves it up the
-     * queue rather than changing its schedule. Without a clock the pace is
-     * [Pace.Verdict.UNKNOWN] and this behaves exactly as it always did.
+     * [confidence] changes two of the four outcomes. A right answer the
+     * person was not sure of holds its place instead of climbing — stretching
+     * the gap is what loses it. A wrong answer they were sure of is marked
+     * [Card.shaky], which moves it up the queue rather than changing its
+     * schedule. [Confidence.UNKNOWN] behaves exactly as this did before there
+     * was any such signal.
      */
     fun review(
         card: Card,
         correct: Boolean,
         today: LocalDate,
-        pace: Pace.Verdict = Pace.Verdict.UNKNOWN,
+        confidence: Confidence = Confidence.UNKNOWN,
     ): Card {
         val iso = Dates.format(today)
         if (!correct) {
             return card.copy(
                 step = 0, dueIso = Dates.format(today.plusDays(1)), lastReviewIso = iso,
-                misses = card.misses + 1, shaky = pace == Pace.Verdict.QUICK,
+                misses = card.misses + 1, shaky = confidence == Confidence.HIGH,
             )
         }
         // A reconstructed answer keeps the interval it last earned rather
         // than earning a longer one.
-        val held = pace == Pace.Verdict.SLOW
+        val held = confidence == Confidence.LOW
         val nextStep = if (held) card.step else (card.step + 1).coerceAtMost(LADDER.size - 1)
         val grantIndex = if (held) (card.step - 1).coerceIn(0, LADDER.size - 1) else card.step.coerceIn(0, LADDER.size - 1)
         return card.copy(

@@ -5,6 +5,10 @@ build number is appended by CI (for example `0.1.0 (build 12)`).
 
 ## [Unreleased]
 
+## [0.63.0] - 2026-10-11
+### Added
+- A quick check keeps how sure you said you were.
+
 ## [0.62.2] - 2026-10-11
 ### Fixed
 - The sign-in companion fits its box in Settings.

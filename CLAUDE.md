@@ -118,9 +118,9 @@ confirm something displays it.
 - The three mock exams carry no per-option notes. They now could: the
   results page shows the note for the option you picked. 60 IELTS mock
   questions and the AZ-204 pair are the remaining set.
-- The in-topic check is still the only place an answer is recorded without a
-  clock, so a warm-up or a check never contributes a pace reading. The paper
-  sittings do.
+- A warm-up contributes nothing to the schedule, which is deliberate: a guess
+  made before reading must not teach the app that you do not know something
+  you have not read yet. Checks and paper sittings both feed it.
 - Nothing has been judged on a real device. Everything from 0.40.0 onwards has
   been exercised on an emulator only.
 - Every push transition runs at about 20ms a frame and 10 per cent janky on

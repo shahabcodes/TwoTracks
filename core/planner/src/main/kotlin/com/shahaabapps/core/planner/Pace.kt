@@ -68,6 +68,14 @@ object Pace {
 
     private fun String.words(): Int = split(' ', '\n', '\t').count { it.isNotBlank() }
 
+    /** The clock's best guess at how sure the answer was. */
+    fun Verdict.asConfidence(): Srs.Confidence = when (this) {
+        Verdict.QUICK -> Srs.Confidence.HIGH
+        Verdict.STEADY -> Srs.Confidence.NEUTRAL
+        Verdict.SLOW -> Srs.Confidence.LOW
+        Verdict.UNKNOWN -> Srs.Confidence.UNKNOWN
+    }
+
     /** Where [taken] falls against [expected]. Either being absent means [Verdict.UNKNOWN]. */
     fun verdict(taken: Int?, expected: Int?): Verdict {
         if (taken == null || expected == null || taken <= 0 || expected <= 0) return Verdict.UNKNOWN

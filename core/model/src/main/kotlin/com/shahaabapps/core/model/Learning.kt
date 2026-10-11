@@ -55,6 +55,19 @@ data class QuizAttempt(
      * question the clock ran out on.
      */
     val seconds: Map<String, Int> = emptyMap(),
+    /**
+     * Whether the person said they were sure, by question id.
+     *
+     * The in-topic check asks outright, before it shows the answer, and until
+     * now it threw the reply away. It is a better signal than the clock it
+     * sits beside: the clock is a guess at how sure somebody was, and this is
+     * them saying. A paper never asks, so this is empty there.
+     *
+     * Written after the answer, because the check records the answer on the
+     * pick and asks the question afterwards. An answer with no reply here is
+     * somebody who moved on, which is allowed.
+     */
+    val sure: Map<String, Boolean> = emptyMap(),
 ) {
     val percent: Int get() = if (total == 0) 0 else score * 100 / total
 

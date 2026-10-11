@@ -100,6 +100,14 @@ fun DocumentSnapshot.intMap(field: String): Map<String, Int> =
         ?.toMap()
         .orEmpty()
 
+/** A map of question id to a yes or no. */
+@Suppress("UNCHECKED_CAST")
+fun DocumentSnapshot.boolMap(field: String): Map<String, Boolean> =
+    (get(field) as? Map<String, Any?>)
+        ?.mapNotNull { (k, v) -> (v as? Boolean)?.let { k to it } }
+        ?.toMap()
+        .orEmpty()
+
 /** A map of question id to a list of whole numbers. */
 @Suppress("UNCHECKED_CAST")
 fun DocumentSnapshot.intListMap(field: String): Map<String, List<Int>> =
