@@ -248,17 +248,16 @@ fun MainNavGraph(session: AppSession, widgetLaunch: WidgetLaunch) {
             navController = navController,
             startDestination = Routes.LEARN,
             modifier = Modifier.padding(padding),
+            // Settings used to fade here rather than slide, to hide the
+            // cost of its first composition behind an animation with no
+            // position to judge it by. That was concealment, and it did not
+            // work: it still read as laggy. The cost was the debug build —
+            // 164 classes verified on the main thread in one open, 221ms of
+            // it, and a 520ms frame. Released, that frame is 90ms and nothing
+            // is verified at all. Settings slides like every other screen.
             enterTransition = {
-                when {
-                    isTab(initialState.destination.route) && isTab(targetState.destination.route) -> fadeIn(tween(220))
-                    // Settings fades rather than slides. Its first composition
-                    // costs about 300ms of CPU whenever it happens, and a slide
-                    // puts that against moving content, where every dropped
-                    // frame is visible as a stutter. A fade has no position to
-                    // judge it by, so the same work is not seen.
-                    targetState.destination.route == Routes.SETTINGS -> fadeIn(tween(160))
-                    else -> slideInHorizontally(tween(320, easing = FastOutSlowInEasing)) { it } + fadeIn(tween(200))
-                }
+                if (isTab(initialState.destination.route) && isTab(targetState.destination.route)) fadeIn(tween(220))
+                else slideInHorizontally(tween(320, easing = FastOutSlowInEasing)) { it } + fadeIn(tween(200))
             },
             exitTransition = {
                 if (isTab(initialState.destination.route) && isTab(targetState.destination.route)) fadeOut(tween(220))

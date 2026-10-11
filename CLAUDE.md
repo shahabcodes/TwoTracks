@@ -123,3 +123,7 @@ confirm something displays it.
   sittings do.
 - Nothing has been judged on a real device. Everything from 0.40.0 onwards has
   been exercised on an emulator only.
+- Opening Settings still costs one frame of about 60ms on a warm open, which
+  is composing and drawing its visible rows. The 520ms version of this was the
+  debug build; what is left is real work. A baseline profile is the next thing
+  worth trying, and it needs a macrobenchmark module to generate one honestly.
