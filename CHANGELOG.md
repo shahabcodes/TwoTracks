@@ -5,6 +5,10 @@ build number is appended by CI (for example `0.1.0 (build 12)`).
 
 ## [Unreleased]
 
+## [0.66.0] - 2026-10-11
+### Added
+- Widgets show a live preview while you set them up, with more to set.
+
 ## [0.65.0] - 2026-10-11
 ### Added
 - Widget settings are in Settings, and the tour rings every row it names.

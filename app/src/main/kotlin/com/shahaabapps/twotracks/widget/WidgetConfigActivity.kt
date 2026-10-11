@@ -8,6 +8,21 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import com.shahaabapps.core.content.WidgetSnapshot
+import com.shahaabapps.core.ui.theme.Shapes
+import com.shahaabapps.twotracks.feature.settings.WidgetPreview
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -74,6 +89,7 @@ class WidgetConfigActivity : ComponentActivity() {
             AppThemeRoot(themeMode = themeMode, accentPalette = accentPalette) {
                 WidgetConfigScreen(
                     appWidgetId = appWidgetId,
+                    existing = intent?.action != AppWidgetManager.ACTION_APPWIDGET_CONFIGURE,
                     onDone = { config ->
                         lifecycleScope.launch {
                             WidgetConfigStore.write(this@WidgetConfigActivity, appWidgetId, config)
@@ -101,22 +117,39 @@ private fun WidgetConfigScreen(
     appWidgetId: Int,
     onDone: (WidgetConfig) -> Unit,
     onCancel: () -> Unit,
+    existing: Boolean,
 ) {
     val context = LocalContext.current
     var config by remember { mutableStateOf(WidgetConfig()) }
     var loaded by remember { mutableStateOf(false) }
     // An existing widget opens on its own settings rather than the defaults.
-    androidx.compose.runtime.LaunchedEffect(appWidgetId) {
+    LaunchedEffect(appWidgetId) {
         config = WidgetConfigStore.read(context, appWidgetId)
         loaded = true
     }
 
-    DetailScaffold(title = "Widget", onBack = onCancel) {
+    // The preview shows real numbers, not a mock-up: changing whose progress
+    // it follows is also how you find out whether they have studied today.
+    var snapshot by remember { mutableStateOf(WidgetSnapshot()) }
+    LaunchedEffect(config.snapshotKey) {
+        snapshot = WidgetStore.read(context, config.snapshotKey)
+    }
+
+    DetailScaffold(title = if (existing) "This widget" else "Widget", onBack = onCancel) {
         if (!loaded) return@DetailScaffold
         Column(
             modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(bottom = Spacing.xl),
             verticalArrangement = Arrangement.spacedBy(Spacing.md),
         ) {
+            WidgetPreview(
+                config = config,
+                snapshot = snapshot,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = Spacing.listHorizontal)
+                    .height(188.dp),
+            )
+
             CupertinoListSection(header = "Shows", footer = config.content.blurb) {
                 WidgetContent.entries.forEachIndexed { i, c ->
                     CupertinoListRow(
@@ -158,40 +191,100 @@ private fun WidgetConfigScreen(
                 }
             }
 
-            CupertinoListSection(header = "Look", footer = "A translucent widget takes the colour of the wallpaper behind it.") {
+            CupertinoListSection(
+                header = "Look",
+                footer = "A translucent widget takes the colour of the wallpaper behind it. " +
+                    "Round corners match most launchers; square ones match the rest. The dots count " +
+                    "what is done out of what is due, and a widget too short for them leaves them out " +
+                    "— the preview above is drawn at a comfortable height.",
+            ) {
                 // Without the width the card shrinks to its widest chip row
                 // and sits narrower than every section above it.
                 Column(
                     modifier = Modifier.fillMaxWidth().padding(Spacing.md),
                     verticalArrangement = Arrangement.spacedBy(Spacing.sm),
                 ) {
-                    Text("Theme", style = MaterialTheme.typography.labelMedium, color = AppThemeRoot.colors.secondaryLabel)
-                    FlowRow(horizontalArrangement = Arrangement.spacedBy(Spacing.xs), verticalArrangement = Arrangement.spacedBy(Spacing.xs)) {
-                        WidgetTheme.entries.forEach { t ->
-                            Chip(
-                                text = if (config.theme == t) "${t.label} ✓" else t.label,
-                                onClick = { config = config.copy(theme = t) },
-                            )
-                        }
+                    Picker("Theme", WidgetTheme.entries, config.theme, { it.label }) { config = config.copy(theme = it) }
+                    Picker(
+                        "Background",
+                        listOf(false, true),
+                        config.translucent,
+                        { if (it) "Translucent" else "Solid" },
+                    ) { config = config.copy(translucent = it) }
+                    Picker("Corners", WidgetCorners.entries, config.corners, { it.label }) { config = config.copy(corners = it) }
+                    Picker("Dots", listOf(true, false), config.showPips, { if (it) "Show" else "Hide" }) {
+                        config = config.copy(showPips = it)
                     }
-                    Text("Background", style = MaterialTheme.typography.labelMedium, color = AppThemeRoot.colors.secondaryLabel)
-                    FlowRow(horizontalArrangement = Arrangement.spacedBy(Spacing.xs)) {
-                        listOf(false to "Solid", true to "Translucent").forEach { (value, label) ->
-                            Chip(
-                                text = if (config.translucent == value) "$label ✓" else label,
-                                onClick = { config = config.copy(translucent = value) },
-                            )
+                    // Only the dots take a colour, so the choice disappears
+                    // with them rather than sitting there doing nothing. The
+                    // words keep the ink the theme gives them: an accent
+                    // readable on a white card is not readable on a black one,
+                    // and a widget has no contrast test watching it.
+                    if (config.showPips) {
+                        Text("Dot colour", style = MaterialTheme.typography.labelMedium, color = AppThemeRoot.colors.secondaryLabel)
+                        FlowRow(horizontalArrangement = Arrangement.spacedBy(Spacing.xs), verticalArrangement = Arrangement.spacedBy(Spacing.xs)) {
+                            WidgetAccent.entries.forEach { a ->
+                                AccentChip(a, chosen = config.accent == a) { config = config.copy(accent = a) }
+                            }
                         }
                     }
                 }
             }
 
             CupertinoPrimaryButton(
-                text = "Add it",
+                text = if (existing) "Save" else "Add it",
                 onClick = { onDone(config) },
                 modifier = Modifier.fillMaxWidth().padding(horizontal = Spacing.listHorizontal),
             )
         }
+    }
+}
+
+/** A labelled row of chips, one of which is chosen. */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun <T> Picker(
+    label: String,
+    options: List<T>,
+    chosen: T,
+    text: (T) -> String,
+    onPick: (T) -> Unit,
+) {
+    Text(label, style = MaterialTheme.typography.labelMedium, color = AppThemeRoot.colors.secondaryLabel)
+    FlowRow(horizontalArrangement = Arrangement.spacedBy(Spacing.xs), verticalArrangement = Arrangement.spacedBy(Spacing.xs)) {
+        options.forEach { option ->
+            Chip(
+                text = if (option == chosen) "${text(option)} ✓" else text(option),
+                onClick = { onPick(option) },
+            )
+        }
+    }
+}
+
+/** A colour you can see, rather than the name of one. */
+@Composable
+private fun AccentChip(accent: WidgetAccent, chosen: Boolean, onPick: () -> Unit) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(6.dp),
+        modifier = Modifier
+            .clip(Shapes.field)
+            .background(if (chosen) AppThemeRoot.colors.accent.copy(alpha = 0.18f) else AppThemeRoot.colors.fill)
+            .clickable(onClick = onPick)
+            .padding(horizontal = 10.dp, vertical = 7.dp),
+    ) {
+        Box(
+            modifier = Modifier
+                .size(14.dp)
+                .clip(CircleShape)
+                .background(accent.color ?: AppThemeRoot.colors.secondaryLabel),
+        )
+        Text(
+            if (chosen) "${accent.label} ✓" else accent.label,
+            style = MaterialTheme.typography.bodySmall,
+            fontWeight = FontWeight.Medium,
+            color = AppThemeRoot.colors.accentText,
+        )
     }
 }
 

@@ -114,43 +114,8 @@ internal fun WidgetSnapshot.nextRoute(): String? {
  */
 private val COMPACT_BELOW = 92.dp
 
-/**
- * What a widget writes in.
- *
- * A forced look changes the card, so it has to change the ink with it: a dark
- * widget on a light phone kept drawing [GlanceTheme]'s dark text, which on a
- * near-black card was all but invisible. Null means the widget is following
- * the phone, where the theme's own colours are already the right ones.
- */
-private data class WidgetInk(val strong: Color, val soft: Color, val pipOn: Color, val pipOff: Color)
-
-private val ON_DARK = WidgetInk(
-    strong = Color.White,
-    soft = Color(0xFFB0B0B5),
-    pipOn = Color.White,
-    pipOff = Color(0xFF48484A),
-)
-
-private val ON_LIGHT = WidgetInk(
-    strong = Color(0xFF1C1C1E),
-    soft = Color(0xFF6E6E73),
-    pipOn = Color(0xFF1C1C1E),
-    pipOff = Color(0xFFD1D1D6),
-)
-
-/**
- * The same two, for a card the wallpaper shows through.
- *
- * A translucent card is part wallpaper, so it lands somewhere between the two
- * themes and the quiet grey that reads on a solid card does not survive it:
- * white at 55 per cent over a dark wallpaper measured about 1.5:1. The wash
- * is heavier and its second line darker, which holds both ways round.
- */
-private val WASH_ALPHA = 0.8f
-private val ON_LIGHT_WASH = ON_LIGHT.copy(soft = Color(0xFF48484A))
-private val ON_DARK_WASH = ON_DARK.copy(soft = Color(0xFFD1D1D6))
-
-private val LocalWidgetInk = compositionLocalOf<WidgetInk?> { null }
+/** The colours of the card being drawn. See [paletteFor]. */
+private val LocalWidgetPalette = compositionLocalOf { paletteFor(WidgetConfig(), Color.White, Color.Black, Color.Gray) }
 
 @Composable
 private fun Card(
@@ -162,26 +127,22 @@ private fun Card(
     // The widget's own look, not the phone's. A home screen is one wallpaper
     // with everything on it, so which of these reads well is a matter of what
     // is behind it, and only the person looking at it knows that.
-    val themed = GlanceTheme.colors.widgetBackground.getColor(LocalContext.current)
-    val background = when {
-        config.theme == WidgetTheme.LIGHT -> Color.White
-        config.theme == WidgetTheme.DARK -> Color(0xFF1C1C1E)
-        else -> themed
-    }.let { if (config.translucent) it.copy(alpha = WASH_ALPHA) else it }
-    val ink = when (config.theme) {
-        WidgetTheme.LIGHT -> if (config.translucent) ON_LIGHT_WASH else ON_LIGHT
-        WidgetTheme.DARK -> if (config.translucent) ON_DARK_WASH else ON_DARK
-        WidgetTheme.FOLLOW -> null
-    }
+    val ctx = LocalContext.current
+    val palette = paletteFor(
+        config,
+        themed = GlanceTheme.colors.widgetBackground.getColor(ctx),
+        themedStrong = GlanceTheme.colors.onSurface.getColor(ctx),
+        themedSoft = GlanceTheme.colors.onSurfaceVariant.getColor(ctx),
+    )
     val base = GlanceModifier
         .fillMaxSize()
-        .background(background)
-        .cornerRadius(20.dp)
+        .background(palette.background)
+        .cornerRadius(config.corners.radius.dp)
         .padding(horizontal = 14.dp, vertical = if (compact) 8.dp else 14.dp)
     // Centred, not top-aligned. A launcher decides the height and often gives
     // more than the content needs; centred text reads as deliberate at any
     // size, where top-aligned text leaves a slab of empty card beneath it.
-    CompositionLocalProvider(LocalWidgetInk provides ink) {
+    CompositionLocalProvider(LocalWidgetPalette provides palette) {
         Column(
             modifier = if (onClick != null) base.clickable(actionStartActivity(onClick)) else base,
             verticalAlignment = Alignment.Vertical.CenterVertically,
@@ -191,13 +152,13 @@ private fun Card(
     }
 }
 
-/** The strong ink, or the theme's where the widget follows the phone. */
+/** The ink for the current card. */
 private val strongInk: ColorProvider
-    @Composable get() = LocalWidgetInk.current?.strong?.let { ColorProvider(it) } ?: GlanceTheme.colors.onSurface
+    @Composable get() = ColorProvider(LocalWidgetPalette.current.strong)
 
 /** The quieter ink, for labels and second lines. */
 private val softInk: ColorProvider
-    @Composable get() = LocalWidgetInk.current?.soft?.let { ColorProvider(it) } ?: GlanceTheme.colors.onSurfaceVariant
+    @Composable get() = ColorProvider(LocalWidgetPalette.current.soft)
 
 @Composable
 private fun Title(text: String, compact: Boolean) {
@@ -239,10 +200,9 @@ private fun Pips(filled: Int, total: Int, compact: Boolean) {
                     .size(if (i < filled) 10.dp else 8.dp)
                     .cornerRadius(5.dp)
                     .background(
-                        LocalWidgetInk.current
-                            ?.let { if (i < filled) it.pipOn else it.pipOff }
-                            ?.let { ColorProvider(it) }
-                            ?: if (i < filled) GlanceTheme.colors.primary else GlanceTheme.colors.surfaceVariant,
+                        ColorProvider(
+                            LocalWidgetPalette.current.let { if (i < filled) it.pipOn else it.pipOff },
+                        ),
                     ),
                 content = {},
             )
@@ -291,117 +251,25 @@ private suspend fun GlanceAppWidget.renderConfigured(
     }
 }
 
-/** The four faces, chosen by the widget's own settings. */
+/**
+ * One face, drawn.
+ *
+ * What it says is decided in [faceFor], which the preview in Settings reads
+ * too: a preview that disagreed with the widget would be worse than no
+ * preview, and two copies of these four branches is how that happens.
+ */
 @Composable
 private fun WidgetBody(config: WidgetConfig, s: WidgetSnapshot, context: Context) {
-    val fresh = s.fresh(LocalDate.now())
-    when (config.content) {
-        WidgetContent.TODAY_STUDY ->
-            Card(openRoute(context, if (fresh) s.nextRoute() else null), config) { compact ->
-                Title("TODAY'S STUDY", compact)
-                when {
-                    !fresh -> NeedsSync(compact)
-                    s.stepsTotal == 0 -> {
-                        Headline("Nothing queued", compact)
-                        Body("Open a course to start the day.", compact)
-                    }
-                    s.loopClosed -> {
-                        Headline("Done for today", compact)
-                        Body("Everything due is cleared.", compact)
-                    }
-                    else -> {
-                        Headline("${s.stepsDone} of ${s.stepsTotal} done", compact)
-                        Body("${s.minutesLeft} min left" + if (s.nextLabel.isNotBlank()) " · ${s.nextLabel}" else "", compact)
-                    }
-                }
-                if (fresh && s.stepsTotal > 0) Pips(filled = s.stepsDone, total = s.stepsTotal, compact = compact)
-            }
-
-        WidgetContent.DAILY_REVIEW -> {
-            val due = s.questionsDue > 0 && s.questionsCourseId.isNotBlank()
-            // With nothing due this points at the next topic rather than
-            // stopping: "nothing to review" is true most of the way through a
-            // course, and a widget that only ever says so is worth removing.
-            val route = if (!fresh) null else if (due) WidgetRoutes.dailyReview(s.questionsCourseId) else s.nextRoute()
-            Card(openRoute(context, route), config) { compact ->
-                Title("DAILY REVIEW", compact)
-                when {
-                    !fresh -> NeedsSync(compact)
-                    due -> {
-                        Headline("${s.questionsDue} due", compact)
-                        Body("Questions coming back before they fade.", compact)
-                    }
-                    s.nextLabel.isNotBlank() -> {
-                        Headline("Nothing due", compact)
-                        Body("Next up · ${s.nextLabel}", compact)
-                    }
-                    else -> {
-                        Headline("All held", compact)
-                        Body("Nothing has come back round yet.", compact)
-                    }
-                }
-            }
+    val face = s.faceFor(config, LocalDate.now())
+    Card(openRoute(context, face.route), config) { compact ->
+        Title(face.title, compact)
+        Headline(face.headline, compact)
+        Body(face.body, compact, lines = if (face.extra == null) 2 else 1)
+        face.extra?.takeIf { !compact }?.let {
+            Spacer(GlanceModifier.height(6.dp))
+            Body(it, compact, lines = 2)
         }
-
-        WidgetContent.WORD_OF_DAY -> {
-            // A word from yesterday is still a word worth meeting, so this one
-            // does not need a snapshot written today, only one written at all.
-            val route = when {
-                !s.hasWord || s.wordCourseId.isBlank() -> null
-                s.wordIsTerm && s.wordTopicId.isNotBlank() -> WidgetRoutes.topic(s.wordCourseId, s.wordTopicId)
-                s.wordIsTerm -> null
-                else -> WidgetRoutes.deck(s.wordCourseId)
-            }
-            Card(openRoute(context, route), config) { compact ->
-                Title(if (s.wordIsTerm) "TERM OF THE DAY" else "WORD OF THE DAY", compact)
-                when {
-                    s.hasWord -> {
-                        Headline(s.word, compact)
-                        Body(s.wordMeaning, compact, lines = 1)
-                        if (s.wordExample.isNotBlank() && !compact) {
-                            Spacer(GlanceModifier.height(6.dp))
-                            Body(s.wordExample, compact, lines = 2)
-                        }
-                    }
-                    !s.synced -> NeedsSync(compact)
-                    else -> {
-                        Headline("Nothing yet", compact)
-                        Body("Read a topic and its terms appear here.", compact)
-                    }
-                }
-            }
-        }
-
-        WidgetContent.TOGETHER ->
-            Card(openRoute(context, null), config) { compact ->
-                Title("TOGETHER", compact)
-                val them = s.partnerName.ifBlank { "Your partner" }
-                when {
-                    !fresh -> NeedsSync(compact)
-                    s.togetherState == 3 -> {
-                        Headline(if (s.togetherStreak > 1) "${s.togetherStreak} days running" else "Both studied today", compact)
-                        Body("You both showed up today.", compact)
-                    }
-                    s.togetherState == 1 -> {
-                        Headline("Your part is done", compact)
-                        Body("$them has not studied yet.", compact)
-                    }
-                    s.togetherState == 2 -> {
-                        Headline("$them has studied", compact)
-                        Body("Your turn, to keep the run going.", compact)
-                    }
-                    else -> {
-                        Headline(if (s.togetherStreak > 0) "${s.togetherStreak} days running" else "Study together", compact)
-                        Body(
-                            if (s.togetherStreak > 0) "Still alive until the day is out." else "A day counts when you both study.",
-                            compact,
-                        )
-                    }
-                }
-                if (fresh && s.togetherStreak > 0) {
-                    Pips(filled = minOf(s.togetherStreak, 7), total = 7, compact = compact)
-                }
-            }
+        if (config.showPips && face.hasPips) Pips(filled = face.pipsFilled, total = face.pipsTotal, compact = compact)
     }
 }
 

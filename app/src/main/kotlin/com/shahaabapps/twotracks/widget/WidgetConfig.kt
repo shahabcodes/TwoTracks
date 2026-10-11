@@ -1,6 +1,7 @@
 package com.shahaabapps.twotracks.widget
 
 import android.content.Context
+import androidx.compose.ui.graphics.Color
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
@@ -21,6 +22,34 @@ enum class WidgetOwner(val label: String) { ME("Mine"), PARTNER("My partner's") 
 enum class WidgetTheme(val label: String) { FOLLOW("Follow the app"), LIGHT("Light"), DARK("Dark") }
 
 /**
+ * The colour of the pips, and the one piece of the app's personality a
+ * widget is allowed to carry.
+ *
+ * Null follows whatever the widget is already drawing in, which is what it
+ * did before there was a choice. The four named ones are the app's own
+ * accents, so a home screen can match the app or deliberately not.
+ */
+enum class WidgetAccent(val label: String, val color: Color?) {
+    FOLLOW("Follow the look", null),
+    QATAR("Qatar", Color(0xFF8A1538)),
+    BLUE("Blue", Color(0xFF0A84FF)),
+    PINK("Pink", Color(0xFFE0338B)),
+    MEADOW("Meadow", Color(0xFF1E8E5A)),
+}
+
+/**
+ * How round the corners are.
+ *
+ * Launchers differ and so do people: a widget that matches the icons around
+ * it looks placed, and one that does not looks dropped.
+ */
+enum class WidgetCorners(val label: String, val radius: Int) {
+    ROUND("Round", 20),
+    SOFT("Soft", 10),
+    SQUARE("Square", 0),
+}
+
+/**
  * One placed widget's settings.
  *
  * Kept per widget rather than per provider, so two copies of the same widget
@@ -36,6 +65,10 @@ data class WidgetConfig(
     val courseId: String? = null,
     val theme: WidgetTheme = WidgetTheme.FOLLOW,
     val translucent: Boolean = false,
+    val accent: WidgetAccent = WidgetAccent.FOLLOW,
+    val corners: WidgetCorners = WidgetCorners.ROUND,
+    /** The row of dots. Off for people who want the words and nothing else. */
+    val showPips: Boolean = true,
 ) {
     /** The snapshot this widget reads: one is kept per person and course. */
     val snapshotKey: String get() = snapshotKey(owner, courseId)
@@ -66,6 +99,9 @@ object WidgetConfigStore {
             courseId = str("course")?.takeIf { it.isNotBlank() },
             theme = str("theme")?.let { v -> WidgetTheme.entries.firstOrNull { it.name == v } } ?: WidgetTheme.FOLLOW,
             translucent = prefs[booleanPreferencesKey(key(appWidgetId, "translucent"))] ?: false,
+            accent = str("accent")?.let { v -> WidgetAccent.entries.firstOrNull { it.name == v } } ?: WidgetAccent.FOLLOW,
+            corners = str("corners")?.let { v -> WidgetCorners.entries.firstOrNull { it.name == v } } ?: WidgetCorners.ROUND,
+            showPips = prefs[booleanPreferencesKey(key(appWidgetId, "pips"))] ?: true,
         )
     }
 
@@ -76,6 +112,9 @@ object WidgetConfigStore {
             p[stringPreferencesKey(key(appWidgetId, "course"))] = config.courseId.orEmpty()
             p[stringPreferencesKey(key(appWidgetId, "theme"))] = config.theme.name
             p[booleanPreferencesKey(key(appWidgetId, "translucent"))] = config.translucent
+            p[stringPreferencesKey(key(appWidgetId, "accent"))] = config.accent.name
+            p[stringPreferencesKey(key(appWidgetId, "corners"))] = config.corners.name
+            p[booleanPreferencesKey(key(appWidgetId, "pips"))] = config.showPips
         }
     }
 
