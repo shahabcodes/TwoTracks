@@ -20,10 +20,11 @@ class QuestionSrsTest {
         owner: PersonRole = me,
         courseId: String = "az-204",
         seconds: Map<String, Int> = emptyMap(),
+        sure: Map<String, Boolean> = emptyMap(),
     ) = QuizAttempt(
         id = "$date-$at", owner = owner, courseId = courseId, moduleId = "m1", dateIso = date,
         score = asked.size - missed.size, total = asked.size, passed = missed.isEmpty(),
-        missed = missed, asked = asked, at = at, seconds = seconds,
+        missed = missed, asked = asked, at = at, seconds = seconds, sure = sure,
     )
 
     /** Every question in these tests is reckoned to take half a minute. */
@@ -210,5 +211,54 @@ class QuestionSrsTest {
         assertEquals(old.getValue("q1"), sameWithExpectations.getValue("q1"))
         assertEquals(2, old.getValue("q1").step)
         assertEquals("2026-10-05", old.getValue("q1").dueIso)
+    }
+
+    // ------------------------------------------------- the answer they gave
+
+    @Test
+    fun `being sure and wrong marks the question, however long it took`() {
+        // The clock would call forty seconds a considered answer. The person
+        // said they were sure, and what they said wins.
+        val states = paced(
+            sitting("2026-10-01", listOf("q1"), missed = listOf("q1"), seconds = mapOf("q1" to 40), sure = mapOf("q1" to true)),
+        )
+        assertTrue(states.getValue("q1").shaky)
+    }
+
+    @Test
+    fun `saying you were not sure holds a right answer in place`() {
+        // Three seconds is quick enough for the clock to call it known. The
+        // person said otherwise, so the gap does not stretch.
+        val climbed = paced(
+            sitting("2026-10-01", listOf("q1"), seconds = mapOf("q1" to 30)),
+            sitting("2026-10-02", listOf("q1"), seconds = mapOf("q1" to 30)),
+        )
+        assertEquals(2, climbed.getValue("q1").step)
+        assertEquals("2026-10-05", climbed.getValue("q1").dueIso)
+
+        val held = paced(
+            sitting("2026-10-01", listOf("q1"), seconds = mapOf("q1" to 30)),
+            sitting("2026-10-02", listOf("q1"), seconds = mapOf("q1" to 30)),
+            sitting("2026-10-05", listOf("q1"), at = 1, seconds = mapOf("q1" to 3), sure = mapOf("q1" to false)),
+        )
+        assertEquals("the step should not climb on an answer they were unsure of", 2, held.getValue("q1").step)
+        assertEquals("2026-10-08", held.getValue("q1").dueIso)
+    }
+
+    @Test
+    fun `a quick wrong answer they said they were unsure of is not marked`() {
+        // The inverse of the clock's guess, which is the point of asking.
+        val states = paced(
+            sitting("2026-10-01", listOf("q1"), missed = listOf("q1"), seconds = mapOf("q1" to 2), sure = mapOf("q1" to false)),
+        )
+        assertTrue("said they were guessing, so it is a known gap", !states.getValue("q1").shaky)
+    }
+
+    @Test
+    fun `with nothing said the clock is still used`() {
+        val states = paced(
+            sitting("2026-10-01", listOf("q1"), missed = listOf("q1"), seconds = mapOf("q1" to 2)),
+        )
+        assertTrue(states.getValue("q1").shaky)
     }
 }

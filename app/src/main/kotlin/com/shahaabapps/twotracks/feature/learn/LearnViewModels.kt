@@ -92,17 +92,33 @@ class LearningActions @Inject constructor(
      * review set and a later right answer clears it. No minutes are logged,
      * because the time is already counted in the topic's reading time.
      */
-    suspend fun recordCheck(course: Course, question: Question, correct: Boolean) {
-        val s = sessionStore.current() ?: return
-        learningRepository.addAttempt(
+    suspend fun recordCheck(course: Course, question: Question, correct: Boolean, picked: Int, seconds: Int): String? {
+        val s = sessionStore.current() ?: return null
+        val r = learningRepository.addAttempt(
             s.coupleId,
             QuizAttempt(
                 owner = s.myRole, courseId = course.id, moduleId = Courses.CHECK_MODULE_ID,
                 dateIso = Clock.todayIso(s.me), score = if (correct) 1 else 0, total = 1, passed = correct,
                 missed = if (correct) emptyList() else listOf(question.id), asked = listOf(question.id),
                 at = System.currentTimeMillis(),
+                picked = mapOf(question.id to listOf(picked)),
+                seconds = mapOf(question.id to seconds),
             ),
         )
+        return (r as? AppResult.Success)?.data
+    }
+
+    /**
+     * The reply to "how sure are you?", which arrives after the answer.
+     *
+     * Nothing depends on it landing: an answer with no reply is somebody who
+     * picked an option and scrolled on, and that is allowed. It is worth
+     * having because it is the person saying how sure they were rather than
+     * the clock guessing.
+     */
+    suspend fun recordSure(attemptId: String, questionId: String, sure: Boolean) {
+        val s = sessionStore.current() ?: return
+        learningRepository.setSure(s.coupleId, attemptId, questionId, sure)
     }
 
     suspend fun clearLearned(topicId: String): String? {
@@ -234,10 +250,19 @@ class TopicViewModel @Inject constructor(
 
     fun unlearn() = viewModelScope.launch { message.value = actions.clearLearned(topicId) }
 
+    /** The attempt each answered check was written as, so its reply can find it. */
+    private val checkAttempts = mutableMapOf<String, String>()
+
     /** Called when the reader answers a one-question check inside the topic. */
-    fun checkAnswered(question: Question, correct: Boolean) = viewModelScope.launch {
+    fun checkAnswered(question: Question, correct: Boolean, picked: Int, seconds: Int) = viewModelScope.launch {
         val c = uiState.value.course ?: return@launch
-        actions.recordCheck(c, question, correct)
+        actions.recordCheck(c, question, correct, picked, seconds)?.let { checkAttempts[question.id] = it }
+    }
+
+    /** Called when the reader says how sure they were, a moment later. */
+    fun checkConfidence(question: Question, sure: Boolean) = viewModelScope.launch {
+        val id = checkAttempts[question.id] ?: return@launch
+        actions.recordSure(id, question.id, sure)
     }
     fun clearMessage() { message.value = null }
 }

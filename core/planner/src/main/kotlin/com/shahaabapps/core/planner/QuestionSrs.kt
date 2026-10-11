@@ -55,8 +55,12 @@ object QuestionSrs {
                 val day = Dates.parseOrNull(attempt.dateIso) ?: return@forEach
                 val missed = attempt.missed.toSet()
                 attempt.asked.filter { it in knownQuestionIds }.forEach { id ->
-                    val pace = Pace.verdict(attempt.seconds[id], expectedSeconds[id])
-                    cards[id] = Srs.review(cards[id] ?: Srs.Card(id), correct = id !in missed, today = day, pace = pace)
+                    // Asked beats inferred: an in-topic check is told how sure
+                    // the person was, and the clock is only ever a guess at it.
+                    val confidence = attempt.sure[id]
+                        ?.let { if (it) Srs.Confidence.HIGH else Srs.Confidence.LOW }
+                        ?: with(Pace) { Pace.verdict(attempt.seconds[id], expectedSeconds[id]).asConfidence() }
+                    cards[id] = Srs.review(cards[id] ?: Srs.Card(id), correct = id !in missed, today = day, confidence = confidence)
                 }
             }
         return cards
