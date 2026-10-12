@@ -87,7 +87,8 @@ because there is one derivation and everything reads its output.
 
 **Content is tested like code.** `core:content` is pure Kotlin precisely so
 that the rules about it can be unit tests. `ContentTest`, `DiagramTest`,
-`ExplainTest`, `FadedTest` and `MasteryTest` hold things such as:
+`ExplainTest`, `FadedTest`, `GermanGrammarTest` and `MasteryTest` hold things
+such as:
 
 - every topic asks the reader to do something, not only explain
 - every topic in every course carries at least three checks
@@ -100,6 +101,12 @@ that the rules about it can be unit tests. `ContentTest`, `DiagramTest`,
   still works is `ci/check-links.sh`, not a unit test
 - the German deck is at least 650 cards, one card per word, and every noun
   card carries its article
+- every determiner the app prints in front of a noun the deck knows is
+  possible for that noun in some case, across every German sentence the app
+  presents as correct: about a thousand pairings. The wrong option of a check
+  and a `mistakes` block are deliberately not read, because the course prints
+  bad German there on purpose
+- a German letter model opens and closes in one register
 - no single slot holds the answer in more than two thirds of checks
 - every warm-up guess stays out of `Course.allQuestions`, so a guess made
   before reading never reaches the spaced schedule
