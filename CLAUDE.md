@@ -41,7 +41,8 @@ The real gate, and what CI runs:
 
 ```
 ./gradlew :core:content:test :core:planner:test :core:seed:test \
-          :core:ui:testDebugUnitTest :app:testDebugUnitTest
+          :core:ui:testDebugUnitTest :core:data:testDebugUnitTest \
+          :app:testDebugUnitTest
 ./gradlew :app:assembleDebug
 ```
 
@@ -74,7 +75,7 @@ Two helper scripts exist for environments that cannot run Gradle at all:
 | `core:seed` | The starting data for a new couple space. |
 | `core:common` | DataStore preferences and small shared pieces. |
 | `core:ui` | The design system: `CupertinoColors`, components, `ContrastTest`. |
-| `core:data` | Firestore repositories. |
+| `core:data` | Firestore repositories, and the `Doc` seam that makes their mapping testable. |
 | `app` | Screens, view models, widgets. |
 
 ## How this codebase thinks

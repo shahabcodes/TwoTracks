@@ -1,6 +1,5 @@
 package com.shahaabapps.core.data.firestore
 
-import com.google.firebase.firestore.DocumentSnapshot
 import com.shahaabapps.core.model.Availability
 import com.shahaabapps.core.model.AvailabilityBlock
 import com.shahaabapps.core.model.BlockKind
@@ -12,6 +11,7 @@ import com.shahaabapps.core.model.Couple
 import com.shahaabapps.core.model.Deadline
 import com.shahaabapps.core.model.DocStatus
 import com.shahaabapps.core.model.DocumentItem
+import com.shahaabapps.core.model.Flashcard
 import com.shahaabapps.core.model.GoalComponent
 import com.shahaabapps.core.model.GoalKind
 import com.shahaabapps.core.model.Habit
@@ -25,10 +25,12 @@ import com.shahaabapps.core.model.MockScore
 import com.shahaabapps.core.model.PersonRole
 import com.shahaabapps.core.model.PlannedSession
 import com.shahaabapps.core.model.Profile
+import com.shahaabapps.core.model.QuizAttempt
 import com.shahaabapps.core.model.SessionStatus
 import com.shahaabapps.core.model.StudyGoal
 import com.shahaabapps.core.model.StudyLog
 import com.shahaabapps.core.model.TestRecord
+import com.shahaabapps.core.model.TopicProgress
 
 /** Manual two-way mapping between models and Firestore documents. */
 object Mappers {
@@ -38,7 +40,7 @@ object Mappers {
         "members" to members, "inviteCode" to inviteCode, "createdAtMillis" to createdAtMillis, "seededVersion" to seededVersion,
     )
 
-    fun DocumentSnapshot.toCouple() = Couple(
+    fun Doc.toCouple() = Couple(
         id = id, members = stringList("members"), inviteCode = str("inviteCode"),
         createdAtMillis = lng("createdAtMillis"), seededVersion = int("seededVersion"),
     )
@@ -48,7 +50,7 @@ object Mappers {
         "photoUrl" to photoUrl, "reminderMinutes" to reminderMinutes, "startDateIso" to startDateIso,
     )
 
-    fun DocumentSnapshot.toProfile() = Profile(
+    fun Doc.toProfile() = Profile(
         uid = id, name = str("name"), role = enum("role", PersonRole.TECH), timezone = str("timezone").ifBlank { "UTC" },
         dateOfBirthIso = strOrNull("dateOfBirthIso"), photoUrl = strOrNull("photoUrl"), reminderMinutes = intOrNull("reminderMinutes"),
         startDateIso = strOrNull("startDateIso"),
@@ -65,7 +67,7 @@ object Mappers {
         },
     )
 
-    fun DocumentSnapshot.toAvailability() = Availability(
+    fun Doc.toAvailability() = Availability(
         owner = enum("owner", PersonRole.TECH),
         blocks = mapList("blocks").map { m ->
             AvailabilityBlock(
@@ -85,7 +87,7 @@ object Mappers {
         "passed" to passed, "passedAtIso" to passedAtIso,
     )
 
-    fun DocumentSnapshot.toGoal() = StudyGoal(
+    fun Doc.toGoal() = StudyGoal(
         id = id, owner = enum("owner", PersonRole.TECH), kind = enum("kind", GoalKind.CUSTOM), title = str("title"),
         subtitle = str("subtitle"), why = str("why"), priority = int("priority", 100), targetDateIso = strOrNull("targetDateIso"),
         active = bool("active", true),
@@ -100,14 +102,14 @@ object Mappers {
         "note" to note, "fromClass" to fromClass, "createdAtMillis" to createdAtMillis,
     )
 
-    fun DocumentSnapshot.toStudyLog() = StudyLog(
+    fun Doc.toStudyLog() = StudyLog(
         id = id, owner = enum("owner", PersonRole.TECH), dateIso = str("dateIso"), goalId = str("goalId"), componentId = str("componentId"),
         minutes = int("minutes"), note = str("note"), fromClass = bool("fromClass"), createdAtMillis = lng("createdAtMillis"),
     )
 
     fun MockScore.toMap() = mapOf("owner" to owner.name, "goalId" to goalId, "dateIso" to dateIso, "scores" to scores, "note" to note)
 
-    fun DocumentSnapshot.toMockScore() = MockScore(
+    fun Doc.toMockScore() = MockScore(
         id = id, owner = enum("owner", PersonRole.TECH), goalId = str("goalId"), dateIso = str("dateIso"), scores = stringMap("scores"), note = str("note"),
     )
 
@@ -116,7 +118,7 @@ object Mappers {
         "goalId" to goalId, "componentId" to componentId, "status" to status.name, "isClass" to isClass,
     )
 
-    fun DocumentSnapshot.toSession() = PlannedSession(
+    fun Doc.toSession() = PlannedSession(
         id = id, owner = enum("owner", PersonRole.TECH), dateIso = str("dateIso"), blockId = str("blockId"), startMinutes = int("startMinutes"),
         endMinutes = int("endMinutes"), goalId = str("goalId"), componentId = str("componentId"), status = enum("status", SessionStatus.PLANNED), isClass = bool("isClass"),
     )
@@ -134,7 +136,7 @@ object Mappers {
         },
     )
 
-    fun DocumentSnapshot.toLevel() = Level(
+    fun Doc.toLevel() = Level(
         id = id, owner = enum("owner", PersonRole.TECH), number = int("number", 1), name = str("name"), summary = str("summary"),
         startDateIso = str("startDateIso"), dueDateIso = str("dueDateIso"), startedEarly = bool("startedEarly"),
         completedAtIso = strOrNull("completedAtIso"), branch = strOrNull("branch"),
@@ -153,14 +155,14 @@ object Mappers {
         "startDateIso" to startDateIso, "active" to active,
     )
 
-    fun DocumentSnapshot.toHabit() = Habit(
+    fun Doc.toHabit() = Habit(
         id = id, owner = enum("owner", PersonRole.TECH), name = str("name"), unit = str("unit"), weeklyTarget = intOrNull("weeklyTarget"),
         totalTarget = intOrNull("totalTarget"), startDateIso = strOrNull("startDateIso"), active = bool("active", true),
     )
 
     fun HabitLog.toMap() = mapOf("owner" to owner.name, "habitId" to habitId, "dateIso" to dateIso, "value" to value, "note" to note)
 
-    fun DocumentSnapshot.toHabitLog() = HabitLog(
+    fun Doc.toHabitLog() = HabitLog(
         id = id, owner = enum("owner", PersonRole.TECH), habitId = str("habitId"), dateIso = str("dateIso"), value = int("value"), note = str("note"),
     )
 
@@ -169,7 +171,7 @@ object Mappers {
         "dueDateIso" to dueDateIso, "countryCode" to countryCode, "isCheckpoint" to isCheckpoint,
     )
 
-    fun DocumentSnapshot.toMilestone() = Milestone(
+    fun Doc.toMilestone() = Milestone(
         id = id, owner = enum("owner", PersonRole.TECH), quarter = str("quarter"), quarterOrder = int("quarterOrder"), title = str("title"),
         status = enum("status", MilestoneStatus.TODO), dueDateIso = strOrNull("dueDateIso"), countryCode = strOrNull("countryCode"), isCheckpoint = bool("isCheckpoint"),
     )
@@ -182,7 +184,7 @@ object Mappers {
         "risks" to risks, "order" to order, "notes" to notes,
     )
 
-    fun DocumentSnapshot.toCountry() = CountryTrack(
+    fun Doc.toCountry() = CountryTrack(
         code = id, name = str("name"), flag = str("flag"), tagline = str("tagline"), lead = str("lead"), chanceTech = str("chanceTech"),
         chanceTeacher = str("chanceTeacher"), citizenship = str("citizenship"), permanentResidence = str("permanentResidence"),
         keyFacts = mapList("keyFacts").map { it.s("label") to it.s("value") },
@@ -195,7 +197,7 @@ object Mappers {
         "takenOnIso" to takenOnIso, "expiresOnIso" to expiresOnIso, "order" to order,
     )
 
-    fun DocumentSnapshot.toTest() = TestRecord(
+    fun Doc.toTest() = TestRecord(
         id = id, owner = enum("owner", PersonRole.TECH), name = str("name"), purpose = str("purpose"), targetBands = stringMap("targetBands"),
         actualBands = stringMap("actualBands"), takenOnIso = strOrNull("takenOnIso"), expiresOnIso = strOrNull("expiresOnIso"), order = int("order"),
     )
@@ -205,7 +207,7 @@ object Mappers {
         "expiresOnIso" to expiresOnIso, "note" to note, "order" to order,
     )
 
-    fun DocumentSnapshot.toDocument() = DocumentItem(
+    fun Doc.toDocument() = DocumentItem(
         id = id, owner = enum("owner", PersonRole.TECH), name = str("name"), detail = str("detail"), usedFor = str("usedFor"),
         status = enum("status", DocStatus.NOT_STARTED), expiresOnIso = strOrNull("expiresOnIso"), note = str("note"), order = int("order"),
     )
@@ -214,14 +216,51 @@ object Mappers {
         "owner" to owner?.name, "item" to item, "planned" to planned, "spent" to spent, "currency" to currency, "paidOnIso" to paidOnIso, "order" to order,
     )
 
-    fun DocumentSnapshot.toBudget() = BudgetItem(
+    fun Doc.toBudget() = BudgetItem(
         id = id, owner = enumOrNull<PersonRole>("owner"), item = str("item"), planned = dbl("planned"), spent = dbl("spent"),
         currency = str("currency").ifBlank { "USD" }, paidOnIso = strOrNull("paidOnIso"), order = int("order"),
     )
 
     fun Deadline.toMap() = mapOf("title" to title, "dateIso" to dateIso, "owner" to owner?.name, "detail" to detail)
 
-    fun DocumentSnapshot.toDeadline() = Deadline(
+    fun Doc.toDeadline() = Deadline(
         id = id, title = str("title"), dateIso = str("dateIso"), owner = enumOrNull<PersonRole>("owner"), detail = str("detail"),
+    )
+
+    // ---------------- Learning ----------------
+    fun Flashcard.toMap() = mapOf(
+        "owner" to owner.name, "courseId" to courseId, "wordId" to wordId, "step" to step, "dueIso" to dueIso,
+        "lastReviewIso" to lastReviewIso, "correct" to correct, "misses" to misses,
+    )
+
+    fun Doc.toFlashcard() = Flashcard(
+        id = id, owner = enum("owner", PersonRole.TECH),
+        courseId = str("courseId"), wordId = str("wordId"), step = int("step"), dueIso = str("dueIso"),
+        lastReviewIso = str("lastReviewIso"), correct = int("correct"), misses = int("misses"),
+    )
+
+    fun TopicProgress.toMap() = mapOf(
+        "owner" to owner.name, "courseId" to courseId, "topicId" to topicId, "learnedAtIso" to learnedAtIso, "minutes" to minutes,
+    )
+
+    fun Doc.toTopicProgress() = TopicProgress(
+        id = id, owner = enum("owner", PersonRole.TECH),
+        courseId = str("courseId"), topicId = str("topicId"), learnedAtIso = str("learnedAtIso"), minutes = int("minutes"),
+    )
+
+    fun QuizAttempt.toMap() = mapOf(
+        "owner" to owner.name, "courseId" to courseId, "moduleId" to moduleId, "dateIso" to dateIso,
+        "score" to score, "total" to total, "passed" to passed, "missed" to missed, "asked" to asked, "at" to at,
+        // Firestore will not nest an array inside an array, but a map whose
+        // values are arrays is fine, which is why these are keyed by question
+        // id rather than held parallel to `asked`.
+        "picked" to picked, "seconds" to seconds, "sure" to sure,
+    )
+
+    fun Doc.toQuizAttempt() = QuizAttempt(
+        id = id, owner = enum("owner", PersonRole.TECH),
+        courseId = str("courseId"), moduleId = str("moduleId"), dateIso = str("dateIso"),
+        score = int("score"), total = int("total"), passed = bool("passed"), missed = stringList("missed"), asked = stringList("asked"), at = lng("at"),
+        picked = intListMap("picked"), seconds = intMap("seconds"), sure = boolMap("sure"),
     )
 }

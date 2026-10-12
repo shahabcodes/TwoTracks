@@ -45,13 +45,13 @@ fun FirebaseFirestore.sub(coupleId: String, name: String): CollectionReference =
  * while a just-created couple document is still propagating) re-registers the
  * listener with a short backoff instead of leaving the flow silently stale.
  */
-fun <T> Query.asFlow(mapper: (DocumentSnapshot) -> T?): Flow<List<T>> = callbackFlow {
+fun <T> Query.asFlow(mapper: (Doc) -> T?): Flow<List<T>> = callbackFlow {
     val registration = addSnapshotListener { snapshot, error ->
         if (error != null) {
             close(error)
             return@addSnapshotListener
         }
-        trySend(snapshot?.documents?.mapNotNull { runCatching { mapper(it) }.getOrNull() }.orEmpty())
+        trySend(snapshot?.documents?.mapNotNull { runCatching { mapper(it.asDoc()) }.getOrNull() }.orEmpty())
     }
     awaitClose { registration.remove() }
 }.retryWhen { _, attempt ->
@@ -59,69 +59,106 @@ fun <T> Query.asFlow(mapper: (DocumentSnapshot) -> T?): Flow<List<T>> = callback
     true
 }
 
-fun <T> DocumentReference.asFlow(mapper: (DocumentSnapshot) -> T?): Flow<T?> = callbackFlow {
+fun <T> DocumentReference.asFlow(mapper: (Doc) -> T?): Flow<T?> = callbackFlow {
     val registration = addSnapshotListener { snapshot, error ->
         if (error != null) {
             close(error)
             return@addSnapshotListener
         }
-        trySend(snapshot?.takeIf { it.exists() }?.let { runCatching { mapper(it) }.getOrNull() })
+        trySend(snapshot?.takeIf { it.exists() }?.let { runCatching { mapper(it.asDoc()) }.getOrNull() })
     }
     awaitClose { registration.remove() }
 }.retryWhen { _, attempt ->
     delay(minOf(1_000L * (attempt + 1), 10_000L))
     true
+}
+
+/**
+ * What a mapper needs from a stored document: an identifier and some fields.
+ *
+ * Firestore has one implementation of this and a test has another. Before it
+ * existed the mappers took a `DocumentSnapshot`, a final class from the
+ * Firebase SDK, so the 19 pairs of functions that every record in this app
+ * passes through on its way in and out of storage could not be run without a
+ * device. They had no tests at all, and a mistyped key on either side reads
+ * back as a default — zero minutes, an empty list, the first enum constant —
+ * which is exactly the kind of wrong that looks like real data.
+ */
+interface Doc {
+    val id: String
+    fun field(name: String): Any?
+}
+
+/** The Firestore implementation. [DocumentSnapshot.get] takes dotted paths too. */
+fun DocumentSnapshot.asDoc(): Doc = object : Doc {
+    override val id: String get() = this@asDoc.id
+    override fun field(name: String): Any? = this@asDoc.get(name)
+}
+
+/** A document built from fields, for a test or for anything that already holds them. */
+fun docOf(id: String = "", fields: Map<String, Any?>): Doc = object : Doc {
+    override val id: String = id
+    override fun field(name: String): Any? = fields[name]
 }
 
 // ---- small typed getters ----
-fun DocumentSnapshot.str(field: String): String = getString(field).orEmpty()
-fun DocumentSnapshot.strOrNull(field: String): String? = getString(field)
-fun DocumentSnapshot.int(field: String, default: Int = 0): Int = getLong(field)?.toInt() ?: default
-fun DocumentSnapshot.intOrNull(field: String): Int? = getLong(field)?.toInt()
-fun DocumentSnapshot.dbl(field: String, default: Double = 0.0): Double = getDouble(field) ?: default
-fun DocumentSnapshot.bool(field: String, default: Boolean = false): Boolean = getBoolean(field) ?: default
-fun DocumentSnapshot.lng(field: String, default: Long = 0L): Long = getLong(field) ?: default
+//
+// Every one of these coerces rather than casts, because Firestore does not
+// promise the type you wrote. Whole numbers come back as Long whatever was
+// stored, a Double field holding 3 comes back as Long, and a field that is
+// missing or holds something else should read as the default rather than
+// throw: `asFlow` would swallow the exception and drop the whole document.
+fun Doc.str(field: String): String = field(field) as? String ?: ""
+fun Doc.strOrNull(field: String): String? = field(field) as? String
+fun Doc.int(field: String, default: Int = 0): Int = (field(field) as? Number)?.toInt() ?: default
+fun Doc.intOrNull(field: String): Int? = (field(field) as? Number)?.toInt()
+fun Doc.dbl(field: String, default: Double = 0.0): Double = (field(field) as? Number)?.toDouble() ?: default
+fun Doc.bool(field: String, default: Boolean = false): Boolean = field(field) as? Boolean ?: default
+fun Doc.lng(field: String, default: Long = 0L): Long = (field(field) as? Number)?.toLong() ?: default
+
+// These used to be unchecked casts to List<String> and the like, which succeed
+// on a list of anything and fail later, somewhere else.
+fun Doc.stringList(field: String): List<String> =
+    (field(field) as? List<*>)?.mapNotNull { it as? String }.orEmpty()
 
 @Suppress("UNCHECKED_CAST")
-fun DocumentSnapshot.stringList(field: String): List<String> = (get(field) as? List<String>).orEmpty()
+fun Doc.mapList(field: String): List<Map<String, Any?>> =
+    (field(field) as? List<*>)?.mapNotNull { it as? Map<String, Any?> }.orEmpty()
 
-@Suppress("UNCHECKED_CAST")
-fun DocumentSnapshot.mapList(field: String): List<Map<String, Any?>> = (get(field) as? List<Map<String, Any?>>).orEmpty()
-
-@Suppress("UNCHECKED_CAST")
-fun DocumentSnapshot.stringMap(field: String): Map<String, String> =
-    (get(field) as? Map<String, Any?>)?.mapValues { it.value?.toString().orEmpty() }.orEmpty()
+fun Doc.stringMap(field: String): Map<String, String> =
+    (field(field) as? Map<*, *>)
+        ?.mapNotNull { (k, v) -> (k as? String)?.let { it to v?.toString().orEmpty() } }
+        ?.toMap()
+        .orEmpty()
 
 /** A map of question id to a whole number, which Firestore hands back as Long. */
-@Suppress("UNCHECKED_CAST")
-fun DocumentSnapshot.intMap(field: String): Map<String, Int> =
-    (get(field) as? Map<String, Any?>)
-        ?.mapNotNull { (k, v) -> (v as? Number)?.let { k to it.toInt() } }
+fun Doc.intMap(field: String): Map<String, Int> =
+    (field(field) as? Map<*, *>)
+        ?.mapNotNull { (k, v) -> if (k is String && v is Number) k to v.toInt() else null }
         ?.toMap()
         .orEmpty()
 
 /** A map of question id to a yes or no. */
-@Suppress("UNCHECKED_CAST")
-fun DocumentSnapshot.boolMap(field: String): Map<String, Boolean> =
-    (get(field) as? Map<String, Any?>)
-        ?.mapNotNull { (k, v) -> (v as? Boolean)?.let { k to it } }
+fun Doc.boolMap(field: String): Map<String, Boolean> =
+    (field(field) as? Map<*, *>)
+        ?.mapNotNull { (k, v) -> if (k is String && v is Boolean) k to v else null }
         ?.toMap()
         .orEmpty()
 
 /** A map of question id to a list of whole numbers. */
-@Suppress("UNCHECKED_CAST")
-fun DocumentSnapshot.intListMap(field: String): Map<String, List<Int>> =
-    (get(field) as? Map<String, Any?>)
-        ?.mapNotNull { (k, v) -> (v as? List<Any?>)?.let { l -> k to l.mapNotNull { (it as? Number)?.toInt() } } }
+fun Doc.intListMap(field: String): Map<String, List<Int>> =
+    (field(field) as? Map<*, *>)
+        ?.mapNotNull { (k, v) -> if (k is String && v is List<*>) k to v.mapNotNull { n -> (n as? Number)?.toInt() } else null }
         ?.toMap()
         .orEmpty()
 
-inline fun <reified E : Enum<E>> DocumentSnapshot.enum(field: String, default: E): E =
-    getString(field)?.let { v -> enumValues<E>().firstOrNull { it.name == v } } ?: default
+inline fun <reified E : Enum<E>> Doc.enum(field: String, default: E): E =
+    strOrNull(field)?.let { v -> enumValues<E>().firstOrNull { it.name == v } } ?: default
 
-inline fun <reified E : Enum<E>> DocumentSnapshot.enumOrNull(field: String): E? =
-    getString(field)?.let { v -> enumValues<E>().firstOrNull { it.name == v } }
+inline fun <reified E : Enum<E>> Doc.enumOrNull(field: String): E? =
+    strOrNull(field)?.let { v -> enumValues<E>().firstOrNull { it.name == v } }
 
+// ---- the same getters for a map nested inside a document ----
 fun Map<String, Any?>.s(key: String): String = this[key]?.toString().orEmpty()
 fun Map<String, Any?>.sOrNull(key: String): String? = this[key]?.toString()
 fun Map<String, Any?>.d(key: String): Double = (this[key] as? Number)?.toDouble() ?: 0.0
