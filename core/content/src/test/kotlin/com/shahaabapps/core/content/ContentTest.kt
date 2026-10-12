@@ -237,6 +237,46 @@ class ContentTest {
     }
 
     @Test
+    fun `every topic says what goes wrong and what to do today`() {
+        // AZ-204 carried both on all 22 topics from the start. German had the
+        // mistakes block on 15 of 47 and the try-it on 10; IELTS had 12 and 3.
+        // They are the two blocks that are not about the reading: one is the
+        // error the topic exists to prevent, named outright, and the other is
+        // the thing to do with the phone in your hand afterwards. A topic with
+        // neither is a page to be read and closed.
+        courses.forEach { c ->
+            c.allTopics.forEach { t ->
+                assertTrue(
+                    "${c.id}/${t.id} has no common-mistakes block",
+                    t.blocks.any { it is Block.Callout && it.kind == CalloutKind.MISTAKES },
+                )
+                assertTrue("${c.id}/${t.id} has no try-it block", t.blocks.any { it is Block.TryIt })
+            }
+        }
+    }
+
+    @Test
+    fun `a mistake is a sentence, and a try-it is a short list of things done`() {
+        // A one-word bullet is a heading, not a mistake, and a checklist of
+        // one is not a checklist.
+        courses.forEach { c ->
+            c.allTopics.forEach { t ->
+                t.blocks.filterIsInstance<Block.Callout>().filter { it.kind == CalloutKind.MISTAKES }.forEach { m ->
+                    val bullets = m.text.lines().filter { it.isNotBlank() }
+                    assertTrue("${c.id}/${t.id} lists ${bullets.size} mistake(s), wanted 3 or more", bullets.size >= 3)
+                    bullets.forEach { b ->
+                        assertTrue("${c.id}/${t.id}: too short to be a mistake: $b", b.length >= 25)
+                    }
+                }
+                t.blocks.filterIsInstance<Block.TryIt>().forEach { tryIt ->
+                    assertTrue("${c.id}/${t.id} try-it needs a title and an intro", tryIt.title.isNotBlank() && tryIt.intro.isNotBlank())
+                    assertTrue("${c.id}/${t.id} try-it has ${tryIt.checklist.size} item(s), wanted 3 or more", tryIt.checklist.size >= 3)
+                }
+            }
+        }
+    }
+
+    @Test
     fun `a warm-up guess never enters the schedule or the review set`() {
         // The one thing that would make warm-ups harmful. A guess made before
         // reading, recorded, would put every topic straight into the review

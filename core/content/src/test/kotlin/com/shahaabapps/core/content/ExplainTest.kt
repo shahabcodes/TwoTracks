@@ -24,12 +24,18 @@ class ExplainTest {
     }
 
     @Test
-    fun `every AZ-204 topic asks for an explanation, exactly once`() {
-        val az = Az204.course
-        az.allTopics.forEach { t ->
-            val n = t.blocks.filterIsInstance<Block.Exercise>().map { it.exercise }
-                .filterIsInstance<Ex.Writing>().count { it.form == WritingForm.EXPLANATION }
-            assertEquals("az-204/${t.id} should ask once", 1, n)
+    fun `every AZ-204 and IELTS topic asks for an explanation, exactly once`() {
+        // German is the exception, and deliberately: it already ends its
+        // topics by asking you to produce German, which is the thing being
+        // learnt. Explaining a German rule in English is a different skill
+        // and not one the exam tests. AZ-204 and IELTS are both courses about
+        // method, where saying the method back is exactly the point.
+        listOf(Az204.course, Ielts.course).forEach { c ->
+            c.allTopics.forEach { t ->
+                val n = t.blocks.filterIsInstance<Block.Exercise>().map { it.exercise }
+                    .filterIsInstance<Ex.Writing>().count { it.form == WritingForm.EXPLANATION }
+                assertEquals("${c.id}/${t.id} should ask once", 1, n)
+            }
         }
     }
 

@@ -92,6 +92,11 @@ that the rules about it can be unit tests. `ContentTest`, `DiagramTest`,
 such as:
 
 - every topic asks the reader to do something, not only explain
+- every topic in every course names the mistakes it exists to prevent and
+  ends with something to do today
+- every AZ-204 and IELTS topic asks for the method back in your own words,
+  exactly once. German is the exception on purpose: it already ends by
+  asking you to produce German, which is the thing being learnt
 - every topic in every course carries at least three checks
 - every AZ-204 topic, and every topic whose job is to produce a letter, a
   report, an essay or a spoken turn, fades a worked example exactly once,
