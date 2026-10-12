@@ -188,9 +188,9 @@ private fun OptionRow(text: String, index: Int, selected: Boolean, revealed: Boo
             contentAlignment = Alignment.Center,
         ) {
             when {
-                revealed && correct -> Icon(Icons.Filled.Check, contentDescription = null, tint = Color.White, modifier = Modifier.size(16.dp))
-                revealed && selected -> Icon(Icons.Filled.Close, contentDescription = null, tint = Color.White, modifier = Modifier.size(16.dp))
-                else -> Text(('A' + index).toString(), style = MaterialTheme.typography.labelMedium, color = if (selected) Color.White else AppTheme.colors.secondaryLabel, fontWeight = FontWeight.Bold)
+                revealed && correct -> Icon(Icons.Filled.Check, contentDescription = null, tint = AppTheme.colors.onSolid, modifier = Modifier.size(16.dp))
+                revealed && selected -> Icon(Icons.Filled.Close, contentDescription = null, tint = AppTheme.colors.onSolid, modifier = Modifier.size(16.dp))
+                else -> Text(('A' + index).toString(), style = MaterialTheme.typography.labelMedium, color = if (selected) AppTheme.colors.onSolid else AppTheme.colors.secondaryLabel, fontWeight = FontWeight.Bold)
             }
         }
         Text(text, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.weight(1f))

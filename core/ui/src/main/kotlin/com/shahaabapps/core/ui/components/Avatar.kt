@@ -17,11 +17,12 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
-import com.shahaabapps.core.ui.theme.Brand
+import com.shahaabapps.core.ui.theme.AppTheme
 
 /**
- * Circular avatar showing the photo when available, otherwise a gradient tile
- * with the person's initial. The gradient is derived from the name for variety.
+ * Circular avatar showing the photo when there is one, otherwise the person's
+ * initial on a solid circle. Pass the person's track colour as [color]; it
+ * defaults to ink.
  */
 @Composable
 fun Avatar(
@@ -29,13 +30,14 @@ fun Avatar(
     photoUrl: String?,
     modifier: Modifier = Modifier,
     size: Dp = 48.dp,
+    color: Color = AppTheme.colors.accent,
 ) {
     val initial = name.trim().firstOrNull()?.uppercaseChar()?.toString() ?: "?"
     Box(
         modifier = modifier
             .size(size)
             .clip(CircleShape)
-            .background(Brand.avatarGradient(name.hashCode())),
+            .background(color),
         contentAlignment = Alignment.Center,
     ) {
         if (!photoUrl.isNullOrBlank()) {
@@ -48,9 +50,9 @@ fun Avatar(
         } else {
             Text(
                 text = initial,
-                color = Color.White,
-                fontWeight = FontWeight.SemiBold,
-                fontSize = (size.value * 0.4f).sp,
+                color = AppTheme.colors.onSolid,
+                fontWeight = FontWeight.Bold,
+                fontSize = (size.value * 0.42f).sp,
                 style = MaterialTheme.typography.titleMedium,
             )
         }

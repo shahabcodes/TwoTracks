@@ -46,7 +46,6 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
-import com.shahaabapps.core.ui.theme.AccentPalette
 import com.shahaabapps.core.ui.theme.AppTheme
 import com.shahaabapps.core.ui.theme.Spacing
 import com.shahaabapps.twotracks.session.Celebration
@@ -64,7 +63,7 @@ private const val DURATION_MS = 1600
  * animates the tracks differently (see [drawTracksScene]). Tap to skip.
  */
 @Composable
-fun CelebrationOverlay(celebrations: Celebrations, palette: AccentPalette) {
+fun CelebrationOverlay(celebrations: Celebrations) {
     var current by remember { mutableStateOf<Celebration?>(null) }
     LaunchedEffect(Unit) { celebrations.events.collect { current = it } }
     val event = current ?: return
@@ -90,7 +89,7 @@ fun CelebrationOverlay(celebrations: Celebrations, palette: AccentPalette) {
         gradient = when (event.kind) {
             CelebrationKind.REMOVED -> listOf(AppTheme.colors.destructive, AppTheme.colors.destructive.copy(alpha = 0.5f))
             CelebrationKind.PASSED -> listOf(AppTheme.colors.success, Color.White)
-            else -> listOf(palette.gradient.first(), Color.White)
+            else -> listOf(AppTheme.colors.tech, Color.White)
         },
     )
 

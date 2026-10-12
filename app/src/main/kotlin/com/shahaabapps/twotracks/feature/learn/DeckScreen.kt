@@ -27,7 +27,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -82,9 +81,9 @@ fun DeckScreen(onBack: () -> Unit, viewModel: DeckViewModel = hiltViewModel()) {
                                 }
                                 Text("Tap to flip", style = MaterialTheme.typography.labelSmall, color = AppTheme.colors.secondaryLabel, modifier = Modifier.padding(top = Spacing.md))
                             } else {
-                                Text(w.en, style = MaterialTheme.typography.displayLarge, fontWeight = FontWeight.Bold, color = Color.White, textAlign = TextAlign.Center)
-                                Text(w.example, style = MaterialTheme.typography.bodyMedium, color = Color.White, textAlign = TextAlign.Center, modifier = Modifier.padding(top = Spacing.md), lineHeight = 22.sp)
-                                Text(w.exampleEn, style = MaterialTheme.typography.bodySmall, color = Color.White.copy(alpha = 0.85f), textAlign = TextAlign.Center)
+                                Text(w.en, style = MaterialTheme.typography.displayLarge, fontWeight = FontWeight.Bold, color = AppTheme.colors.onSolid, textAlign = TextAlign.Center)
+                                Text(w.example, style = MaterialTheme.typography.bodyMedium, color = AppTheme.colors.onSolid, textAlign = TextAlign.Center, modifier = Modifier.padding(top = Spacing.md), lineHeight = 22.sp)
+                                Text(w.exampleEn, style = MaterialTheme.typography.bodySmall, color = AppTheme.colors.onSolid.copy(alpha = 0.85f), textAlign = TextAlign.Center)
                             }
                         }
                     }

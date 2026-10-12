@@ -55,6 +55,7 @@ fun DiagramView(spec: DiagramSpec, modifier: Modifier = Modifier) {
     val fill = AppTheme.colors.fill
     val secondary = AppTheme.colors.secondaryLabel
     val ink = MaterialTheme.colorScheme.onSurface
+    val onSolid = AppTheme.colors.onSolid
     val labelStyle = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.SemiBold, textAlign = TextAlign.Center)
     val subStyle = MaterialTheme.typography.labelSmall.copy(textAlign = TextAlign.Center, fontSize = 10.sp)
     val edgeStyle = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp, color = secondary)
@@ -86,8 +87,8 @@ fun DiagramView(spec: DiagramSpec, modifier: Modifier = Modifier) {
             }
             spec.nodes.forEach { n ->
                 val r = rectOf(n)
-                val tone = when (n.tone) { 0 -> accent; 1 -> accent.copy(alpha = 0.55f); else -> secondary.copy(alpha = 0.35f) }
-                val textColor = if (n.tone == 0 && n.kind != NodeKind.NOTE) Color.White else ink
+                val tone = when (n.tone) { 0 -> accent; 1 -> accent.copy(alpha = 0.12f); else -> secondary.copy(alpha = 0.35f) }
+                val textColor = if (n.tone == 0 && n.kind != NodeKind.NOTE) onSolid else ink
                 when (n.kind) {
                     NodeKind.BOX -> drawRoundRect(tone, r.topLeft, r.size, CornerRadius(12.dp.toPx()))
                     NodeKind.PILL -> drawRoundRect(tone, r.topLeft, r.size, CornerRadius(r.height / 2f))

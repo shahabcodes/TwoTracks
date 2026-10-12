@@ -16,6 +16,10 @@ import org.junit.Test
  * The maths is WCAG 2.1: relative luminance, then (lighter + 0.05) /
  * (darker + 0.05). The thresholds are its AA ones — 4.5:1 for body text,
  * 3:1 for large or bold text and for the boundary of a control.
+ *
+ * The palette is Parallel's: ink on a white page, with colour kept for the
+ * two people's tracks. There is one palette now, in light and dark, so every
+ * pair below is measured once per mode.
  */
 class ContrastTest {
 
@@ -57,93 +61,82 @@ class ContrastTest {
         const val LARGE = 3.0
     }
 
-    private data class Mode(
-        val name: String,
-        val page: Color,
-        val card: Color,
-        val label: Color,
-        val secondary: Color,
-        val fill: Color,
-        val separator: Color,
-        val success: Color,
-        val warn: Color,
-        val destructive: Color,
-        val accent: (AccentPalette) -> Color,
-        val accentText: (AccentPalette) -> Color,
-        /** The idle fill, which three of the four palettes tint themselves. */
-        val paletteFill: (AccentPalette) -> Color,
-        /** The page, which three of the four palettes tint themselves. */
-        val palettePage: (AccentPalette) -> Color,
-        /** The ink on anything filled solid with a palette colour. */
-        val onSolid: Color,
-    )
+    private val modes = listOf("light" to parallelColors(dark = false), "dark" to parallelColors(dark = true))
 
-    private val modes = listOf(
-        Mode(
-            "light", Palette.GroupedBackgroundLight, Palette.SurfaceLight,
-            Palette.LabelLight, Palette.SecondaryLabelLight, Palette.FillLight,
-            Palette.SeparatorLight, Palette.SuccessLight, Palette.WarnLight,
-            Palette.DestructiveLight, { it.accentLight },
-            { it.accentTextLight }, { it.fillLight }, { it.groupedLight }, Palette.OnSolidLight,
-        ),
-        Mode(
-            "dark", Palette.GroupedBackgroundDark, Palette.SurfaceDark,
-            Palette.LabelDark, Palette.SecondaryLabelDark, Palette.FillDark,
-            Palette.SeparatorDark, Palette.SuccessDark, Palette.WarnDark,
-            Palette.DestructiveDark, { it.accentDark },
-            { it.accentTextDark }, { Palette.FillDark }, { it.groupedDark }, Palette.OnSolidDark,
-        ),
+    /** The colours the app writes text in besides ink, by name. */
+    private fun inks(c: CupertinoColors) = listOf(
+        "accentText" to c.accentText,
+        "tech" to c.tech,
+        "teacher" to c.teacher,
+        "success" to c.success,
+        "warn" to c.warn,
+        "destructive" to c.destructive,
     )
 
     // ---------------------------------------------------------------- the pairs
 
     @Test
     fun `text on a card and on the page is readable`() {
-        modes.forEach { m ->
-            assertReadable("${m.name}: label on card", m.label, m.card)
-            assertReadable("${m.name}: label on page", m.label, m.page)
-            assertReadable("${m.name}: secondary label on card", m.secondary, m.card)
-            assertReadable("${m.name}: secondary label on page", m.secondary, m.page)
+        modes.forEach { (m, c) ->
+            assertReadable("$m: label on card", c.ink, c.card)
+            assertReadable("$m: label on page", c.ink, c.groupedBackground)
+            assertReadable("$m: secondary label on card", c.secondaryLabel, c.card)
+            assertReadable("$m: secondary label on page", c.secondaryLabel, c.groupedBackground)
         }
     }
 
     @Test
     fun `text on the translucent fill is readable`() {
-        // fill is the idle-pill tint: text fields, segmented tracks and the
+        // fill is the idle-pill tint: segmented tracks, idle chips and the
         // option rows of a warm-up all sit on it.
-        modes.forEach { m ->
-            val onCard = fillOver(m.fill, m.card)
-            val onPage = fillOver(m.fill, m.page)
-            assertReadable("${m.name}: label on fill over card", m.label, onCard)
-            assertReadable("${m.name}: label on fill over page", m.label, onPage)
-            assertReadable("${m.name}: secondary label on fill over card", m.secondary, onCard)
+        modes.forEach { (m, c) ->
+            val onCard = fillOver(c.fill, c.card)
+            val onPage = fillOver(c.fill, c.groupedBackground)
+            assertReadable("$m: label on fill over card", c.ink, onCard)
+            assertReadable("$m: label on fill over page", c.ink, onPage)
+            assertReadable("$m: secondary label on fill over card", c.secondaryLabel, onCard)
+            assertReadable("$m: secondary label on fill over page", c.secondaryLabel, onPage)
         }
     }
 
     @Test
-    fun `the status colours read as text on a card`() {
-        modes.forEach { m ->
-            // These appear as text on both surfaces, so both have to hold.
-            assertReadable("${m.name}: success on card", m.success, m.card)
-            assertReadable("${m.name}: warn on card", m.warn, m.card)
-            assertReadable("${m.name}: destructive on card", m.destructive, m.card)
-            assertReadable("${m.name}: success on page", m.success, m.page)
-            assertReadable("${m.name}: warn on page", m.warn, m.page)
-            assertReadable("${m.name}: destructive on page", m.destructive, m.page)
+    fun `every coloured ink reads on the card, the page and the fill`() {
+        // Links and text actions are accentText; a person's name, times and
+        // bars are their track colour; results and warnings are the status
+        // colours. All of them are written straight onto these surfaces.
+        modes.forEach { (m, c) ->
+            inks(c).forEach { (name, ink) ->
+                assertReadable("$m: $name on card", ink, c.card)
+                assertReadable("$m: $name on page", ink, c.groupedBackground)
+                assertReadable("$m: $name on fill over card", ink, fillOver(c.fill, c.card))
+                assertReadable("$m: $name on fill over page", ink, fillOver(c.fill, c.groupedBackground))
+            }
+        }
+    }
+
+    @Test
+    fun `a status chip can read its own label`() {
+        // StatusChip writes its colour on a 6% tint of the same colour. The
+        // teacher's orange is the tightest pair, and at 8% it fell under the
+        // floor, which is why the chip uses 6%.
+        modes.forEach { (m, c) ->
+            inks(c).forEach { (name, ink) ->
+                assertReadable("$m: $name chip over card", ink, over(ink, 0.06f, c.card))
+                assertReadable("$m: $name chip over page", ink, over(ink, 0.06f, c.groupedBackground))
+            }
         }
     }
 
     @Test
     fun `a day on the calendar keeps its date readable`() {
-        // The US calendar tints a day with the accent when it was studied and
+        // The calendar tints a day with the accent when it was studied and
         // with warn when it was missed, and writes the date on top in the
-        // ordinary ink. A solid fill with a white date was tried first and
-        // measured 4.02:1 on Blue, which is what this guards against.
-        modes.forEach { m ->
-            assertReadable("${m.name}: date on a missed day", m.label, over(m.warn, 0.28f, m.card))
-            AccentPalette.entries.forEach { p ->
-                assertReadable("${m.name}: date on a studied day (${p.name})", m.label, over(m.accent(p), 0.28f, m.card))
-            }
+        // ordinary ink.
+        modes.forEach { (m, c) ->
+            assertReadable("$m: date on a missed day", c.ink, over(c.warn, 0.28f, c.card))
+            assertReadable("$m: date on a studied day", c.ink, over(c.accent, 0.28f, c.card))
+            assertReadable("$m: date on the developer's day", c.ink, over(c.tech, 0.28f, c.card))
+            assertReadable("$m: date on the teacher's day", c.ink, over(c.teacher, 0.28f, c.card))
         }
     }
 
@@ -151,111 +144,81 @@ class ContrastTest {
     fun `a status tint keeps its text readable`() {
         // The check, warm-up and faded blocks tint a row with a status colour
         // at low alpha and keep the ordinary ink on top of it.
-        modes.forEach { m ->
-            listOf("success" to m.success, "warn" to m.warn, "destructive" to m.destructive).forEach { (n, c) ->
+        modes.forEach { (m, c) ->
+            listOf("success" to c.success, "warn" to c.warn, "destructive" to c.destructive).forEach { (n, s) ->
                 listOf(0.15f, 0.18f).forEach { a ->
-                    assertReadable("${m.name}: label on $n at $a over card", m.label, over(c, a, m.card))
+                    assertReadable("$m: label on $n at $a over card", c.ink, over(s, a, c.card))
                 }
             }
         }
     }
 
     @Test
-    fun `every accent tint keeps its text readable`() {
-        // Any of the accents can be the current theme, so a block tinted with
-        // the accent has to work with all of them.
-        modes.forEach { m ->
-            AccentPalette.entries.forEach { p ->
-                val accent = m.accent(p)
-                // 0.08 is the check and faded blocks, which put both the ink
-                // and the secondary label on the tint. 0.18 is a marked row in
-                // a warm-up, where only the full ink is used.
-                val light = over(accent, 0.08f, m.card)
-                assertReadable("${m.name}/${p.name}: label on accent at 0.08", m.label, light)
-                assertReadable("${m.name}/${p.name}: secondary on accent at 0.08", m.secondary, light)
-                // 0.12 is the recap block, which holds prose.
-                assertReadable("${m.name}/${p.name}: label on accent at 0.12", m.label, over(accent, 0.12f, m.card))
-                assertReadable("${m.name}/${p.name}: label on accent at 0.18", m.label, over(accent, 0.18f, m.card))
+    fun `an accent or track tint keeps its text readable`() {
+        // 0.08 is the check and faded blocks, which put both the ink and the
+        // secondary label on the tint. 0.12 is the recap block and a diagram's
+        // second tone, which hold prose. 0.18 is a marked row in a warm-up.
+        modes.forEach { (m, c) ->
+            listOf("accent" to c.accent, "tech" to c.tech, "teacher" to c.teacher).forEach { (n, tint) ->
+                val light = over(tint, 0.08f, c.card)
+                assertReadable("$m: label on $n at 0.08", c.ink, light)
+                assertReadable("$m: secondary on $n at 0.08", c.secondaryLabel, light)
+                assertReadable("$m: label on $n at 0.12", c.ink, over(tint, 0.12f, c.card))
+                assertReadable("$m: label on $n at 0.18", c.ink, over(tint, 0.18f, c.card))
             }
         }
     }
 
     @Test
-    fun `the accent written as text is readable wherever it is written`() {
-        // The accent is chosen to be filled in, with white on top. Read the
-        // other way round it was failing: Pink measured 2.91:1 on its own fill
-        // over the page and Blue 3.17:1, against the 4.5:1 body rule. The
-        // "Quick check" and "In your own words" labels, an idle chip, a status
-        // chip, a callout and a block's times are all the accent as ink, so
-        // they use accentText, and every surface they land on is here.
-        //
-        // The tints are the alphas the app actually draws: 0.08 for a check or
-        // faded block, 0.10 for a day's block row, 0.12 for a callout, 0.14
-        // for a status chip, 0.18 for a marked row. A tint is mixed from the
-        // accent itself, not from the text colour, except where the component
-        // takes one colour and does both — so both are measured.
-        modes.forEach { m ->
-            AccentPalette.entries.forEach { p ->
-                val accent = m.accent(p)
-                val ink = m.accentText(p)
-                val page = m.palettePage(p)
-                // 0.08 a check or faded block, 0.10 a day's block row,
-                // 0.12 a callout and the recap, 0.14 a status chip. 0.18
-                // is a marked quiz row, which is drawn in the accent
-                // itself with the ordinary ink, so it is not here.
-                val tints = listOf(0.08f, 0.10f, 0.12f, 0.14f)
-                val surfaces = buildList {
-                    add("card" to m.card)
-                    add("page" to page)
-                    add("fill over card" to fillOver(m.paletteFill(p), m.card))
-                    add("fill over page" to fillOver(m.paletteFill(p), page))
-                    tints.forEach { a ->
-                        add("accent at $a over card" to over(accent, a, m.card))
-                        add("accent at $a over page" to over(accent, a, page))
-                        add("its own tint at $a over card" to over(ink, a, m.card))
-                        add("its own tint at $a over page" to over(ink, a, page))
-                    }
-                }
-                surfaces.forEach { (name, bg) ->
-                    assertReadable("${m.name}/${p.name}: accentText on $name", ink, bg)
+    fun `the link colour is readable wherever it is written`() {
+        // "Quick check" and "In your own words" labels, an idle chip, a
+        // callout and a block's times are all the link colour as ink, so they
+        // use accentText, and every surface they land on is here: the tints
+        // are 0.08 for a check or faded block, 0.10 for a day's block row,
+        // 0.12 for a callout, 0.14 for a status chip.
+        modes.forEach { (m, c) ->
+            val surfaces = buildList {
+                add("card" to c.card)
+                add("page" to c.groupedBackground)
+                listOf(0.08f, 0.10f, 0.12f, 0.14f).forEach { a ->
+                    add("accent at $a over card" to over(c.accent, a, c.card))
+                    add("accent at $a over page" to over(c.accent, a, c.groupedBackground))
+                    add("its own tint at $a over card" to over(c.accentText, a, c.card))
+                    add("its own tint at $a over page" to over(c.accentText, a, c.groupedBackground))
                 }
             }
+            surfaces.forEach { (name, bg) -> assertReadable("$m: accentText on $name", c.accentText, bg) }
         }
     }
 
     @Test
     fun `anything filled solid carries its own ink`() {
-        // The other direction, and the reason onSolid exists. A primary
-        // button, a chosen chip, a ladder node and a numbered step are all a
-        // palette colour filled in with something written on it, and the dark
-        // palette is pastel by design: white on Warn measured 1.66:1 and on
-        // Meadow 1.82:1. onSolid is white in light and near-black in dark.
-        //
-        // These are buttons, chips and single bold figures, so 3:1 is the
-        // bar. Prose on a solid fill is not allowed at all — the recap block
-        // tried it and measured 4.02:1, so it is a tint now, like the
-        // calendar's days.
-        modes.forEach { m ->
-            val solids = buildList {
-                AccentPalette.entries.forEach { add(it.name to m.accent(it)) }
-                add("success" to m.success)
-                add("warn" to m.warn)
-                add("destructive" to m.destructive)
-            }
-            solids.forEach { (name, bg) ->
-                assertReadable("${m.name}: onSolid on $name", m.onSolid, bg, LARGE)
+        // A primary button, a chosen chip, a ladder node and a numbered step
+        // are all a colour filled in with something written on it. In light
+        // the fill is ink and the writing white; in dark the fill is the pale
+        // ink and the writing near-black. Buttons, chips and single bold
+        // figures, so 3:1 is the bar. Prose on a solid fill is not allowed.
+        modes.forEach { (m, c) ->
+            listOf(
+                "accent" to c.accent, "tech" to c.tech, "teacher" to c.teacher,
+                "success" to c.success, "warn" to c.warn, "destructive" to c.destructive,
+            ).forEach { (name, bg) ->
+                assertReadable("$m: onSolid on $name", c.onSolid, bg, LARGE)
             }
         }
     }
 
     @Test
-    fun `an accent outline on a card is visible`() {
-        // The chosen option in a warm-up is outlined in the accent, which is a
-        // control boundary rather than text, so 3:1 is the bar.
-        modes.forEach { m ->
-            AccentPalette.entries.forEach { p ->
-                assertReadable("${m.name}/${p.name}: accent outline on card", m.accent(p), m.card, LARGE)
-            }
+    fun `an outline or rule is visible`() {
+        // A chosen option and the card that is the thing to do next are
+        // outlined in ink, and every section opens with an ink rule. Those are
+        // boundaries rather than text, so 3:1 is the bar. Hairlines between
+        // rows are decoration and are not held to it.
+        modes.forEach { (m, c) ->
+            assertReadable("$m: accent outline on card", c.accent, c.card, LARGE)
+            assertReadable("$m: ink rule on page", c.ink, c.groupedBackground, LARGE)
+            assertReadable("$m: tech outline on card", c.tech, c.card, LARGE)
+            assertReadable("$m: teacher outline on card", c.teacher, c.card, LARGE)
         }
     }
 
@@ -265,13 +228,10 @@ class ContrastTest {
         // a translucent tint, and forcing its alpha up to make a slab leaves
         // the secondary label far below the floor. If this ever starts passing,
         // the palette changed and the warm-up block could use it again.
-        modes.forEach { m ->
-            val slab = over(m.fill, 0.6f, m.card)
-            val r = ratio(m.secondary, slab)
-            assertTrue(
-                "${m.name}: fill at 0.6 now gives %.2f:1 for the secondary label".format(r),
-                r < BODY,
-            )
+        modes.forEach { (m, c) ->
+            val slab = over(c.fill, 0.6f, c.card)
+            val r = ratio(c.secondaryLabel, slab)
+            assertTrue("$m: fill at 0.6 now gives %.2f:1 for the secondary label".format(r), r < BODY)
         }
     }
 }

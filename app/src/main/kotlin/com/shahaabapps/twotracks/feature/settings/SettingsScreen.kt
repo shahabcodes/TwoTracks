@@ -135,7 +135,6 @@ fun SettingsScreen(
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val mode by themeViewModel.themeMode.collectAsStateWithLifecycle()
-    val palette by themeViewModel.accentPalette.collectAsStateWithLifecycle()
     val snackbar = remember { SnackbarHostState() }
     val clipboard = LocalClipboardManager.current
     var editName by remember { mutableStateOf(false) }
@@ -264,7 +263,7 @@ fun SettingsScreen(
 
                     item {
                         Column(modifier = Modifier.padding(horizontal = Spacing.listHorizontal)) {
-                            ThemeSettingsSection(mode = mode, palette = palette, onModeChange = themeViewModel::setThemeMode, onPaletteChange = themeViewModel::setAccentPalette)
+                            ThemeSettingsSection(mode = mode, onModeChange = themeViewModel::setThemeMode)
                             val companion by themeViewModel.companion.collectAsStateWithLifecycle()
                             Text("SIGN-IN COMPANION", style = MaterialTheme.typography.labelMedium, color = AppTheme.colors.secondaryLabel, modifier = Modifier.padding(top = Spacing.md, start = Spacing.sectionStart).guideAnchor(GuideAnchors.SET_COMPANION))
                             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.md), modifier = Modifier.padding(top = Spacing.sm)) {

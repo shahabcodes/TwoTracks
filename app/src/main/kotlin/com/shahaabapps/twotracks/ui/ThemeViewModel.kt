@@ -3,7 +3,6 @@ package com.shahaabapps.twotracks.ui
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.shahaabapps.core.common.datastore.ThemePreferences
-import com.shahaabapps.core.ui.theme.AccentPalette
 import com.shahaabapps.core.ui.theme.ThemeMode
 import com.shahaabapps.twotracks.feature.auth.CompanionKind
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -23,10 +22,6 @@ class ThemeViewModel @Inject constructor(
         .map { runCatching { ThemeMode.valueOf(it) }.getOrDefault(ThemeMode.LIGHT) }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), ThemeMode.LIGHT)
 
-    val accentPalette: StateFlow<AccentPalette> = themePreferences.accentPaletteName
-        .map { runCatching { AccentPalette.valueOf(it) }.getOrDefault(AccentPalette.QATAR) }
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), AccentPalette.QATAR)
-
     val companion: StateFlow<CompanionKind> = themePreferences.companionName
         .map { runCatching { CompanionKind.valueOf(it) }.getOrDefault(CompanionKind.SANYA) }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), CompanionKind.SANYA)
@@ -37,9 +32,5 @@ class ThemeViewModel @Inject constructor(
 
     fun setThemeMode(mode: ThemeMode) {
         viewModelScope.launch { themePreferences.setThemeModeName(mode.name) }
-    }
-
-    fun setAccentPalette(palette: AccentPalette) {
-        viewModelScope.launch { themePreferences.setAccentPaletteName(palette.name) }
     }
 }

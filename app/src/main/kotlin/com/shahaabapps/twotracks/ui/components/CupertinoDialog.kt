@@ -146,7 +146,7 @@ fun DialogButton(
     }
     val fg = when {
         !enabled -> AppTheme.colors.secondaryLabel
-        primary -> Color.White
+        primary -> AppTheme.colors.onSolid
         else -> tint
     }
     val haptic = LocalHapticFeedback.current

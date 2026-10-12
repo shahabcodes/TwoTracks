@@ -85,8 +85,7 @@ class WidgetConfigActivity : ComponentActivity() {
 
         setContent {
             val themeMode by themeViewModel.themeMode.collectAsStateWithLifecycle()
-            val accentPalette by themeViewModel.accentPalette.collectAsStateWithLifecycle()
-            AppThemeRoot(themeMode = themeMode, accentPalette = accentPalette) {
+            AppThemeRoot(themeMode = themeMode) {
                 WidgetConfigScreen(
                     appWidgetId = appWidgetId,
                     existing = intent?.action != AppWidgetManager.ACTION_APPWIDGET_CONFIGURE,

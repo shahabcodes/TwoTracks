@@ -9,9 +9,10 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -19,62 +20,36 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import com.shahaabapps.core.ui.theme.AccentPalette
 import com.shahaabapps.core.ui.theme.AppTheme
 import com.shahaabapps.core.ui.theme.Shapes
 import com.shahaabapps.core.ui.theme.Spacing
 import com.shahaabapps.core.ui.theme.ThemeMode
 
-/** The appearance + accent controls, in the browser app's Appearance page style. */
+/** The appearance control: light, dark or the system's choice. */
 @Composable
 fun ThemeSettingsSection(
     mode: ThemeMode,
-    palette: AccentPalette,
     onModeChange: (ThemeMode) -> Unit,
-    onPaletteChange: (AccentPalette) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(Spacing.md)) {
-        Text(
-            text = "APPEARANCE",
-            style = MaterialTheme.typography.labelMedium,
-            color = AppTheme.colors.secondaryLabel,
-            modifier = Modifier.padding(start = Spacing.sectionStart),
-        )
+    Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(Spacing.sm)) {
+        SectionLabel("Appearance")
         CupertinoSegmentedControl(
             options = ThemeMode.entries,
             selected = mode,
             label = { it.name.lowercase().replaceFirstChar { c -> c.uppercase() } },
             onSelect = onModeChange,
         )
-
-        Text(
-            text = "ACCENT",
-            style = MaterialTheme.typography.labelMedium,
-            color = AppTheme.colors.secondaryLabel,
-            modifier = Modifier.padding(top = Spacing.sm, start = Spacing.sectionStart),
-        )
-        Row(horizontalArrangement = Arrangement.spacedBy(Spacing.md)) {
-            AccentPalette.entries.forEach { option ->
-                AccentSwatch(
-                    palette = option,
-                    selected = option == palette,
-                    onClick = { onPaletteChange(option) },
-                )
-            }
-        }
     }
 }
 
 /**
- * iOS segmented control (Browse Safe bg_segment_track + SegChip): translucent
- * gray track, 12dp radius, white sliding thumb with a soft shadow, 13sp labels.
+ * A segmented control in the Parallel style: options side by side inside a
+ * hairline, the chosen one filled with ink.
  */
 @Composable
 fun <T> CupertinoSegmentedControl(
@@ -88,65 +63,32 @@ fun <T> CupertinoSegmentedControl(
         modifier = modifier
             .fillMaxWidth()
             .clip(Shapes.segment)
-            .background(AppTheme.colors.fill)
-            .padding(2.dp),
-        horizontalArrangement = Arrangement.spacedBy(2.dp),
+            .border(Spacing.rule, AppTheme.colors.separator, Shapes.segment)
+            .padding(3.dp)
+            .selectableGroup(),
+        horizontalArrangement = Arrangement.spacedBy(3.dp),
     ) {
         options.forEach { option ->
             val isSelected = option == selected
-            val bg by animateColorAsState(
-                if (isSelected) AppTheme.colors.card else Color.Transparent,
-                label = "segbg",
-            )
+            val bg by animateColorAsState(if (isSelected) AppTheme.colors.accent else Color.Transparent, label = "segbg")
             Box(
                 modifier = Modifier
                     .weight(1f)
-                    .then(if (isSelected) Modifier.shadow(1.dp, Shapes.segmentThumb) else Modifier)
+                    .heightIn(min = 40.dp)
                     .clip(Shapes.segmentThumb)
                     .background(bg)
-                    .clickable { onSelect(option) }
+                    .selectable(selected = isSelected, role = Role.RadioButton, onClick = { onSelect(option) })
                     .padding(vertical = 8.dp, horizontal = 4.dp),
                 contentAlignment = Alignment.Center,
             ) {
                 Text(
                     text = label(option),
-                    style = MaterialTheme.typography.bodySmall,
-                    fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,
-                    color = if (isSelected) MaterialTheme.colorScheme.onSurface else AppTheme.colors.secondaryLabel,
+                    style = MaterialTheme.typography.labelLarge,
+                    color = if (isSelected) AppTheme.colors.onSolid else AppTheme.colors.ink,
                     textAlign = TextAlign.Center,
                     maxLines = 2,
                 )
             }
         }
-    }
-}
-
-@Composable
-private fun AccentSwatch(
-    palette: AccentPalette,
-    selected: Boolean,
-    onClick: () -> Unit,
-) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Box(
-            modifier = Modifier
-                .size(56.dp)
-                .clip(CircleShape)
-                .background(Brush.linearGradient(palette.gradient))
-                .then(
-                    if (selected) {
-                        Modifier.border(3.dp, MaterialTheme.colorScheme.onSurface, CircleShape)
-                    } else {
-                        Modifier
-                    },
-                )
-                .clickable(onClick = onClick),
-        )
-        Text(
-            text = palette.name.lowercase().replaceFirstChar { it.uppercase() },
-            style = MaterialTheme.typography.bodySmall,
-            color = AppTheme.colors.secondaryLabel,
-            modifier = Modifier.padding(top = 4.dp),
-        )
     }
 }

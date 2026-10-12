@@ -61,7 +61,7 @@ fun ListenExercise(ex: Ex.Listen, speaker: Speaker?) {
         Box(
             modifier = Modifier.size(52.dp).clip(CircleShape).background(if (can) AppTheme.colors.accent else AppTheme.colors.fill).clickable(enabled = can) { plays++; speaker?.speak(ex.audio) },
             contentAlignment = Alignment.Center,
-        ) { Icon(Icons.Filled.PlayArrow, contentDescription = "Play", tint = if (can) Color.White else AppTheme.colors.secondaryLabel, modifier = Modifier.size(30.dp)) }
+        ) { Icon(Icons.Filled.PlayArrow, contentDescription = "Play", tint = if (can) AppTheme.colors.onSolid else AppTheme.colors.secondaryLabel, modifier = Modifier.size(30.dp)) }
         Column {
             Text(if (plays == 0) "Play the audio" else if (!answered) "Played $plays of 2" else "Play again as often as you like", style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold)
             if (speaker == null) Text("Voice not ready; see the note at the end of the topic.", style = MaterialTheme.typography.labelSmall, color = AppTheme.colors.warn)
@@ -123,7 +123,7 @@ fun SpeakExercise(ex: Ex.Speak, speaker: Speaker?, recognizer: Recognizer?) {
             modifier = Modifier.size(56.dp).clip(CircleShape).background(when { !usable -> AppTheme.colors.fill; listening -> AppTheme.colors.destructive; else -> AppTheme.colors.accent })
                 .clickable(enabled = usable && !listening) { heard = null; if (granted) recognizer?.listen(ex.id) else ask.launch(Manifest.permission.RECORD_AUDIO) },
             contentAlignment = Alignment.Center,
-        ) { Icon(Icons.Filled.Mic, contentDescription = "Speak", tint = if (usable) Color.White else AppTheme.colors.secondaryLabel, modifier = Modifier.size(28.dp)) }
+        ) { Icon(Icons.Filled.Mic, contentDescription = "Speak", tint = if (usable) AppTheme.colors.onSolid else AppTheme.colors.secondaryLabel, modifier = Modifier.size(28.dp)) }
         Text(
             when {
                 !usable -> "Speech recognition is not available on this phone. Say it aloud, then tick below."
@@ -151,7 +151,7 @@ fun SpeakExercise(ex: Ex.Speak, speaker: Speaker?, recognizer: Recognizer?) {
     if (!usable) {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.clickable { selfChecked = !selfChecked }) {
             Box(modifier = Modifier.size(18.dp).clip(RoundedCornerShape(5.dp)).background(if (selfChecked) AppTheme.colors.success else AppTheme.colors.fill), contentAlignment = Alignment.Center) {
-                if (selfChecked) Icon(Icons.Filled.Check, contentDescription = null, tint = Color.White, modifier = Modifier.size(12.dp))
+                if (selfChecked) Icon(Icons.Filled.Check, contentDescription = null, tint = AppTheme.colors.onSolid, modifier = Modifier.size(12.dp))
             }
             Text("I said it aloud, twice, without reading", style = MaterialTheme.typography.bodySmall)
         }
