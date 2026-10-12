@@ -1,5 +1,12 @@
 package com.shahaabapps.twotracks.preview
 
+import com.shahaabapps.twotracks.feature.budget.BudgetContent
+import com.shahaabapps.twotracks.feature.documents.DocumentsContent
+import com.shahaabapps.twotracks.feature.tests.TestsContent
+import com.shahaabapps.twotracks.feature.countries.CountryContent
+import com.shahaabapps.twotracks.feature.countries.CountriesContent
+import com.shahaabapps.twotracks.feature.partner.PartnerContent
+import com.shahaabapps.twotracks.feature.us.UsContent
 import androidx.compose.runtime.remember
 import androidx.compose.material3.SnackbarHostState
 import com.shahaabapps.twotracks.feature.study.FitContent
@@ -56,7 +63,7 @@ import java.time.LocalDate
  *
  *   adb shell am start -n com.shahaabapps.twotracks/.preview.DesignPreviewActivity --es screen today [--ez dark true]
  *
- * Screens: today, week, both, learn, course, topic, quiz, results, deck, levels, level, goal, goaledit, fit.
+ * Screens: today, week, both, learn, course, topic, quiz, results, deck, levels, level, goal, goaledit, fit, us, partner, countries, country, tests, documents, budget.
  */
 class DesignPreviewActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -96,6 +103,13 @@ class DesignPreviewActivity : ComponentActivity() {
                             onComponent = { _, _, _, _ -> }, onAddComponent = {}, onRemoveComponent = {}, onPreset = { _, _ -> }, onSave = {}, onDelete = {},
                         )
                         "fit" -> FitContent(PlanSamples.fit(), onChoose = {}, onBack = {})
+                        "us" -> UsContent(TogetherSamples.us(), onNavigate = {}, onOpenLevel = {})
+                        "partner" -> PartnerContent(TogetherSamples.partner(), onBack = {}, onOpenLevel = {}, onOpenGoal = {})
+                        "countries" -> CountriesContent(TogetherSamples.countries(), onBack = {}, onOpen = {})
+                        "country" -> CountryContent(TogetherSamples.country(), onBack = {}, onToggle = { _, _ -> }, onSaveNotes = { _, _ -> }, onClearNotes = {})
+                        "tests" -> TestsContent(TogetherSamples.tests(), onBack = {}, onSave = {})
+                        "documents" -> DocumentsContent(TogetherSamples.documents(), onBack = {}, onFilter = {}, onCycle = {}, onSave = {})
+                        "budget" -> BudgetContent(TogetherSamples.budget(), onBack = {}, onSave = {}, onDelete = {})
                         "deck" -> DeckContent(LearnSamples.deck(), speaker = null, onBack = {}, onFlip = {}, onAnswer = {}, onPractiseAnyway = {}, onAgain = {}, onInstallVoice = {})
                         else -> TodayContent(
                             state = Samples.today(), onOpenLevel = {}, onOpenPartner = {}, onOpenGoal = {}, onOpenWeek = {},

@@ -1,78 +1,111 @@
 package com.shahaabapps.twotracks.feature.us
 
-import androidx.compose.material.icons.filled.Flag
-import com.shahaabapps.twotracks.ui.guide.GuideAnchors
-import com.shahaabapps.twotracks.ui.guide.guideAnchor
+import androidx.compose.runtime.getValue
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewModelScope
-import com.shahaabapps.core.model.Habit
-import com.shahaabapps.core.model.PersonRole
+import com.shahaabapps.core.content.Courses
 import com.shahaabapps.core.data.study.forRole
+import com.shahaabapps.core.model.BudgetItem
+import com.shahaabapps.core.model.CountryTrack
+import com.shahaabapps.core.model.Deadline
+import com.shahaabapps.core.model.DocStatus
+import com.shahaabapps.core.model.DocumentItem
+import com.shahaabapps.core.model.PersonRole
+import com.shahaabapps.core.model.TestRecord
 import com.shahaabapps.core.planner.Dates
-import androidx.compose.foundation.border
-import androidx.compose.ui.text.style.TextAlign
+import com.shahaabapps.core.planner.LevelProgress
 import com.shahaabapps.core.planner.MissedDays
 import com.shahaabapps.core.planner.PlanStart
-import java.time.DayOfWeek
-import java.time.YearMonth
-import java.time.format.TextStyle
-import java.util.Locale
-import com.shahaabapps.core.ui.components.Avatar
-import com.shahaabapps.core.ui.components.CupertinoCard
-import com.shahaabapps.core.ui.components.CupertinoDisclosure
-import com.shahaabapps.core.ui.components.CupertinoListRow
-import com.shahaabapps.core.ui.components.CupertinoListSection
 import com.shahaabapps.core.ui.components.CupertinoScaffold
 import com.shahaabapps.core.ui.theme.AppTheme
-import com.shahaabapps.core.ui.theme.IosColors
 import com.shahaabapps.core.ui.theme.Spacing
 import com.shahaabapps.twotracks.session.CoupleDataStore
 import com.shahaabapps.twotracks.session.PersonPlan
-import com.shahaabapps.twotracks.session.PlanSnapshot
 import com.shahaabapps.twotracks.session.PlanStore
 import com.shahaabapps.twotracks.ui.Routes
-import com.shahaabapps.twotracks.ui.components.AnimatedNumber
+import com.shahaabapps.twotracks.ui.guide.GuideAnchors
+import com.shahaabapps.twotracks.ui.guide.guideAnchor
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import java.time.LocalDate
+import java.time.ZonedDateTime
+import java.time.format.TextStyle
+import java.time.temporal.ChronoUnit
+import java.util.Locale
 import javax.inject.Inject
 
-data class CountRow(val habit: Habit, val thisWeek: Int, val total: Int)
+/** One of you, as a column on Together. */
+data class TogetherPerson(
+    val role: PersonRole,
+    val name: String,
+    val joined: Boolean,
+    /** "DOHA · 09:12" */
+    val place: String,
+    val level: LevelProgress?,
+    val goals: List<GoalBar>,
+    /** Weekly counts, drawn the way the goals are. */
+    val counts: List<GoalBar> = emptyList(),
+    /** Missed study days and what they cost, when there are any. */
+    val missed: String? = null,
+) {
+    val isTech: Boolean get() = role == PersonRole.TECH
+}
+
+data class WeekDay(val label: String, val me: Boolean, val partner: Boolean, val isToday: Boolean)
+
+data class MoveRow(val code: String, val name: String, val lead: String, val leadRole: PersonRole?)
 
 data class UsUiState(
-    val plan: PlanSnapshot? = null,
-    /** Per role: the last 28 days with studied / missed / rest / upcoming states and the impact of missed days. */
-    val dots: Map<PersonRole, MissedDays.Report> = emptyMap(),
-    /** Per role: this calendar month, day by day. */
-    val month: Map<PersonRole, List<MissedDays.Day>> = emptyMap(),
-    val counts: Map<PersonRole, List<CountRow>> = emptyMap(),
-    val totalHours: Map<PersonRole, Double> = emptyMap(),
+    val me: TogetherPerson? = null,
+    val partner: TogetherPerson? = null,
+    val streak: Int = 0,
+    val week: List<WeekDay> = emptyList(),
+    /** "MARRIAGE · 112 DAYS", the next fixed date, and whose it is. */
+    val nextDate: String? = null,
+    val nextDateRole: PersonRole? = null,
+    val countries: List<MoveRow> = emptyList(),
+    val tests: String = "",
+    val documents: String = "",
+    val budget: String = "",
 )
 
 @HiltViewModel
@@ -80,217 +113,241 @@ class UsViewModel @Inject constructor(
     planStore: PlanStore,
     dataStore: CoupleDataStore,
 ) : ViewModel() {
-    val uiState: StateFlow<UsUiState> = combine(planStore.plan, dataStore.logs, dataStore.habits, dataStore.habitLogs, dataStore.availability) { plan, logs, habits, habitLogs, availability ->
+    private val records = combine(dataStore.countries, dataStore.tests, dataStore.documents, dataStore.budget, dataStore.deadlines) { c, t, d, b, dl -> Records(c, t, d, b, dl) }
+
+    val uiState: StateFlow<UsUiState> = combine(planStore.plan, dataStore.logs, dataStore.habits, dataStore.habitLogs, combine(dataStore.availability, records) { a, r -> a to r }) { plan, logs, habits, habitLogs, (availability, rec) ->
         if (plan == null) return@combine UsUiState()
-        val dots = PersonRole.entries.associateWith { role ->
-            val days = logs.filter { it.owner == role }.map { it.dateIso }.toSet()
-            val person = plan.forRole(role)
-            val planStart = PlanStart.effective(
-                plan.session.profileFor(role)?.startDateIso,
-                person.levels.map { it.level.startDateIso },
+        fun datesOf(role: PersonRole) = logs.filter { it.owner == role }.map { it.dateIso }.toSet()
+        fun column(person: PersonPlan): TogetherPerson {
+            val profile = plan.session.profileFor(person.role)
+            val zone = profile?.timezone ?: "UTC"
+            val report = MissedDays.report(
+                person.today, availability.forRole(person.role), datesOf(person.role),
+                PlanStart.effective(profile?.startDateIso, person.levels.map { it.level.startDateIso }),
             )
-            MissedDays.report(person.today, availability.forRole(role), days, planStart)
-        }
-        val months = PersonRole.entries.associateWith { role ->
-            val days = logs.filter { it.owner == role }.map { it.dateIso }.toSet()
-            val person = plan.forRole(role)
-            val planStart = PlanStart.effective(
-                plan.session.profileFor(role)?.startDateIso,
-                person.levels.map { it.level.startDateIso },
+            val weekIso = Dates.format(Dates.weekStart(person.today))
+            return TogetherPerson(
+                role = person.role, name = person.name, joined = profile != null,
+                place = place(zone, ZonedDateTime.now(zoneOrUtc(zone))),
+                level = person.current,
+                goals = person.activeGoals.take(3).mapNotNull { g -> person.goalProgress[g.id]?.let { goalBar(it, Courses.forGoal(g.id) != null) } },
+                counts = habits.filter { it.owner == person.role && it.active && it.weeklyTarget != null }.map { h ->
+                    val n = habitLogs.filter { it.habitId == h.id && it.dateIso >= weekIso }.sumOf { it.value }
+                    GoalBar(h.name, "$n/${h.weeklyTarget} wk", (n.toFloat() / (h.weeklyTarget ?: 1)).coerceIn(0f, 1f))
+                },
+                missed = missedLine(report),
             )
-            MissedDays.month(YearMonth.from(person.today), person.today, availability.forRole(role), days, planStart)
         }
-        val counts = PersonRole.entries.associateWith { role ->
-            val weekIso = Dates.format(Dates.weekStart(plan.forRole(role).today))
-            habits.filter { it.owner == role && it.active }.map { h ->
-                val mine = habitLogs.filter { it.habitId == h.id }
-                CountRow(h, mine.filter { it.dateIso >= weekIso }.sumOf { it.value }, mine.sumOf { it.value })
-            }
-        }
-        val totals = PersonRole.entries.associateWith { role -> logs.filter { it.owner == role }.sumOf { it.minutes } / 60.0 }
-        UsUiState(plan, dots, months, counts, totals)
+        val me = plan.me
+        val today = me.today
+        val next = rec.deadlines.filter { it.dateIso >= Dates.format(today) }.minByOrNull { it.dateIso }
+        UsUiState(
+            me = column(me), partner = column(plan.partner), streak = plan.togetherStreak,
+            week = lastWeek(today, datesOf(me.role), datesOf(plan.partner.role)),
+            nextDate = next?.let { dateLine(it, today) }, nextDateRole = next?.owner,
+            countries = rec.countries.sortedBy { it.order }.map { moveRow(it, plan.session.nameFor(PersonRole.TECH), plan.session.nameFor(PersonRole.TEACHER)) },
+            tests = testsLine(rec.tests), documents = documentsLine(rec.documents), budget = budgetLine(rec.budget),
+        )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), UsUiState())
+
+    private data class Records(val countries: List<CountryTrack>, val tests: List<TestRecord>, val documents: List<DocumentItem>, val budget: List<BudgetItem>, val deadlines: List<Deadline>)
 }
 
-/** Together: the two of you side by side, then the plan you share. */
+/** "DOHA · 09:12" */
+internal fun place(zone: String, now: ZonedDateTime): String = "${cityOf(zone).uppercase(Locale.ENGLISH)} · ${"%02d:%02d".format(now.hour, now.minute)}"
+
+/** The seven days ending today, oldest first, and who studied on each. */
+internal fun lastWeek(today: LocalDate, mine: Set<String>, theirs: Set<String>): List<WeekDay> = (6L downTo 0L).map { back ->
+    val d = today.minusDays(back)
+    val iso = Dates.format(d)
+    WeekDay(d.dayOfWeek.getDisplayName(TextStyle.NARROW, Locale.ENGLISH), iso in mine, iso in theirs, back == 0L)
+}
+
+internal fun missedLine(r: MissedDays.Report): String? =
+    if (r.missedCount == 0) null
+    else "${r.missedCount} missed day${if (r.missedCount == 1) "" else "s"} · lands about ${r.delayDays} day${if (r.delayDays == 1L) "" else "s"} later"
+
+/** "MARRIAGE · 112 DAYS" */
+internal fun dateLine(d: Deadline, today: LocalDate): String {
+    val days = ChronoUnit.DAYS.between(today, LocalDate.parse(d.dateIso))
+    val title = d.title.substringBefore(":").uppercase(Locale.ENGLISH)
+    return "$title · " + when (days) { 0L -> "TODAY"; 1L -> "TOMORROW"; else -> "$days DAYS" }
+}
+
+/** The guide writes the lead from the developer's side: "You", "Her", or a rule such as "Higher scorer". */
+internal fun moveRow(c: CountryTrack, techName: String, teacherName: String): MoveRow = when (c.lead.lowercase(Locale.ENGLISH)) {
+    "you" -> MoveRow(c.code, c.name, techName, PersonRole.TECH)
+    "her", "she" -> MoveRow(c.code, c.name, teacherName, PersonRole.TEACHER)
+    else -> MoveRow(c.code, c.name, c.lead, null)
+}
+
+internal fun testsLine(tests: List<TestRecord>): String = tests.sortedBy { it.order }.map { shortTitle(it.name.substringBefore(" (")) }.distinct().take(3).joinToString(" · ")
+
+internal fun documentsLine(docs: List<DocumentItem>): String = if (docs.isEmpty()) "Nothing listed yet" else "${docs.count { it.status == DocStatus.DONE }} of ${docs.size} done"
+
+internal fun budgetLine(items: List<BudgetItem>): String {
+    val c = items.map { it.currency }.distinct()
+    return when (c.size) {
+        0 -> "Nothing planned yet"
+        1 -> c.first()
+        else -> c.dropLast(1).joinToString(", ") + " and " + c.last()
+    }
+}
+
+/** Together: the two of you side by side, the week you share, the move, and the plan in detail. */
 @Composable
 fun UsScreen(onNavigate: (String) -> Unit, onOpenLevel: (String) -> Unit, viewModel: UsViewModel = hiltViewModel()) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
-    val plan = state.plan
+    UsContent(state, onNavigate = onNavigate, onOpenLevel = onOpenLevel)
+}
+
+@Composable
+fun UsContent(state: UsUiState, onNavigate: (String) -> Unit, onOpenLevel: (String) -> Unit) {
     CupertinoScaffold(title = "Together", eyebrow = "Two tracks · one move") {
-        LazyColumn(verticalArrangement = Arrangement.spacedBy(Spacing.md), contentPadding = PaddingValues(bottom = Spacing.xl)) {
-            if (plan != null) {
-                listOf(plan.me, plan.partner).forEach { person ->
-                    item {
-                        PersonCard(person, plan, state, onClick = {
-                            if (person.role == plan.me.role) person.current?.let { onOpenLevel(it.level.id) } else onNavigate(Routes.PARTNER)
-                        })
+        LazyColumn(contentPadding = PaddingValues(bottom = Spacing.xl)) {
+            val me = state.me
+            val partner = state.partner
+            if (me != null && partner != null) {
+                item {
+                    Column(modifier = Modifier.padding(horizontal = Spacing.listHorizontal).padding(top = 12.dp)) {
+                        HorizontalDivider(color = AppTheme.colors.ink, thickness = Spacing.rule)
+                        Row(modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Min)) {
+                            PersonColumn(me, mine = true, onOpenLevel = onOpenLevel, onOpenPerson = { me.level?.let { onOpenLevel(it.level.id) } }, modifier = Modifier.weight(1f).padding(end = 14.dp))
+                            Box(Modifier.width(Spacing.hairline).fillMaxHeight().background(AppTheme.colors.separator))
+                            PersonColumn(partner, mine = false, onOpenLevel = onOpenLevel, onOpenPerson = { onNavigate(Routes.PARTNER) }, modifier = Modifier.weight(1f).padding(start = 14.dp))
+                        }
+                    }
+                }
+                item { Week(state, me, partner) }
+            }
+            item { Move(state, onNavigate) }
+            item {
+                Column(modifier = Modifier.padding(start = Spacing.listHorizontal, end = Spacing.listHorizontal, top = 20.dp).semantics { contentDescription = "The plan in detail" }) {
+                    HorizontalDivider(color = AppTheme.colors.ink, thickness = Spacing.rule)
+                    PlanRow("Levels", "Five each, quarter by quarter", Modifier.guideAnchor(GuideAnchors.US_LEVELS)) { onNavigate(Routes.LEVELS) }
+                    PlanRow("Tests", state.tests) { onNavigate(Routes.TESTS) }
+                    PlanRow("Documents", state.documents) { onNavigate(Routes.DOCUMENTS) }
+                    PlanRow("Budget", state.budget) { onNavigate(Routes.BUDGET) }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun PersonColumn(p: TogetherPerson, mine: Boolean, onOpenLevel: (String) -> Unit, onOpenPerson: () -> Unit, modifier: Modifier) {
+    val color = AppTheme.colors.track(p.isTech)
+    Column(modifier = modifier.padding(top = 14.dp, bottom = 16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp),
+                modifier = Modifier.heightIn(min = 28.dp).clip(RoundedCornerShape(6.dp)).clickable(role = Role.Button, onClick = onOpenPerson),
+            ) {
+                Box(Modifier.size(10.dp).clip(CircleShape).background(color))
+                Text(p.name, style = MaterialTheme.typography.titleMedium.copy(fontSize = 17.sp), fontWeight = FontWeight.SemiBold, maxLines = 1)
+                if (!mine) Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null, tint = AppTheme.colors.ink, modifier = Modifier.size(16.dp))
+            }
+            Text(if (p.joined) p.place else "NOT JOINED YET", style = MaterialTheme.typography.labelMedium.copy(fontSize = 11.sp, letterSpacing = 0.sp), color = AppTheme.colors.secondaryLabel)
+        }
+        p.level?.let { lp ->
+            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Text(
+                    "Level ${lp.level.number} · ${lp.level.name}", style = MaterialTheme.typography.bodySmall.copy(fontSize = 12.sp),
+                    color = if (mine) AppTheme.colors.accentText else AppTheme.colors.secondaryLabel, maxLines = 1,
+                    modifier = Modifier.clip(RoundedCornerShape(4.dp)).clickable(role = Role.Button) { onOpenLevel(lp.level.id) },
+                )
+                Text("${lp.requiredDone} of ${lp.requiredTotal}", style = MaterialTheme.typography.headlineMedium.copy(fontSize = 22.sp), fontWeight = FontWeight.SemiBold)
+                lp.daysLeft?.let { d ->
+                    Text(if (d >= 0) "$d days left" else "${-d} days over", style = MaterialTheme.typography.bodySmall.copy(fontSize = 12.sp), color = if (d >= 0) AppTheme.colors.secondaryLabel else AppTheme.colors.warn)
+                }
+            }
+        }
+        if (p.goals.isNotEmpty() || p.counts.isNotEmpty()) {
+            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                (p.goals + p.counts).forEach { GoalBarRow(it, color) }
+            }
+        }
+        p.missed?.let { Text(it, style = MaterialTheme.typography.bodySmall.copy(fontSize = 12.sp), color = AppTheme.colors.warn) }
+    }
+}
+
+@Composable
+private fun Week(state: UsUiState, me: TogetherPerson, partner: TogetherPerson) {
+    Column(modifier = Modifier.padding(start = Spacing.listHorizontal, end = Spacing.listHorizontal, top = 4.dp)) {
+        HorizontalDivider(color = AppTheme.colors.ink, thickness = Spacing.rule)
+        Column(modifier = Modifier.padding(top = 16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Row(verticalAlignment = Alignment.Bottom) {
+                Text("This week, both of you", style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1f))
+                if (state.streak > 0) Text("${state.streak}-DAY STREAK", style = MaterialTheme.typography.labelMedium.copy(fontSize = 11.sp), color = AppTheme.colors.secondaryLabel)
+            }
+            Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                val mine = AppTheme.colors.track(me.isTech)
+                val theirs = AppTheme.colors.track(partner.isTech)
+                state.week.forEach { d ->
+                    Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(4.dp), modifier = Modifier.weight(1f)) {
+                        Box(Modifier.fillMaxWidth().height(18.dp).clip(RoundedCornerShape(4.dp)).background(if (d.me) mine else AppTheme.colors.separator))
+                        Box(Modifier.fillMaxWidth().height(18.dp).clip(RoundedCornerShape(4.dp)).background(if (d.partner) theirs else AppTheme.colors.separator))
+                        Text(d.label, style = MaterialTheme.typography.labelMedium.copy(fontSize = 11.sp, letterSpacing = 0.sp), color = if (d.isToday) AppTheme.colors.ink else AppTheme.colors.secondaryLabel)
                     }
                 }
             }
-            item {
-                CupertinoListSection(header = "The plan") {
-                    CupertinoListRow("Levels", subtitle = "Five each, quarter by quarter", leadingIcon = Icons.Filled.Flag, modifier = Modifier.guideAnchor(GuideAnchors.US_LEVELS), onClick = { onNavigate(Routes.LEVELS) }, trailing = { CupertinoDisclosure() })
-                    // These were under Levels. The prototype puts them on Together.
-                    CupertinoListRow("Countries", subtitle = "Six tracks, who leads, what to do", onClick = { onNavigate(Routes.COUNTRIES) }, trailing = { CupertinoDisclosure() })
-                    CupertinoListRow("Tests", subtitle = "Official results against targets", onClick = { onNavigate(Routes.TESTS) }, trailing = { CupertinoDisclosure() })
-                    CupertinoListRow("Documents", subtitle = "Checklist per person", onClick = { onNavigate(Routes.DOCUMENTS) }, trailing = { CupertinoDisclosure() })
-                    CupertinoListRow("Budget", subtitle = "Planned versus spent", onClick = { onNavigate(Routes.BUDGET) }, trailing = { CupertinoDisclosure() })
-                    CupertinoListRow("Settings", subtitle = "Profile, schedule, reminders, partner invite", leadingIcon = Icons.Filled.Settings, iconColor = IosColors.Gray, showDivider = false, onClick = { onNavigate(Routes.SETTINGS) }, trailing = { CupertinoDisclosure() })
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun PersonCard(person: PersonPlan, plan: PlanSnapshot, state: UsUiState, onClick: () -> Unit) {
-    val profile = plan.session.profileFor(person.role)
-    CupertinoCard(modifier = Modifier.padding(horizontal = Spacing.listHorizontal), onClick = onClick) {
-        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.md)) {
-            Avatar(name = person.name, photoUrl = profile?.photoUrl, size = 44.dp)
-            Column(modifier = Modifier.weight(1f)) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(person.name, style = MaterialTheme.typography.headlineMedium, modifier = Modifier.weight(1f))
-                    CupertinoDisclosure()
-                }
-                Text(
-                    if (profile == null) "Not joined yet" else "${person.streak}-day streak · longest ${person.longestStreak} · %.0f h total".format(state.totalHours[person.role] ?: 0.0),
-                    style = MaterialTheme.typography.bodySmall, color = AppTheme.colors.secondaryLabel,
-                )
-            }
-        }
-        state.dots[person.role]?.let { report ->
-            state.month[person.role]?.let { StudyCalendar(days = it, today = person.today) }
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.sm), modifier = Modifier.padding(top = Spacing.xs)) {
-                // The same tints the days are drawn in, or the key describes
-                // a calendar nobody is looking at.
-                Legend(AppTheme.colors.accent.copy(alpha = 0.28f), "studied")
-                Legend(AppTheme.colors.warn.copy(alpha = 0.28f), "missed")
-                Legend(AppTheme.colors.fill, "rest")
-            }
-            if (report.missedCount > 0) {
-                Text(
-                    "${report.missedCount} missed study day${if (report.missedCount == 1) "" else "s"} · %.1f h not studied · the plan lands about ${report.delayDays} day${if (report.delayDays == 1L) "" else "s"} later unless it is made up."
-                        .format(report.lostHours),
-                    style = MaterialTheme.typography.bodySmall, color = AppTheme.colors.warn, modifier = Modifier.padding(top = Spacing.xs),
-                )
-            } else if (report.days.any { it.state == MissedDays.DayState.LOGGED }) {
-                Text("No missed study days. Every planned day was used.", style = MaterialTheme.typography.bodySmall, color = AppTheme.colors.success, modifier = Modifier.padding(top = Spacing.xs))
-            }
-        }
-        person.current?.let { lvl ->
-            Text("Level ${lvl.level.number} · ${lvl.level.name} · ${lvl.requiredDone} of ${lvl.requiredTotal}", style = MaterialTheme.typography.bodyMedium, modifier = Modifier.padding(top = Spacing.xs))
-        }
-        state.counts[person.role]?.forEach { c ->
-            Row(modifier = Modifier.padding(top = Spacing.xs)) {
-                Text(c.habit.name, style = MaterialTheme.typography.bodyMedium, color = AppTheme.colors.secondaryLabel, modifier = Modifier.weight(1f))
-                AnimatedNumber(value = c.habit.weeklyTarget?.let { c.thisWeek } ?: c.total, style = MaterialTheme.typography.bodyMedium)
-                Text(
-                    c.habit.weeklyTarget?.let { " / $it this week" } ?: c.habit.totalTarget?.let { " / $it" } ?: "",
-                    style = MaterialTheme.typography.bodyMedium,
-                )
-            }
-        }
-    }
-}
-
-/**
- * The month, as a calendar.
- *
- * What was here before was four rows of seven dots counted back from today.
- * It looked like a calendar and was not one: no dates, and columns that each
- * held a different weekday depending on what day it happened to be, so the
- * one thing a calendar is for — seeing that it is always Thursdays you miss —
- * could not be read off it.
- *
- * Now the columns are weekdays, the days carry their dates, and the month
- * begins where it really begins. Days still to come are drawn faintly: they
- * are not yet anything, and showing them as rest days would be a small lie
- * every month.
- */
-@Composable
-private fun StudyCalendar(days: List<MissedDays.Day>, today: LocalDate) {
-    if (days.isEmpty()) return
-    val first = days.first().date
-    // ISO weeks start on Monday, and so does the template's dayOfWeek.
-    val leading = first.dayOfWeek.value - 1
-    val weeks = (List<MissedDays.Day?>(leading) { null } + days).chunked(7)
-
-    Text(
-        first.month.getDisplayName(TextStyle.FULL, Locale.getDefault()),
-        style = MaterialTheme.typography.labelMedium,
-        color = AppTheme.colors.secondaryLabel,
-        modifier = Modifier.padding(top = Spacing.md, bottom = 6.dp),
-    )
-    Row(modifier = Modifier.fillMaxWidth()) {
-        DayOfWeek.entries.forEach { d ->
             Text(
-                d.getDisplayName(TextStyle.NARROW, Locale.getDefault()),
-                style = MaterialTheme.typography.labelSmall,
-                color = AppTheme.colors.secondaryLabel,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.weight(1f),
+                "A day counts for the streak when both of you study. Today is open for each of you until midnight on your own clock.",
+                style = MaterialTheme.typography.bodySmall, color = AppTheme.colors.secondaryLabel,
             )
         }
     }
-    weeks.forEach { week ->
-        Row(modifier = Modifier.fillMaxWidth().padding(vertical = 2.dp)) {
-            // A short last week is padded so its days stay under their own
-            // weekday rather than spreading across the row.
-            val padded = week + List(7 - week.size) { null }
-            padded.forEach { day ->
-                Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.Center) {
-                    if (day != null) CalendarDay(day, isToday = day.date == today)
+}
+
+@Composable
+private fun Move(state: UsUiState, onNavigate: (String) -> Unit) {
+    Column(modifier = Modifier.padding(start = Spacing.listHorizontal, end = Spacing.listHorizontal, top = 20.dp)) {
+        HorizontalDivider(color = AppTheme.colors.ink, thickness = Spacing.rule)
+        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = 16.dp, bottom = 4.dp)) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp),
+                modifier = Modifier.heightIn(min = 28.dp).clip(RoundedCornerShape(6.dp)).clickable(role = Role.Button) { onNavigate(Routes.COUNTRIES) },
+            ) {
+                Text("The move", style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold)
+                Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null, tint = AppTheme.colors.ink, modifier = Modifier.size(16.dp))
+            }
+            Box(Modifier.weight(1f))
+            state.nextDate?.let {
+                Text(
+                    it, style = MaterialTheme.typography.labelMedium.copy(fontSize = 11.sp),
+                    color = state.nextDateRole?.let { r -> AppTheme.colors.track(r == PersonRole.TECH) } ?: AppTheme.colors.secondaryLabel, maxLines = 1,
+                )
+            }
+        }
+        state.countries.forEach { c ->
+            Column {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp).clickable(role = Role.Button) { onNavigate(Routes.country(c.code)) },
+                ) {
+                    Box(Modifier.width(3.dp).height(22.dp).background(c.leadRole?.let { AppTheme.colors.track(it == PersonRole.TECH) } ?: AppTheme.colors.separator))
+                    Text(c.name, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Medium, modifier = Modifier.weight(1f))
+                    Text("${c.lead} leads", style = MaterialTheme.typography.bodySmall.copy(fontSize = 12.sp), color = AppTheme.colors.secondaryLabel)
                 }
+                HorizontalDivider(color = AppTheme.colors.separator, thickness = Spacing.hairline)
             }
         }
     }
 }
 
 @Composable
-private fun CalendarDay(day: MissedDays.Day, isToday: Boolean) {
-    // Tinted rather than filled solid, with the page's own ink on top.
-    // A solid accent with a white date measured 4.02:1 on the Blue palette,
-    // under the 4.5:1 body rule — ContrastTest caught it. The tint is the
-    // same treatment the checks and warm-up blocks already use, and is
-    // readable on every accent.
-    val tint = when (day.state) {
-        MissedDays.DayState.LOGGED -> AppTheme.colors.accent.copy(alpha = 0.28f)
-        MissedDays.DayState.MISSED -> AppTheme.colors.warn.copy(alpha = 0.28f)
-        MissedDays.DayState.REST -> AppTheme.colors.fill
-        MissedDays.DayState.UPCOMING -> AppTheme.colors.fill.copy(alpha = AppTheme.colors.fill.alpha * 0.4f)
-    }
-    val ink = when (day.state) {
-        MissedDays.DayState.UPCOMING -> AppTheme.colors.secondaryLabel
-        else -> MaterialTheme.colorScheme.onSurface
-    }
-    Box(
-        modifier = Modifier
-            .size(30.dp)
-            .clip(CircleShape)
-            .background(tint)
-            .then(if (isToday) Modifier.border(2.dp, AppTheme.colors.accent, CircleShape) else Modifier),
-        contentAlignment = Alignment.Center,
-    ) {
-        Text(
-            day.date.dayOfMonth.toString(),
-            style = MaterialTheme.typography.labelSmall,
-            color = ink,
-        )
-    }
-}
-
-@Composable
-private fun Legend(color: androidx.compose.ui.graphics.Color, label: String) {
-    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-        Box(
-            modifier = Modifier
-                .size(10.dp)
-                .clip(CircleShape)
-                .background(color)
-                .border(1.dp, AppTheme.colors.separator, CircleShape),
-        )
-        Text(label, style = MaterialTheme.typography.labelSmall, color = AppTheme.colors.secondaryLabel)
+private fun PlanRow(title: String, subtitle: String, modifier: Modifier = Modifier, onClick: () -> Unit) {
+    Column(modifier = modifier) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp),
+            modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp).clickable(role = Role.Button, onClick = onClick),
+        ) {
+            Column(modifier = Modifier.weight(1f).padding(vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                Text(title, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Medium)
+                if (subtitle.isNotBlank()) Text(subtitle, style = MaterialTheme.typography.bodySmall.copy(fontSize = 12.sp), color = AppTheme.colors.secondaryLabel)
+            }
+            Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null, tint = AppTheme.colors.ink, modifier = Modifier.size(16.dp))
+        }
+        HorizontalDivider(color = AppTheme.colors.separator, thickness = Spacing.hairline)
     }
 }
