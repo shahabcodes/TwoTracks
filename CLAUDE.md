@@ -65,6 +65,29 @@ Two helper scripts exist for environments that cannot run Gradle at all:
 
 `ci/cloud-setup.sh` is for a cloud container only; ignore it locally.
 
+## Looking at a screen without signing in
+
+Every screen behind sign-in is split into a stateless `*Content` composable
+and a thin wrapper that feeds it from its view model. The debug-only
+`DesignPreviewActivity` (`app/src/debug/.../preview/`) draws those from sample
+state built on the real course content and the real seed, so a screen can be
+checked on the emulator without an account, which these sessions must not
+create:
+
+```
+adb shell am start -S -n com.shahaabapps.twotracks/.preview.DesignPreviewActivity --es screen level --ez dark true
+```
+
+The screen names are listed in the activity's comment. A new screen gets a
+`*Content` split and a case there, so that it can be compared with the
+prototype it was drawn from. The prototypes are the Parallel direction kept
+outside the repository; the screens follow them layout for layout, and where
+the app does something a prototype has no place for, it is folded into the
+nearest row, sheet or link rather than added as a new section.
+
+The `tt_test` emulator only starts headless:
+`emulator -avd tt_test -no-snapshot -no-boot-anim -no-window -gpu swiftshader_indirect`.
+
 ## Modules
 
 | Module | Holds |
