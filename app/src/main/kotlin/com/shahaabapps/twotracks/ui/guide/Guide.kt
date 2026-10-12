@@ -206,9 +206,6 @@ object GuideAnchors {
     // Settings, top to bottom. It scrolls as one piece, so every row here can
     // be brought into view and ringed.
     const val SET_NAME = "set.name"
-    const val SET_TRACK = "set.track"
-    const val SET_PASSWORD = "set.password"
-    const val SET_TIMEZONE = "set.timezone"
     const val SET_INVITE = "set.invite"
     const val SET_TEMPLATE = "set.template"
     const val SET_START_DATE = "set.startDate"

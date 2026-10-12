@@ -49,6 +49,8 @@ fun WidgetPreview(
     snapshot: WidgetSnapshot,
     modifier: Modifier = Modifier,
     compact: Boolean = false,
+    /** False when the caller has already drawn the wallpaper behind several of them. */
+    backdrop: Boolean = true,
 ) {
     val face = snapshot.faceFor(config, LocalDate.now())
     val palette = paletteFor(
@@ -59,9 +61,7 @@ fun WidgetPreview(
     )
     Box(
         modifier = modifier
-            .clip(RoundedCornerShape(if (compact) 10.dp else 18.dp))
-            .background(Backdrop)
-            .padding(if (compact) 8.dp else 14.dp),
+            .then(if (backdrop) Modifier.clip(RoundedCornerShape(if (compact) 10.dp else 18.dp)).background(Backdrop).padding(if (compact) 8.dp else 14.dp) else Modifier),
         contentAlignment = Alignment.Center,
     ) {
         Column(
@@ -138,7 +138,7 @@ fun WidgetPreview(
  * and sandbag another. A plain diagonal from dark to light shows a
  * translucent card doing what it does at both ends of the same preview.
  */
-private val Backdrop = Brush.linearGradient(
+internal val Backdrop = Brush.linearGradient(
     listOf(
         androidx.compose.ui.graphics.Color(0xFF2B2F3A),
         androidx.compose.ui.graphics.Color(0xFF6B7280),

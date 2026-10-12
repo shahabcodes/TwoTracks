@@ -28,9 +28,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.shahaabapps.core.ui.theme.AppTheme
@@ -38,6 +36,7 @@ import com.shahaabapps.core.ui.theme.Spacing
 import com.shahaabapps.core.ui.theme.AppTheme as AppThemeRoot
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.shahaabapps.twotracks.MainActivity
+import com.shahaabapps.twotracks.ui.components.TwoTracksMark
 import com.shahaabapps.twotracks.ui.ThemeViewModel
 import com.shahaabapps.twotracks.widget.WidgetRoutes
 import dagger.hilt.android.AndroidEntryPoint
@@ -116,64 +115,45 @@ class StudyReminderActivity : ComponentActivity() {
     }
 }
 
+/**
+ * The screen that wakes you, as the sign-in screen is drawn: the mark, a mono
+ * line saying what this is, the session in large type, and the two answers at
+ * the foot where a thumb is. It used to be painted top to bottom in the
+ * accent; the accent is ink now, and a page of ink fading to white left
+ * "Not now" white on white.
+ */
 @Composable
 private fun ReminderScreen(title: String, text: String, onStart: () -> Unit, onLater: () -> Unit) {
-    // The app's own accent, top to bottom, so the screen that wakes you is
-    // recognisably this app and not a system dialog.
-    val accent = AppTheme.colors.accent
-    Box(
+    Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Brush.verticalGradient(listOf(accent, accent.copy(alpha = 0.82f), AppTheme.colors.groupedBackground))),
+            .background(AppTheme.colors.groupedBackground)
+            .statusBarsPadding()
+            .navigationBarsPadding()
+            .padding(horizontal = Spacing.listHorizontal),
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .statusBarsPadding()
-                .navigationBarsPadding()
-                .padding(horizontal = Spacing.lg),
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally,
+        Spacer(Modifier.height(56.dp))
+        TwoTracksMark(height = 72.dp)
+        Spacer(Modifier.height(40.dp))
+        Text("Two Tracks · time to study".uppercase(), style = MaterialTheme.typography.labelMedium, color = AppTheme.colors.secondaryLabel)
+        Spacer(Modifier.height(10.dp))
+        Text(title, style = MaterialTheme.typography.displayLarge, color = AppTheme.colors.ink)
+        if (text.isNotBlank()) {
+            Spacer(Modifier.height(10.dp))
+            Text(text, style = MaterialTheme.typography.bodyLarge, color = AppTheme.colors.secondaryLabel)
+        }
+        Spacer(Modifier.weight(1f))
+        Button(
+            onClick = onStart,
+            modifier = Modifier.fillMaxWidth().height(52.dp),
+            shape = RoundedCornerShape(12.dp),
+            colors = ButtonDefaults.buttonColors(containerColor = AppTheme.colors.accent, contentColor = AppTheme.colors.onSolid),
         ) {
-            Text(
-                "TWO TRACKS",
-                style = MaterialTheme.typography.labelMedium,
-                color = AppTheme.colors.onSolid.copy(alpha = 0.75f),
-                letterSpacing = 3.sp,
-            )
-            Spacer(Modifier.height(Spacing.md))
-            Text(
-                title,
-                style = MaterialTheme.typography.displaySmall.copy(fontWeight = FontWeight.Bold),
-                color = AppTheme.colors.onSolid,
-                textAlign = TextAlign.Center,
-            )
-            if (text.isNotBlank()) {
-                Spacer(Modifier.height(Spacing.sm))
-                Text(
-                    text,
-                    style = MaterialTheme.typography.titleMedium,
-                    color = AppTheme.colors.onSolid.copy(alpha = 0.9f),
-                    textAlign = TextAlign.Center,
-                )
-            }
-            Spacer(Modifier.height(Spacing.xl))
-            // The app's own buttons are drawn in the accent, which is what this
-            // whole screen is painted in: an accent button on an accent
-            // background is a rectangle you cannot read. On top of the accent
-            // the roles swap, so the button takes the ink that sits on the accent and carries the accent.
-            Button(
-                onClick = onStart,
-                modifier = Modifier.fillMaxWidth().height(52.dp),
-                shape = RoundedCornerShape(14.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = AppTheme.colors.onSolid, contentColor = accent),
-            ) {
-                Text("Start studying", style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold))
-            }
-            Spacer(Modifier.height(Spacing.xs))
-            TextButton(onClick = onLater, modifier = Modifier.fillMaxWidth()) {
-                Text("Not now", style = MaterialTheme.typography.titleMedium, color = AppTheme.colors.onSolid.copy(alpha = 0.92f))
-            }
+            Text("Start studying", style = MaterialTheme.typography.labelLarge.copy(fontSize = 15.sp, fontWeight = FontWeight.SemiBold))
+        }
+        Spacer(Modifier.height(Spacing.xs))
+        TextButton(onClick = onLater, modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp)) {
+            Text("Not now", style = MaterialTheme.typography.labelLarge.copy(fontSize = 15.sp), color = AppTheme.colors.secondaryLabel)
         }
     }
 }

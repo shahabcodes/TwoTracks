@@ -1,24 +1,29 @@
 package com.shahaabapps.twotracks.feature.settings
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
-import com.shahaabapps.twotracks.ui.components.DetailScaffold
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.Download
-import androidx.compose.material.icons.filled.ExpandMore
-import androidx.compose.material.icons.filled.RecordVoiceOver
-import androidx.compose.material.icons.filled.VolumeUp
+import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Slider
+import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -26,18 +31,26 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewModelScope
+import com.shahaabapps.core.common.datastore.SpeechPreferences
 import com.shahaabapps.core.content.Course
 import com.shahaabapps.core.content.Courses
-import com.shahaabapps.core.ui.components.CupertinoListRow
-import com.shahaabapps.core.ui.components.CupertinoListSection
-import com.shahaabapps.core.common.datastore.SpeechPreferences
 import com.shahaabapps.core.ui.theme.AppTheme
-import com.shahaabapps.core.ui.theme.IosColors
+import com.shahaabapps.core.ui.theme.MonoFamily
 import com.shahaabapps.core.ui.theme.Spacing
 import com.shahaabapps.twotracks.feature.learn.Speaker
 import com.shahaabapps.twotracks.feature.learn.VoiceCharacter
@@ -45,13 +58,17 @@ import com.shahaabapps.twotracks.feature.learn.VoiceGender
 import com.shahaabapps.twotracks.feature.learn.VoiceNames
 import com.shahaabapps.twotracks.ui.components.Chip
 import com.shahaabapps.twotracks.ui.components.CupertinoDialog
+import com.shahaabapps.twotracks.ui.components.DetailScaffold
 import com.shahaabapps.twotracks.ui.components.DialogButton
 import com.shahaabapps.twotracks.ui.components.SegmentedChoice
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import java.util.Locale
 import javax.inject.Inject
 
 /**
@@ -175,6 +192,19 @@ class VoiceSettingsViewModel @Inject constructor(
         viewModelScope.launch { speaker.chooseVoice(tag, voiceName, sampleFor(tag)) }
     }
 
+    /** How fast every language is read. */
+    val rate: StateFlow<Float> = speechPreferences.rate().stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), SpeechPreferences.DEFAULT_RATE)
+
+    fun setRate(r: Float) {
+        viewModelScope.launch { speechPreferences.setRate(r) }
+    }
+
+    /** Reads a line at the new pace once the slider is let go, so the change can be heard. */
+    fun sayAtRate() {
+        val lang = _languages.value.firstOrNull { it.state == Speaker.State.READY } ?: return
+        viewModelScope.launch { speaker.chooseVoice(lang.tag, lang.chosen, sampleFor(lang.tag)) }
+    }
+
     fun openInstallPage() = speaker.openInstallPage()
 
     fun stop() = speaker.stop()
@@ -187,13 +217,32 @@ internal fun sampleFor(tag: String): String = when (tag.substringBefore("-").low
     else -> "Good morning. Here is how this voice sounds."
 }
 
+/** "GERMAN · FOR WORDS, DIALOGUES AND HÖREN": the language, and what the course reads in it. */
+internal fun voiceHeading(course: Course): String {
+    val use = when (course.id) {
+        "de-a1" -> "for words, dialogues and Hören"
+        "ielts" -> "for IELTS Listening"
+        else -> "for ${course.title}"
+    }
+    return "${course.languageName} · $use".uppercase(Locale.ROOT)
+}
+
+/** "0.85×" */
+internal fun rateLabel(rate: Float): String = "%.2f×".format(Locale.ENGLISH, rate)
+
 /** How many voices a language shows before it has to be asked for the rest. */
 private const val SHOWN_BEFORE_EXPAND = 4
 
-/** One section per language the courses are read in. */
+/**
+ * One section per language the courses are read in, as the prototype draws
+ * it: a mono heading over an ink rule, and for each voice a button to hear
+ * it, the engine's own name with what somebody said it sounds like, and a
+ * radio to keep it.
+ */
 @Composable
 fun VoiceSettingsSections(viewModel: VoiceSettingsViewModel) {
     val languages by viewModel.languages.collectAsStateWithLifecycle()
+    val rate by viewModel.rate.collectAsStateWithLifecycle()
     DisposableEffect(Unit) { onDispose { viewModel.stop() } }
     var describing by remember { mutableStateOf<VoiceSettingsViewModel.VoiceRow?>(null) }
     languages.forEach { lang ->
@@ -204,61 +253,48 @@ fun VoiceSettingsSections(viewModel: VoiceSettingsViewModel) {
             (lang.voices.take(SHOWN_BEFORE_EXPAND) + lang.voices.filter { it.name == lang.chosen }).distinct()
         }
         val hidden = lang.voices.size - shown.size
-        CupertinoListSection(
-            header = "${lang.course.languageName} voice",
-            footer = when {
-                lang.state == Speaker.State.UNAVAILABLE ->
-                    "This phone has no text-to-speech engine, so nothing can be read aloud."
-                lang.state == Speaker.State.MISSING_LANGUAGE ->
-                    "${lang.course.languageName} is not installed on this phone yet. Add it below and the voices appear here."
-                lang.voices.isEmpty() ->
-                    "This phone offers no separate ${lang.course.languageName} voices, so the engine's own is used."
-                else ->
-                    "Tap one to hear it and keep it. Android does not say whether a voice is a man or a woman, " +
-                        "so tap Describe once you have heard it and it will say so from then on."
-            },
-        ) {
+        Column(modifier = Modifier.padding(start = Spacing.listHorizontal, end = Spacing.listHorizontal, top = 22.dp)) {
+            Text(voiceHeading(lang.course), style = MaterialTheme.typography.labelMedium.copy(fontSize = 11.sp), color = AppTheme.colors.secondaryLabel, modifier = Modifier.padding(bottom = 4.dp).semantics { heading() })
+            HorizontalDivider(color = AppTheme.colors.ink, thickness = Spacing.rule)
+            when {
+                lang.state == Speaker.State.UNAVAILABLE -> Note("This phone has no text-to-speech engine, so nothing can be read aloud.")
+                lang.state == Speaker.State.MISSING_LANGUAGE -> Note("${lang.course.languageName} is not installed on this phone yet. Add it below and its voices appear here.")
+                lang.voices.isEmpty() -> Note("This phone offers no separate ${lang.course.languageName} voices, so the engine's own is used.")
+            }
             if (lang.state == Speaker.State.READY && lang.voices.isNotEmpty()) {
-                CupertinoListRow(
-                    "The engine's own voice",
-                    subtitle = "Whatever the phone picks by default",
-                    leadingIcon = Icons.Filled.RecordVoiceOver,
-                    iconColor = IosColors.Blue,
-                    onClick = { viewModel.choose(lang.tag, null) },
-                    trailing = { if (lang.chosen == null) Chosen() },
+                VoiceLine(
+                    title = "The phone's own voice", mono = false, tags = listOf("default"), chosen = lang.chosen == null,
+                    onPlay = null, onTags = null, onChoose = { viewModel.choose(lang.tag, null) },
                 )
                 shown.forEach { v ->
-                    CupertinoListRow(
-                        v.label,
-                        subtitle = v.detail,
-                        leadingIcon = Icons.Filled.VolumeUp,
-                        iconColor = IosColors.Indigo,
-                        onClick = { viewModel.choose(lang.tag, v.name) },
-                        trailing = {
-                            if (lang.chosen == v.name) Chosen()
-                            Chip(text = "Describe", onClick = { viewModel.preview(lang.tag, v.name); describing = v })
-                        },
-                    )
-                }
-                if (hidden > 0) {
-                    CupertinoListRow(
-                        "Show $hidden more",
-                        subtitle = "Every voice this phone has for ${lang.course.languageName}",
-                        leadingIcon = Icons.Filled.ExpandMore,
-                        iconColor = IosColors.Gray,
-                        onClick = { expanded = true },
+                    VoiceLine(
+                        title = v.name, mono = true,
+                        tags = if (v.described) listOfNotNull(v.gender.takeIf { it != VoiceGender.UNKNOWN }?.let { if (it == VoiceGender.FEMALE) "female" else "male" }, v.character?.label) else listOf("label it"),
+                        chosen = lang.chosen == v.name,
+                        onPlay = { viewModel.preview(lang.tag, v.name) },
+                        onTags = { viewModel.preview(lang.tag, v.name); describing = v },
+                        onChoose = { viewModel.choose(lang.tag, v.name) },
                     )
                 }
             }
-            CupertinoListRow(
-                "Get more voices",
-                subtitle = "Opens Android's speech settings",
-                leadingIcon = Icons.Filled.Download,
-                iconColor = IosColors.Green,
-                showDivider = false,
-                onClick = viewModel::openInstallPage,
-            )
+            Row(horizontalArrangement = Arrangement.spacedBy(20.dp)) {
+                if (hidden > 0) Link("Show $hidden more") { expanded = true }
+                Link("Get more voices", viewModel::openInstallPage)
+            }
         }
+    }
+    Column(modifier = Modifier.padding(start = Spacing.listHorizontal, end = Spacing.listHorizontal, top = 22.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        Row {
+            Text("Speaking speed", style = MaterialTheme.typography.bodyMedium, modifier = Modifier.weight(1f))
+            Text(rateLabel(rate), style = MaterialTheme.typography.bodySmall.copy(fontFamily = MonoFamily, fontSize = 13.sp))
+        }
+        Slider(
+            value = rate, onValueChange = viewModel::setRate, onValueChangeFinished = viewModel::sayAtRate,
+            valueRange = SpeechPreferences.MIN_RATE..SpeechPreferences.MAX_RATE, steps = 9,
+            colors = SliderDefaults.colors(thumbColor = AppTheme.colors.ink, activeTrackColor = AppTheme.colors.ink, inactiveTrackColor = AppTheme.colors.separator, activeTickColor = Color.Transparent, inactiveTickColor = Color.Transparent),
+            modifier = Modifier.semantics { contentDescription = "Speaking speed" },
+        )
+        Text("Slower than normal is better for Hören practice in the first months.", style = MaterialTheme.typography.bodySmall.copy(fontSize = 12.sp), color = AppTheme.colors.secondaryLabel)
     }
 
     describing?.let { row ->
@@ -267,6 +303,62 @@ fun VoiceSettingsSections(viewModel: VoiceSettingsViewModel) {
             onSave = { g, c -> viewModel.describe(row.name, g, c); describing = null },
             onDismiss = { describing = null },
         )
+    }
+}
+
+@Composable
+private fun Note(text: String) {
+    Text(text, style = MaterialTheme.typography.bodySmall, color = AppTheme.colors.secondaryLabel, modifier = Modifier.padding(vertical = 12.dp))
+}
+
+@Composable
+private fun Link(text: String, onClick: () -> Unit) {
+    Text(
+        text, style = MaterialTheme.typography.labelLarge.copy(fontSize = 14.sp), color = AppTheme.colors.accentText,
+        modifier = Modifier.clip(RoundedCornerShape(6.dp)).clickable(role = Role.Button, onClick = onClick).padding(vertical = 12.dp),
+    )
+}
+
+@Composable
+private fun VoiceLine(title: String, mono: Boolean, tags: List<String>, chosen: Boolean, onPlay: (() -> Unit)?, onTags: (() -> Unit)?, onChoose: () -> Unit) {
+    Column {
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.heightIn(min = 64.dp)) {
+            if (onPlay != null) {
+                Box(
+                    contentAlignment = Alignment.Center,
+                    modifier = Modifier.size(40.dp).clip(CircleShape).border(Spacing.rule, AppTheme.colors.separator, CircleShape)
+                        .clickable(role = Role.Button, onClickLabel = "Play", onClick = onPlay),
+                ) { Icon(Icons.Filled.PlayArrow, contentDescription = "Play $title", tint = AppTheme.colors.ink, modifier = Modifier.size(18.dp)) }
+            } else {
+                Box(Modifier.size(40.dp))
+            }
+            Row(
+                verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp),
+                modifier = Modifier.weight(1f).heightIn(min = 56.dp).semantics { selected = chosen }.clickable(role = Role.RadioButton, onClick = onChoose),
+            ) {
+                Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
+                    Text(
+                        title, maxLines = 1,
+                        style = if (mono) MaterialTheme.typography.bodySmall.copy(fontFamily = MonoFamily, fontSize = 13.sp) else MaterialTheme.typography.bodyMedium,
+                    )
+                    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                        tags.forEach { t ->
+                            val shape = RoundedCornerShape(11.dp)
+                            Box(
+                                contentAlignment = Alignment.Center,
+                                modifier = Modifier.height(22.dp).clip(shape).background(AppTheme.colors.fill)
+                                    .then(if (onTags != null) Modifier.clickable(role = Role.Button, onClickLabel = "Say what it sounds like", onClick = onTags) else Modifier)
+                                    .padding(horizontal = 8.dp),
+                            ) { Text(t, style = MaterialTheme.typography.bodySmall.copy(fontSize = 12.sp)) }
+                        }
+                    }
+                }
+                Box(contentAlignment = Alignment.Center, modifier = Modifier.size(20.dp).border(2.dp, AppTheme.colors.ink, CircleShape)) {
+                    Box(Modifier.size(8.dp).clip(CircleShape).background(if (chosen) AppTheme.colors.ink else Color.Transparent))
+                }
+            }
+        }
+        HorizontalDivider(color = AppTheme.colors.separator, thickness = Spacing.hairline)
     }
 }
 
@@ -305,10 +397,7 @@ private fun DescribeVoiceDialog(
                 Text("And how it sounds, if you like", style = MaterialTheme.typography.bodySmall, color = AppTheme.colors.secondaryLabel)
                 FlowRow(horizontalArrangement = Arrangement.spacedBy(Spacing.xs), verticalArrangement = Arrangement.spacedBy(Spacing.xs)) {
                     VoiceCharacter.entries.forEach { c ->
-                        Chip(
-                            text = if (character == c) "${c.label} ✓" else c.label,
-                            onClick = { character = if (character == c) null else c },
-                        )
+                        Chip(text = c.label, selected = character == c, onClick = { character = if (character == c) null else c })
                     }
                 }
             }
@@ -316,33 +405,28 @@ private fun DescribeVoiceDialog(
     )
 }
 
-@Composable
-private fun Chosen() {
-    Icon(Icons.Filled.Check, contentDescription = "Chosen", tint = AppTheme.colors.accentText, modifier = Modifier.size(20.dp))
-}
-
 /**
  * The voices, on their own screen.
  *
  * They used to sit inside Settings, which is a plain scrolling column, so
  * opening Settings built this view model and everything behind it before the
- * screen could draw — about a second of dropped frames, every time. Measured
- * by taking the section out: with it gone Settings had no jank at all.
- *
- * Here that cost is paid only by someone who has come looking for the voices,
- * which is a handful of times ever.
+ * screen could draw — about a second of dropped frames, every time. Here that
+ * cost is paid only by someone who has come looking for the voices.
  */
 @Composable
 fun VoiceSettingsScreen(onBack: () -> Unit) {
     val viewModel: VoiceSettingsViewModel = hiltViewModel()
     val loading by viewModel.loading.collectAsStateWithLifecycle()
-    DetailScaffold(title = "Voices", onBack = onBack) {
-        Column(modifier = Modifier.verticalScroll(rememberScrollState()).padding(bottom = Spacing.xl), verticalArrangement = Arrangement.spacedBy(Spacing.md)) {
+    DetailScaffold(title = "Voices", onBack = onBack, backLabel = "Back to settings") {
+        Column(modifier = Modifier.verticalScroll(rememberScrollState()).padding(bottom = 40.dp)) {
+            Text(
+                "Your phone names its voices with a code that says nothing about how they sound. Tap one to hear it, then label it so you can find it again.",
+                style = MaterialTheme.typography.bodyMedium, color = AppTheme.colors.secondaryLabel, modifier = Modifier.padding(horizontal = Spacing.listHorizontal),
+            )
             if (loading) {
                 Text(
                     "Asking this phone what it can read with…",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = AppTheme.colors.secondaryLabel,
+                    style = MaterialTheme.typography.bodySmall, color = AppTheme.colors.secondaryLabel,
                     modifier = Modifier.padding(horizontal = Spacing.listHorizontal, vertical = Spacing.md),
                 )
             }

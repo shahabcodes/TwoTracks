@@ -1,5 +1,9 @@
 package com.shahaabapps.twotracks.preview
 
+import com.shahaabapps.twotracks.feature.settings.WidgetsContent
+import com.shahaabapps.twotracks.changelog.ChangelogContent
+import com.shahaabapps.twotracks.feature.settings.AvailabilityContent
+import com.shahaabapps.twotracks.feature.settings.SettingsContent
 import com.shahaabapps.twotracks.feature.budget.BudgetContent
 import com.shahaabapps.twotracks.feature.documents.DocumentsContent
 import com.shahaabapps.twotracks.feature.tests.TestsContent
@@ -63,7 +67,7 @@ import java.time.LocalDate
  *
  *   adb shell am start -n com.shahaabapps.twotracks/.preview.DesignPreviewActivity --es screen today [--ez dark true]
  *
- * Screens: today, week, both, learn, course, topic, quiz, results, deck, levels, level, goal, goaledit, fit, us, partner, countries, country, tests, documents, budget.
+ * Screens: today, week, both, learn, course, topic, quiz, results, deck, levels, level, goal, goaledit, fit, us, partner, countries, country, tests, documents, budget, settings, hours, whatsnew, widgets.
  */
 class DesignPreviewActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -110,6 +114,20 @@ class DesignPreviewActivity : ComponentActivity() {
                         "tests" -> TestsContent(TogetherSamples.tests(), onBack = {}, onSave = {})
                         "documents" -> DocumentsContent(TogetherSamples.documents(), onBack = {}, onFilter = {}, onCycle = {}, onSave = {})
                         "budget" -> BudgetContent(TogetherSamples.budget(), onBack = {}, onSave = {}, onDelete = {})
+                        "settings" -> SettingsContent(
+                            SettingsSamples.settings(), remember { SnackbarHostState() }, onBack = {}, onEditProfile = {}, onCopyInvite = {}, onOpenAvailability = {},
+                            onEditStartDate = {}, onOpenFullScreen = {}, onTheme = {}, onBiometric = {}, onOpenVoices = {}, onOpenWidgets = {}, onOpenChangelog = {},
+                            onTour = {}, onReset = {}, onSignOut = {},
+                        )
+                        "hours" -> AvailabilityContent(SettingsSamples.blocks, isTech = true, goals = emptyList(), onBack = {}, onAdd = {}, onRemove = {})
+                        "whatsnew" -> ChangelogContent(SettingsSamples.releases(), "0.76.0", onBack = {})
+                        "widgets" -> WidgetsContent(
+                            listOf(
+                                com.shahaabapps.twotracks.widget.PlacedWidget(1, com.shahaabapps.twotracks.widget.WidgetConfig()),
+                                com.shahaabapps.twotracks.widget.PlacedWidget(2, com.shahaabapps.twotracks.widget.WidgetConfig(content = com.shahaabapps.twotracks.widget.WidgetContent.WORD_OF_DAY, courseId = "de-a1", theme = com.shahaabapps.twotracks.widget.WidgetTheme.DARK)),
+                            ),
+                            emptyMap(), onBack = {}, onChange = {},
+                        )
                         "deck" -> DeckContent(LearnSamples.deck(), speaker = null, onBack = {}, onFlip = {}, onAnswer = {}, onPractiseAnyway = {}, onAgain = {}, onInstallVoice = {})
                         else -> TodayContent(
                             state = Samples.today(), onOpenLevel = {}, onOpenPartner = {}, onOpenGoal = {}, onOpenWeek = {},
