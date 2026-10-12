@@ -118,6 +118,36 @@ internal object GermanA1M1 {
                 aspect = 0.5f,
             ),
             B.remember("Verb second. Whatever you put first (Ich, Heute, Morgen), the conjugated verb comes next: Heute bin ich in Doha."),
+            B.check(
+                "de1-grammar-k1", "de1-grammar",
+                "'Ihr ___ Freunde.' takes which form of sein?",
+                listOf("seid", "sind", "bist"), 0,
+                "ihr takes seid. The pairs to keep apart are ihr seid and sie sind.",
+                whyWrong = mapOf(
+                    1 to "sind goes with wir and with sie or Sie, not with ihr.",
+                    2 to "bist is the du form, one person.",
+                ),
+            ),
+            B.check(
+                "de1-grammar-k2", "de1-grammar",
+                "The German w in 'Wasser' sounds like English",
+                listOf("v", "w", "f"), 0,
+                "German w is English v, and German v is English f. The two swap over.",
+                whyWrong = mapOf(
+                    1 to "English w does not occur in German spelling at all.",
+                    2 to "That is German v, as in Vater.",
+                ),
+            ),
+            B.check(
+                "de1-grammar-k3", "de1-grammar",
+                "In a German statement the conjugated verb stands",
+                listOf("second", "last", "first"), 0,
+                "Second, whatever comes before it. Ich wohne in Doha, and Heute wohne ich in Doha.",
+                whyWrong = mapOf(
+                    1 to "Last is where an infinitive or a separable prefix goes, not the conjugated verb.",
+                    2 to "First is a yes/no question: Wohnst du in Doha?",
+                ),
+            ),
             B.gap("de1-g-gap1", "Fill the gap with the right form of sein.", "Wir ___ aus Pakistan.", "sind"),
             B.gap("de1-g-gap2", "Fill the gap with the right form of sein.", "Du ___ müde.", "bist"),
             B.reorder("de1-g-re1", "Put the words in order (verb second).", "Heute bin ich müde"),

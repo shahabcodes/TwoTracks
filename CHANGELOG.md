@@ -5,6 +5,10 @@ build number is appended by CI (for example `0.1.0 (build 12)`).
 
 ## [Unreleased]
 
+## [0.67.0] - 2026-10-12
+### Added
+- German grammar is practised, and says no two ways.
+
 ## [0.66.0] - 2026-10-11
 ### Added
 - Widgets show a live preview while you set them up, with more to set.

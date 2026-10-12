@@ -108,6 +108,36 @@ internal object GermanA1M5 {
                 listOf("plural", "Es gibt drei Zimmer.", "There are three rooms."),
                 listOf("negative", "Es gibt keinen Balkon.", "There is no balcony."),
             ),
+            B.check(
+                "de5-grammar-k1", "de5-grammar",
+                "'Es gibt ___ Balkon.' (ein, der Balkon)",
+                listOf("einen", "ein", "einem"), 0,
+                "es gibt is followed by the accusative, and the masculine is where that shows.",
+                whyWrong = mapOf(
+                    1 to "ein is the subject form. The thing that exists after es gibt is an object.",
+                    2 to "einem is dative, which es gibt never takes.",
+                ),
+            ),
+            B.check(
+                "de5-grammar-k2", "de5-grammar",
+                "'Die Bank ist neben ___ Apotheke.' (die Apotheke)",
+                listOf("der", "die", "den"), 0,
+                "neben answers Wo?, so it takes the dative, and die becomes der.",
+                whyWrong = mapOf(
+                    1 to "die is the subject and the accusative form. Wo? asks for neither.",
+                    2 to "den is the masculine accusative, and Apotheke is feminine.",
+                ),
+            ),
+            B.check(
+                "de5-grammar-k3", "de5-grammar",
+                "'Wir wohnen ___ Zentrum.' (in + das)",
+                listOf("im", "ins", "in dem Zentrum"), 0,
+                "Wo? takes the dative, and in plus dem contracts to im.",
+                whyWrong = mapOf(
+                    1 to "ins is in plus das, the accusative, which answers Wohin? not Wo?",
+                    2 to "The uncontracted form is understood but nobody says it; im is what is written and said.",
+                ),
+            ),
             B.gap("de5-g-gap1", "es gibt + accusative.", "Es gibt ___ Garten. (ein)", "einen"),
             B.gap("de5-g-gap2", "es gibt + negative.", "Es gibt ___ Aufzug. (kein, der Aufzug)", "keinen"),
             B.h("Wo? The dative after in, an, auf, neben, vor, hinter, unter, über, zwischen"),

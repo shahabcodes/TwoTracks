@@ -59,7 +59,7 @@ internal object GermanA1M4 {
     )
 
     private val grammar = Topic(
-        id = "de4-grammar", title = "Grammar: der, die, das, plurals and the accusative", minutes = 22, references = refs,
+        id = "de4-grammar", title = "Grammar: articles, plurals, the accusative and the two ways to say no", minutes = 26, references = refs,
         blocks = listOf(
             B.warmup(
                 "de4-grammar-w1", "de4-grammar",
@@ -105,6 +105,75 @@ internal object GermanA1M4 {
             ),
             B.h("Verbs that change their vowel"),
             B.p("A few common verbs change the stem for du and er/sie/es: essen → du isst, er isst; sprechen → du sprichst; nehmen → du nimmst; fahren → du fährst."),
+            B.h("nicht or kein: the two ways to say no"),
+            B.p("German has two negatives and they do not overlap. kein replaces the article in front of a noun; nicht does everything else. This is the commonest A1 mistake, it is audible the moment you make it, and the fix is one question: am I saying no to a noun?"),
+            B.table(
+                listOf("What you are negating", "Use", "Example"),
+                listOf("a noun with ein, or with no article at all", "kein", "Ich habe keine Zeit."),
+                listOf("a noun with der, die, das or a possessive", "nicht", "Das ist nicht mein Buch."),
+                listOf("a verb", "nicht", "Ich arbeite heute nicht."),
+                listOf("an adjective or an adverb", "nicht", "Der Kaffee ist nicht heiß."),
+            ),
+            B.p("kein takes exactly the endings ein takes, so it changes in the accusative in the one place ein does: the masculine."),
+            B.table(
+                listOf("", "Nominative", "Accusative"),
+                listOf("masculine", "kein Bruder", "keinen Bruder"),
+                listOf("feminine", "keine Schwester", "keine Schwester"),
+                listOf("neuter", "kein Kind", "kein Kind"),
+                listOf("plural", "keine Eltern", "keine Eltern"),
+            ),
+            B.h("Where nicht stands"),
+            B.bullets(
+                "At the end, when it negates the whole sentence: Ich verstehe das nicht.",
+                "Before an adjective after sein: Die Wohnung ist nicht teuer.",
+                "Before the word it contradicts: Ich komme nicht heute, sondern morgen.",
+                "Before the infinitive at the end of a verb bracket: Ich kann heute nicht kommen.",
+            ),
+            B.gap("de4-g-gap5", "Noun with no article, so kein.", "Ich trinke ___ Kaffee. (der Kaffee)", "keinen"),
+            B.gap("de4-g-gap6", "The noun has a possessive, so nicht.", "Das ist ___ mein Mantel.", "nicht"),
+            B.gap("de4-g-gap7", "Negating a verb.", "Heute arbeite ich ___.", "nicht"),
+            B.check(
+                "de4-grammar-k3", "de4-grammar",
+                "'I do not have a car' is",
+                listOf("Ich habe nicht ein Auto.", "Ich habe kein Auto.", "Ich habe nicht Auto."),
+                1,
+                "Auto is a noun with ein in front of it, so the negative is kein. nicht never replaces an article.",
+                whyWrong = mapOf(
+                    0 to "nicht does not stand in front of ein. The two never appear together like this.",
+                    2 to "Dropping the article does not make nicht right; a bare noun still takes kein.",
+                ),
+            ),
+            B.check(
+                "de4-grammar-k4", "de4-grammar",
+                "'That is not my brother' is",
+                listOf("Das ist kein Bruder.", "Das ist nicht mein Bruder.", "Das ist keinen Bruder."),
+                1,
+                "The noun already has a possessive, so there is no article for kein to replace: nicht does it.",
+                whyWrong = mapOf(
+                    0 to "That says \"that is not a brother\", which is a different sentence. The possessive is what you are contradicting.",
+                    2 to "keinen is the masculine accusative, and this noun is the subject after ist, not an object.",
+                ),
+            ),
+            B.check(
+                "de4-grammar-k1", "de4-grammar",
+                "'Ich nehme ___ Tee.' (der Tee)",
+                listOf("den", "der", "dem"), 0,
+                "The thing you take is the object, and the masculine is the one article that changes: der becomes den.",
+                whyWrong = mapOf(
+                    1 to "der is the subject form: Der Tee ist heiß.",
+                    2 to "dem is the dative, which comes after prepositions like mit and in.",
+                ),
+            ),
+            B.check(
+                "de4-grammar-k2", "de4-grammar",
+                "The plural of der Apfel is",
+                listOf("die Äpfel", "die Apfeln", "die Apfels"), 0,
+                "Masculine nouns in -el, -er and -en usually add no ending and take an umlaut instead.",
+                whyWrong = mapOf(
+                    1 to "-n is the pattern for most feminine nouns: die Flasche, die Flaschen.",
+                    2 to "-s is for words taken from other languages: das Auto, die Autos.",
+                ),
+            ),
             B.gap("de4-g-gap1", "Accusative article.", "Ich kaufe ___ Apfel. (ein)", "einen"),
             B.gap("de4-g-gap2", "Accusative article.", "Wir trinken ___ Tee. (der)", "den"),
             B.gap("de4-g-gap3", "Conjugate essen.", "Was ___ du gern?", "isst"),
@@ -116,7 +185,7 @@ internal object GermanA1M4 {
                 "Forgetting the vowel change: 'du esst' should be du isst.",
             ),
             B.glossary("Nominativ" to "The subject case.", "Akkusativ" to "The direct-object case.", "Artikel" to "der, die, das and their forms."),
-            B.recap("Learn the article with every noun.", "Accusative changes only the masculine: den, einen, keinen.", "kein for nouns, nicht for everything else."),
+            B.recap("Learn the article with every noun.", "Accusative changes only the masculine: den, einen, keinen.", "kein replaces an article in front of a noun; nicht negates everything else."),
         ),
     )
 
