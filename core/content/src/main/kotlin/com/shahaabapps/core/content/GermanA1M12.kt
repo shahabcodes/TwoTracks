@@ -5,7 +5,7 @@ internal object GermanA1M12 {
     private val refs = GermanA1.commonRefs
 
     private val overview = Topic(
-        id = "de12-overview", title = "The exam: four papers, 100 points, what 60 looks like", minutes = 16, references = refs,
+        id = "de12-overview", title = "The exam: four papers, 100 points, what 60 looks like", minutes = 16, references = refs + B.ref("Goethe German examinations", GermanA1.GOETHE + "en/spr/prf.html") + B.ref("Exam training for every Goethe level", GermanA1.GOETHE + "en/spr/prf/ueb.html"),
         blocks = listOf(
             B.warmup(
                 "de12-overview-w1", "de12-overview",
@@ -78,7 +78,7 @@ internal object GermanA1M12 {
     )
 
     private val listening = Topic(
-        id = "de12-listening", title = "Hören: the three parts and the listening tricks", minutes = 24, references = refs,
+        id = "de12-listening", title = "Hören: the three parts and the listening tricks", minutes = 24, references = refs + B.ref("A1 model paper, all four parts (PDF)", GermanA1.GOETHE + "pro/relaunch/prf/materialien/A1_sd1/sd_1_modellsatz.pdf") + B.ref("A1 practice set 1 (PDF)", GermanA1.GOETHE + "pro/relaunch/prf/materialien/A1_sd1/sd_1_uebungssatz01.pdf"),
         blocks = listOf(
             B.warmup(
                 "de12-listening-w1", "de12-listening",
@@ -164,7 +164,7 @@ internal object GermanA1M12 {
     )
 
     private val speaking = Topic(
-        id = "de12-speaking", title = "Sprechen: the whole oral exam, rehearsed", minutes = 26, references = refs,
+        id = "de12-speaking", title = "Sprechen: the whole oral exam, rehearsed", minutes = 26, references = refs + B.ref("Online pronunciation training", GermanA1.GOETHE + "en/spr/ueb/ast.html") + B.ref("A1 practice set 2 (PDF)", GermanA1.GOETHE + "pro/relaunch/prf/materialien/A1_sd1/sd_1_uebungssatz02.pdf"),
         blocks = listOf(
             B.warmup(
                 "de12-speaking-w1", "de12-speaking",
@@ -234,7 +234,7 @@ internal object GermanA1M12 {
                 B.w("m12-sofort", "sofort", "at once", "Ja, sofort.", "Yes, right away."),
                 B.w("m12-stift", "Stift", "pen", "Hast du einen Stift?", "Do you have a pen?", article = "der", plural = "Stifte"),
                 B.w("m12-benutzen", "benutzen", "to use", "Kann ich das Handy benutzen?", "Can I use the phone?"),
-                B.w("m12-geschwister", "Geschwister", "siblings", "Hast du Geschwister?", "Do you have siblings?"),
+                B.w("m12-geschwister", "Geschwister", "siblings", "Hast du Geschwister?", "Do you have siblings?", article = "die"),
                 B.w("m12-tagesablauf", "Tagesablauf", "daily routine", "Mein Tagesablauf ist einfach.", "My daily routine is simple.", article = "der"),
                 B.w("m12-noch-einmal", "Noch einmal, bitte", "Once more, please", "Noch einmal, bitte, langsam.", "Once more please, slowly."),
             ),

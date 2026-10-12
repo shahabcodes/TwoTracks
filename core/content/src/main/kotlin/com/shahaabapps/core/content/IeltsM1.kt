@@ -5,7 +5,7 @@ internal object IeltsM1 {
     private val refs = Ielts.commonRefs
 
     private val format = Topic(
-        id = "ie1-format", title = "The test: four papers, two versions, one morning", minutes = 18, references = refs,
+        id = "ie1-format", title = "The test: four papers, two versions, one morning", minutes = 18, references = refs + B.ref("On computer or on paper", Ielts.ORG + "take-a-test/test-types/ielts-on-computer-writing-on-paper") + B.ref("On test day", Ielts.ORG + "take-a-test/preparation-resources/on-test-day"),
         blocks = listOf(
             B.warmup(
                 "ie1-format-w1", "ie1-format",
@@ -84,7 +84,7 @@ internal object IeltsM1 {
     )
 
     private val bands = Topic(
-        id = "ie1-bands", title = "How bands are calculated, and what band 7 means in each paper", minutes = 22, references = refs,
+        id = "ie1-bands", title = "How bands are calculated, and what band 7 means in each paper", minutes = 22, references = refs + B.ref("How IELTS is scored, in detail", Ielts.ORG + "take-a-test/your-results/ielts-scoring-in-detail") + B.ref("IELTS and the CEFR", Ielts.ORG + "organisations/ielts-for-organisations/compare-ielts/ielts-and-the-cefr"),
         blocks = listOf(
             B.warmup(
                 "ie1-bands-w1", "ie1-bands",
@@ -156,7 +156,7 @@ internal object IeltsM1 {
     )
 
     private val plan = Topic(
-        id = "ie1-plan", title = "From your current level to a 7: the study plan this course follows", minutes = 16, references = refs,
+        id = "ie1-plan", title = "From your current level to a 7: the study plan this course follows", minutes = 16, references = refs + B.ref("Improving your results", Ielts.ORG + "take-a-test/your-results/improving-your-results") + B.ref("The free IELTS trial test", Ielts.ORG + "take-a-test/preparation-resources/ielts-trial-test"),
         blocks = listOf(
             B.warmup(
                 "ie1-plan-w1", "ie1-plan",

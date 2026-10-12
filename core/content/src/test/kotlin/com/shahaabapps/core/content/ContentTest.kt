@@ -80,7 +80,12 @@ class ContentTest {
                 assertTrue("${t.id} should end with a recap", t.blocks.last() is Block.Recap)
                 assertTrue("${t.id} needs a diagram", t.blocks.any { it is Block.Diagram })
                 assertTrue("${t.id} minutes", t.minutes in 5..60)
-                assertTrue("${t.id} needs official references", t.references.isNotEmpty())
+                // Four, and at least two of them not shared with every other
+                // topic in the course. German and IELTS used to carry the
+                // course's common pair and nothing else, which made the
+                // section furniture: the same two links under every topic.
+                assertTrue("${t.id} has ${t.references.size} reference(s), wanted 4 or more", t.references.size >= 4)
+                assertEquals("${t.id} repeats a reference", t.references.size, t.references.map { it.url }.distinct().size)
                 t.references.forEach { r -> assertTrue("${t.id}: ${r.url}", r.url.startsWith("https://learn.microsoft.com/") || r.url.startsWith("https://www.goethe.de/") || r.url.startsWith("https://ielts.org/")) }
                 assertTrue("${t.id} needs a glossary", t.blocks.any { it is Block.Glossary })
                 t.blocks.filterIsInstance<Block.Check>().forEach { c -> assertTrue("${c.question.id} topic", c.question.topicId == t.id) }
@@ -205,6 +210,30 @@ class ContentTest {
             "and a check that asks for the choice",
             checks.any { q -> q.options.any { it.contains("kein") } && q.options.any { it.contains("nicht") } },
         )
+    }
+
+    @Test
+    fun `the German deck is one card per word, and covers the official list`() {
+        // The Goethe A1 Wortliste has about 650 headwords. The deck held 566
+        // cards and covered 326 of them, while the file that sweeps up the
+        // remainder claimed in its own doc comment to cover the whole list.
+        // The list was downloaded and compared word by word; what was missing
+        // was written. 650 is the floor, not the target.
+        val words = GermanA1.course.allTopics
+            .flatMap { t -> t.blocks.filterIsInstance<Block.Vocab>().flatMap { it.words } }
+        assertTrue("German has ${words.size} cards, wanted 650 or more", words.size >= 650)
+        assertEquals("a word id is used twice", words.size, words.map { it.id }.distinct().size)
+        // Two cards for one word are two schedules for one thing, so answering
+        // either leaves the other due. Seventeen pairs had accumulated.
+        val twice = words.groupBy { it.de }.filterValues { it.size > 1 }
+        assertTrue("these words have more than one card: ${twice.keys}", twice.isEmpty())
+        // A noun needs its article, because the article is half of what has to
+        // be learnt and the card is the only place it is shown. German
+        // capitalises a few things that are not nouns, and country names take
+        // no article, so those are named rather than guessed at.
+        val notNouns = setOf("Hallo", "Tschüss", "Ihnen", "Deutschland", "Indien", "Pakistan", "Katar")
+        words.filter { it.de.first().isUpperCase() && ' ' !in it.de && !it.de.endsWith("-") && it.de !in notNouns }
+            .forEach { w -> assertTrue("de/${w.id}: ${w.de} is a noun with no article", w.article != null) }
     }
 
     @Test
