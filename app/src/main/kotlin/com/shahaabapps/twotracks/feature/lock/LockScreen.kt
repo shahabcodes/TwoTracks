@@ -1,6 +1,18 @@
 package com.shahaabapps.twotracks.feature.lock
 
 import androidx.biometric.BiometricPrompt
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.filled.Fingerprint
+import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.font.FontWeight
+import com.shahaabapps.twotracks.ui.components.TwoTracksMark
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -9,9 +21,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBarsPadding
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -24,18 +34,18 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentActivity
-import com.shahaabapps.core.ui.components.CupertinoPrimaryButton
 import com.shahaabapps.core.ui.theme.AppTheme
-import com.shahaabapps.core.ui.theme.Brand
 import com.shahaabapps.core.ui.theme.Spacing
 
-/** Shows a BiometricPrompt as soon as it appears; an Unlock button retries it. */
+/**
+ * Shows a BiometricPrompt as soon as it appears; the fingerprint button
+ * retries it. Drawn as the Parallel lock: the two bars, the line, one button.
+ */
 @Composable
 fun LockScreen(
     allowedAuthenticators: Int,
@@ -63,20 +73,32 @@ fun LockScreen(
     LaunchedEffect(Unit) { prompt() }
 
     Column(
-        modifier = Modifier.fillMaxSize().systemBarsPadding().padding(horizontal = Spacing.listHorizontal),
-        verticalArrangement = Arrangement.spacedBy(Spacing.md, Alignment.CenterVertically),
+        modifier = Modifier.fillMaxSize().background(AppTheme.colors.groupedBackground).systemBarsPadding().padding(horizontal = Spacing.listHorizontal),
+        verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        Box(
-            modifier = Modifier.size(72.dp).clip(RoundedCornerShape(20.dp)).background(Brand.accentGradient),
-            contentAlignment = Alignment.Center,
-        ) { Icon(Icons.Filled.Lock, contentDescription = null, tint = Color.White, modifier = Modifier.size(36.dp)) }
-        Text("Two Tracks is locked", style = MaterialTheme.typography.headlineLarge)
+        TwoTracksMark(height = 64.dp)
         Text(
-            "Unlock with your fingerprint, face or device PIN.",
-            style = MaterialTheme.typography.bodyMedium, color = AppTheme.colors.secondaryLabel, textAlign = TextAlign.Center,
+            "Two Tracks is locked", style = MaterialTheme.typography.headlineLarge, fontWeight = FontWeight.Bold,
+            textAlign = TextAlign.Center, modifier = Modifier.padding(top = 28.dp).semantics { heading() },
         )
-        error?.let { Text(it, color = AppTheme.colors.destructive, style = MaterialTheme.typography.bodySmall, textAlign = TextAlign.Center) }
-        CupertinoPrimaryButton(text = "Unlock", onClick = { error = null; prompt() }, modifier = Modifier.padding(top = Spacing.sm))
+        Text(
+            "Your plan, your partner's progress and your documents stay behind your fingerprint, face or device PIN.",
+            style = MaterialTheme.typography.bodyMedium, color = AppTheme.colors.secondaryLabel, textAlign = TextAlign.Center,
+            modifier = Modifier.padding(top = 10.dp).widthIn(max = 300.dp),
+        )
+        Box(
+            contentAlignment = Alignment.Center,
+            modifier = Modifier
+                .padding(top = 52.dp)
+                .size(96.dp)
+                .clip(CircleShape)
+                .border(Spacing.rule, AppTheme.colors.ink, CircleShape)
+                .clickable(role = Role.Button, onClickLabel = "Unlock") { error = null; prompt() },
+        ) { Icon(Icons.Filled.Fingerprint, contentDescription = "Unlock", tint = AppTheme.colors.ink, modifier = Modifier.size(44.dp)) }
+        Text("Touch to unlock", style = MaterialTheme.typography.bodyMedium, color = AppTheme.colors.secondaryLabel, modifier = Modifier.padding(top = 14.dp))
+        error?.let {
+            Text(it, color = AppTheme.colors.destructive, style = MaterialTheme.typography.bodySmall, textAlign = TextAlign.Center, modifier = Modifier.padding(top = Spacing.md).semantics { liveRegion = LiveRegionMode.Polite })
+        }
     }
 }
