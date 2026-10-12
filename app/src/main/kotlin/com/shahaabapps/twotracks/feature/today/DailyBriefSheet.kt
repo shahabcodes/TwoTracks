@@ -48,7 +48,7 @@ data class DailyBrief(
     val task: String,
     val taskDetail: String,
     /** Why it matters, in order: this goal, this level, the move. */
-    val reasons: List<Pair<ImageVector, String>>,
+    val reasons: List<BriefReason>,
     val streakLine: String,
     val isRestDay: Boolean,
 )
@@ -105,7 +105,8 @@ fun DailyBriefSheet(
                     .padding(Spacing.md),
                 verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
-                brief.reasons.forEach { (icon, text) ->
+                brief.reasons.forEach { (kind, text) ->
+                    val icon = BriefIcons.of(kind)
                     Row(verticalAlignment = Alignment.Top, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                         Box(modifier = Modifier.size(28.dp).clip(CircleShape).background(AppTheme.colors.accent.copy(alpha = 0.14f)), contentAlignment = Alignment.Center) {
                             Icon(icon, contentDescription = null, tint = AppTheme.colors.accentText, modifier = Modifier.size(16.dp))
@@ -128,10 +129,18 @@ fun DailyBriefSheet(
     }
 }
 
-/** Icons the view model uses when composing reasons. */
+/**
+ * The icon for each kind of brief line.
+ *
+ * The lines themselves are built in [DailyBriefs], which knows nothing about
+ * Compose; that is what lets them be tested. This is the only place the two
+ * meet.
+ */
 object BriefIcons {
-    val goal = Icons.Filled.TrendingUp
-    val level = Icons.Filled.Flag
-    val move = Icons.Filled.Bolt
-    val learn = Icons.Filled.MenuBook
+    fun of(kind: BriefKind): ImageVector = when (kind) {
+        BriefKind.GOAL -> Icons.Filled.TrendingUp
+        BriefKind.LEVEL -> Icons.Filled.Flag
+        BriefKind.MOVE -> Icons.Filled.Bolt
+        BriefKind.LEARN -> Icons.Filled.MenuBook
+    }
 }

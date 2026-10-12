@@ -147,6 +147,9 @@ displays it.
   you have not read yet. Checks and paper sittings both feed it.
 - Nothing has been judged on a real device. Everything from 0.40.0 onwards has
   been exercised on an emulator only.
+- The Firebase emulator suite can no longer be started here: firebase-tools
+  needs Java 21 and the build pins 17. Anything that has to read or write
+  Firestore on the device cannot be checked locally until one of those moves.
 - Every push transition runs at about 20ms a frame and 10 per cent janky on
   the emulator, Settings and a course screen alike. That is the floor there,
   not a bug in one screen, and the emulator cannot resolve anything smaller:
