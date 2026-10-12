@@ -5,6 +5,7 @@ import com.google.firebase.firestore.WriteBatch
 import com.shahaabapps.core.data.firestore.Mappers.toLevel
 import com.shahaabapps.core.data.firestore.Mappers.toMap
 import com.shahaabapps.core.data.firestore.Paths
+import com.shahaabapps.core.data.firestore.asDoc
 import com.shahaabapps.core.data.firestore.couple
 import com.shahaabapps.core.data.firestore.sub
 import com.shahaabapps.core.model.PersonRole
@@ -32,7 +33,7 @@ class SeedWriter @Inject constructor(
      */
     suspend fun seedAll(coupleId: String, rebaseToIso: String? = null) {
         val batches = BatchRunner(firestore)
-        val existingLevels = firestore.sub(coupleId, Paths.LEVELS).get().await().documents.associate { it.id to it.toLevel() }
+        val existingLevels = firestore.sub(coupleId, Paths.LEVELS).get().await().documents.associate { it.id to it.asDoc().toLevel() }
         val base = rebaseToIso
             ?: existingLevels.values.filter { it.number == 1 }.minOfOrNull { it.startDateIso }
             ?: java.time.LocalDate.now().toString()

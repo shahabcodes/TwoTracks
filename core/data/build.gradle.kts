@@ -26,4 +26,5 @@ dependencies {
     implementation(project(":core:common"))
     implementation(project(":core:seed"))
     implementation(libs.kotlinx.coroutines.android)
+    testImplementation(libs.junit)
 }

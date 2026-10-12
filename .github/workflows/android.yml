@@ -64,7 +64,7 @@ jobs:
       # combinations clear the WCAG AA floor. A block shipped on an
       # unreadable background once and nothing caught it.
       - name: Unit tests (content, planner, seed, ui, app)
-        run: gradle :core:content:test :core:planner:test :core:seed:test :core:ui:testDebugUnitTest :app:testDebugUnitTest --no-daemon
+        run: gradle :core:content:test :core:planner:test :core:seed:test :core:ui:testDebugUnitTest :core:data:testDebugUnitTest :app:testDebugUnitTest --no-daemon
 
       # Release, not debug. The published APK was the debug one for a long
       # time, and a debuggable build runs the interpreter where a release

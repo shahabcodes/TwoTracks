@@ -1,10 +1,13 @@
 package com.shahaabapps.core.data.learning
 
 import com.shahaabapps.core.model.Flashcard
-import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
 import com.shahaabapps.core.common.AppResult
 import com.shahaabapps.core.common.runCatchingResult
+import com.shahaabapps.core.data.firestore.Mappers.toFlashcard
+import com.shahaabapps.core.data.firestore.Mappers.toMap
+import com.shahaabapps.core.data.firestore.Mappers.toQuizAttempt
+import com.shahaabapps.core.data.firestore.Mappers.toTopicProgress
 import com.shahaabapps.core.data.firestore.Paths
 import com.shahaabapps.core.data.firestore.asFlow
 import com.shahaabapps.core.data.firestore.bool
@@ -91,41 +94,5 @@ class FirebaseLearningRepository @Inject constructor(
         Unit
     }
 
-    private fun Flashcard.toMap() = mapOf(
-        "owner" to owner.name, "courseId" to courseId, "wordId" to wordId, "step" to step, "dueIso" to dueIso,
-        "lastReviewIso" to lastReviewIso, "correct" to correct, "misses" to misses,
-    )
-
-    private fun DocumentSnapshot.toFlashcard() = Flashcard(
-        id = id, owner = runCatching { PersonRole.valueOf(str("owner")) }.getOrDefault(PersonRole.TECH),
-        courseId = str("courseId"), wordId = str("wordId"), step = int("step"), dueIso = str("dueIso"),
-        lastReviewIso = str("lastReviewIso"), correct = int("correct"), misses = int("misses"),
-    )
-
     private fun topicDocId(owner: PersonRole, topicId: String) = "${owner.name.lowercase()}_$topicId"
-
-    private fun TopicProgress.toMap() = mapOf(
-        "owner" to owner.name, "courseId" to courseId, "topicId" to topicId, "learnedAtIso" to learnedAtIso, "minutes" to minutes,
-    )
-
-    private fun DocumentSnapshot.toTopicProgress() = TopicProgress(
-        id = id, owner = runCatching { PersonRole.valueOf(str("owner")) }.getOrDefault(PersonRole.TECH),
-        courseId = str("courseId"), topicId = str("topicId"), learnedAtIso = str("learnedAtIso"), minutes = int("minutes"),
-    )
-
-    private fun QuizAttempt.toMap() = mapOf(
-        "owner" to owner.name, "courseId" to courseId, "moduleId" to moduleId, "dateIso" to dateIso,
-        "score" to score, "total" to total, "passed" to passed, "missed" to missed, "asked" to asked, "at" to at,
-        // Firestore will not nest an array inside an array, but a map whose
-        // values are arrays is fine, which is why these are keyed by question
-        // id rather than held parallel to `asked`.
-        "picked" to picked, "seconds" to seconds, "sure" to sure,
-    )
-
-    private fun DocumentSnapshot.toQuizAttempt() = QuizAttempt(
-        id = id, owner = runCatching { PersonRole.valueOf(str("owner")) }.getOrDefault(PersonRole.TECH),
-        courseId = str("courseId"), moduleId = str("moduleId"), dateIso = str("dateIso"),
-        score = int("score"), total = int("total"), passed = bool("passed"), missed = stringList("missed"), asked = stringList("asked"), at = getLong("at") ?: 0L,
-        picked = intListMap("picked"), seconds = intMap("seconds"), sure = boolMap("sure"),
-    )
 }
