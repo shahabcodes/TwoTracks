@@ -1,5 +1,8 @@
 package com.shahaabapps.twotracks.feature.learn
 
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.BoxWithConstraints
 import com.shahaabapps.core.ui.theme.MonoFamily
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.heading
@@ -273,23 +276,34 @@ private fun CodeBlock(block: Block.Code) {
 
 @Composable
 private fun TableBlock(block: Block.Table) {
-    Column(modifier = Modifier.fillMaxWidth()) {
-        HorizontalDivider(color = AppTheme.colors.ink, thickness = Spacing.rule)
-        Row(modifier = Modifier.fillMaxWidth().padding(vertical = 10.dp), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-            block.headers.forEach { h -> Text(h.uppercase(), style = MaterialTheme.typography.labelMedium.copy(fontSize = 10.sp), color = AppTheme.colors.secondaryLabel, modifier = Modifier.weight(1f)) }
-        }
-        HorizontalDivider(color = AppTheme.colors.separator, thickness = Spacing.hairline)
-        block.rows.forEach { row ->
-            Row(modifier = Modifier.fillMaxWidth().padding(vertical = 10.dp), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                row.forEachIndexed { j, cell ->
-                    Text(
-                        cell, style = MaterialTheme.typography.bodySmall, lineHeight = 18.sp,
-                        fontWeight = if (j == 0) FontWeight.Medium else FontWeight.Normal,
-                        modifier = Modifier.weight(1f),
-                    )
+    // The prototype's three columns share the width. A table with more than
+    // three gives each column room for its longest word and scrolls sideways,
+    // because sharing the width five ways broke "masculine" across two lines.
+    val columns = block.headers.size
+    val wide = columns > 3
+    BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
+        val tableWidth = if (wide) maxOf(maxWidth, 96.dp * columns + 10.dp * (columns - 1)) else maxWidth
+        val cell: RowScope.() -> Modifier = { if (wide) Modifier.weight(1f).widthIn(min = 96.dp) else Modifier.weight(1f) }
+        Column(modifier = if (wide) Modifier.horizontalScroll(rememberScrollState()) else Modifier) {
+            Column(modifier = Modifier.width(tableWidth)) {
+                HorizontalDivider(color = AppTheme.colors.ink, thickness = Spacing.rule)
+                Row(modifier = Modifier.fillMaxWidth().padding(vertical = 10.dp), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                    block.headers.forEach { h -> Text(h.uppercase(), style = MaterialTheme.typography.labelMedium.copy(fontSize = 10.sp), color = AppTheme.colors.secondaryLabel, modifier = cell()) }
+                }
+                HorizontalDivider(color = AppTheme.colors.separator, thickness = Spacing.hairline)
+                block.rows.forEach { row ->
+                    Row(modifier = Modifier.fillMaxWidth().padding(vertical = 10.dp), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                        row.forEachIndexed { j, text ->
+                            Text(
+                                text, style = MaterialTheme.typography.bodySmall, lineHeight = 18.sp,
+                                fontWeight = if (j == 0) FontWeight.Medium else FontWeight.Normal,
+                                modifier = cell(),
+                            )
+                        }
+                    }
+                    HorizontalDivider(color = AppTheme.colors.separator, thickness = Spacing.hairline)
                 }
             }
-            HorizontalDivider(color = AppTheme.colors.separator, thickness = Spacing.hairline)
         }
     }
 }
@@ -528,37 +542,24 @@ private fun WarmupBlock(block: Block.Warmup) {
         q.options.forEachIndexed { i, opt ->
             val chosen = picked == i
             val correct = answered && i in q.correct
-            // The option you chose was drawn in fill on a fill slab, which left
-            // it at 1.4:1 against its own background — you could not see which
-            // one you had picked. It is now tinted and outlined in the accent.
-            val outline = when {
-                correct -> AppTheme.colors.success
-                answered && chosen -> AppTheme.colors.accent
-                else -> AppTheme.colors.separator
+            // Drawn as the quick check draws its options: outlined, with the
+            // right one and yours tagged once the guess is in.
+            val (border, fill, tag, tagInk) = when {
+                correct -> Quad(AppTheme.colors.success, AppTheme.colors.success.copy(alpha = 0.08f), "RIGHT", AppTheme.colors.success)
+                answered && chosen -> Quad(AppTheme.colors.destructive, AppTheme.colors.destructive.copy(alpha = 0.08f), "YOURS", AppTheme.colors.destructive)
+                else -> Quad(AppTheme.colors.separator, Color.Transparent, "", AppTheme.colors.secondaryLabel)
             }
             Row(
-                verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp),
-                modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(10.dp))
-                    .background(
-                        when {
-                            correct -> AppTheme.colors.success.copy(alpha = 0.15f)
-                            answered && chosen -> AppTheme.colors.accent.copy(alpha = 0.18f)
-                            else -> AppTheme.colors.fill
-                        },
-                    )
-                    .border(if (correct || (answered && chosen)) 1.5.dp else 1.dp, outline, RoundedCornerShape(10.dp))
+                verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp),
+                modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp).clip(RoundedCornerShape(12.dp))
+                    .background(fill)
+                    .border(if (correct || (answered && chosen)) 2.dp else Spacing.rule, border, RoundedCornerShape(12.dp))
                     .clickable(enabled = !answered) { picked = i }
-                    .padding(horizontal = 12.dp, vertical = 10.dp),
+                    .padding(horizontal = 14.dp, vertical = 10.dp),
             ) {
-                Text(
-                    ('A' + i).toString(),
-                    style = MaterialTheme.typography.labelMedium,
-                    // The secondary label on a tinted row measures 4.3:1, just
-                    // under the floor, so a marked row gets the full ink.
-                    color = if (correct || (answered && chosen)) MaterialTheme.colorScheme.onSurface else AppTheme.colors.secondaryLabel,
-                    fontWeight = FontWeight.Bold,
-                )
+                Text(('A' + i).toString(), style = MaterialTheme.typography.bodySmall.copy(fontFamily = MonoFamily, fontSize = 12.sp), color = AppTheme.colors.secondaryLabel, modifier = Modifier.width(14.dp))
                 Text(opt, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.weight(1f))
+                if (tag.isNotEmpty()) Text(tag, style = MaterialTheme.typography.labelMedium, color = tagInk)
             }
         }
         if (answered) {

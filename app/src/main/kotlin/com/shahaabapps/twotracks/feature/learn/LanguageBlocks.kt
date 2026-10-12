@@ -60,11 +60,11 @@ import java.text.Normalizer
 fun SpeakButton(text: String, speaker: Speaker?, size: androidx.compose.ui.unit.Dp = 32.dp, slow: Boolean = false) {
     val enabled = speaker != null
     Box(
-        modifier = Modifier.size(size).clip(CircleShape).background(if (enabled) AppTheme.colors.accent.copy(alpha = 0.14f) else AppTheme.colors.fill)
+        modifier = Modifier.size(size).clip(CircleShape).border(Spacing.rule, AppTheme.colors.separator, CircleShape)
             .clickable(enabled = enabled) { speaker?.speak(text, slow) },
         contentAlignment = Alignment.Center,
     ) {
-        Icon(Icons.Filled.VolumeUp, contentDescription = "Listen", tint = if (enabled) AppTheme.colors.accent else AppTheme.colors.secondaryLabel, modifier = Modifier.size(size * 0.55f))
+        Icon(Icons.Filled.VolumeUp, contentDescription = if (slow) "Listen slowly" else "Listen", tint = if (enabled) AppTheme.colors.ink else AppTheme.colors.secondaryLabel, modifier = Modifier.size(size * 0.45f))
     }
 }
 

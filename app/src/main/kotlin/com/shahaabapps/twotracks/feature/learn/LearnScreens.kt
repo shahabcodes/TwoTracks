@@ -164,6 +164,14 @@ fun LearnContent(
     }
 }
 
+/** The exam a course leads to, short enough for the line above its title. */
+internal fun examName(course: com.shahaabapps.core.content.Course): String = when (course.id) {
+    "az-204" -> "Microsoft AZ-204"
+    "de-a1" -> "Goethe-Zertifikat A1"
+    "ielts" -> "IELTS Academic and General"
+    else -> course.title
+}
+
 /** "THREE COURSES · TWO OF THEM YOURS" */
 internal fun coursesLine(total: Int, mine: Int): String {
     fun word(n: Int) = when (n) { 0 -> "none"; 1 -> "one"; 2 -> "two"; 3 -> "three"; 4 -> "four"; else -> n.toString() }
@@ -284,7 +292,7 @@ fun CourseContent(
     DetailScaffold(
         title = course?.title ?: "Course",
         onBack = onBack,
-        eyebrow = course?.let { "${it.subtitle.substringBefore(".")} · ${it.modules.size} modules" },
+        eyebrow = course?.let { "${examName(it)} · ${it.modules.size} modules" },
     ) {
         if (course == null) return@DetailScaffold
         LazyColumn(contentPadding = PaddingValues(bottom = Spacing.xl)) {
