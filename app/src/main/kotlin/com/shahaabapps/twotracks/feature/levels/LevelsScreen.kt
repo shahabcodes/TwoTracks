@@ -1,5 +1,8 @@
 package com.shahaabapps.twotracks.feature.levels
 
+import com.shahaabapps.twotracks.ui.components.DetailScaffold
+import com.shahaabapps.twotracks.ui.guide.GuideAnchors
+import com.shahaabapps.twotracks.ui.guide.guideAnchor
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -30,7 +33,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -43,7 +45,6 @@ import com.shahaabapps.core.ui.components.CupertinoCard
 import com.shahaabapps.core.ui.components.CupertinoDisclosure
 import com.shahaabapps.core.ui.components.CupertinoListRow
 import com.shahaabapps.core.ui.components.CupertinoListSection
-import com.shahaabapps.core.ui.components.CupertinoScaffold
 import com.shahaabapps.core.ui.theme.AppTheme
 import com.shahaabapps.core.ui.theme.IosColors
 import com.shahaabapps.core.ui.theme.Spacing
@@ -77,16 +78,17 @@ class LevelsViewModel @Inject constructor(planStore: PlanStore) : ViewModel() {
     fun toggle() { showPartner.value = !showPartner.value }
 }
 
-/** Tab 3: both ladders, then the reference material from the guide under them. */
+/** Both ladders, then the reference material from the guide under them. Opened from Together. */
 @Composable
 fun LevelsScreen(
+    onBack: () -> Unit,
     onOpenLevel: (String) -> Unit,
     onNavigate: (String) -> Unit,
     viewModel: LevelsViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val plan = state.plan
-    CupertinoScaffold(title = "Levels") {
+    DetailScaffold(title = "Levels", onBack = onBack, eyebrow = "The roadmap, quarter by quarter") {
         LazyColumn(verticalArrangement = Arrangement.spacedBy(Spacing.md), contentPadding = PaddingValues(bottom = Spacing.xl)) {
             if (plan != null) {
                 item {
@@ -98,7 +100,7 @@ fun LevelsScreen(
                 }
                 val person = state.person!!
                 item {
-                    CupertinoCard(modifier = Modifier.padding(horizontal = Spacing.listHorizontal)) {
+                    CupertinoCard(modifier = Modifier.padding(horizontal = Spacing.listHorizontal).guideAnchor(GuideAnchors.LEVELS_LADDER)) {
                         person.levels.forEachIndexed { i, lp -> LadderRow(lp, last = i == person.levels.lastIndex, onClick = { onOpenLevel(lp.level.id) }) }
                     }
                 }

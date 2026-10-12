@@ -1,7 +1,6 @@
 package com.shahaabapps.twotracks.ui
 
 import com.shahaabapps.twotracks.feature.learn.DeckScreen
-import androidx.compose.material.icons.filled.MenuBook
 import com.shahaabapps.twotracks.feature.learn.CourseScreen
 import com.shahaabapps.twotracks.feature.learn.LearnScreen
 import com.shahaabapps.twotracks.feature.learn.QuizScreen
@@ -13,7 +12,6 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -25,9 +23,13 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material.icons.filled.Flag
-import androidx.compose.material.icons.filled.Today
+import androidx.compose.material.icons.automirrored.outlined.MenuBook
+import androidx.compose.material.icons.outlined.People
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.selection.selectableGroup
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.text.font.FontWeight
+import com.shahaabapps.twotracks.ui.components.ParallelIcons
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -78,6 +80,7 @@ import com.shahaabapps.twotracks.feature.tests.TestsScreen
 import com.shahaabapps.twotracks.feature.today.TodayScreen
 import com.shahaabapps.twotracks.feature.us.UsScreen
 import com.shahaabapps.twotracks.feature.week.WeekScreen
+import com.shahaabapps.twotracks.feature.week.BothWeeksScreen
 import com.shahaabapps.twotracks.feature.week.YourWeekScreen
 import com.shahaabapps.twotracks.session.AppSession
 import com.shahaabapps.twotracks.widget.WidgetLaunch
@@ -96,6 +99,7 @@ object Routes {
     const val PARTNER = "partner"
     const val CHANGELOG = "changelog"
     const val WEEK = "week"
+    const val BOTH_WEEKS = "week/both"
     const val GOAL_DETAIL = "goal/{goalId}"
     const val GOAL_EDIT = "goal/{goalId}/edit"
     const val GOAL_NEW = "goal/new/edit?levelId={levelId}"
@@ -123,53 +127,57 @@ object Routes {
 private data class Tab(val route: String, val label: String, val icon: ImageVector)
 
 /**
- * Learn comes first, and is where the app opens.
+ * Today, Learn, Together, as the Parallel prototype has them, and the app
+ * opens on Today.
  *
- * The point of this app is the studying; everything else here measures it.
- * A tab bar is read left to right and the first tab is the one the app lands
- * on, so putting Today first meant opening every day on a summary of work
- * rather than on the work.
+ * Learn used to come first, on the argument that the app should open on the
+ * work rather than a summary of it. The redesign puts the work on Today: the
+ * next session is the first card there, with its topic one tap away, so
+ * opening on Today no longer means opening on a report. Levels left the bar
+ * for Together, where the rest of the long view already was.
  */
 private val tabs = listOf(
-    Tab(Routes.LEARN, "Learn", Icons.Filled.MenuBook),
-    Tab(Routes.TODAY, "Today", Icons.Filled.Today),
-    Tab(Routes.US, "US", Icons.Filled.Favorite),
-    Tab(Routes.LEVELS, "Levels", Icons.Filled.Flag),
+    Tab(Routes.TODAY, "Today", ParallelIcons.Tracks),
+    Tab(Routes.LEARN, "Learn", Icons.AutoMirrored.Outlined.MenuBook),
+    Tab(Routes.US, "Together", Icons.Outlined.People),
 )
 
 /** Which tour anchor a tab reports itself as. */
 private fun guideAnchorFor(route: String): String = when (route) {
     Routes.LEARN -> GuideAnchors.TAB_LEARN
     Routes.TODAY -> GuideAnchors.TAB_TODAY
-    Routes.US -> GuideAnchors.TAB_US
-    else -> GuideAnchors.TAB_LEVELS
+    else -> GuideAnchors.TAB_US
 }
 
-/** iOS tab bar: flat surface with a hairline on top, icon + 10sp label, accent when selected. */
+/** The Parallel tab bar: the page colour under a hairline, ink for the tab you are on. */
 @Composable
 private fun CupertinoTabBar(selectedRoute: String?, onSelect: (String) -> Unit) {
-    Column(modifier = Modifier.fillMaxWidth().background(AppTheme.colors.card)) {
-        HorizontalDivider(color = AppTheme.colors.separator, thickness = 0.5.dp)
+    Column(modifier = Modifier.fillMaxWidth().background(AppTheme.colors.groupedBackground)) {
+        HorizontalDivider(color = AppTheme.colors.separator, thickness = 1.dp)
         Row(
-            modifier = Modifier.fillMaxWidth().height(52.dp).padding(horizontal = 6.dp),
+            modifier = Modifier.fillMaxWidth().height(60.dp).padding(horizontal = 6.dp).selectableGroup(),
             horizontalArrangement = Arrangement.SpaceEvenly,
             verticalAlignment = Alignment.CenterVertically,
         ) {
             tabs.forEach { tab ->
                 val selected = tab.route == selectedRoute
-                val tint = if (selected) AppTheme.colors.accent else AppTheme.colors.secondaryLabel
+                val tint = if (selected) AppTheme.colors.ink else AppTheme.colors.secondaryLabel
                 val interaction = remember { MutableInteractionSource() }
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Center,
                     modifier = Modifier
                         .weight(1f)
-                        .clickable(interactionSource = interaction, indication = null) { onSelect(tab.route) }
-                        .padding(vertical = 4.dp)
+                        .selectable(selected = selected, role = Role.Tab, interactionSource = interaction, indication = null) { onSelect(tab.route) }
+                        .padding(vertical = 6.dp)
                         .guideAnchor(guideAnchorFor(tab.route)),
                 ) {
-                    Icon(tab.icon, contentDescription = tab.label, tint = tint, modifier = Modifier.size(24.dp))
-                    Text(tab.label, style = MaterialTheme.typography.labelSmall, color = tint, modifier = Modifier.padding(top = 2.dp))
+                    Icon(tab.icon, contentDescription = null, tint = tint, modifier = Modifier.size(24.dp))
+                    Text(
+                        tab.label, style = MaterialTheme.typography.labelSmall, color = tint,
+                        fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Medium,
+                        modifier = Modifier.padding(top = 4.dp),
+                    )
                 }
             }
         }
@@ -248,7 +256,7 @@ fun MainNavGraph(session: AppSession, widgetLaunch: WidgetLaunch) {
         fun isTab(route: String?) = route in tabRoutes
         NavHost(
             navController = navController,
-            startDestination = Routes.LEARN,
+            startDestination = Routes.TODAY,
             modifier = Modifier.padding(padding),
             // Settings used to fade here rather than slide, to hide the
             // cost of its first composition behind an animation with no
@@ -273,7 +281,8 @@ fun MainNavGraph(session: AppSession, widgetLaunch: WidgetLaunch) {
                     onOpenLevel = { navController.navigate(Routes.level(it)) },
                     onOpenPartner = { navController.navigate(Routes.PARTNER) },
                     onOpenGoal = { navController.navigate(Routes.goalDetail(it)) },
-                    onOpenWeek = { navController.navigate(Routes.YOUR_WEEK) },
+                    onOpenWeek = { navController.navigate(Routes.WEEK) },
+                    onOpenSettings = { navController.navigate(Routes.SETTINGS) },
                     onOpenChangelog = { navController.navigate(Routes.CHANGELOG) },
                     onOpenTopic = { c, t -> navController.navigate(Routes.topic(c, t)) },
                     onOpenQuiz = { c, m -> navController.navigate(Routes.quiz(c, m)) },
@@ -292,7 +301,7 @@ fun MainNavGraph(session: AppSession, widgetLaunch: WidgetLaunch) {
                 )
             }
             composable(Routes.LEVELS) {
-                LevelsScreen(onOpenLevel = { navController.navigate(Routes.level(it)) }, onNavigate = { navController.navigate(it) })
+                LevelsScreen(onBack = { navController.popBackStack() }, onOpenLevel = { navController.navigate(Routes.level(it)) }, onNavigate = { navController.navigate(it) })
             }
             composable(Routes.LEARN) {
                 LearnScreen(onOpenCourse = { navController.navigate(Routes.course(it)) }, onOpenTopic = { c, t -> navController.navigate(Routes.topic(c, t)) }, onOpenDeck = { navController.navigate(Routes.deck(it)) }, onOpenQuiz = { c, m -> navController.navigate(Routes.quiz(c, m)) })
@@ -334,7 +343,15 @@ fun MainNavGraph(session: AppSession, widgetLaunch: WidgetLaunch) {
             composable(Routes.YOUR_WEEK) {
                 YourWeekScreen(onBack = { navController.popBackStack() }, onNavigate = { navController.navigate(it) }, onOpenGoal = { navController.navigate(Routes.goalDetail(it)) })
             }
-            composable(Routes.WEEK) { WeekScreen(onBack = { navController.popBackStack() }, onOpenGoal = { navController.navigate(Routes.goalDetail(it)) }) }
+            composable(Routes.WEEK) {
+                WeekScreen(
+                    onBack = { navController.popBackStack() },
+                    onOpenGoal = { navController.navigate(Routes.goalDetail(it)) },
+                    onOpenBothWeeks = { navController.navigate(Routes.BOTH_WEEKS) },
+                    onOpenFit = { navController.navigate(Routes.YOUR_WEEK) },
+                )
+            }
+            composable(Routes.BOTH_WEEKS) { BothWeeksScreen(onBack = { navController.popBackStack() }) }
             composable(Routes.GOAL_DETAIL, arguments = listOf(navArgument("goalId") { type = NavType.StringType })) { entry ->
                 val goalId = entry.arguments?.getString("goalId").orEmpty()
                 GoalDetailScreen(goalId = goalId, onBack = { navController.popBackStack() }, onEdit = { navController.navigate(Routes.goalEdit(goalId)) }, onOpenCourse = { navController.navigate(Routes.course(it)) }, onOpenQuiz = { c, m -> navController.navigate(Routes.quiz(c, m)) })

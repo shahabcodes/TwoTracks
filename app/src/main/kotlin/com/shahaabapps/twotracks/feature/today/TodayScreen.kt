@@ -1,33 +1,38 @@
 package com.shahaabapps.twotracks.feature.today
 
-import com.shahaabapps.core.ui.components.CupertinoSecondaryButton
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.animateContentSize
-import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material.icons.filled.FavoriteBorder
-import androidx.compose.material.icons.filled.RadioButtonUnchecked
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.outlined.Settings
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -36,36 +41,49 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
-import androidx.compose.ui.draw.clip
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.shahaabapps.core.content.Courses
-import com.shahaabapps.core.planner.Streaks
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.shahaabapps.core.content.Courses
+import com.shahaabapps.core.model.PersonRole
 import com.shahaabapps.core.model.SessionStatus
-import com.shahaabapps.core.ui.components.Avatar
-import com.shahaabapps.core.ui.components.CupertinoCard
-import com.shahaabapps.core.ui.components.CupertinoDisclosure
 import com.shahaabapps.core.ui.components.CupertinoPrimaryButton
+import com.shahaabapps.core.ui.components.CupertinoSecondaryButton
 import com.shahaabapps.core.ui.components.CupertinoTextButton
-import com.shahaabapps.core.ui.components.Hero
-import com.shahaabapps.core.ui.components.StatusChip
 import com.shahaabapps.core.ui.theme.AppTheme
+import com.shahaabapps.core.ui.theme.MonoFamily
 import com.shahaabapps.core.ui.theme.Shapes
 import com.shahaabapps.core.ui.theme.Spacing
 import com.shahaabapps.twotracks.changelog.WhatsNewDialog
-import com.shahaabapps.twotracks.ui.guide.LocalGuide
+import com.shahaabapps.core.planner.Dates
 import com.shahaabapps.twotracks.session.Clock
-import com.shahaabapps.twotracks.ui.components.AnimatedSwap
-import com.shahaabapps.twotracks.ui.components.Chip
 import com.shahaabapps.twotracks.ui.components.ProgressBar
+import com.shahaabapps.twotracks.ui.components.SheetGrabber
+import com.shahaabapps.twotracks.ui.guide.LocalGuide
 
 /**
- * Level 1 of the app: the current level line, your card, your partner's card,
- * one status sentence, streaks and the next deadline. Everything else is a tap away.
+ * Today, as the Parallel prototype draws it, and nothing else on it:
+ *
+ *  - the date, which opens the brief, and the two of you in your colours;
+ *  - the greeting, Settings, and a line on what is left for each of you;
+ *  - your one thing, outlined in ink, with the level it moves and the button
+ *    that starts it;
+ *  - both days on your clock as one timeline, each session a dot on its
+ *    owner's rail: filled when done, open while it is not.
+ *
+ * Marking a session done or skipping it, which the prototype does not draw,
+ * lives behind a tap on your own sessions in the timeline, so the screen
+ * keeps the prototype's shape and loses none of what it could do.
  */
 @Composable
 fun TodayScreen(
@@ -73,144 +91,120 @@ fun TodayScreen(
     onOpenPartner: () -> Unit,
     onOpenGoal: (String) -> Unit,
     onOpenWeek: () -> Unit,
+    onOpenSettings: () -> Unit,
     onOpenChangelog: () -> Unit,
     onOpenTopic: (String, String) -> Unit = { _, _ -> },
     onOpenQuiz: (String, String) -> Unit = { _, _ -> },
     viewModel: TodayViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+    TodayContent(
+        state = state,
+        onOpenLevel = onOpenLevel, onOpenPartner = onOpenPartner, onOpenGoal = onOpenGoal, onOpenWeek = onOpenWeek,
+        onOpenSettings = onOpenSettings, onOpenChangelog = onOpenChangelog, onOpenTopic = onOpenTopic, onOpenQuiz = onOpenQuiz,
+        onOpenBrief = viewModel::openBrief, onDismissBrief = viewModel::dismissBrief, onDismissWhatsNew = viewModel::dismissWhatsNew,
+        onDone = viewModel::done, onSkip = viewModel::skip, onReopen = viewModel::reopen, onMessageShown = viewModel::clearMessage,
+    )
+}
+
+/** Today drawn from its state alone, so a preview can show it without an account. */
+@Composable
+fun TodayContent(
+    state: TodayUiState,
+    onOpenLevel: (String) -> Unit,
+    onOpenPartner: () -> Unit,
+    onOpenGoal: (String) -> Unit,
+    onOpenWeek: () -> Unit,
+    onOpenSettings: () -> Unit,
+    onOpenChangelog: () -> Unit,
+    onOpenTopic: (String, String) -> Unit,
+    onOpenQuiz: (String, String) -> Unit,
+    onOpenBrief: () -> Unit,
+    onDismissBrief: () -> Unit,
+    onDismissWhatsNew: () -> Unit,
+    onDone: (SessionRow) -> Unit,
+    onSkip: (String) -> Unit,
+    onReopen: (String) -> Unit,
+    onMessageShown: () -> Unit,
+) {
     val snackbar = remember { SnackbarHostState() }
-    LaunchedEffect(state.message) { state.message?.let { snackbar.showSnackbar(it); viewModel.clearMessage() } }
+    LaunchedEffect(state.message) { state.message?.let { snackbar.showSnackbar(it); onMessageShown() } }
+    var actionsFor by remember { mutableStateOf<SessionRow?>(null) }
+    val haptic = LocalHapticFeedback.current
 
     val me = state.me
+    val partner = state.partner?.takeIf { it.profile != null }
+    val meIsTech = me?.role != PersonRole.TEACHER
+    val myColor = AppTheme.colors.track(meIsTech)
+    val partnerColor = AppTheme.colors.track(!meIsTech)
+
     Box {
-        LazyColumn(verticalArrangement = Arrangement.spacedBy(Spacing.md), contentPadding = PaddingValues(bottom = Spacing.xl)) {
-            item {
-                Hero(title = "Today", subtitle = Clock.formatLong(state.today)) {
-                    state.level?.let { lvl ->
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(top = Spacing.sm)
-                                .clip(Shapes.card)
-                                .border(Spacing.rule, AppTheme.colors.ink, Shapes.card)
-                                .clickable { onOpenLevel(lvl.level.id) }
-                                .padding(horizontal = Spacing.md, vertical = 12.dp),
-                        ) {
-                            Column(modifier = Modifier.weight(1f)) {
-                                Text("Level ${lvl.level.number} · ${lvl.level.name}", style = MaterialTheme.typography.titleMedium)
-                                Text(
-                                    "${lvl.requiredDone} of ${lvl.requiredTotal} done · " + when {
-                                        lvl.daysLeft == null -> ""
-                                        lvl.daysLeft!! < 0 -> "${-lvl.daysLeft!!} days overdue"
-                                        else -> "${lvl.daysLeft} days left"
-                                    },
-                                    style = MaterialTheme.typography.bodySmall, color = AppTheme.colors.secondaryLabel,
-                                )
-                                ProgressBar(
-                                    fraction = if (lvl.requiredTotal == 0) 0f else lvl.requiredDone.toFloat() / lvl.requiredTotal,
-                                    color = AppTheme.colors.accent, height = 5.dp, modifier = Modifier.padding(top = 6.dp),
-                                )
-                            }
-                            CupertinoDisclosure(modifier = Modifier.padding(start = Spacing.sm))
-                        }
-                    }
-                }
-            }
+        LazyColumn(contentPadding = PaddingValues(bottom = Spacing.xl)) {
+            item { Header(state, myColor, partnerColor, onOpenBrief = onOpenBrief, onOpenSettings = onOpenSettings) }
 
-            // The shared run: the one thing here that asks something of the pair.
-            val partnerName = state.partner?.name
-            if (partnerName != null) {
-                item { TogetherCard(state, partnerName = partnerName) }
-            }
-
-            // My card
             if (me != null) {
                 item {
-                    CupertinoCard(modifier = Modifier.padding(horizontal = Spacing.listHorizontal)) {
-                        Text("You", style = MaterialTheme.typography.labelMedium, color = AppTheme.colors.secondaryLabel)
-                        if (me.isRestDay) {
-                            Text("Rest day", style = MaterialTheme.typography.headlineMedium, modifier = Modifier.padding(top = 2.dp))
-                            Text("No slot today. Anything you read still counts.", style = MaterialTheme.typography.bodyMedium, color = AppTheme.colors.secondaryLabel)
-                        }
-                        me.sessions.forEachIndexed { i, row -> SessionBlock(row, first = i == 0, onOpenGoal = onOpenGoal, onOpenTopic = onOpenTopic, onOpenQuiz = onOpenQuiz, onDone = { viewModel.done(row) }, onSkip = { viewModel.skip(row.session.id) }, onReopen = { viewModel.reopen(row.session.id) }) }
-                        Text(
-                            "${me.todayMinutes} min today · ${me.streak}-day streak",
-                            style = MaterialTheme.typography.bodySmall, color = AppTheme.colors.secondaryLabel, modifier = Modifier.padding(top = Spacing.sm),
-                        )
-                    }
+                    OneThing(
+                        row = me.sessions.firstOrNull { it.session.status == SessionStatus.PLANNED },
+                        me = me, state = state, color = myColor,
+                        onOpenLevel = onOpenLevel, onOpenTopic = onOpenTopic, onOpenQuiz = onOpenQuiz,
+                        onDone = { haptic.performHapticFeedback(HapticFeedbackType.LongPress); onDone(it) },
+                    )
                 }
             }
 
-            // Status sentence
             item {
-                val (sentence, good) = state.status
-                if (sentence.isNotBlank()) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier
-                            .padding(horizontal = Spacing.listHorizontal)
-                            .fillMaxWidth()
-                            .clip(Shapes.card)
-                            .background(animateColorAsState(if (good) AppTheme.colors.allowedBackground else AppTheme.colors.warn.copy(alpha = 0.12f), label = "statusBg").value)
-                            .clickable(onClick = onOpenWeek)
-                            .padding(horizontal = Spacing.md, vertical = 12.dp),
-                    ) {
-                        Text(sentence, style = MaterialTheme.typography.bodyMedium, color = if (good) AppTheme.colors.success else AppTheme.colors.warn, modifier = Modifier.weight(1f))
-                        CupertinoDisclosure()
-                    }
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.fillMaxWidth().padding(start = Spacing.listHorizontal, end = Spacing.listHorizontal - 8.dp, top = 24.dp, bottom = 8.dp),
+                ) {
+                    Text("Today, on your clock", style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1f).semantics { heading() })
+                    MonoLink("Your week", onClick = onOpenWeek)
                 }
             }
 
-            // Partner card
-            state.partner?.let { p ->
+            val entries = buildList {
+                me?.sessions?.forEach { add(TimelineEntry(it, mine = true)) }
+                partner?.sessions?.forEach { add(TimelineEntry(it, mine = false)) }
+            }.sortedBy { it.row.readerStartMinutes }
+            val next = me?.sessions?.firstOrNull { it.session.status == SessionStatus.PLANNED }
+            if (entries.isEmpty()) {
                 item {
-                    CupertinoCard(modifier = Modifier.padding(horizontal = Spacing.listHorizontal), onClick = if (p.profile != null) onOpenPartner else null) {
-                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.md)) {
-                            Avatar(name = p.profile?.name ?: "?", photoUrl = p.profile?.photoUrl, size = 40.dp)
-                            Column(modifier = Modifier.weight(1f)) {
-                                Text(p.profile?.name?.ifBlank { null } ?: "Partner", style = MaterialTheme.typography.labelMedium, color = AppTheme.colors.secondaryLabel)
-                                if (p.profile == null) {
-                                    Text("Not joined yet", style = MaterialTheme.typography.titleMedium)
-                                    Text("Share the invite code from US, then Settings", style = MaterialTheme.typography.bodySmall, color = AppTheme.colors.secondaryLabel)
-                                } else if (p.isRestDay) {
-                                    Text("Rest day", style = MaterialTheme.typography.titleMedium)
-                                    Text("${p.todayMinutes} min today · ${p.streak}-day streak · ${p.localTime} there", style = MaterialTheme.typography.bodySmall, color = AppTheme.colors.secondaryLabel)
-                                } else {
-                                    val first = p.sessions.first()
-                                    Text("${first.goal?.title ?: "Study"} · ${first.timeLabel}", style = MaterialTheme.typography.titleMedium)
-                                    Text("${p.todayMinutes} min today · ${p.streak}-day streak · ${p.localTime} there", style = MaterialTheme.typography.bodySmall, color = AppTheme.colors.secondaryLabel)
-                                }
-                            }
-                            if (p.profile != null && p.sessions.isNotEmpty()) {
-                                val done = p.sessions.any { it.session.status == SessionStatus.DONE }
-                                Icon(if (done) Icons.Filled.CheckCircle else Icons.Filled.RadioButtonUnchecked, contentDescription = null, tint = if (done) AppTheme.colors.success else AppTheme.colors.secondaryLabel)
-                            }
-                            if (p.profile != null) CupertinoDisclosure()
-                        }
-                        state.partnerLevel?.let { lvl ->
-                            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = Spacing.sm)) {
-                                Text("Level ${lvl.level.number} · ${lvl.level.name}", style = MaterialTheme.typography.bodyMedium, modifier = Modifier.weight(1f))
-                                Text("${lvl.requiredDone} of ${lvl.requiredTotal}", style = MaterialTheme.typography.bodyMedium, color = AppTheme.colors.secondaryLabel)
-                            }
-                            ProgressBar(fraction = if (lvl.requiredTotal == 0) 0f else lvl.requiredDone.toFloat() / lvl.requiredTotal, height = 4.dp, modifier = Modifier.padding(top = 4.dp))
-                        }
-                    }
+                    Text(
+                        "No sessions on either clock today. Anything either of you reads still counts.",
+                        style = MaterialTheme.typography.bodyMedium, color = AppTheme.colors.secondaryLabel,
+                        modifier = Modifier.padding(horizontal = Spacing.listHorizontal),
+                    )
                 }
             }
-
-            // Next deadline
-            state.nextDeadline?.let { d ->
-                item {
-                    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(horizontal = Spacing.listHorizontal + Spacing.sectionStart)) {
-                        Text(d.title, style = MaterialTheme.typography.bodyMedium, color = AppTheme.colors.secondaryLabel, modifier = Modifier.weight(1f))
-                        Text("in ${state.daysToDeadline ?: 0} days", style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold, color = AppTheme.colors.accentText)
-                    }
+            entries.forEachIndexed { i, entry ->
+                item(key = (if (entry.mine) "me-" else "partner-") + entry.row.session.id) {
+                    TimelineRow(
+                        entry = entry,
+                        meIsTech = meIsTech,
+                        last = i == entries.lastIndex,
+                        isNext = entry.mine && entry.row == next,
+                        partnerName = partner?.name.orEmpty(),
+                        partnerZone = partner?.profile?.timezone?.substringAfterLast('/')?.replace('_', ' ').orEmpty(),
+                        onClick = { if (entry.mine) actionsFor = entry.row else onOpenPartner() },
+                    )
                 }
             }
         }
         SnackbarHost(hostState = snackbar, modifier = Modifier.align(Alignment.BottomCenter))
+    }
+
+    actionsFor?.let { row ->
+        SessionActionsSheet(
+            row = row,
+            onDismiss = { actionsFor = null },
+            onOpenGoal = { actionsFor = null; row.goal?.let { onOpenGoal(it.id) } },
+            onOpenTopic = { c, t -> actionsFor = null; onOpenTopic(c, t) },
+            onOpenQuiz = { c, m -> actionsFor = null; onOpenQuiz(c, m) },
+            onDone = { actionsFor = null; haptic.performHapticFeedback(HapticFeedbackType.LongPress); onDone(row) },
+            onSkip = { actionsFor = null; onSkip(row.session.id) },
+            onReopen = { actionsFor = null; onReopen(row.session.id) },
+        )
     }
 
     // After an update, What's new comes first; the daily brief follows once it is dismissed.
@@ -225,116 +219,284 @@ fun TodayScreen(
     if (touring) {
         // nothing: the tour is talking
     } else if (whatsNew != null) {
-        WhatsNewDialog(release = whatsNew, onDismiss = viewModel::dismissWhatsNew, onViewMore = { viewModel.dismissWhatsNew(); onOpenChangelog() })
+        WhatsNewDialog(release = whatsNew, onDismiss = onDismissWhatsNew, onViewMore = { onDismissWhatsNew(); onOpenChangelog() })
     } else if (brief != null && !state.loading) {
-        DailyBriefSheet(brief = brief, onStart = viewModel::dismissBrief, onDismiss = viewModel::dismissBrief)
+        val nextTopic = me?.sessions?.firstOrNull { it.session.status == SessionStatus.PLANNED }?.nextTopic
+        DailyBriefSheet(
+            brief = brief, color = myColor,
+            onStart = { onDismissBrief(); nextTopic?.let { onOpenTopic(it.courseId, it.topicId) } },
+            onDismiss = onDismissBrief,
+        )
     }
 }
 
-/**
- * Days in a row when both of them studied. It cannot be kept alive alone,
- * which is what makes it worth showing: the nudge is to the one who has not
- * studied yet, by name, rather than a number only you can move.
- */
+private data class TimelineEntry(val row: SessionRow, val mine: Boolean)
+
 @Composable
-private fun TogetherCard(state: TodayUiState, partnerName: String) {
-    val run = state.togetherStreak
-    val headline = when (state.togetherToday) {
-        Streaks.Together.BOTH -> if (run > 1) "$run days running, together" else "Both studied today"
-        Streaks.Together.ONLY_ME -> "Your part is done"
-        Streaks.Together.ONLY_THEM -> "$partnerName has studied today"
-        Streaks.Together.NEITHER -> if (run > 0) "$run day${if (run == 1) "" else "s"} running, together" else "Study together"
-    }
-    val detail = when (state.togetherToday) {
-        Streaks.Together.BOTH -> "You both showed up today. Longest run together: ${maxOf(state.longestTogether, run)} days."
-        Streaks.Together.ONLY_ME -> "$partnerName has not studied yet. The run needs both of you."
-        Streaks.Together.ONLY_THEM -> "Your turn, to keep the run going."
-        Streaks.Together.NEITHER ->
-            if (run > 0) "Still alive until the day is out. Neither of you has studied yet." else "A day counts when you both study. Nobody can keep it going alone."
-    }
-    val tone = when (state.togetherToday) {
-        Streaks.Together.BOTH -> AppTheme.colors.success
-        Streaks.Together.NEITHER -> if (run > 0) AppTheme.colors.warn else AppTheme.colors.secondaryLabel
-        else -> AppTheme.colors.accent
-    }
-    CupertinoCard(modifier = Modifier.padding(horizontal = Spacing.listHorizontal)) {
+private fun Header(state: TodayUiState, myColor: Color, partnerColor: Color, onOpenBrief: () -> Unit, onOpenSettings: () -> Unit) {
+    val me = state.me
+    val partner = state.partner?.takeIf { it.profile != null }
+    Column(
+        modifier = Modifier.fillMaxWidth().statusBarsPadding().padding(start = Spacing.listHorizontal, end = Spacing.listHorizontal, top = 20.dp),
+        verticalArrangement = Arrangement.spacedBy(10.dp),
+    ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Icon(
-                if (state.togetherToday == Streaks.Together.BOTH) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
-                contentDescription = null, tint = tone, modifier = Modifier.size(26.dp),
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.clickable(role = Role.Button, onClickLabel = "Open the brief", onClick = onOpenBrief).heightIn(min = 28.dp),
+            ) {
+                Text(
+                    (state.today.format(java.time.format.DateTimeFormatter.ofPattern("EEE · d MMM", java.util.Locale.ENGLISH)) + " · brief").uppercase(),
+                    style = MaterialTheme.typography.labelMedium.copy(fontSize = 12.sp, letterSpacing = 0.7.sp), color = AppTheme.colors.secondaryLabel,
+                    maxLines = 1, softWrap = false,
+                )
+                Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null, tint = AppTheme.colors.secondaryLabel, modifier = Modifier.size(14.dp))
+            }
+            Box(Modifier.weight(1f).height(1.dp))
+            if (me != null) Legend(me.name, myColor)
+            if (partner != null) Legend(partner.name, partnerColor, Modifier.padding(start = 12.dp))
+        }
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.padding(top = 2.dp)) {
+            val hour = Clock.now(me?.profile).hour
+            Text(
+                DailyBriefs.greeting(me?.name ?: "you", hour) + ".",
+                style = MaterialTheme.typography.displayLarge,
+                modifier = Modifier.weight(1f).semantics { heading() },
             )
-            Column(modifier = Modifier.weight(1f).padding(start = Spacing.sm)) {
-                Text(headline, style = MaterialTheme.typography.headlineMedium)
-                Text(detail, style = MaterialTheme.typography.bodySmall, color = AppTheme.colors.secondaryLabel)
+            Box(
+                contentAlignment = Alignment.Center,
+                modifier = Modifier.offset(x = 10.dp).size(44.dp).clip(CircleShape).clickable(role = Role.Button, onClickLabel = "Settings", onClick = onOpenSettings),
+            ) { Icon(Icons.Outlined.Settings, contentDescription = "Settings", tint = AppTheme.colors.ink, modifier = Modifier.size(22.dp)) }
+        }
+        val mine = me?.sessions?.count { it.session.status == SessionStatus.PLANNED } ?: 0
+        val theirs = partner?.sessions?.count { it.session.status == SessionStatus.PLANNED } ?: 0
+        Text(todayLine(mine, theirs, partner?.name), style = MaterialTheme.typography.bodyMedium, color = AppTheme.colors.secondaryLabel)
+    }
+}
+
+/** "One session left for you today. Sanya has two." */
+internal fun todayLine(mine: Int, theirs: Int, partnerName: String?): String {
+    fun count(n: Int) = when (n) { 1 -> "one"; 2 -> "two"; 3 -> "three"; 4 -> "four"; else -> n.toString() }
+    val you = when (mine) {
+        0 -> "Nothing left for you today."
+        1 -> "One session left for you today."
+        else -> "${count(mine).replaceFirstChar { it.uppercase() }} sessions left for you today."
+    }
+    if (partnerName == null) return you
+    return you + " " + if (theirs == 0) "$partnerName is done." else "$partnerName has ${count(theirs)}."
+}
+
+@Composable
+private fun Legend(name: String, color: Color, modifier: Modifier = Modifier) {
+    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp), modifier = modifier) {
+        Box(Modifier.size(8.dp).clip(CircleShape).background(color))
+        Text(name.uppercase(), style = MaterialTheme.typography.labelMedium.copy(fontSize = 12.sp, letterSpacing = 0.7.sp), color = AppTheme.colors.secondaryLabel)
+    }
+}
+
+@Composable
+private fun MonoLink(text: String, onClick: () -> Unit) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier.clip(CircleShape).clickable(role = Role.Button, onClick = onClick).heightIn(min = 28.dp).padding(horizontal = 4.dp),
+    ) {
+        Text(text.uppercase(), style = MaterialTheme.typography.labelMedium.copy(letterSpacing = 0.66.sp), color = AppTheme.colors.accentText)
+        Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null, tint = AppTheme.colors.accentText, modifier = Modifier.size(14.dp))
+    }
+}
+
+/** Your one thing: the next open session, the level it moves, and the button that starts it. */
+@Composable
+private fun OneThing(
+    row: SessionRow?,
+    me: PersonCard,
+    state: TodayUiState,
+    color: Color,
+    onOpenLevel: (String) -> Unit,
+    onOpenTopic: (String, String) -> Unit,
+    onOpenQuiz: (String, String) -> Unit,
+    onDone: (SessionRow) -> Unit,
+) {
+    val shape = RoundedCornerShape(18.dp)
+    Column(
+        verticalArrangement = Arrangement.spacedBy(10.dp),
+        modifier = Modifier
+            .padding(start = Spacing.listHorizontal, end = Spacing.listHorizontal, top = 22.dp)
+            .fillMaxWidth()
+            .clip(shape)
+            .border(Spacing.rule, AppTheme.colors.ink, shape)
+            .padding(18.dp),
+    ) {
+        Row {
+            Text("YOUR ONE THING", style = MaterialTheme.typography.labelMedium, color = color, modifier = Modifier.weight(1f))
+            if (row != null) {
+                Text(
+                    "${Dates.minutesToClock(row.session.startMinutes)} · ${row.session.durationMinutes} MIN",
+                    style = MaterialTheme.typography.labelMedium, color = AppTheme.colors.secondaryLabel,
+                )
             }
         }
-        // Seven dots: the last week, filled where both of them studied.
-        if (run > 0 || state.togetherToday != Streaks.Together.NEITHER) {
-            Row(horizontalArrangement = Arrangement.spacedBy(6.dp), modifier = Modifier.padding(top = Spacing.sm)) {
-                val filled = run.coerceAtMost(7)
-                repeat(7) { i ->
-                    val on = i >= 7 - filled
-                    Box(modifier = Modifier.size(10.dp).clip(CircleShape).background(if (on) tone else AppTheme.colors.fill))
+        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            val topic = row?.nextTopic
+            Text(
+                when {
+                    row == null && me.isRestDay -> "A rest day"
+                    row == null -> "Every session is done"
+                    else -> (row.goal?.title ?: "Study") + " · " + (topic?.title ?: row.componentName)
+                },
+                style = MaterialTheme.typography.headlineMedium.copy(fontSize = 23.sp, lineHeight = 28.sp),
+            )
+            Text(
+                when {
+                    row == null -> "Nothing is planned for the rest of today. Anything you read or review still counts."
+                    topic != null -> "${row.componentName}. About ${topic.minutes} minutes to read, then the checks."
+                    row.review != null -> "${row.componentName}. ${row.review.count} missed question${if (row.review.count == 1) "" else "s"} waiting to come back."
+                    else -> "${row.componentName} · ${row.timeLabel}. Minutes count themselves as you study."
+                },
+                style = MaterialTheme.typography.bodyMedium.copy(fontSize = 14.sp, lineHeight = 20.sp), color = AppTheme.colors.secondaryLabel,
+            )
+        }
+        state.level?.let { lvl ->
+            Column(
+                verticalArrangement = Arrangement.spacedBy(6.dp),
+                modifier = Modifier.padding(top = 2.dp).clickable(onClickLabel = "Open the level") { onOpenLevel(lvl.level.id) },
+            ) {
+                Row {
+                    Text("Level ${lvl.level.number} · ${lvl.level.name}", style = MaterialTheme.typography.bodySmall.copy(fontSize = 12.sp), color = AppTheme.colors.secondaryLabel, modifier = Modifier.weight(1f))
+                    Text("${lvl.requiredDone} / ${lvl.requiredTotal}", style = MaterialTheme.typography.bodySmall.copy(fontSize = 12.sp, fontFamily = MonoFamily), color = AppTheme.colors.secondaryLabel)
+                }
+                ProgressBar(fraction = if (lvl.requiredTotal == 0) 0f else lvl.requiredDone.toFloat() / lvl.requiredTotal, color = color)
+            }
+        }
+        if (row != null) {
+            val topic = row.nextTopic
+            val review = row.review
+            Box(Modifier.padding(top = 6.dp)) {
+                when {
+                    topic != null -> CupertinoPrimaryButton(text = "Start reading  →", onClick = { onOpenTopic(topic.courseId, topic.topicId) })
+                    review != null -> CupertinoPrimaryButton(text = "Review the ${review.count} missed  →", onClick = { onOpenQuiz(review.courseId, Courses.REVIEW_MODULE_ID) })
+                    else -> CupertinoPrimaryButton(text = "Mark done", onClick = { onDone(row) })
                 }
             }
         }
     }
 }
 
+/**
+ * One session on the shared timeline: the time on your clock, both rails with
+ * this session's dot on its owner's, and who and how long underneath.
+ */
 @Composable
-private fun SessionBlock(
+private fun TimelineRow(
+    entry: TimelineEntry,
+    meIsTech: Boolean,
+    last: Boolean,
+    isNext: Boolean,
+    partnerName: String,
+    partnerZone: String,
+    onClick: () -> Unit,
+) {
+    val row = entry.row
+    val status = row.session.status
+    val done = status == SessionStatus.DONE
+    val ownerIsTech = if (entry.mine) meIsTech else !meIsTech
+    val owner = AppTheme.colors.track(ownerIsTech)
+    val tech = AppTheme.colors.tech
+    val teacher = AppTheme.colors.teacher
+    Row(
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(IntrinsicSize.Min)
+            .heightIn(min = if (last) 52.dp else 56.dp)
+            .clickable(onClick = onClick)
+            .padding(horizontal = Spacing.listHorizontal),
+    ) {
+        Text(
+            Dates.minutesToClock(row.readerStartMinutes),
+            style = MaterialTheme.typography.bodyMedium.copy(fontFamily = MonoFamily, fontSize = 13.sp),
+            fontWeight = if (isNext) FontWeight.Medium else FontWeight.Normal,
+            color = if (isNext) AppTheme.colors.ink else AppTheme.colors.secondaryLabel,
+            modifier = Modifier.width(44.dp).padding(top = 3.dp),
+        )
+        // The developer's rail on the left and the teacher's on the right, as on the sign-in mark.
+        Box(Modifier.width(26.dp).fillMaxHeight()) {
+            Box(Modifier.offset(x = 7.dp).width(2.dp).then(if (last) Modifier.height(24.dp) else Modifier.fillMaxHeight()).background(tech))
+            Box(Modifier.offset(x = 17.dp).width(2.dp).then(if (last) Modifier.height(24.dp) else Modifier.fillMaxHeight()).background(teacher))
+            Box(
+                Modifier
+                    .offset(x = if (ownerIsTech) 2.dp else 12.dp, y = 4.dp)
+                    .size(12.dp)
+                    .clip(CircleShape)
+                    .background(if (done) owner else AppTheme.colors.groupedBackground)
+                    .then(if (done) Modifier else Modifier.border(2.dp, owner, CircleShape)),
+            )
+        }
+        Column(Modifier.weight(1f).padding(bottom = if (last) 0.dp else 14.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+            Text(
+                (row.goal?.title ?: "Study") + " · " + (row.nextTopic?.takeIf { isNext }?.title ?: row.componentName.ifBlank { "Study" }),
+                style = MaterialTheme.typography.bodyMedium,
+                fontWeight = if (isNext) FontWeight.SemiBold else FontWeight.Medium,
+                color = if (done || status == SessionStatus.SKIPPED) AppTheme.colors.secondaryLabel else AppTheme.colors.ink,
+                textDecoration = if (done) TextDecoration.LineThrough else TextDecoration.None,
+            )
+            val tail = when {
+                done -> " · done"
+                status == SessionStatus.SKIPPED -> " · skipped"
+                isNext -> " · next"
+                row.session.isClass -> " · class"
+                else -> ""
+            }
+            Text(
+                if (entry.mine) "You · ${row.session.durationMinutes} min$tail"
+                else "$partnerName · ${row.timeLabel.substringBefore(" to ")}" + (if (partnerZone.isNotBlank()) " in $partnerZone" else "") + " · ${row.session.durationMinutes} min$tail",
+                style = MaterialTheme.typography.bodySmall.copy(fontSize = 12.sp), color = AppTheme.colors.secondaryLabel,
+            )
+        }
+    }
+}
+
+/** What can be done with one of your sessions: the prototype has no room for these on the screen itself. */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun SessionActionsSheet(
     row: SessionRow,
-    first: Boolean,
-    onOpenGoal: (String) -> Unit,
+    onDismiss: () -> Unit,
+    onOpenGoal: () -> Unit,
     onOpenTopic: (String, String) -> Unit,
     onOpenQuiz: (String, String) -> Unit,
     onDone: () -> Unit,
     onSkip: () -> Unit,
     onReopen: () -> Unit,
 ) {
-    val done = row.session.status == SessionStatus.DONE
-    val skipped = row.session.status == SessionStatus.SKIPPED
-    val haptic = LocalHapticFeedback.current
-    Column(modifier = Modifier.padding(top = if (first) 2.dp else Spacing.md).animateContentSize(spring(dampingRatio = 0.8f, stiffness = 400f))) {
-        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.clickable { row.goal?.let { onOpenGoal(it.id) } }) {
-            Column(modifier = Modifier.weight(1f)) {
-                Text(row.goal?.title ?: "Study", style = MaterialTheme.typography.headlineMedium)
-                Text(
-                    "${row.componentName} · ${row.session.durationMinutes} min · ${row.timeLabel}",
-                    style = MaterialTheme.typography.bodyMedium, color = AppTheme.colors.secondaryLabel,
-                )
-            }
-            AnimatedSwap(row.session.status) { status ->
-                when {
-                    status == SessionStatus.DONE -> StatusChip("Done", AppTheme.colors.success)
-                    status == SessionStatus.SKIPPED -> StatusChip("Skipped", AppTheme.colors.warn)
-                    row.session.isClass -> StatusChip("Class", AppTheme.colors.accentText)
-                    else -> Box {}
-                }
-            }
-        }
-        if (!done && !skipped) {
-            CupertinoPrimaryButton(
-                text = "Done",
-                onClick = { haptic.performHapticFeedback(HapticFeedbackType.LongPress); onDone() },
-                modifier = Modifier.padding(top = Spacing.sm),
-            )
-            row.nextTopic?.let { t ->
-                CupertinoSecondaryButton(text = "Read: ${t.title} (${t.minutes} min)", onClick = { onOpenTopic(t.courseId, t.topicId) }, modifier = Modifier.padding(top = Spacing.sm))
-            }
-            row.review?.let { r ->
-                CupertinoSecondaryButton(text = "Review ${r.count} missed question${if (r.count == 1) "" else "s"}", onClick = { onOpenQuiz(r.courseId, Courses.REVIEW_MODULE_ID) }, modifier = Modifier.padding(top = Spacing.sm))
-            }
-            Row(horizontalArrangement = Arrangement.spacedBy(Spacing.sm), modifier = Modifier.padding(top = Spacing.md)) {
-                Chip(text = "Skip today", onClick = onSkip)
-            }
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
+        containerColor = AppTheme.colors.groupedBackground,
+        shape = Shapes.sheet,
+        dragHandle = { SheetGrabber() },
+    ) {
+        Column(
+            verticalArrangement = Arrangement.spacedBy(10.dp),
+            modifier = Modifier.padding(horizontal = Spacing.listHorizontal).padding(bottom = Spacing.md).navigationBarsPadding(),
+        ) {
             Text(
-                "Minutes count themselves as you read, test and review.",
-                style = MaterialTheme.typography.bodySmall, color = AppTheme.colors.secondaryLabel,
-                modifier = Modifier.padding(top = Spacing.sm),
+                "${Dates.minutesToClock(row.session.startMinutes)} · ${row.session.durationMinutes} MIN",
+                style = MaterialTheme.typography.labelMedium, color = AppTheme.colors.secondaryLabel, modifier = Modifier.padding(top = 8.dp),
             )
-        } else if (skipped) {
-            CupertinoTextButton(text = "Reopen", onClick = onReopen)
+            Text((row.goal?.title ?: "Study") + " · " + row.componentName, style = MaterialTheme.typography.headlineMedium, modifier = Modifier.semantics { heading() })
+            Box(Modifier.height(4.dp))
+            when (row.session.status) {
+                SessionStatus.PLANNED -> {
+                    row.nextTopic?.let { t -> CupertinoPrimaryButton(text = "Read: ${t.title} · ${t.minutes} min", onClick = { onOpenTopic(t.courseId, t.topicId) }) }
+                    row.review?.let { r -> CupertinoSecondaryButton(text = "Review ${r.count} missed question${if (r.count == 1) "" else "s"}", onClick = { onOpenQuiz(r.courseId, Courses.REVIEW_MODULE_ID) }) }
+                    if (row.nextTopic == null) CupertinoPrimaryButton(text = "Mark done", onClick = onDone) else CupertinoSecondaryButton(text = "Mark done", onClick = onDone)
+                    CupertinoTextButton(text = "Skip today", onClick = onSkip)
+                }
+                SessionStatus.SKIPPED -> CupertinoPrimaryButton(text = "Reopen", onClick = onReopen)
+                SessionStatus.DONE -> Text("Done. The course counted the time as you studied.", style = MaterialTheme.typography.bodyMedium, color = AppTheme.colors.secondaryLabel)
+            }
+            if (row.goal != null) CupertinoTextButton(text = "Open the goal", onClick = onOpenGoal)
         }
     }
 }

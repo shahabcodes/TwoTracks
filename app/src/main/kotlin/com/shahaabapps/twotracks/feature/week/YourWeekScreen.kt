@@ -1,5 +1,13 @@
 package com.shahaabapps.twotracks.feature.week
 
+import com.shahaabapps.twotracks.ui.components.StatTile
+import androidx.compose.material3.Icon
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.Alignment
+import androidx.compose.material.icons.filled.WarningAmber
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -20,20 +28,16 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewModelScope
-import com.shahaabapps.core.ui.components.CupertinoCard
 import com.shahaabapps.core.ui.components.CupertinoDisclosure
 import com.shahaabapps.core.ui.components.CupertinoListRow
 import com.shahaabapps.core.ui.components.CupertinoListSection
 import com.shahaabapps.core.ui.theme.AppTheme
-import com.shahaabapps.core.ui.theme.IosColors
 import com.shahaabapps.core.ui.theme.Spacing
 import com.shahaabapps.twotracks.session.Clock
 import com.shahaabapps.twotracks.session.PersonPlan
 import com.shahaabapps.twotracks.session.PlanStore
 import com.shahaabapps.twotracks.ui.Routes
 import com.shahaabapps.twotracks.ui.components.DetailScaffold
-import com.shahaabapps.twotracks.ui.components.ProgressBar
-import com.shahaabapps.twotracks.ui.components.SectionLabel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -58,28 +62,28 @@ fun YourWeekScreen(
     viewModel: YourWeekViewModel = hiltViewModel(),
 ) {
     val me by viewModel.me.collectAsStateWithLifecycle()
-    DetailScaffold(title = "Your week", onBack = onBack) {
+    DetailScaffold(title = "Will it fit", onBack = onBack, eyebrow = "The time you have against what it needs") {
         val p = me ?: return@DetailScaffold
         val cap = p.capacity
         Column(modifier = Modifier.verticalScroll(rememberScrollState()).padding(bottom = Spacing.xl), verticalArrangement = Arrangement.spacedBy(Spacing.md)) {
-            CupertinoCard(modifier = Modifier.padding(horizontal = Spacing.listHorizontal)) {
+            Row(horizontalArrangement = Arrangement.spacedBy(24.dp), modifier = Modifier.padding(horizontal = Spacing.listHorizontal)) {
+                StatTile(label = "of study slots a week", value = "%.1f h".format(cap.weeklyCapacityHours), modifier = Modifier.weight(1f))
+                StatTile(label = "your open goals need", value = "%.1f h".format(cap.weeklyNeedHours), modifier = Modifier.weight(1f))
+            }
+            Row(
+                verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp),
+                modifier = Modifier.padding(horizontal = Spacing.listHorizontal),
+            ) {
+                val tone = if (cap.fits) AppTheme.colors.success else AppTheme.colors.warn
+                Icon(if (cap.fits) Icons.Filled.Check else Icons.Filled.WarningAmber, contentDescription = null, tint = tone, modifier = Modifier.size(18.dp))
                 Text(
-                    "You have %.1f hours of study slots a week. Your open goals need about %.1f.".format(cap.weeklyCapacityHours, cap.weeklyNeedHours),
-                    style = MaterialTheme.typography.titleMedium,
-                )
-                ProgressBar(
-                    fraction = if (cap.weeklyNeedHours <= 0) 1f else (cap.weeklyCapacityHours / cap.weeklyNeedHours).toFloat(),
-                    color = if (cap.fits) AppTheme.colors.success else AppTheme.colors.warn, modifier = Modifier.padding(vertical = Spacing.sm),
-                )
-                Text(
-                    if (cap.fits) "That fits. Keep the slots and you will make the dates."
+                    if (cap.fits) "It fits. Keep the slots and you will make the dates."
                     else "That is %.1f hours a week short. Pick one of the options below.".format(cap.gapHours),
-                    style = MaterialTheme.typography.bodyMedium, color = if (cap.fits) AppTheme.colors.success else AppTheme.colors.warn,
+                    style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold, color = tone,
                 )
             }
 
-            SectionLabel("What each goal needs")
-            CupertinoListSection {
+            CupertinoListSection(header = "What each goal needs") {
                 val active = p.activeGoals
                 active.forEachIndexed { i, g ->
                     val gp = p.goalProgress[g.id]
@@ -98,11 +102,10 @@ fun YourWeekScreen(
                 if (active.isEmpty()) CupertinoListRow("No open goals", showDivider = false)
             }
 
-            SectionLabel("Options")
-            CupertinoListSection {
-                CupertinoListRow("Add a weekend slot", subtitle = "Two 90-minute blocks on Friday and Saturday add 3 hours a week", leadingIcon = Icons.Filled.EventRepeat, iconColor = IosColors.Green, onClick = { onNavigate(Routes.AVAILABILITY) }, trailing = { CupertinoDisclosure() })
-                CupertinoListRow("Move a date", subtitle = "Push a goal's complete-by date and the need per week drops", leadingIcon = Icons.Filled.Edit, iconColor = IosColors.Orange, onClick = { p.activeGoals.firstOrNull()?.let { onOpenGoal(it.id) } }, trailing = { CupertinoDisclosure() })
-                CupertinoListRow("See the week's plan", subtitle = "Which goal goes in which slot", leadingIcon = Icons.Filled.CalendarMonth, iconColor = IosColors.Blue, showDivider = false, onClick = { onNavigate(Routes.WEEK) }, trailing = { CupertinoDisclosure() })
+            CupertinoListSection(header = "Options") {
+                CupertinoListRow("Add a weekend slot", subtitle = "Two 90-minute blocks on Friday and Saturday add 3 hours a week", leadingIcon = Icons.Filled.EventRepeat, onClick = { onNavigate(Routes.AVAILABILITY) }, trailing = { CupertinoDisclosure() })
+                CupertinoListRow("Move a date", subtitle = "Push a goal's complete-by date and the need per week drops", leadingIcon = Icons.Filled.Edit, onClick = { p.activeGoals.firstOrNull()?.let { onOpenGoal(it.id) } }, trailing = { CupertinoDisclosure() })
+                CupertinoListRow("See the week's plan", subtitle = "Which goal goes in which slot", leadingIcon = Icons.Filled.CalendarMonth, showDivider = false, onClick = { onNavigate(Routes.WEEK) }, trailing = { CupertinoDisclosure() })
             }
             Row(modifier = Modifier.fillMaxWidth().padding(horizontal = Spacing.listHorizontal + Spacing.sectionStart)) {
                 Text("Pausing a goal: mark it passed from its page if you are done with it, or move it to a later level.", style = MaterialTheme.typography.bodySmall, color = AppTheme.colors.secondaryLabel)
