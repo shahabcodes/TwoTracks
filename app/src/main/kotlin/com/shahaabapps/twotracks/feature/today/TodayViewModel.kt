@@ -3,10 +3,8 @@ package com.shahaabapps.twotracks.feature.today
 import com.shahaabapps.core.model.TopicProgress
 import com.shahaabapps.core.content.Courses
 import com.shahaabapps.core.content.CourseProgress
-import com.shahaabapps.core.content.WordDeck
 import com.shahaabapps.twotracks.session.Celebrations
 import android.content.Context
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.shahaabapps.twotracks.changelog.ChangelogStore
@@ -17,7 +15,6 @@ import com.shahaabapps.core.model.HabitLog
 import com.shahaabapps.core.model.PersonRole
 import com.shahaabapps.core.model.PlannedSession
 import com.shahaabapps.core.model.Profile
-import com.shahaabapps.core.model.SessionStatus
 import com.shahaabapps.core.model.StudyGoal
 import com.shahaabapps.core.planner.Dates
 import com.shahaabapps.core.planner.Streaks
@@ -224,88 +221,17 @@ class TodayViewModel @Inject constructor(
         return ReviewSet(course.id, count)
     }
 
-    /** Missed questions across courses the person is working on. */
-    private fun reviewLine(p: PersonPlan): String? {
-        val total = Courses.all.filter { c -> p.activeGoalIds.any { c.feeds(it) } }.sumOf { c -> CourseProgress.of(p.role, c.id, dataStore.topicProgress.value, dataStore.quizAttempts.value).reviewQuestions(c).size }
-        if (total == 0) return null
-        return "Review: $total missed question${if (total == 1) "" else "s"} waiting on the course page. Getting them right clears them."
-    }
-
-    /** Questions the spaced schedule has brought back round, across the courses in play. */
-    private fun dailyLine(p: PersonPlan): String? {
-        val total = Courses.all.filter { c -> p.activeGoalIds.any { c.feeds(it) } }
-            .sumOf { c -> CourseProgress.of(p.role, c.id, dataStore.topicProgress.value, dataStore.quizAttempts.value).dailyDueCount(p.today) }
-        if (total == 0) return null
-        return "Daily review: $total question${if (total == 1) "" else "s"} back round on the Learn tab. Each one you hold comes back later than last time."
-    }
-
-    /** Flashcards due today across language courses the person has started. */
-    private fun wordsLine(p: PersonPlan): String? {
-        val cards = dataStore.flashcards.value
-        val progress = dataStore.topicProgress.value
-        val total = Courses.all.filter { Courses.words(it).isNotEmpty() }.sumOf { c -> WordDeck.dueCount(p.role, c, cards, p.today) + WordDeck.newCount(p.role, c, cards, progress) }
-        if (total == 0) return null
-        return "Words: $total cards waiting in the deck, about ${(total / 4).coerceAtLeast(2)} minutes. Missed words come back until they stick."
-    }
-
-    /** The next unread topic of the course that feeds the first active goal, if any. */
-    private fun learnLine(p: PersonPlan): String? {
-        val course = Courses.all.firstOrNull { c -> p.activeGoalIds.any { c.feeds(it) } } ?: return null
-        val progress = CourseProgress.of(p.role, course.id, dataStore.topicProgress.value, dataStore.quizAttempts.value)
-        val (module, topic) = progress.nextTopic(course) ?: return "${course.title}: every topic read. Retake a module test to keep it sharp."
-        return "Learn tab: ${topic.title.substringBefore(":")}, about ${topic.minutes} minutes, counts toward ${module.title}."
-    }
-
-    private fun buildBrief(p: PersonPlan, card: PersonCard, deadline: Deadline?, deadlineDays: Long?): DailyBrief {
-        val hour = Clock.now(sessionStore.current()?.me).hour
-        val greeting = when {
-            hour < 12 -> "Good morning, ${p.name}"
-            hour < 18 -> "Good afternoon, ${p.name}"
-            else -> "Good evening, ${p.name}"
-        }
-        val first = card.sessions.firstOrNull { it.session.status == SessionStatus.PLANNED } ?: card.sessions.firstOrNull()
-        val goal = first?.goal
-        val gp = goal?.let { p.goalProgress[it.id] }
-        val level = p.current
-        val reasons = mutableListOf<Pair<ImageVector, String>>()
-        if (goal != null && gp != null) {
-            val due = gp.targetDate?.let { Clock.formatDate(it) }
-            val need = gp.weeklyNeedHours
-            reasons += BriefIcons.goal to buildString {
-                append("${goal.title}: %.0f of %.0f hours done".format(gp.hoursLogged, gp.hoursRequired))
-                if (due != null && need != null) append(". About %.0f hours a week keeps it on track for $due".format(need))
-                append(".")
-            }
-        } else if (p.activeGoals.isNotEmpty()) {
-            val g = p.activeGoals.first()
-            val gp2 = p.goalProgress[g.id]
-            reasons += BriefIcons.goal to "${g.title}: %.0f of %.0f hours done. A rest day keeps the streak honest; logging anything counts.".format(gp2?.hoursLogged ?: 0.0, gp2?.hoursRequired ?: 0.0)
-        }
-        if (level != null) {
-            val left = level.daysLeft?.let { if (it >= 0) "$it days left" else "${-it} days overdue" } ?: ""
-            reasons += BriefIcons.level to "Level ${level.level.number}, ${level.level.name}: ${level.requiredDone} of ${level.requiredTotal} done, $left. Finishing it unlocks Level ${level.level.number + 1} on time."
-        }
-        learnLine(p)?.let { reasons += BriefIcons.learn to it }
-        reviewLine(p)?.let { reasons += BriefIcons.learn to it }
-        dailyLine(p)?.let { reasons += BriefIcons.learn to it }
-        wordsLine(p)?.let { reasons += BriefIcons.learn to it }
-        reasons += BriefIcons.move to when {
-            deadline != null && deadlineDays != null -> "${deadline.title} in $deadlineDays days. Every session now is one less to squeeze in later."
-            else -> "Every session now is one less to squeeze in later."
-        }
-        val streak = when (p.streak) {
-            0 -> "No streak yet. Today starts one."
-            1 -> "1-day streak. Make it two."
-            else -> "${p.streak}-day streak. Keep it alive."
-        }
-        return DailyBrief(
-            greeting = greeting,
+    private fun buildBrief(p: PersonPlan, card: PersonCard, deadline: Deadline?, deadlineDays: Long?): DailyBrief =
+        DailyBriefs.build(
+            plan = p,
+            card = card,
+            hour = Clock.now(sessionStore.current()?.me).hour,
             dateLine = Clock.formatLong(p.today),
-            task = if (first == null) "Rest day" else (goal?.title ?: "Study"),
-            taskDetail = if (first == null) "No slot today. Log anything you study." else "${first.componentName} · ${first.session.durationMinutes} min · ${first.timeLabel}",
-            reasons = reasons,
-            streakLine = streak,
-            isRestDay = first == null,
+            deadline = deadline,
+            deadlineDays = deadlineDays,
+            progress = dataStore.topicProgress.value,
+            attempts = dataStore.quizAttempts.value,
+            cards = dataStore.flashcards.value,
+            targetDateLabel = Clock::formatDate,
         )
-    }
 }
