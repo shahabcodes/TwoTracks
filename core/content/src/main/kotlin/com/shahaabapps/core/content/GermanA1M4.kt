@@ -53,6 +53,26 @@ internal object GermanA1M4 {
                 aspect = 0.4f,
             ),
             B.check("de4-words-k1", "de4-words", "'drei Euro fünfzig' is", listOf("3.15 €", "3.50 €", "350 €"), 1, "Euro, then cents: 3,50 €."),
+            B.check(
+                "de4-words-k2", "de4-words",
+                "'A bottle of water' is",
+                listOf("eine Flasche von Wasser", "eine Flasche Wasser", "eine Flasche aus Wasser"), 1,
+                "The quantity sits straight in front of the noun. German has no word for the English of here.",
+                whyWrong = mapOf(
+                    0 to "von is the obvious guess from English and it is never used this way.",
+                    2 to "aus would say the bottle is made of water.",
+                ),
+            ),
+            B.check(
+                "de4-words-k3", "de4-words",
+                "You want to know a price. You ask",
+                listOf("Was kostet das?", "Was ist das?", "Wie ist das?"), 0,
+                "kosten is to cost, and Was kostet das? is the question every shop expects.",
+                whyWrong = mapOf(
+                    1 to "That asks what the thing is.",
+                    2 to "That asks what it is like.",
+                ),
+            ),
             B.glossary("Kasse" to "Checkout.", "Angebot" to "Special offer.", "Tüte" to "Bag."),
             B.recap("Learn food words with their article and plural.", "Prices: Euro then cents, comma as the decimal.", "Quantity + noun with no 'of'."),
         ),
@@ -226,6 +246,26 @@ internal object GermanA1M4 {
                 aspect = 0.5f,
             ),
             B.check("de4-dialogue-k1", "de4-dialogue", "'Sonst noch etwas?' means", listOf("Anything else?", "How much?", "Together?"), 0, "The shop asks whether you want anything else."),
+            B.check(
+                "de4-dialogue-k2", "de4-dialogue",
+                "'Zusammen oder getrennt?' is asked",
+                listOf("when you pay", "when you order", "when you sit down"), 0,
+                "It is about the bill: one payment between you, or one each.",
+                whyWrong = mapOf(
+                    1 to "Was darf es sein? is the ordering question.",
+                    2 to "Nobody asks it on the way in; there is nothing to divide yet.",
+                ),
+            ),
+            B.check(
+                "de4-dialogue-k3", "de4-dialogue",
+                "Ordering a coffee politely, you say",
+                listOf("Ich hätte gern einen Kaffee.", "Ich habe einen Kaffee.", "Ich bin ein Kaffee."), 0,
+                "Ich hätte gern is the polite I would like. Ich möchte does the same job.",
+                whyWrong = mapOf(
+                    1 to "That says you already have one, which is not an order.",
+                    2 to "That says you are a coffee.",
+                ),
+            ),
             B.glossary("Brötchen" to "Bread roll (das).", "Das macht …" to "That comes to … (a total).", "getrennt" to "Separately."),
             B.recap("Ich hätte gern … / Ich möchte … to order.", "Was kostet das? Das macht …", "Zusammen oder getrennt? when paying."),
         ),
@@ -249,13 +289,40 @@ internal object GermanA1M4 {
             B.p("Angebote diese Woche bei Rewe: Äpfel 1 kg 1,99 €. Milch 1 l 0,89 €. Brot 2,49 €. Hähnchen 1 kg 6,50 €. Reis 1 kg 2,20 €. Geöffnet Montag bis Samstag von 7 bis 22 Uhr. Sonntag geschlossen."),
             B.check("de4-practice-k1", "de4-practice", "Richtig oder falsch: Der Supermarkt ist am Sonntag offen.", listOf("Richtig", "Falsch"), 1, "Sonntag geschlossen = closed on Sunday. Falsch."),
             B.check("de4-practice-k2", "de4-practice", "Zwei Kilo Reis kosten", listOf("2,20 €", "4,40 €", "6,50 €"), 1, "2 × 2,20 € = 4,40 €."),
+            B.check(
+                "de4-practice-k3", "de4-practice",
+                "You can shop at this Rewe at nine on a Saturday evening.",
+                listOf("Richtig", "Falsch"), 0,
+                "Montag bis Samstag von 7 bis 22 Uhr, so Saturday at 21:00 is inside the hours. Only Sunday is shut.",
+                whyWrong = mapOf(
+                    1 to "Saturday is in the range. Sonntag geschlossen is the one day that is not, and it is the line a notice question usually turns on.",
+                ),
+            ),
             B.match("de4-p-match1", "Match article and noun.", "der" to "Apfel", "die" to "Milch", "das" to "Brot", "die (plural)" to "Flaschen"),
             B.gap("de4-p-gap1", "Accusative.", "Kaufst du ___ Brot? (ein)", "ein", hint = "Brot is das: no change."),
             B.gap("de4-p-gap2", "Accusative.", "Ich nehme ___ Apfel. (der)", "den"),
             B.gap("de4-p-gap3", "Plural.", "Ich kaufe drei ___. (Flasche)", "Flaschen"),
+            B.worked("""
+                Worked example. Usaid writes the note. Greeting with a comma: Hallo Sanya, and the next word stays
+                lower case. Then when, with um: ich gehe um fünf Uhr in den Supermarkt. Then what, and the masculine
+                object is the one that changes: Ich kaufe einen Tee und ein Brot. Then a question, so she has
+                something to answer: Was möchtest du? Last the sign-off: Bis später, Usaid.
+            """),
+            B.faded(
+                "de4-practice-f1",
+                "Sanya writes back, same four parts. She is going to the market at seven and buying apples and chicken.",
+                listOf(
+                    "Greeting with a comma: Hallo Usaid,",
+                    "When, with um: ich gehe um sieben Uhr auf den Markt.",
+                    "What. Apfel is der, and being the object is what moves it: Ich kaufe ___ Apfel und ein Hähnchen.",
+                    "A question, then the sign-off: Brauchst du Reis? Bis später, Sanya.",
+                ),
+                2, listOf("den"),
+                "The masculine is the only article the accusative moves, so it is the only one worth checking before you send a note.",
+            ),
             B.writing("de4-p-write", "Write a short note to your partner (Schreiben part 2 style): say you are going shopping, what you are buying, and ask what they want. Use a greeting and a sign-off.",
                 """
-                Hallo Sanya, ich gehe um fünf Uhr in den Supermarkt. Ich kaufe Brot, Milch und einen Kilo Äpfel. Was möchtest du? Brauchst du Tee? Bis später, Usaid
+                Hallo Sanya, ich gehe um fünf Uhr in den Supermarkt. Ich kaufe Brot, Milch und ein Kilo Äpfel. Was möchtest du? Brauchst du Tee? Bis später, Usaid
                 """,
                 "Greeting", "When you go", "Two things you buy (accusative)", "A question to your partner", "Sign-off", minWords = 25),
             B.tryIt("Try it today", "Write your real shopping list in German with articles: der Reis, die Milch, das Brot.",

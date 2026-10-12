@@ -150,6 +150,26 @@ internal object GermanA1M12Words {
                 B.w("m12w-wie-bitte", "Wie bitte?", "Pardon?", "Wie bitte? Noch einmal, bitte.", "Pardon? Once more, please."),
             ),
             B.check("de12-words-k1", "de12-words", "'Woher kommst du?' asks", listOf("where you live", "where you come from", "where you are going"), 1, "woher = where from; wo = where; wohin = where to."),
+            B.check(
+                "de12-words-k2", "de12-words",
+                "An instruction says 'Kreuzen Sie an.' You should",
+                listOf("tick a box", "underline the word", "write a full sentence"), 0,
+                "ankreuzen is to put a cross in a box, and it is the instruction on most of the answer sheet.",
+                whyWrong = mapOf(
+                    1 to "Underlining is unterstreichen, and it is not asked for in this exam.",
+                    2 to "Ergänzen Sie or Schreiben Sie would ask for writing.",
+                ),
+            ),
+            B.check(
+                "de12-words-k3", "de12-words",
+                "'Sie hören den Text zweimal.' You will hear it",
+                listOf("twice", "once", "as often as you ask"), 0,
+                "zweimal is twice; einmal is once. It is the sentence that decides how you listen the first time.",
+                whyWrong = mapOf(
+                    1 to "einmal would say that, and Teil 2 is the part that does.",
+                    2 to "Nothing in the exam is replayed on request.",
+                ),
+            ),
             B.glossary("Wortliste" to "The official vocabulary list for the exam.", "Fragewort" to "Question word: wer, was, wo, wann, wie, warum.", "Farbe" to "Colour."),
             B.recap("Question words: wer, was, wo, wohin, woher, wann, wie, warum, welche.", "Colours and opposites: rot, blau, lang, kurz, voll, leer, offen, zu.", "Clothes, objects, people and nature: the last of the list, now in your deck."),
         ),

@@ -57,6 +57,26 @@ internal object GermanA1M3 {
             ),
             B.tip("Trains, radio and the exam's recordings use the 24-hour official form: sechzehn Uhr fünfzehn. Friends say Viertel nach vier."),
             B.check("de3-words-k1", "de3-words", "'halb vier' is", listOf("4:30", "3:30", "4:00"), 1, "halb vier is half-way to four: 3:30."),
+            B.check(
+                "de3-words-k2", "de3-words",
+                "An announcement says 'sechzehn Uhr fünfundvierzig'. Everyday German calls that",
+                listOf("Viertel vor fünf", "Viertel nach vier", "halb fünf"), 0,
+                "16:45 is a quarter before five. Announcements use the 24-hour form; people do not.",
+                whyWrong = mapOf(
+                    1 to "Viertel nach vier is 16:15, the quarter on the other side of the hour.",
+                    2 to "halb fünf is 16:30.",
+                ),
+            ),
+            B.check(
+                "de3-words-k3", "de3-words",
+                "'Bis morgen!' as you leave the office means",
+                listOf("see you tomorrow", "good morning", "until the morning shift"), 0,
+                "morgen with a small m is tomorrow. der Morgen, capitalised, is the morning: the two are told apart by the capital.",
+                whyWrong = mapOf(
+                    1 to "Guten Morgen is the greeting, and it has the noun in it.",
+                    2 to "The capital is the whole difference, and there is none here.",
+                ),
+            ),
             B.glossary("Wochentag" to "Weekday.", "Wochenende" to "Weekend.", "Uhrzeit" to "Time of day."),
             B.recap("Days are all der and take am: am Montag.", "halb + next hour; Viertel nach, Viertel vor.", "Announcements use the 24-hour clock."),
         ),
@@ -184,6 +204,26 @@ internal object GermanA1M3 {
                 aspect = 0.8f,
             ),
             B.check("de3-dialogue-k1", "de3-dialogue", "'Auf Wiederhören' is used", listOf("in person", "on the phone", "in a letter"), 1, "hören = to hear; it is the phone goodbye. In person it is Auf Wiedersehen."),
+            B.check(
+                "de3-dialogue-k2", "de3-dialogue",
+                "Offered a time that does not suit, Sanya says 'Nein, am Dienstag arbeite ich.' What does that add?",
+                listOf("a reason, which keeps the refusal polite", "an apology", "a second appointment"), 0,
+                "A bare nein sounds abrupt in German as it does in English. The reason is what makes it a refusal rather than a rebuff, and the exam marks it.",
+                whyWrong = mapOf(
+                    1 to "No apology is made, and none is needed: being at work is not a fault.",
+                    2 to "The counter-offer is the next sentence, Geht es am Mittwoch?",
+                ),
+            ),
+            B.check(
+                "de3-dialogue-k3", "de3-dialogue",
+                "'Geht es am Mittwoch?' is asking",
+                listOf("would Wednesday work?", "are you going on Wednesday?", "how is Wednesday going?"), 0,
+                "gehen here means to be possible, not to walk. Geht es …? is the standard way to propose a time.",
+                whyWrong = mapOf(
+                    1 to "That would be Gehen Sie am Mittwoch?, with you as the subject.",
+                    2 to "Wie geht es …? asks how someone is, and it needs the wie.",
+                ),
+            ),
             B.glossary("Praxis" to "A doctor's practice.", "Das passt." to "That suits / works.", "Geht es …?" to "Does … work? (asking if a time is possible)"),
             B.recap("Ich brauche einen Termin. Wann haben Sie Zeit?", "Refuse politely with a reason, then counter-offer.", "Auf Wiederhören on the phone."),
         ),
@@ -207,9 +247,37 @@ internal object GermanA1M3 {
             B.p("Usaid arbeitet von Sonntag bis Donnerstag. Er beginnt um sieben Uhr und ist um fünfzehn Uhr dreißig fertig. Um sechzehn Uhr fünfzehn lernt er eine Stunde Deutsch. Am Freitag und am Samstag arbeitet er nicht. Am Samstag kauft er ein und telefoniert mit Sanya. Sanya arbeitet von Montag bis Freitag von acht bis vierzehn Uhr. Am Nachmittag hat sie von sechzehn bis achtzehn Uhr einen Englischkurs."),
             B.check("de3-practice-k1", "de3-practice", "Richtig oder falsch: Usaid lernt Deutsch um Viertel nach vier.", listOf("Richtig", "Falsch"), 0, "sechzehn Uhr fünfzehn = 16:15 = Viertel nach vier. Richtig."),
             B.check("de3-practice-k2", "de3-practice", "Richtig oder falsch: Sanya arbeitet am Samstag.", listOf("Richtig", "Falsch"), 1, "Montag bis Freitag. Falsch."),
+            B.check(
+                "de3-practice-k3", "de3-practice",
+                "Richtig oder falsch: Usaid ist am Nachmittag um halb vier mit der Arbeit fertig.",
+                listOf("Richtig", "Falsch"), 0,
+                "fünfzehn Uhr dreißig is 15:30, and half-way to four is halb vier. The text gives the official form and the question the everyday one.",
+                whyWrong = mapOf(
+                    1 to "The two forms name the same moment. A question that changes the form is testing whether you can move between them.",
+                ),
+            ),
             B.match("de3-p-match1", "Match the time.", "halb vier" to "15:30", "Viertel nach vier" to "16:15", "acht Uhr" to "08:00", "Viertel vor neun" to "08:45"),
             B.gap("de3-p-gap1", "Preposition for a day.", "___ Samstag kauft Usaid ein.", "Am"),
             B.gap("de3-p-gap2", "Conjugate telefonieren.", "Er ___ mit Sanya.", "telefoniert"),
+            B.worked("""
+                Worked example. Usaid writes his week. Work first, with the two prepositions that frame it: Ich arbeite
+                von Sonntag bis Donnerstag von sieben bis halb vier. Then the study slot, with um for a clock time: Um
+                Viertel nach vier lerne ich Deutsch. Then the day off: Am Freitag arbeite ich nicht. Then the weekend:
+                Am Samstag kaufe ich ein. Note that after Um Viertel nach vier and Am Samstag the verb still comes
+                second, so the subject moves behind it.
+            """),
+            B.faded(
+                "de3-practice-f1",
+                "Sanya's week now. She works Monday to Friday, eight until two, and has an English course from four to six.",
+                listOf(
+                    "Work, framed by von … bis: Ich arbeite von Montag bis Freitag von acht bis vierzehn Uhr.",
+                    "The course, with a span of hours: Von sechzehn bis achtzehn Uhr habe ich einen Englischkurs.",
+                    "Something other than the subject comes first, so the verb keeps second place and the subject moves in behind it: Am Wochenende telefoniere ___ mit Usaid.",
+                    "A weekend activity: Am Samstag kaufe ich ein.",
+                ),
+                2, listOf("ich"),
+                "Anything can take first position; the verb stays second and the subject goes behind it. It is the rule that separates a sentence that sounds German from one that does not.",
+            ),
             B.writing("de3-p-write", "Write 5 sentences about your week: when you work, when you study German, what you do at the weekend.",
                 """
                 Ich arbeite von Sonntag bis Donnerstag von sieben bis halb vier. Um Viertel nach vier lerne ich Deutsch. Am Freitag arbeite ich nicht. Am Samstag kaufe ich ein. Am Abend telefoniere ich mit Sanya.

@@ -72,6 +72,26 @@ internal object GermanA1M8 {
                 aspect = 0.5f,
             ),
             B.check("de8-words-k1", "de8-words", "'Ich habe Bauchschmerzen' means", listOf("I have a headache", "I have stomach ache", "I have a cold"), 1, "Bauch is the stomach; -schmerzen is pain."),
+            B.check(
+                "de8-words-k2", "de8-words",
+                "The other way to say something hurts is",
+                listOf("Mein Kopf tut weh.", "Mein Kopf ist Schmerzen.", "Ich bin Kopf krank."), 0,
+                "wehtun takes the body part as its subject: Mein Kopf tut weh. Ich habe Kopfschmerzen says the same thing with a compound noun.",
+                whyWrong = mapOf(
+                    1 to "Schmerzen is a noun, so it needs haben rather than sein.",
+                    2 to "German does not build an adjective out of a body part this way.",
+                ),
+            ),
+            B.check(
+                "de8-words-k3", "de8-words",
+                "You need to prove to your employer that you were ill. You ask the doctor for",
+                listOf("eine Krankmeldung", "ein Rezept", "einen Termin"), 0,
+                "The Krankmeldung is the sick note for work or school. A Rezept is what you take to the pharmacy.",
+                whyWrong = mapOf(
+                    1 to "A Rezept is the prescription, and it also means a cooking recipe.",
+                    2 to "The Termin is the appointment, which you have already had by this point.",
+                ),
+            ),
             B.glossary("Zahnarzt" to "Dentist (der).", "Apotheke" to "Pharmacy, where you take the Rezept.", "Sprechstunde" to "Surgery hours (die)."),
             B.recap("Body parts with articles; plurals mostly -e or -en.", "X tut weh / Ich habe X-schmerzen / Mir geht es schlecht.", "Termin, Praxis, Rezept, Krankmeldung: the admin of being ill."),
         ),
@@ -236,6 +256,26 @@ internal object GermanA1M8 {
                 B.w("m8-oeffnen", "öffnen", "to open", "Öffnen Sie den Mund.", "Open your mouth."),
             ),
             B.check("de8-dialogue-k1", "de8-dialogue", "'Was fehlt Ihnen?' is the doctor asking", listOf("what is missing from your bag", "what is wrong with you", "where you live"), 1, "A fixed phrase: what is wrong with you?"),
+            B.check(
+                "de8-dialogue-k2", "de8-dialogue",
+                "'Ich habe seit zwei Tagen Fieber.' seit tells the doctor",
+                listOf("how long it has been going on", "when it will stop", "how bad it is"), 0,
+                "seit plus a length of time says since when, and German keeps the present tense for it: habe, not hatte.",
+                whyWrong = mapOf(
+                    1 to "Nothing here looks forward.",
+                    2 to "That would be an adjective: hohes Fieber.",
+                ),
+            ),
+            B.check(
+                "de8-dialogue-k3", "de8-dialogue",
+                "'Bleiben Sie drei Tage zu Hause' is",
+                listOf("an instruction", "a description of what you did", "a promise"), 0,
+                "Verb first with Sie behind it is the polite imperative, and it is how every instruction at a surgery is given.",
+                whyWrong = mapOf(
+                    1 to "Nothing here is in the past.",
+                    2 to "The doctor is telling you what to do, not undertaking to do anything.",
+                ),
+            ),
             B.glossary("Dr. / Doktor" to "Doctor, as a title.", "Patient" to "Patient (der).", "bis Freitag" to "Until Friday."),
             B.recap("Ich brauche einen Termin. Ich habe seit … Fieber.", "Doctor's instructions are Sie imperatives: Bleiben Sie, Trinken Sie, Nehmen Sie.", "Krankmeldung for work or school; Gute Besserung to a sick friend."),
         ),
@@ -273,6 +313,24 @@ internal object GermanA1M8 {
             B.gap("de8-p-gap2", "du imperative.", "___ mich bitte an! (anrufen)", "Ruf", "ruf"),
             B.gap("de8-p-gap3", "Dative pronoun.", "Wie geht es ___? (Sie)", "Ihnen", "ihnen"),
             B.h("Schreiben"),
+            B.worked("""
+                Worked example. Sanya writes to a friend who is ill. Ask first: Wie geht es dir? Then say you cannot
+                come, softened with leider: Ich kann heute leider nicht kommen. Then why, with a modal that pushes
+                the verb to the end: Ich muss arbeiten. Then an offer, as a question: Soll ich dir morgen Suppe
+                bringen? Last the wish that belongs to this exact situation: Gute Besserung!
+            """),
+            B.faded(
+                "de8-practice-f1",
+                "Usaid writes the same message to a colleague who has flu. He has a German class this evening, and he can bring tablets tomorrow.",
+                listOf(
+                    "Ask how they are: Wie geht es dir?",
+                    "Say you cannot come, softened: Ich kann heute leider nicht kommen.",
+                    "Why. A modal takes second place and sends the other verb to the end: Ich ___ heute Abend zum Deutschkurs gehen.",
+                    "An offer, then the wish: Soll ich dir morgen Tabletten bringen? Gute Besserung!",
+                ),
+                2, listOf("muss", "möchte", "will"),
+                "The modal is conjugated and the verb it governs waits at the end, unchanged. It is the shape that makes a German excuse sound like one.",
+            ),
             B.marked("de8-p-write", "Your friend is ill. Write a short message (Schreiben part 2 style): ask how they are, say you cannot visit today and why, offer to bring something tomorrow, and wish them well.",
                 """
                 Liebe Sanya, wie geht es dir? Ich kann heute leider nicht kommen, ich muss bis sechs Uhr arbeiten. Morgen bringe ich dir Tee und Obst mit. Brauchst du Medikamente aus der Apotheke? Bleib im Bett und schlaf viel! Gute Besserung, Usaid

@@ -71,10 +71,48 @@ internal object GermanA1M11 {
                 listOf("Kurszeit (bitte ankreuzen)", "☐ vormittags ☒ abends"),
                 listOf("Telefon", "0176 445566"),
             ),
+            B.worked("""
+                Worked example. Every answer in that table was lifted out of the two sentences of the situation.
+                Khan and Sanya come from the first clause, Lahore from geboren rather than from wohnt, the street
+                and the postcode from the address as written. The one field that is not copied word for word is the
+                date: the situation says it in words and the form wants it in digits. Nothing anywhere is invented.
+            """),
+            B.faded(
+                "de11-forms-f1",
+                "A second situation, the same form. Herr Tom Weber, born 14 March 1990 in Bonn, lives at Marktplatz 3 in 50667 Köln, is a Verkäufer, and wants the morning course.",
+                listOf(
+                    "Familienname: Weber. Vorname: Tom.",
+                    "Geburtsdatum. A German form wants two digits, two digits, four digits, with full stops: ___",
+                    "Geburtsort: Bonn. Straße, Hausnummer: Marktplatz 3. PLZ, Wohnort: 50667 Köln.",
+                    "Beruf: Verkäufer. Kurszeit: vormittags, ticked rather than written.",
+                ),
+                1, listOf("14.03.1990", "14.3.1990"),
+                "The date is the one field that is not copied word for word: the situation says it in words and the form wants it in digits.",
+            ),
             B.gap("de11-f-gap1", "Which field?", "Khan goes into the field ___. (Familienname / Vorname)", "Familienname"),
             B.gap("de11-f-gap2", "Which field?", "Lahore goes into the field ___. (Wohnort / Geburtsort)", "Geburtsort"),
             B.gap("de11-f-gap3", "Date format.", "5 May 1998 as a German date: ___", "05.05.1998", "5.5.1998"),
             B.check("de11-forms-k1", "de11-forms", "The form asks for 'Staatsangehörigkeit'. Sanya is from Pakistan. You write", listOf("Pakistan", "pakistanisch", "Lahore"), 1, "Nationality is the adjective form: pakistanisch (deutsch, indisch, katarisch)."),
+            B.check(
+                "de11-forms-k2", "de11-forms",
+                "The situation says Sanya was born in Lahore and lives in Köln. Geburtsort takes",
+                listOf("Lahore", "Köln", "Pakistan"), 0,
+                "Geburt is birth, so Geburtsort is where you were born. Wohnort is where you live now.",
+                whyWrong = mapOf(
+                    1 to "Köln is the Wohnort, and the two fields usually sit next to each other for exactly this reason.",
+                    2 to "A country goes under Staatsangehörigkeit, and even then as an adjective.",
+                ),
+            ),
+            B.check(
+                "de11-forms-k3", "de11-forms",
+                "A field says 'Kurszeit (bitte ankreuzen)'. You should",
+                listOf("tick one of the boxes", "write the time in words", "leave it for the examiner"), 0,
+                "ankreuzen is to put a cross in a box. Writing an answer beside an unticked box scores nothing.",
+                whyWrong = mapOf(
+                    1 to "The field is not asking for prose; it is offering a choice.",
+                    2 to "Every gap on the form carries a point, and an empty one loses it.",
+                ),
+            ),
             B.mistakes(
                 "Swapping Vorname and Familienname.",
                 "Writing the English date order: 05/05/1998 is accepted, but 05.05.1998 is the German way.",
@@ -161,6 +199,24 @@ internal object GermanA1M11 {
                 Bis bald
                 Usaid
             """),
+            B.worked("""
+                Worked example. Task: your friend has invited you to a party and you are going. Greeting with a
+                comma, then a small letter: Liebe Lena, Then the three content points, one line each: vielen Dank für
+                die Einladung. Ich komme gern am Samstag um sechs Uhr. Soll ich etwas mitbringen? Then the sign-off
+                and your name on its own line: Bis bald, Usaid. Five lines, about thirty words, three points covered.
+            """),
+            B.faded(
+                "de11-messages-f1",
+                "A new task, the same five lines. Sie können nicht zum Deutschkurs kommen. Schreiben Sie an Frau Braun: warum nicht, wann Sie wiederkommen, und eine Frage.",
+                listOf(
+                    "The greeting. A teacher takes the formal one, and a woman takes geehrte: ___ Frau Braun,",
+                    "Point one, why not: ich kann morgen leider nicht zum Kurs kommen. Ich bin krank.",
+                    "Point two, when you are back: Am Donnerstag bin ich wieder da.",
+                    "Point three, a question, then the formal sign-off: Können Sie mir bitte die Hausaufgaben schicken? Mit freundlichen Grüßen, Usaid Shahab",
+                ),
+                0, listOf("Sehr geehrte"),
+                "Greeting and sign-off have to match: Sehr geehrte with Mit freundlichen Grüßen, Liebe with Viele Grüße. A message that mixes the two halves loses the mark for register however good the German is.",
+            ),
             B.marked("de11-m-write1", "Task: Sie möchten mit einer Freundin ins Kino gehen. Schreiben Sie: welcher Film, wann und wo Sie sich treffen, eine Frage.",
                 """
                 Liebe Lena, ich möchte am Freitag ins Kino gehen. Der Film heißt Die Reise und beginnt um 20 Uhr. Wir treffen uns um 19 Uhr vor dem Kino am Bahnhof. Kommst du mit? Viele Grüße, Sanya
@@ -178,6 +234,26 @@ internal object GermanA1M11 {
                 "A formal question" to listOf("?"),
                 minWords = 30),
             B.check("de11-messages-k1", "de11-messages", "Your message to the course teacher should start with", listOf("Hallo Frau Braun,", "Sehr geehrte Frau Braun,", "Liebe Braun,"), 1, "A teacher or office gets the formal greeting and Sie."),
+            B.check(
+                "de11-messages-k2", "de11-messages",
+                "The task gives three content points and you cover two of them beautifully. What happens?",
+                listOf("you lose the marks for the third", "the length makes up for it", "the examiner picks the best two"), 0,
+                "Each content point is marked on its own, so a missing one is a missing score however good the rest reads.",
+                whyWrong = mapOf(
+                    1 to "Length is not what is counted. Thirty words that cover three points beat sixty that cover two.",
+                    2 to "Nothing is dropped in your favour.",
+                ),
+            ),
+            B.check(
+                "de11-messages-k3", "de11-messages",
+                "After 'Liebe Lena,' the next word is",
+                listOf("lower case, because the sentence continues", "capitalised, because it starts a line", "either, it is not marked"), 0,
+                "The comma after the greeting does not end the sentence, so the next word stays small: Liebe Lena, ich komme gern.",
+                whyWrong = mapOf(
+                    1 to "A new line is not a new sentence. German is stricter about this than English.",
+                    2 to "It is part of the mark for form, alongside the greeting and the sign-off.",
+                ),
+            ),
             B.mistakes(
                 "Skipping a content point; each one is marked separately.",
                 "Mixing du and Sie in one message.",

@@ -43,6 +43,26 @@ internal object IeltsM1 {
             ),
             B.tip("Choose computer if you type faster than you write and want to edit your essay. Choose paper if you think better with a pen. The score scale is identical."),
             B.check("ie1-format-k1", "ie1-format", "Sanya needs Academic for her teacher assessment. Which parts are different from Usaid's General Training test?", listOf("All four", "Reading and Writing Task 1", "Only Speaking"), 1, "Listening and Speaking are common; Reading and Task 1 differ."),
+            B.check(
+                "ie1-format-k2", "ie1-format",
+                "On the computer-delivered test, the ten minutes to transfer Listening answers",
+                listOf("does not exist; answers go straight in", "is doubled", "is used for Reading instead"), 0,
+                "You type into the boxes as you listen, so there is nothing to transfer. On paper you write on the question sheet and copy across at the end.",
+                whyWrong = mapOf(
+                    1 to "Nothing about the timing is extended; the paper is simply shorter without the transfer.",
+                    2 to "Reading keeps its own sixty minutes in both modes.",
+                ),
+            ),
+            B.check(
+                "ie1-format-k3", "ie1-format",
+                "You write an answer in Listening in capitals. The marker",
+                listOf("accepts it; capitals do not matter", "marks it wrong", "accepts it only in Part 1"), 0,
+                "Capitalisation is never penalised. Spelling is, in both Listening and Reading, which is the rule people confuse this one with.",
+                whyWrong = mapOf(
+                    1 to "Case is not marked at all, and some candidates write the whole paper in capitals on purpose.",
+                    2 to "The rule is the same across all four parts.",
+                ),
+            ),
             B.h("Registration and the day"),
             B.steps("What to do, in order",
                 "Book through ielts.org or the British Council or IDP, choosing Academic or General and paper or computer." to "A date two to three months out gives time for the modules here.",
@@ -113,6 +133,16 @@ internal object IeltsM1 {
             B.p("The overall band is the mean of the four, rounded to the nearest half. 7, 7, 6.5, 6.5 averages 6.75 and rounds up to 7. But the Australian teacher registration and many visas need a minimum in each paper, not just overall, so a strong Listening cannot rescue a weak Writing."),
             B.check("ie1-bands-k1", "ie1-bands", "Usaid scores 33 in General Reading. His band is", listOf("6", "6.5", "7"), 1, "34 to 35 is band 7; 32 to 33 is 6.5. One more right answer would have made the 7."),
             B.check("ie1-bands-k2", "ie1-bands", "A Writing script gets 7, 7, 6, 6 on the four criteria. Its band is", listOf("7", "6.5", "6"), 1, "The four criteria are averaged: 7 plus 7 plus 6 plus 6 divided by four is 6.5."),
+            B.check(
+                "ie1-bands-k3", "ie1-bands",
+                "Why does General Training Reading need 34 of 40 for a band 7 where Academic needs 30?",
+                listOf("the texts are easier, so the marking is stricter", "it has more questions", "it is a longer paper"), 0,
+                "The conversion table compensates for the difficulty of the passages. Usaid can afford six wrong answers; Sanya in Academic can afford ten.",
+                whyWrong = mapOf(
+                    1 to "Both papers have forty questions in sixty minutes.",
+                    2 to "The time is identical; only the texts and the table differ.",
+                ),
+            ),
             B.vocab(
                 B.w("ie1-criterion", "criterion (pl. criteria)", "one of the four things the examiner scores", "Each criterion gets a whole band.", "Coherence is one criterion."),
                 B.w("ie1-cohesion", "cohesion", "how sentences and ideas connect", "Linking words improve cohesion.", "However and therefore are cohesive devices."),
@@ -165,6 +195,26 @@ internal object IeltsM1 {
                 "Record three Speaking answers a day on your phone; listen back the next day." to "You hear your own hesitations.",
             ),
             B.check("ie1-plan-k1", "ie1-plan", "You got 28 in a Listening practice test. The most useful next step is", listOf("Do another test immediately", "List the reason for each of the 12 misses", "Switch to Reading"), 1, "The reasons tell you what to drill; another test without review repeats the same errors."),
+            B.check(
+                "ie1-plan-k2", "ie1-plan",
+                "Your Task 2 essay comes back marked at 6. The step that moves the band is",
+                listOf("rewriting that essay with the feedback applied", "writing a new essay on a new question", "reading more model answers"), 0,
+                "The second draft is where the correction is actually practised. A new question lets you repeat the same habit on fresh ground.",
+                whyWrong = mapOf(
+                    1 to "Volume without a rewrite is how people sit at the same band for months.",
+                    2 to "Models show you the target; they do not make you produce it.",
+                ),
+            ),
+            B.check(
+                "ie1-plan-k3", "ie1-plan",
+                "Roughly how much focused work does one band usually take?",
+                listOf("100 to 200 hours", "about 20 hours", "it cannot be estimated"), 0,
+                "One band is a hundred to two hundred hours for most people. Knowing the number is what makes a realistic test date possible.",
+                whyWrong = mapOf(
+                    1 to "Twenty hours is roughly one week of this plan, and it moves a band for almost nobody.",
+                    2 to "It varies, but the range is well enough known to book a date against.",
+                ),
+            ),
             B.vocab(
                 B.w("ie1-paraphrase", "paraphrase", "saying the same thing in different words", "The recording paraphrases the question.", "Cheap in the question becomes inexpensive in the audio."),
                 B.w("ie1-distractor", "distractor", "a wrong answer made to sound right", "Every listening question has a distractor.", "The speaker corrects a number: the first is the distractor."),

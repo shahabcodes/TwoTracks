@@ -43,8 +43,37 @@ internal object IeltsM6 {
                 "Decide your position before you write a word." to "Changing sides mid-essay destroys Coherence.",
             ),
             B.p("Task: Some people believe that children should begin formal schooling at the age of four, while others argue that they should start at seven. Discuss both views and give your own opinion."),
+            B.worked("""
+                Worked example. Read that task in two halves. The topic is the age at which formal schooling should
+                begin. The instruction is Discuss both views and give your own opinion, and it alone decides the
+                shape: a paragraph for the case for four, a paragraph for the case for seven, and a position of your
+                own stated plainly. Two ideas, each with one example, planned before a word is written. An essay
+                that argues only for seven has written well about half a task.
+            """),
+            B.faded(
+                "ie6-questions-f1",
+                "A different task, read the same way. Many city centres are being closed to private cars. What problems does this cause, and what measures could be taken to address them?",
+                listOf(
+                    "The topic: closing city centres to private cars.",
+                    "The instruction, which is the half that decides the shape: what problems does this cause, and what measures could be taken.",
+                    "So the type is ___ and solution, which means one body paragraph of each, with the second answering the first rather than wandering off.",
+                    "Then two ideas with one example each, and a position decided before you write.",
+                ),
+                2, listOf("problem"),
+                "The instruction, not the topic, names the type. Candidates who read only the topic write a good essay about the wrong question.",
+            ),
             B.check("ie6-questions-k1", "ie6-questions", "For that task, an essay that argues only that seven is better will lose most marks on", listOf("Grammatical Range", "Task Response, because both views were required", "Lexical Resource"), 1, "A discussion essay must present both views, then your opinion."),
             B.check("ie6-questions-k2", "ie6-questions", "A task asks 'Do the advantages outweigh the disadvantages?' Your conclusion must", listOf("list both again", "state which side is greater", "avoid taking a position"), 1, "Outweigh asks for a verdict, not a summary."),
+            B.check(
+                "ie6-questions-k3", "ie6-questions",
+                "A task ends with two direct questions. Your essay needs",
+                listOf("a paragraph answering each", "one paragraph covering both", "an answer to whichever is more interesting"), 0,
+                "A two-part question is two parts of the task, and each unanswered part is marked as such.",
+                whyWrong = mapOf(
+                    1 to "One paragraph for two questions almost always leaves the second one thin or implied.",
+                    2 to "Choosing between them leaves half the task undone.",
+                ),
+            ),
             B.h("Position: what 'to what extent' allows"),
             B.table(
                 listOf("Position", "Phrase", "Risk"),
@@ -130,6 +159,47 @@ internal object IeltsM6 {
             B.gap("ie6-s-g1", "Referencing instead of repetition.", "Governments could subsidise childcare. ___ measures would help low-income families most.", "Such", "such", "These", "these"),
             B.gap("ie6-s-g2", "Contrast linker at the start of a sentence.", "___, there are significant drawbacks to this approach.", "However", "however", "Nevertheless", "nevertheless"),
             B.check("ie6-structure-k1", "ie6-structure", "Which is the best topic sentence?", listOf("Firstly, I will talk about education.", "The strongest argument for a later start is that young children need unstructured play.", "Education is very important nowadays."), 1, "A topic sentence states the paragraph's single idea as a claim."),
+            B.check(
+                "ie6-structure-k2", "ie6-structure",
+                "Your example is invented: 'A study in Canada found that…'. That is",
+                listOf("acceptable; the English is marked, not your sources", "a fabrication that costs marks", "allowed only in Task 1"), 0,
+                "Examiners mark language, not general knowledge. A specific invented example develops a paragraph; a vague true one does not.",
+                whyWrong = mapOf(
+                    1 to "Nothing in the essay is checked for truth.",
+                    2 to "Task 1 is where you report data and must not invent it. Task 2 is the opposite.",
+                ),
+            ),
+            B.check(
+                "ie6-structure-k3", "ie6-structure",
+                "Opening an essay with 'Nowadays, in this modern era…' is",
+                listOf("the most recognisable band 5 opening in the test", "a safe neutral start", "rewarded for setting context"), 0,
+                "It says nothing, spends words you need elsewhere, and examiners have read it thousands of times. Paraphrase the statement instead.",
+                whyWrong = mapOf(
+                    1 to "It is neutral in the sense that it carries no information, which is the problem.",
+                    2 to "Context that could precede any essay on any topic sets nothing.",
+                ),
+            ),
+            B.worked("""
+                Worked example. One body paragraph, built from its four moves. Topic sentence, one idea as a claim:
+                The strongest argument for a later start is that young children need unstructured play. Explanation,
+                two sentences of reasoning: This is because play is how children learn to negotiate, take turns and
+                regulate their own attention, none of which is taught directly in a classroom. Example, invented if
+                necessary: In Finland, for instance, children begin formal lessons at seven and consistently
+                outperform peers who started at five. Link back to the question: This suggests the age of entry
+                matters less than what children do before it.
+            """),
+            B.faded(
+                "ie6-structure-f1",
+                "A different paragraph, the same four moves. The idea: working from home reduces commuting and therefore emissions.",
+                listOf(
+                    "Topic sentence, one idea stated as a claim: The clearest environmental benefit of home working is the reduction in daily commuting.",
+                    "Explanation, two sentences of reasoning: This is because the journey to work accounts for a substantial share of urban traffic, which means that removing even a fraction of it eases congestion as well as emissions.",
+                    "Example. It may be ___ if you do not have a real one: In one German city, for instance, measured traffic volumes fell by almost a fifth once two large employers moved to hybrid working.",
+                    "Link back to the question: This suggests that where people work has a greater environmental effect than how they travel.",
+                ),
+                2, listOf("invented", "made up", "fabricated"),
+                "Topic, explain, example, link. The example is the move most essays skip, and it is the one that turns a stated opinion into a developed one.",
+            ),
             B.vocab(
                 B.w("ie6-assertion", "assertion", "a claim made without evidence", "A paragraph of assertion scores poorly.", "Add an example to fix it."),
                 B.w("ie6-acquire", "acquire", "gain, learn", "Children acquire language rapidly.", "Formal alternative to get."),
@@ -209,6 +279,46 @@ internal object IeltsM6 {
                 "Count your words: under 250 is an automatic penalty", "Underline your position in the introduction and the conclusion: do they match?", "Check each body paragraph has exactly one idea", "Count error-free sentences: band 7 wants a majority", "Rewrite the weakest paragraph before reading the model",
             ),
             B.check("ie6-practice-k1", "ie6-practice", "The marker reports 'no clear position'. The fastest fix is", listOf("adding more examples", "stating I agree or I disagree in the introduction and conclusion", "making the essay longer"), 1, "Task Response needs an explicit, consistent position."),
+            B.check(
+                "ie6-practice-k2", "ie6-practice",
+                "Of the forty minutes for the essay, planning should take about",
+                listOf("four", "none", "twenty"), 0,
+                "Four minutes buys the type, the position and two developed ideas, which is what the heaviest penalties are about.",
+                whyWrong = mapOf(
+                    1 to "Starting cold is how essays change sides halfway through and lose Coherence.",
+                    2 to "Half the time planning leaves twenty minutes for 250 words.",
+                ),
+            ),
+            B.check(
+                "ie6-practice-k3", "ie6-practice",
+                "Two essays argue the same case in 270 words, one in four body paragraphs and one in two. The higher score usually goes to",
+                listOf("the two, each developed", "the four, for range", "neither; they score the same"), 0,
+                "The same words spread over twice as many paragraphs leaves each one undeveloped, and development is what Task Response measures.",
+                whyWrong = mapOf(
+                    1 to "Range means a range of language, not a count of paragraphs.",
+                    2 to "Coherence and Task Response both read development, so the difference is real.",
+                ),
+            ),
+            B.worked("""
+                Worked example. How the forty minutes go. Four minutes planning: underline the topic and the
+                instruction separately, name the type from the instruction wording, decide your position, and write
+                down two ideas with one example each. Five minutes on the introduction: paraphrase, position,
+                outline. Twenty-four minutes on the two body paragraphs, four moves each. Four minutes on the
+                conclusion, which restates the position and adds nothing new. Three minutes checking length and
+                that the position never moved.
+            """),
+            B.faded(
+                "ie6-practice-f1",
+                "You open Task 2 and it ends 'Discuss both views and give your own opinion.' Plan the forty minutes before writing a word.",
+                listOf(
+                    "Four minutes planning. The instruction names the type, and this one requires both views and then your own.",
+                    "Five minutes on the introduction: paraphrase the statement, state your position, outline the essay.",
+                    "Twenty-four minutes on the body. A discussion essay gives ___ to each view, so there are two of them before your opinion.",
+                    "Four minutes on a conclusion that restates the position and adds nothing new, three checking the length.",
+                ),
+                2, listOf("one paragraph", "a paragraph"),
+                "The instruction wording is the whole plan. Discuss both views means two body paragraphs before anything of yours, and an essay that argues one side has failed the task however well it argues.",
+            ),
             B.vocab(
                 B.w("ie6-induced-demand", "induced demand", "new supply creating new use", "Wider roads create induced demand.", "A precise, high-level noun phrase."),
                 B.w("ie6-congestion", "congestion", "traffic jams", "Congestion worsened after the expansion.", "Precise alternative to traffic."),

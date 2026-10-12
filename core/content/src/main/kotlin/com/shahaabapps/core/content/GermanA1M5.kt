@@ -83,6 +83,26 @@ internal object GermanA1M5 {
                 aspect = 0.71f,
             ),
             B.check("de5-words-k1", "de5-words", "'2 Zi., 1. OG, 500 € + NK' means", listOf("Two rooms, first floor, 500 euros plus bills", "Two floors, one room, 500 euros all in", "Twenty rooms"), 0, "Zi. is Zimmer, OG is Obergeschoss, NK is Nebenkosten (bills on top)."),
+            B.check(
+                "de5-words-k2", "de5-words",
+                "An advert calls a flat hell und ruhig. It is",
+                listOf("bright and quiet", "cheap and small", "bright and expensive"), 0,
+                "hell is bright, ruhig is quiet. They are the two words an advert reaches for when there is nothing else to say.",
+                whyWrong = mapOf(
+                    1 to "billig and klein are those, and an advert rarely volunteers klein.",
+                    2 to "teuer is expensive, and no advert prints it.",
+                ),
+            ),
+            B.check(
+                "de5-words-k3", "de5-words",
+                "'Wir suchen eine Wohnung' says you are",
+                listOf("looking for a flat", "renting out a flat", "finding a flat"), 0,
+                "suchen is to look for. mieten is to rent and finden is to find, which is what you do at the end.",
+                whyWrong = mapOf(
+                    1 to "vermieten is to rent out; mieten is to rent from someone.",
+                    2 to "finden is the result. suchen is the part that takes months.",
+                ),
+            ),
             B.glossary("qm" to "Quadratmeter, square metres.", "NK / Nebenkosten" to "Bills on top of the rent.", "EG / OG" to "Erdgeschoss (ground floor) / Obergeschoss (upper floor).", "Flur" to "Hallway (der)."),
             B.recap("Rooms and furniture with their articles; most rooms are das.", "Adjectives for adverts: groß, klein, hell, ruhig, teuer, billig.", "Directions: links, rechts, geradeaus, an der Ecke."),
         ),
@@ -255,6 +275,26 @@ internal object GermanA1M5 {
                 B.w("m5-gern-geschehen", "Gern geschehen", "You are welcome", "Danke! Gern geschehen.", "Thanks! You are welcome."),
             ),
             B.check("de5-dialogue-k1", "de5-dialogue", "'die zweite Straße links' means", listOf("the second street on the left", "two streets, then right", "the left side of the second house"), 0, "zweite = second, links = left: take the second street on the left."),
+            B.check(
+                "de5-dialogue-k2", "de5-dialogue",
+                "Usaid opens the call with 'Ich rufe wegen der Wohnung an.' That sentence",
+                listOf("says why he is calling", "asks for the landlord", "arranges a viewing"), 0,
+                "anrufen wegen … gives the reason for the call, and it is the line that opens every enquiry.",
+                whyWrong = mapOf(
+                    1 to "The landlord answered: Weber, guten Tag.",
+                    2 to "The viewing is arranged at the end, with Kann ich die Wohnung sehen?",
+                ),
+            ),
+            B.check(
+                "de5-dialogue-k3", "de5-dialogue",
+                "'650 Euro, plus Nebenkosten.' What do you actually pay?",
+                listOf("more than 650", "exactly 650", "less than 650, after a discount"), 0,
+                "Nebenkosten are heating, water and rubbish on top of the rent. Kaltmiete is the rent without them; Warmmiete is with.",
+                whyWrong = mapOf(
+                    1 to "650 is the Kaltmiete. The plus is what every advert quietly leans on.",
+                    2 to "Nothing here is taken off.",
+                ),
+            ),
             B.glossary("Vermieter" to "Landlord (der).", "Passant" to "Passer-by (der).", "wegen" to "Because of, about: wegen der Wohnung."),
             B.recap("Ich rufe wegen … an. Ist … noch frei? Wie hoch ist die Miete?", "Entschuldigung, wo ist …? Then listen for geradeaus, links, rechts, neben.", "Play each dialogue twice, as the exam does, before reading."),
         ),
@@ -292,6 +332,24 @@ internal object GermanA1M5 {
             B.gap("de5-p-gap2", "Dative, contracted.", "Wir wohnen ___ dritten Stock. (in + dem)", "im"),
             B.gap("de5-p-gap3", "es gibt.", "Es gibt ___ Garten. (ein)", "einen"),
             B.h("Schreiben"),
+            B.worked("""
+                Worked example. Usaid writes about the new flat. Where, with in plus the dative: Sie ist im Zentrum,
+                in der Gartenstraße. What is in it, with haben: Die Wohnung hat drei Zimmer, eine Küche und ein Bad.
+                What he likes, with an adjective after ist: Das Wohnzimmer ist groß und hell. Then the invitation, as
+                a question: Kommst du am Samstag?
+            """),
+            B.faded(
+                "de5-practice-f1",
+                "Sanya writes the same letter about a different flat: first floor in the Hauptstraße, two rooms, a quiet bedroom, and her friend is invited on Sunday.",
+                listOf(
+                    "Where. in takes the dative here, so die Hauptstraße becomes der: Sie ist in der Hauptstraße.",
+                    "The floor. in plus dem contracts to one word: Die Wohnung ist ___ ersten Stock.",
+                    "What is in it: Sie hat zwei Zimmer und eine Küche.",
+                    "What you like, then the invitation: Das Schlafzimmer ist ruhig. Kommst du am Sonntag?",
+                ),
+                1, listOf("im"),
+                "in dem is written im and nothing else. The contraction is not optional, and a letter that spells it out reads as a translation.",
+            ),
             B.marked("de5-p-write", "Write to a friend about your new flat (Schreiben part 2 style): say where it is, how many rooms it has, what you like, and invite them to visit.",
                 """
                 Liebe Sanya, ich habe eine neue Wohnung! Sie ist im Zentrum, in der Gartenstraße. Die Wohnung hat drei Zimmer, eine Küche und ein Bad. Das Wohnzimmer ist groß und hell. Es gibt auch einen kleinen Balkon. Ich finde die Wohnung sehr schön. Kommst du am Samstag? Viele Grüße, Usaid

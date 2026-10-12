@@ -16,11 +16,33 @@ class FadedTest {
         c.allTopics.flatMap { t -> t.blocks.filterIsInstance<Block.Faded>() }.map { c to it }
     }
 
+    /**
+     * Where a fade is required. AZ-204 is every topic: its topics are long
+     * prose that ends in a problem. The other two are the topics whose job is
+     * to produce something — a letter, a report, an essay, a spoken turn —
+     * because that is where reading a model and writing one are furthest
+     * apart. Naming them means a topic added to those modules later has to be
+     * written up to the rule rather than quietly skipping it.
+     */
+    private val mustFade: List<Pair<Course, Topic>> =
+        Az204.course.allTopics.map { Az204.course to it } +
+            GermanA1.course.allTopics
+                .filter { it.id.endsWith("-practice") || it.id == "de11-forms" || it.id == "de11-messages" }
+                .map { GermanA1.course to it } +
+            Ielts.course.allTopics
+                .filter { it.id.startsWith("ie4-") || it.id.startsWith("ie5-") || it.id.startsWith("ie6-") || it.id.startsWith("ie7-") }
+                .map { Ielts.course to it }
+
     @Test
-    fun `every AZ-204 topic fades its worked example, exactly once`() {
-        Az204.course.allTopics.forEach { t ->
+    fun `every topic that should fade a worked example does, exactly once`() {
+        // The counts are asserted so that a filter that silently stops
+        // matching cannot turn this test into a no-op.
+        assertEquals("az-204 topics", 22, mustFade.count { it.first.id == Az204.course.id })
+        assertEquals("German writing topics", 12, mustFade.count { it.first.id == GermanA1.course.id })
+        assertEquals("IELTS writing and speaking topics", 13, mustFade.count { it.first.id == Ielts.course.id })
+        mustFade.forEach { (c, t) ->
             val n = t.blocks.filterIsInstance<Block.Faded>().size
-            assertEquals("az-204/${t.id} should fade once", 1, n)
+            assertEquals("${c.id}/${t.id} should fade once", 1, n)
         }
     }
 
@@ -28,11 +50,13 @@ class FadedTest {
     fun `the faded step follows the worked example it fades`() {
         // The fade only reads as one movement if it is next to the solution it
         // takes a step out of. At the end of the topic it is just another gap.
-        Az204.course.allTopics.forEach { t ->
-            val worked = t.blocks.indexOfFirst { it is Block.Callout && it.kind == CalloutKind.WORKED }
+        mustFade.forEach { (c, t) ->
             val fade = t.blocks.indexOfFirst { it is Block.Faded }
-            assertTrue("az-204/${t.id} should have a worked example", worked >= 0)
-            assertEquals("az-204/${t.id}: the fade should come straight after it", worked + 1, fade)
+            val worked = t.blocks.withIndex()
+                .lastOrNull { (i, b) -> i < fade && b is Block.Callout && b.kind == CalloutKind.WORKED }
+                ?.index ?: -1
+            assertTrue("${c.id}/${t.id} should have a worked example before its fade", worked >= 0)
+            assertEquals("${c.id}/${t.id}: the fade should come straight after it", worked + 1, fade)
         }
     }
 
@@ -40,7 +64,12 @@ class FadedTest {
     fun `the blank is a real step and it has a blank in it`() {
         faded.forEach { (c, f) ->
             assertTrue("${c.id}/${f.id}: blank ${f.blank} is outside the steps", f.blank in f.steps.indices)
-            assertTrue("${c.id}/${f.id}: the blank step has no ___ in it", f.steps[f.blank].contains("___"))
+            // One hole, because the screen draws one field: a step with two
+            // holes asks for two answers and takes one.
+            assertEquals(
+                "${c.id}/${f.id}: the blank step should have exactly one ___",
+                1, Regex("_{3,}").findAll(f.steps[f.blank]).count(),
+            )
             // Two given steps and one blank: a single step with a hole is a gap,
             // not a faded solution.
             assertTrue("${c.id}/${f.id}: wanted three steps, had ${f.steps.size}", f.steps.size >= 3)

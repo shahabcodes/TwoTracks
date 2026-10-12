@@ -52,6 +52,26 @@ internal object GermanA1M1 {
             """),
             B.check("de1-words-k1", "de1-words", "You enter a bank in Berlin. Which greeting fits?",
                 listOf("Hallo!", "Guten Tag!", "Tschüss!"), 1, "A bank is formal: Guten Tag. Hallo is for friends and Tschüss is a goodbye."),
+            B.check(
+                "de1-words-k2", "de1-words",
+                "Someone holds a door for you and you thank them. They reply",
+                listOf("Bitte.", "Danke.", "Entschuldigung."), 0,
+                "bitte is both please and you're welcome. It is the standard answer to danke.",
+                whyWrong = mapOf(
+                    1 to "danke is the thanks itself, not the reply to it.",
+                    2 to "Entschuldigung apologises or gets attention; nobody is sorry here.",
+                ),
+            ),
+            B.check(
+                "de1-words-k3", "de1-words",
+                "You leave a colleague's flat at eleven at night. You say",
+                listOf("Guten Abend.", "Gute Nacht.", "Guten Morgen."), 1,
+                "Gute Nacht is said on the way out at the end of the night, not on arrival.",
+                whyWrong = mapOf(
+                    0 to "Guten Abend greets someone in the evening. You are leaving, not arriving.",
+                    2 to "Guten Morgen is for the morning.",
+                ),
+            ),
             B.glossary("Wortschatz" to "Vocabulary, literally a word treasure.", "formell" to "Formal, with Sie.", "informell" to "Informal, with du."),
             B.recap("Guten Tag and Auf Wiedersehen for Sie; Hallo and Tschüss for du.", "bitte means please and you're welcome.", "Every word here is now in your deck."),
         ),
@@ -203,6 +223,26 @@ internal object GermanA1M1 {
             ),
             B.check("de1-dialogue-k1", "de1-dialogue", "Someone says a name too fast. What do you say?",
                 listOf("Tschüss!", "Wie bitte?", "Danke schön!"), 1, "Wie bitte? asks them to repeat. It is polite in every situation."),
+            B.check(
+                "de1-dialogue-k2", "de1-dialogue",
+                "You heard the name but not the spelling. You ask",
+                listOf("Wie geht's?", "Wie schreibt man das?", "Wie bitte?"), 1,
+                "Wie schreibt man das? asks for the spelling, which is what a counter clerk will ask you in return.",
+                whyWrong = mapOf(
+                    0 to "That asks how someone is.",
+                    2 to "Wie bitte? asks for the whole thing again, which you do not need: you heard it.",
+                ),
+            ),
+            B.check(
+                "de1-dialogue-k3", "de1-dialogue",
+                "'Freut mich' is said",
+                listOf("when you are introduced to someone", "when you are leaving", "when you did not understand"), 0,
+                "Freut mich is pleased to meet you, and it belongs at the start of a first meeting.",
+                whyWrong = mapOf(
+                    1 to "Auf Wiedersehen or Tschüss does the leaving.",
+                    2 to "Wie bitte? is the one for not understanding.",
+                ),
+            ),
             B.glossary("Freut mich" to "Pleased to meet you.", "von Beruf" to "By profession.", "Willkommen" to "Welcome."),
             B.recap("Ich heiße, ich komme aus, ich wohne in: the three sentences of every introduction.", "Wie bitte? gets a repeat.", "Spell your name with the German letter names."),
         ),
@@ -236,10 +276,47 @@ internal object GermanA1M1 {
             ),
             B.check("de1-practice-k1", "de1-practice", "Which field asks for the city you live in?",
                 listOf("Land", "Wohnort", "Vorname"), 1, "Wohnort is the place of residence. Land is the country, Vorname the first name."),
+            B.check(
+                "de1-practice-k2", "de1-practice",
+                "On the form above, 'Familienname' takes",
+                listOf("Shahab", "Usaid", "Doha"), 0,
+                "Familienname is the surname. Vorname is the one in front of it.",
+                whyWrong = mapOf(
+                    1 to "Usaid is the Vorname, the first name.",
+                    2 to "Doha is the Wohnort.",
+                ),
+            ),
+            B.check(
+                "de1-practice-k3", "de1-practice",
+                "A form asks for Sprachen. You write",
+                listOf("Englisch, Hindi, Deutsch (A1)", "Softwareentwickler", "28"), 0,
+                "Sprachen is languages, and listing the level beside each one is normal and honest.",
+                whyWrong = mapOf(
+                    1 to "That is the Beruf.",
+                    2 to "That is the Alter.",
+                ),
+            ),
             B.match("de1-p-match1", "Match the question to the answer.",
                 "Wie heißen Sie?" to "Ich heiße Sanya.", "Woher kommen Sie?" to "Aus Pakistan.", "Wo wohnen Sie?" to "In Karachi.", "Was sind Sie von Beruf?" to "Ich bin Lehrerin."),
             B.gap("de1-p-gap1", "Complete the sentence.", "Ich ___ in Doha.", "wohne"),
             B.gap("de1-p-gap2", "Complete the sentence.", "Sanya ___ aus Pakistan.", "kommt"),
+            B.worked("""
+                Worked example. Sanya introduces herself to a new neighbour. Name first: Ich heiße Sanya. Then the
+                country, with aus: Ich komme aus Pakistan. Then the town, with in: Ich wohne in Doha. Last the job,
+                with von Beruf: Ich bin Lehrerin von Beruf. Four sentences, and the verb is second in every one.
+            """),
+            B.faded(
+                "de1-practice-f1",
+                "A new person, the same four lines. Ali is 22, from India, living in Berlin, and studying.",
+                listOf(
+                    "Name: Ich heiße Ali.",
+                    "Country. The country itself keeps no article, and where you come from takes one preposition: Ich komme ___ Indien.",
+                    "Town: Ich wohne in Berlin.",
+                    "Job: Ich bin Student von Beruf.",
+                ),
+                1, listOf("aus"),
+                "aus for where you come from, in for where you live. Those two prepositions carry the whole introduction.",
+            ),
             B.writing("de1-p-write", "Write 4 short sentences to introduce yourself to a new neighbour: name, country, city, job.",
                 """
                 Hallo! Ich heiße Usaid Shahab. Ich komme aus Indien. Ich wohne in Doha. Ich bin Softwareentwickler von Beruf. Viele Grüße, Usaid

@@ -85,8 +85,10 @@ that the rules about it can be unit tests. `ContentTest`, `DiagramTest`,
 `ExplainTest`, `FadedTest` and `MasteryTest` hold things such as:
 
 - every topic asks the reader to do something, not only explain
-- every AZ-204 topic, and every German grammar topic, carries at least three
-  checks
+- every topic in every course carries at least three checks
+- every AZ-204 topic, and every topic whose job is to produce a letter, a
+  report, an essay or a spoken turn, fades a worked example exactly once,
+  directly after the worked example it fades
 - a wrong-option note points at an option that exists and is actually wrong
 - no single slot holds the answer in more than two thirds of checks
 - every warm-up guess stays out of `Course.allQuestions`, so a guess made
