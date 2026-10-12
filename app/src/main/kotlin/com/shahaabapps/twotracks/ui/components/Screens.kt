@@ -71,7 +71,7 @@ fun DetailScaffold(
             }
             Column(modifier = Modifier.fillMaxWidth().padding(start = Spacing.listHorizontal, end = Spacing.listHorizontal, top = 4.dp, bottom = Spacing.sm)) {
                 if (eyebrow != null) SectionLabel(eyebrow, modifier = Modifier.padding(bottom = 6.dp), color = eyebrowColor.takeOrElse { AppTheme.colors.secondaryLabel })
-                Text(
+                if (title.isNotEmpty()) Text(
                     text = title,
                     style = MaterialTheme.typography.displayLarge,
                     color = MaterialTheme.colorScheme.onBackground,
