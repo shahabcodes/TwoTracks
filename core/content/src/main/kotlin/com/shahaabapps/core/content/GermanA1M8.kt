@@ -116,6 +116,36 @@ internal object GermanA1M8 {
                 listOf("anrufen", "Rufen Sie mich an!", "Ruf mich an!", "Ruft mich an!"),
             ),
             B.remember("Separable verbs split in the imperative too: Rufen Sie an! Steh auf! bitte makes any of them polite: Nehmen Sie bitte Platz."),
+            B.check(
+                "de8-grammar-k1", "de8-grammar",
+                "The Sie imperative is made by",
+                listOf("putting the verb first and leaving Sie after it", "dropping Sie", "using the infinitive alone"), 0,
+                "Nehmen Sie Platz. It is the yes/no question with a full stop instead of a question mark.",
+                whyWrong = mapOf(
+                    1 to "Sie stays. Without it the form is a du imperative or nothing at all.",
+                    2 to "An infinitive alone is the impersonal instruction on a sign: Bitte nicht rauchen.",
+                ),
+            ),
+            B.check(
+                "de8-grammar-k2", "de8-grammar",
+                "'___ die Tablette!' du form of nehmen",
+                listOf("Nimm", "Nehm", "Nimmst"), 0,
+                "A verb that changes its vowel for du keeps the change in the imperative and drops the ending.",
+                whyWrong = mapOf(
+                    1 to "The vowel change stays: nehmen gives nimm, not nehm.",
+                    2 to "The -st ending goes. Nimmst is the statement form.",
+                ),
+            ),
+            B.check(
+                "de8-grammar-k3", "de8-grammar",
+                "'Kann ich ___ helfen?' to someone you call Sie",
+                listOf("Ihnen", "Sie", "Ihr"), 0,
+                "helfen takes the dative, and the dative of Sie is Ihnen.",
+                whyWrong = mapOf(
+                    1 to "Sie is the subject and the accusative form. helfen takes neither.",
+                    2 to "Ihr is the possessive, your.",
+                ),
+            ),
             B.gap("de8-g-gap1", "Sie imperative.", "___ Sie viel Wasser! (trinken)", "Trinken", "trinken"),
             B.gap("de8-g-gap2", "du imperative.", "___ im Bett! (bleiben)", "Bleib", "bleib"),
             B.gap("de8-g-gap3", "du imperative with vowel change.", "___ die Tablette! (nehmen)", "Nimm", "nimm"),

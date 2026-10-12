@@ -104,6 +104,36 @@ internal object GermanA1M10 {
                 listOf("separable", "prefix + ge + stem", "eingekauft, aufgestanden, angerufen, abgefahren"),
                 listOf("no ge- (be-, ver-, er-, -ieren)", "stem + -t or -en", "besucht, verstanden, erklärt, telefoniert, studiert"),
             ),
+            B.check(
+                "de10-grammar-k1", "de10-grammar",
+                "'Ich ___ gestern nach Hause gegangen.'",
+                listOf("bin", "habe", "war"), 0,
+                "gehen is movement from one place to another, and those verbs take sein.",
+                whyWrong = mapOf(
+                    1 to "haben is for most verbs, but not for movement or for a change of state.",
+                    2 to "war is the simple past of sein, not the half of a Perfekt.",
+                ),
+            ),
+            B.check(
+                "de10-grammar-k2", "de10-grammar",
+                "Which verb takes sein in the Perfekt?",
+                listOf("fahren", "kaufen", "arbeiten"), 0,
+                "Movement and change of state take sein; everything else takes haben.",
+                whyWrong = mapOf(
+                    1 to "kaufen takes haben: Ich habe Brot gekauft.",
+                    2 to "arbeiten takes haben too: Ich habe gearbeitet.",
+                ),
+            ),
+            B.check(
+                "de10-grammar-k3", "de10-grammar",
+                "'Wir ___ gestern keine Zeit.' (haben, in the past)",
+                listOf("hatten", "haben", "sind gehabt"), 0,
+                "haben and sein use the simple past rather than the Perfekt: hatte, hatten, war, waren.",
+                whyWrong = mapOf(
+                    1 to "haben is the present. The sentence says gestern.",
+                    2 to "It exists, and nobody says it. The exam expects hatten.",
+                ),
+            ),
             B.gap("de10-g-gap1", "haben or sein?", "Ich ___ gestern ins Kino gegangen. (sein)", "bin"),
             B.gap("de10-g-gap2", "haben or sein?", "Wir ___ Pizza gegessen. (haben)", "haben"),
             B.gap("de10-g-gap3", "Participle.", "Sanya hat ihre Eltern ___. (besuchen)", "besucht"),

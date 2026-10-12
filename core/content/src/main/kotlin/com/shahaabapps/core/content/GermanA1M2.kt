@@ -114,6 +114,36 @@ internal object GermanA1M2 {
             ),
             B.h("Yes/no questions: verb first"),
             B.p("Turn a statement into a question by putting the verb first: Du hast Kinder. → Hast du Kinder? W-questions keep the verb second: Wie alt bist du?"),
+            B.check(
+                "de2-grammar-k1", "de2-grammar",
+                "'___ ihr Hunger?' takes which form of haben?",
+                listOf("Habt", "Hast", "Haben"), 0,
+                "ihr takes habt. The ending is -t, as it is for ihr with every verb.",
+                whyWrong = mapOf(
+                    1 to "hast is the du form, one person.",
+                    2 to "haben goes with wir, sie and Sie.",
+                ),
+            ),
+            B.check(
+                "de2-grammar-k2", "de2-grammar",
+                "'___ Mutter' with mein is",
+                listOf("meine", "mein", "meinen"), 0,
+                "A possessive takes the gender of the thing owned, and Mutter is die, so meine.",
+                whyWrong = mapOf(
+                    1 to "mein is for der and das words: mein Vater, mein Kind.",
+                    2 to "meinen is masculine accusative: Ich frage meinen Vater.",
+                ),
+            ),
+            B.check(
+                "de2-grammar-k3", "de2-grammar",
+                "Sie with a capital S, in the middle of a sentence, means",
+                listOf("you, formally", "they", "she"), 0,
+                "The capital is the whole signal: Sie is the polite you, sie is she or they.",
+                whyWrong = mapOf(
+                    1 to "they is sie, lower case.",
+                    2 to "she is sie, lower case, with a singular verb.",
+                ),
+            ),
             B.gap("de2-g-gap1", "Fill the gap with haben.", "Ich ___ zwei Schwestern.", "habe"),
             B.gap("de2-g-gap2", "Fill the gap with the possessive.", "Das ist ___ Mutter. (my)", "meine"),
             B.reorder("de2-g-re1", "Make a yes/no question.", "Hast du Geschwister"),

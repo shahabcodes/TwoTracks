@@ -134,7 +134,8 @@ class ContentTest {
         // mean each section is recalled before the next one starts.
         //
         // AZ-204 only, for now: its topics are long prose, where German's and
-        // IELTS's are short and carry exercises of their own instead.
+        // IELTS's are short and carry exercises of their own instead. German's
+        // grammar topics are the exception and have their own rule below.
         Az204.course.allTopics.forEach { t ->
             val checks = t.blocks.count { it is Block.Check }
             assertTrue("az-204/${t.id} has $checks check(s), wanted 3 or more", checks >= 3)
@@ -180,6 +181,40 @@ class ContentTest {
             }
             course.mockExam?.let { assertFalse("${it.id} should not give instant feedback", it.instantFeedback) }
         }
+    }
+
+    @Test
+    fun `every German grammar topic asks for the rule back`() {
+        // These carried no checks at all. They were not unpractised — each has
+        // four to seven gap-fills — but a gap-fill is answered and forgotten:
+        // nothing records it, so none of it reaches the review set, the spaced
+        // schedule, or the question that asks how sure you were. Grammar is
+        // where being confidently wrong matters most, and it was the one part
+        // of the course that could not report it.
+        val grammar = GermanA1.course.allTopics.filter { it.id.endsWith("-grammar") }
+        assertTrue("expected German to have grammar topics, saw ${grammar.size}", grammar.size >= 10)
+        grammar.forEach { t ->
+            val checks = t.blocks.count { it is Block.Check }
+            assertTrue("de/${t.id} has $checks check(s), wanted 3 or more", checks >= 3)
+        }
+    }
+
+    @Test
+    fun `German teaches how to say no, rather than only correcting it`() {
+        // nicht and kein were stated in one common-mistakes line inside the
+        // accusative topic and tested by a single question. It is the error
+        // every A1 learner makes, so it has a section like every other point.
+        val topic = GermanA1.course.allTopics.single { it.id == "de4-grammar" }
+        val headings = topic.blocks.filterIsInstance<Block.Heading>().map { it.text }
+        assertTrue(
+            "negation should have a heading of its own, saw $headings",
+            headings.any { it.contains("nicht", ignoreCase = true) && it.contains("kein", ignoreCase = true) },
+        )
+        val checks = topic.blocks.filterIsInstance<Block.Check>().map { it.question }
+        assertTrue(
+            "and a check that asks for the choice",
+            checks.any { q -> q.options.any { it.contains("kein") } && q.options.any { it.contains("nicht") } },
+        )
     }
 
     @Test

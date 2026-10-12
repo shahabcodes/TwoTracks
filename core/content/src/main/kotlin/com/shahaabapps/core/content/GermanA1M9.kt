@@ -110,6 +110,36 @@ internal object GermanA1M9 {
                 listOf("", "mögen"),
                 listOf("ich", "mag"), listOf("du", "magst"), listOf("er/sie/es", "mag"), listOf("wir", "mögen"), listOf("ihr", "mögt"), listOf("sie/Sie", "mögen"),
             ),
+            B.check(
+                "de9-grammar-k1", "de9-grammar",
+                "To say you like football itself, rather than playing it, you say",
+                listOf("Ich mag Fußball.", "Ich gern Fußball.", "Ich spiele Fußball."), 0,
+                "mögen likes a thing; gern goes with a verb and likes doing it.",
+                whyWrong = mapOf(
+                    1 to "gern is not a verb and cannot stand alone. It needs one: Ich spiele gern Fußball.",
+                    2 to "That says you play it, which is not the same as liking it.",
+                ),
+            ),
+            B.check(
+                "de9-grammar-k2", "de9-grammar",
+                "Which word order is right?",
+                listOf("Ich fahre morgen nach Berlin.", "Ich fahre nach Berlin morgen.", "Morgen ich fahre nach Berlin."), 0,
+                "Time before place, and the conjugated verb stays in second position.",
+                whyWrong = mapOf(
+                    1 to "Place before time is the English order, and it is the one to unlearn.",
+                    2 to "Starting with Morgen is fine, but then the verb must come next: Morgen fahre ich.",
+                ),
+            ),
+            B.check(
+                "de9-grammar-k3", "de9-grammar",
+                "The participle of hören is",
+                listOf("gehört", "gehören", "hörte"), 0,
+                "A regular participle is ge- plus the stem plus -t.",
+                whyWrong = mapOf(
+                    1 to "That is an infinitive with ge- stuck on, which is not a form.",
+                    2 to "hörte is the simple past, which A1 uses only for war and hatte.",
+                ),
+            ),
             B.gap("de9-g-gap1", "gern or mag?", "Ich ___ Musik. (like the thing)", "mag"),
             B.gap("de9-g-gap2", "gern or mag?", "Ich höre ___ Musik. (like the activity)", "gern"),
             B.h("Word order: time before place, and the verb stays second"),

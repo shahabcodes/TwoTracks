@@ -119,6 +119,36 @@ internal object GermanA1M6 {
                 listOf("question", "Kannst du mir helfen?"),
                 listOf("negative", "Ich kann heute nicht kommen."),
             ),
+            B.check(
+                "de6-grammar-k1", "de6-grammar",
+                "In 'Ich muss heute arbeiten', the word arbeiten is",
+                listOf("an infinitive at the end", "conjugated to match ich", "optional"), 0,
+                "The modal is conjugated in second place and the other verb waits at the end, unchanged.",
+                whyWrong = mapOf(
+                    1 to "Only the modal is conjugated. Ich muss heute arbeite is wrong.",
+                    2 to "Without it the sentence says only that you must, not what you must do.",
+                ),
+            ),
+            B.check(
+                "de6-grammar-k2", "de6-grammar",
+                "'___ du Deutsch sprechen?' from können",
+                listOf("Kannst", "Kennst", "Könnst"), 0,
+                "können loses its umlaut in the singular: ich kann, du kannst, er kann.",
+                whyWrong = mapOf(
+                    1 to "kennen is to know a person or place, a different verb.",
+                    2 to "The umlaut goes in the singular, so könnst does not exist.",
+                ),
+            ),
+            B.check(
+                "de6-grammar-k3", "de6-grammar",
+                "'Ich frage ___ Chef.' (mein, der Chef)",
+                listOf("meinen", "mein", "meine"), 0,
+                "A possessive takes the same endings as ein, so the masculine accusative is meinen.",
+                whyWrong = mapOf(
+                    1 to "mein is the subject form: Mein Chef ist nett.",
+                    2 to "meine is feminine or plural: meine Chefin, meine Eltern.",
+                ),
+            ),
             B.gap("de6-g-gap1", "Conjugate können.", "___ du Deutsch sprechen? (können)", "Kannst", "kannst"),
             B.gap("de6-g-gap2", "Conjugate müssen.", "Ich ___ heute arbeiten. (müssen)", "muss"),
             B.gap("de6-g-gap3", "Conjugate möchten.", "Wir ___ einen Tee. (möchten)", "möchten", "moechten"),

@@ -116,6 +116,36 @@ internal object GermanA1M7 {
                 listOf("fernsehen", "Wir sehen abends fern.", "Wir dürfen abends fernsehen."),
             ),
             B.remember("Common separable prefixes: ab-, an-, auf-, aus-, ein-, mit-, um-, zurück-, fern-. The stress is on the prefix: ÁNkommen. Non-separable be-, er-, ver- stay put: Ich bezahle, ich verstehe."),
+            B.check(
+                "de7-grammar-k1", "de7-grammar",
+                "'Der Zug ___ um acht Uhr ___.' from abfahren",
+                listOf("fährt … ab", "abfährt … nichts", "fahrt … ab"), 0,
+                "A separable verb splits: the stem is conjugated in second place and the prefix waits at the end.",
+                whyWrong = mapOf(
+                    1 to "The prefix does not stay attached in a main clause. It goes to the end.",
+                    2 to "fahren changes its vowel for er: fährt, not fahrt.",
+                ),
+            ),
+            B.check(
+                "de7-grammar-k2", "de7-grammar",
+                "'Wir fliegen ___ Berlin.' takes",
+                listOf("nach", "zu", "in"), 0,
+                "nach for towns and countries without an article.",
+                whyWrong = mapOf(
+                    1 to "zu is for people and places you go to: zum Arzt, zur Post.",
+                    2 to "in needs an article and the accusative: in die Stadt.",
+                ),
+            ),
+            B.check(
+                "de7-grammar-k3", "de7-grammar",
+                "'Sanya fährt mit ___ Zug.' (der Zug)",
+                listOf("dem", "den", "der"), 0,
+                "mit always takes the dative, so der becomes dem.",
+                whyWrong = mapOf(
+                    1 to "den is the accusative, which mit never takes.",
+                    2 to "der is the subject form.",
+                ),
+            ),
             B.gap("de7-g-gap1", "Separable verb.", "Der Zug fährt um acht Uhr ___. (abfahren)", "ab"),
             B.gap("de7-g-gap2", "Separable verb.", "Wann ___ du an? (ankommen)", "kommst"),
             B.gap("de7-g-gap3", "Separable verb.", "Ich muss in Frankfurt ___. (umsteigen)", "umsteigen"),

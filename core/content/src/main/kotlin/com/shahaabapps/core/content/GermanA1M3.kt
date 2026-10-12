@@ -108,6 +108,36 @@ internal object GermanA1M3 {
             ),
             B.h("Time expressions"),
             B.bullets("um + clock time: um acht Uhr", "am + day or part of day: am Montag, am Morgen, am Abend", "von … bis …: von sieben bis halb vier", "im + month: im Februar"),
+            B.check(
+                "de3-grammar-k1", "de3-grammar",
+                "'Du ___ in Doha.' from arbeiten",
+                listOf("arbeitest", "arbeitst", "arbeitet"), 0,
+                "A stem ending in -t takes an extra -e- before the ending, or it cannot be said: arbeitest.",
+                whyWrong = mapOf(
+                    1 to "arbeitst is what the rule would give without the extra -e-, and it is unsayable.",
+                    2 to "arbeitet is the er and the ihr form.",
+                ),
+            ),
+            B.check(
+                "de3-grammar-k2", "de3-grammar",
+                "To ask which country someone is from you start with",
+                listOf("Woher", "Wo", "Wohin"), 0,
+                "Woher asks where from: Woher kommst du?",
+                whyWrong = mapOf(
+                    1 to "Wo asks where something is: Wo wohnst du?",
+                    2 to "Wohin asks where to: Wohin gehst du?",
+                ),
+            ),
+            B.check(
+                "de3-grammar-k3", "de3-grammar",
+                "'Ich stehe ___ sieben Uhr auf.' takes",
+                listOf("um", "am", "im"), 0,
+                "um for a clock time, am for a day, im for a month.",
+                whyWrong = mapOf(
+                    1 to "am is for days: am Montag.",
+                    2 to "im is for months and seasons: im Mai, im Winter.",
+                ),
+            ),
             B.gap("de3-g-gap1", "Conjugate lernen.", "Sanya ___ jeden Tag Deutsch.", "lernt"),
             B.gap("de3-g-gap2", "Conjugate arbeiten.", "Du ___ bis halb vier.", "arbeitest"),
             B.gap("de3-g-gap3", "Preposition for a clock time.", "Der Kurs beginnt ___ sechzehn Uhr.", "um"),
