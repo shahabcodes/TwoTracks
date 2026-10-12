@@ -56,6 +56,11 @@ Two helper scripts exist for environments that cannot run Gradle at all:
   does. Faster than Gradle for a content-only change.
 - `ci/check-imports.sh` — catches an `app` file using a core type without
   importing it. Written after three identical CI failures.
+- `ci/check-links.sh` — fetches every reference url in the three courses.
+  Not part of the gate: it needs the network, goethe.de answers 403 to
+  anything that is not a browser and ielts.org throttles, so those are
+  reported as unchecked rather than failed. Written after six dead ielts.org
+  urls shipped under all 25 IELTS topics.
 
 `ci/cloud-setup.sh` is for a cloud container only; ignore it locally.
 
@@ -90,6 +95,11 @@ that the rules about it can be unit tests. `ContentTest`, `DiagramTest`,
   report, an essay or a spoken turn, fades a worked example exactly once,
   directly after the worked example it fades
 - a wrong-option note points at an option that exists and is actually wrong
+- every topic carries at least four references, none of them repeated, and
+  every url is on learn.microsoft.com, goethe.de or ielts.org. Whether a url
+  still works is `ci/check-links.sh`, not a unit test
+- the German deck is at least 650 cards, one card per word, and every noun
+  card carries its article
 - no single slot holds the answer in more than two thirds of checks
 - every warm-up guess stays out of `Course.allQuestions`, so a guess made
   before reading never reaches the spaced schedule

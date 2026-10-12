@@ -2,10 +2,10 @@ package com.shahaabapps.core.content
 
 /** IELTS module 4: Academic Writing Task 1. Charts, processes and maps in 150 words and 20 minutes. */
 internal object IeltsM4 {
-    private val refs = Ielts.commonRefs + B.ref("Writing test format", Ielts.ORG + "take-a-test/test-format/writing")
+    private val refs = Ielts.commonRefs
 
     private val structure = Topic(
-        id = "ie4-structure", title = "The four-paragraph report that scores 7", minutes = 24, references = refs,
+        id = "ie4-structure", title = "The four-paragraph report that scores 7", minutes = 24, references = refs + B.ref("Academic Writing: the format in detail", Ielts.ORG + "take-a-test/test-types/ielts-academic-test/ielts-academic-format-writing") + B.ref("Writing test resources and answer sheets", Ielts.ORG + "take-a-test/preparation-resources/writing-test-resources"),
         blocks = listOf(
             B.warmup(
                 "ie4-structure-w1", "ie4-structure",
@@ -121,7 +121,7 @@ internal object IeltsM4 {
     )
 
     private val language = Topic(
-        id = "ie4-language", title = "The language of data: trends, comparisons and approximation", minutes = 26, references = refs,
+        id = "ie4-language", title = "The language of data: trends, comparisons and approximation", minutes = 26, references = refs + B.ref("Academic Writing: the format in detail", Ielts.ORG + "take-a-test/test-types/ielts-academic-test/ielts-academic-format-writing") + B.ref("Academic sample questions, paper by paper", Ielts.ORG + "take-a-test/preparation-resources/sample-test-questions/academic-test"),
         blocks = listOf(
             B.warmup(
                 "ie4-language-w1", "ie4-language",
@@ -247,7 +247,7 @@ internal object IeltsM4 {
     )
 
     private val kinds = Topic(
-        id = "ie4-kinds", title = "Each chart type, plus processes and maps", minutes = 26, references = refs,
+        id = "ie4-kinds", title = "Each chart type, plus processes and maps", minutes = 26, references = refs + B.ref("Academic Writing: the format in detail", Ielts.ORG + "take-a-test/test-types/ielts-academic-test/ielts-academic-format-writing") + B.ref("Academic sample questions, paper by paper", Ielts.ORG + "take-a-test/preparation-resources/sample-test-questions/academic-test"),
         blocks = listOf(
             B.warmup(
                 "ie4-kinds-w1", "ie4-kinds",
@@ -376,7 +376,7 @@ internal object IeltsM4 {
     )
 
     private val practice = Topic(
-        id = "ie4-practice", title = "Write one, and have it marked", minutes = 22, references = refs,
+        id = "ie4-practice", title = "Write one, and have it marked", minutes = 22, references = refs + B.ref("Writing test resources and answer sheets", Ielts.ORG + "take-a-test/preparation-resources/writing-test-resources") + B.ref("Academic sample questions, paper by paper", Ielts.ORG + "take-a-test/preparation-resources/sample-test-questions/academic-test"),
         blocks = listOf(
             B.warmup(
                 "ie4-practice-w1", "ie4-practice",

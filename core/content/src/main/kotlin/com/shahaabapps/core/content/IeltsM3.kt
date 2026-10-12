@@ -2,10 +2,10 @@ package com.shahaabapps.core.content
 
 /** IELTS module 3: Reading. Timing, True/False/Not Given, matching headings, and the Academic/General differences. */
 internal object IeltsM3 {
-    private val refs = Ielts.commonRefs + B.ref("Reading test format", Ielts.ORG + "take-a-test/test-format/reading")
+    private val refs = Ielts.commonRefs
 
     private val timing = Topic(
-        id = "ie3-timing", title = "Sixty minutes, forty questions: the timing that decides the band", minutes = 22, references = refs,
+        id = "ie3-timing", title = "Sixty minutes, forty questions: the timing that decides the band", minutes = 22, references = refs + B.ref("Academic Reading: the format in detail", Ielts.ORG + "take-a-test/test-types/ielts-academic-test/ielts-academic-format-reading") + B.ref("General Training Reading: the format in detail", Ielts.ORG + "take-a-test/test-types/ielts-general-training-test/ielts-general-training-format-reading"),
         blocks = listOf(
             B.warmup(
                 "ie3-timing-w1", "ie3-timing",
@@ -80,7 +80,7 @@ internal object IeltsM3 {
     )
 
     private val tfng = Topic(
-        id = "ie3-tfng", title = "True, False, Not Given: the question type that costs most marks", minutes = 26, references = refs,
+        id = "ie3-tfng", title = "True, False, Not Given: the question type that costs most marks", minutes = 26, references = refs + B.ref("Academic Reading: the format in detail", Ielts.ORG + "take-a-test/test-types/ielts-academic-test/ielts-academic-format-reading") + B.ref("Academic sample questions, paper by paper", Ielts.ORG + "take-a-test/preparation-resources/sample-test-questions/academic-test"),
         blocks = listOf(
             B.warmup(
                 "ie3-tfng-w1", "ie3-tfng",
@@ -145,7 +145,7 @@ internal object IeltsM3 {
     )
 
     private val headings = Topic(
-        id = "ie3-headings", title = "Matching headings, matching information and summary completion", minutes = 26, references = refs,
+        id = "ie3-headings", title = "Matching headings, matching information and summary completion", minutes = 26, references = refs + B.ref("Academic Reading: the format in detail", Ielts.ORG + "take-a-test/test-types/ielts-academic-test/ielts-academic-format-reading") + B.ref("General Training sample questions, paper by paper", Ielts.ORG + "take-a-test/preparation-resources/sample-test-questions/general-training-test"),
         blocks = listOf(
             B.warmup(
                 "ie3-headings-w1", "ie3-headings",

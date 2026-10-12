@@ -5,7 +5,7 @@ internal object GermanA1M7 {
     private val refs = GermanA1.commonRefs
 
     private val words = Topic(
-        id = "de7-words", title = "Words: trains, tickets, the airport and the trip", minutes = 22, references = refs,
+        id = "de7-words", title = "Words: trains, tickets, the airport and the trip", minutes = 22, references = refs + B.ref("Vocabulary trainer app", GermanA1.GOETHE + "prj/dvt/en/index.html") + B.ref("Practice material: everyday life", GermanA1.GOETHE + "en/spr/ueb/lua.html"),
         blocks = listOf(
             B.warmup(
                 "de7-words-w1", "de7-words",
@@ -59,7 +59,7 @@ internal object GermanA1M7 {
             ),
             B.vocab(
                 B.w("m7-halb", "halb", "half (to the next hour)", "Es ist halb drei.", "It is half past two."),
-                B.w("m7-viertel", "Viertel", "quarter", "Viertel nach vier.", "Quarter past four."),
+                B.w("m7-viertel", "Viertel", "quarter", "Viertel nach vier.", "Quarter past four.", article = "das"),
                 B.w("m7-nach", "nach", "past; to (a place)", "Zehn nach acht. Nach Berlin.", "Ten past eight. To Berlin."),
                 B.w("m7-vor", "vor", "to (before the hour)", "Fünf vor zwölf.", "Five to twelve."),
                 B.w("m7-puenktlich", "pünktlich", "on time", "Der Zug ist pünktlich.", "The train is on time."),
@@ -102,7 +102,7 @@ internal object GermanA1M7 {
     )
 
     private val grammar = Topic(
-        id = "de7-grammar", title = "Grammar: separable verbs, Wohin? with nach, zu and mit", minutes = 24, references = refs,
+        id = "de7-grammar", title = "Grammar: separable verbs, Wohin? with nach, zu and mit", minutes = 24, references = refs + B.ref("Free practice at A1 and A2", GermanA1.GOETHE + "en/spr/ueb/ele.html") + B.ref("Deutsch für dich: free exercises and a community", GermanA1.GOETHE + "prj/dfd/en/home.cfm"),
         blocks = listOf(
             B.warmup(
                 "de7-grammar-w1", "de7-grammar",
@@ -215,7 +215,7 @@ internal object GermanA1M7 {
     )
 
     private val dialogue = Topic(
-        id = "de7-dialogue", title = "Dialogue: at the ticket counter and the platform announcement", minutes = 18, references = refs,
+        id = "de7-dialogue", title = "Dialogue: at the ticket counter and the platform announcement", minutes = 18, references = refs + B.ref("Practice material: everyday life", GermanA1.GOETHE + "en/spr/ueb/lua.html") + B.ref("Deutschland. Kennen. Lernen.", GermanA1.GOETHE + "en/spr/ueb/dkl.html"),
         blocks = listOf(
             B.warmup(
                 "de7-dialogue-w1", "de7-dialogue",
@@ -297,7 +297,7 @@ internal object GermanA1M7 {
     )
 
     private val practice = Topic(
-        id = "de7-practice", title = "Practice: a timetable, a postcard and planning a trip together", minutes = 20, references = refs,
+        id = "de7-practice", title = "Practice: a timetable, a postcard and planning a trip together", minutes = 20, references = refs + B.ref("A1 practice set 2 (PDF)", GermanA1.GOETHE + "pro/relaunch/prf/materialien/A1_sd1/sd_1_uebungssatz02.pdf") + B.ref("Deutschland. Kennen. Lernen.", GermanA1.GOETHE + "en/spr/ueb/dkl.html"),
         blocks = listOf(
             B.warmup(
                 "de7-practice-w1", "de7-practice",

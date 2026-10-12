@@ -5,7 +5,7 @@ internal object GermanA1M1 {
     private val refs = GermanA1.commonRefs
 
     private val words = Topic(
-        id = "de1-words", title = "Words: hello, goodbye and the basics", minutes = 15, references = refs,
+        id = "de1-words", title = "Words: hello, goodbye and the basics", minutes = 15, references = refs + B.ref("Practise German for free", GermanA1.GOETHE + "en/spr/ueb.html") + B.ref("Fotogeschichten: everyday life in pictures", GermanA1.GOETHE + "prj/mwd/en/deu/fot.html"),
         blocks = listOf(
             B.warmup(
                 "de1-words-w1", "de1-words",
@@ -29,7 +29,7 @@ internal object GermanA1M1 {
                 B.w("danke", "danke", "thank you", "Danke schön!", "Thank you very much!"),
                 B.w("ja", "ja", "yes", "Ja, gern.", "Yes, gladly."),
                 B.w("nein", "nein", "no", "Nein, danke.", "No, thank you."),
-                B.w("entschuldigung", "Entschuldigung", "excuse me; sorry", "Entschuldigung, wo ist die Toilette?", "Excuse me, where is the toilet?"),
+                B.w("entschuldigung", "Entschuldigung", "excuse me; sorry", "Entschuldigung, wo ist die Toilette?", "Excuse me, where is the toilet?", article = "die", plural = "Entschuldigungen"),
                 B.w("wie-gehts", "Wie geht's?", "how are you? (informal)", "Hallo Sanya, wie geht's?", "Hi Sanya, how are you?"),
                 B.w("gut", "gut", "good, well", "Mir geht es gut.", "I am well."),
                 B.w("bis-bald", "Bis bald", "see you soon", "Bis bald, Sanya!", "See you soon, Sanya!"),
@@ -78,7 +78,7 @@ internal object GermanA1M1 {
     )
 
     private val grammar = Topic(
-        id = "de1-grammar", title = "Grammar: sounds, the alphabet and I am", minutes = 18, references = refs + B.ref("Goethe: German alphabet and pronunciation practice", GermanA1.GOETHE + "en/spr/ueb.html"),
+        id = "de1-grammar", title = "Grammar: sounds, the alphabet and I am", minutes = 18, references = refs + B.ref("Online pronunciation training", GermanA1.GOETHE + "en/spr/ueb/ast.html") + B.ref("Free practice at A1 and A2", GermanA1.GOETHE + "en/spr/ueb/ele.html"),
         blocks = listOf(
             B.warmup(
                 "de1-grammar-w1", "de1-grammar",
@@ -182,7 +182,7 @@ internal object GermanA1M1 {
     )
 
     private val dialogue = Topic(
-        id = "de1-dialogue", title = "Dialogue: meeting someone for the first time", minutes = 14, references = refs,
+        id = "de1-dialogue", title = "Dialogue: meeting someone for the first time", minutes = 14, references = refs + B.ref("Fotogeschichten: everyday life in pictures", GermanA1.GOETHE + "prj/mwd/en/deu/fot.html") + B.ref("Mein Weg nach Deutschland: German for arriving", GermanA1.GOETHE + "prj/mwd/en/index.html"),
         blocks = listOf(
             B.warmup(
                 "de1-dialogue-w1", "de1-dialogue",
@@ -249,7 +249,7 @@ internal object GermanA1M1 {
     )
 
     private val practice = Topic(
-        id = "de1-practice", title = "Practice: introduce yourself in writing and speech", minutes = 16, references = refs,
+        id = "de1-practice", title = "Practice: introduce yourself in writing and speech", minutes = 16, references = refs + B.ref("A1 model paper, all four parts (PDF)", GermanA1.GOETHE + "pro/relaunch/prf/materialien/A1_sd1/sd_1_modellsatz.pdf") + B.ref("Mein Weg nach Deutschland: German for arriving", GermanA1.GOETHE + "prj/mwd/en/index.html"),
         blocks = listOf(
             B.warmup(
                 "de1-practice-w1", "de1-practice",

@@ -5,7 +5,7 @@ internal object GermanA1M11 {
     private val refs = GermanA1.commonRefs
 
     private val forms = Topic(
-        id = "de11-forms", title = "Schreiben part 1: filling in a form", minutes = 18, references = refs,
+        id = "de11-forms", title = "Schreiben part 1: filling in a form", minutes = 18, references = refs + B.ref("A1 model paper, all four parts (PDF)", GermanA1.GOETHE + "pro/relaunch/prf/materialien/A1_sd1/sd_1_modellsatz.pdf") + B.ref("Mein Weg nach Deutschland: German for arriving", GermanA1.GOETHE + "prj/mwd/en/index.html"),
         blocks = listOf(
             B.warmup(
                 "de11-forms-w1", "de11-forms",
@@ -125,7 +125,7 @@ internal object GermanA1M11 {
     )
 
     private val messages = Topic(
-        id = "de11-messages", title = "Schreiben part 2: the short message that scores full marks", minutes = 26, references = refs,
+        id = "de11-messages", title = "Schreiben part 2: the short message that scores full marks", minutes = 26, references = refs + B.ref("A1 practice set 1 (PDF)", GermanA1.GOETHE + "pro/relaunch/prf/materialien/A1_sd1/sd_1_uebungssatz01.pdf") + B.ref("A1 practice set 2 (PDF)", GermanA1.GOETHE + "pro/relaunch/prf/materialien/A1_sd1/sd_1_uebungssatz02.pdf"),
         blocks = listOf(
             B.warmup(
                 "de11-messages-w1", "de11-messages",
@@ -266,7 +266,7 @@ internal object GermanA1M11 {
     )
 
     private val reading = Topic(
-        id = "de11-reading", title = "Lesen: the three parts and how to beat each one", minutes = 22, references = refs,
+        id = "de11-reading", title = "Lesen: the three parts and how to beat each one", minutes = 22, references = refs + B.ref("A1 model paper, all four parts (PDF)", GermanA1.GOETHE + "pro/relaunch/prf/materialien/A1_sd1/sd_1_modellsatz.pdf") + B.ref("A1 practice set 2 (PDF)", GermanA1.GOETHE + "pro/relaunch/prf/materialien/A1_sd1/sd_1_uebungssatz02.pdf"),
         blocks = listOf(
             B.warmup(
                 "de11-reading-w1", "de11-reading",

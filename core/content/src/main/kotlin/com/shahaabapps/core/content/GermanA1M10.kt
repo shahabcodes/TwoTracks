@@ -5,7 +5,7 @@ internal object GermanA1M10 {
     private val refs = GermanA1.commonRefs
 
     private val words = Topic(
-        id = "de10-words", title = "Words: yesterday, last week, and the verbs of a day", minutes = 20, references = refs,
+        id = "de10-words", title = "Words: yesterday, last week, and the verbs of a day", minutes = 20, references = refs + B.ref("Vocabulary trainer app", GermanA1.GOETHE + "prj/dvt/en/index.html") + B.ref("Deutsch für dich: free exercises and a community", GermanA1.GOETHE + "prj/dfd/en/home.cfm"),
         blocks = listOf(
             B.warmup(
                 "de10-words-w1", "de10-words",
@@ -85,7 +85,7 @@ internal object GermanA1M10 {
     )
 
     private val grammar = Topic(
-        id = "de10-grammar", title = "Grammar: the Perfekt with haben and sein, war and hatte", minutes = 28, references = refs,
+        id = "de10-grammar", title = "Grammar: the Perfekt with haben and sein, war and hatte", minutes = 28, references = refs + B.ref("Free practice at A1 and A2", GermanA1.GOETHE + "en/spr/ueb/ele.html") + B.ref("Deutsch für dich: free exercises and a community", GermanA1.GOETHE + "prj/dfd/en/home.cfm"),
         blocks = listOf(
             B.warmup(
                 "de10-grammar-w1", "de10-grammar",
@@ -192,7 +192,7 @@ internal object GermanA1M10 {
     )
 
     private val dialogue = Topic(
-        id = "de10-dialogue", title = "Dialogue: how was your weekend, and what happened?", minutes = 18, references = refs,
+        id = "de10-dialogue", title = "Dialogue: how was your weekend, and what happened?", minutes = 18, references = refs + B.ref("Fotogeschichten: everyday life in pictures", GermanA1.GOETHE + "prj/mwd/en/deu/fot.html") + B.ref("Practice material: everyday life", GermanA1.GOETHE + "en/spr/ueb/lua.html"),
         blocks = listOf(
             B.warmup(
                 "de10-dialogue-w1", "de10-dialogue",
@@ -268,7 +268,7 @@ internal object GermanA1M10 {
     )
 
     private val practice = Topic(
-        id = "de10-practice", title = "Practice: a holiday postcard, your yesterday, and Lesen part 1", minutes = 20, references = refs,
+        id = "de10-practice", title = "Practice: a holiday postcard, your yesterday, and Lesen part 1", minutes = 20, references = refs + B.ref("A1 practice set 1 (PDF)", GermanA1.GOETHE + "pro/relaunch/prf/materialien/A1_sd1/sd_1_uebungssatz01.pdf") + B.ref("Fotogeschichten: everyday life in pictures", GermanA1.GOETHE + "prj/mwd/en/deu/fot.html"),
         blocks = listOf(
             B.warmup(
                 "de10-practice-w1", "de10-practice",

@@ -5,7 +5,7 @@ internal object GermanA1M5 {
     private val refs = GermanA1.commonRefs
 
     private val words = Topic(
-        id = "de5-words", title = "Words: the flat, the furniture and the city", minutes = 22, references = refs,
+        id = "de5-words", title = "Words: the flat, the furniture and the city", minutes = 22, references = refs + B.ref("Unser neues Zuhause: practise the flat and the move", GermanA1.GOETHE + "prj/mwd/en/deu/unz.html") + B.ref("Vocabulary trainer app", GermanA1.GOETHE + "prj/dvt/en/index.html"),
         blocks = listOf(
             B.warmup(
                 "de5-words-w1", "de5-words",
@@ -109,7 +109,7 @@ internal object GermanA1M5 {
     )
 
     private val grammar = Topic(
-        id = "de5-grammar", title = "Grammar: es gibt, Wo? and the dative after in, an, auf", minutes = 24, references = refs,
+        id = "de5-grammar", title = "Grammar: es gibt, Wo? and the dative after in, an, auf", minutes = 24, references = refs + B.ref("Free practice at A1 and A2", GermanA1.GOETHE + "en/spr/ueb/ele.html") + B.ref("Deutsch für dich: free exercises and a community", GermanA1.GOETHE + "prj/dfd/en/home.cfm"),
         blocks = listOf(
             B.warmup(
                 "de5-grammar-w1", "de5-grammar",
@@ -219,7 +219,7 @@ internal object GermanA1M5 {
     )
 
     private val dialogue = Topic(
-        id = "de5-dialogue", title = "Dialogue: a phone call about a flat and asking the way", minutes = 18, references = refs,
+        id = "de5-dialogue", title = "Dialogue: a phone call about a flat and asking the way", minutes = 18, references = refs + B.ref("Unser neues Zuhause: practise the flat and the move", GermanA1.GOETHE + "prj/mwd/en/deu/unz.html") + B.ref("Mein Weg nach Deutschland: German for arriving", GermanA1.GOETHE + "prj/mwd/en/index.html"),
         blocks = listOf(
             B.warmup(
                 "de5-dialogue-w1", "de5-dialogue",
@@ -301,7 +301,7 @@ internal object GermanA1M5 {
     )
 
     private val practice = Topic(
-        id = "de5-practice", title = "Practice: reading adverts and writing about your new flat", minutes = 20, references = refs,
+        id = "de5-practice", title = "Practice: reading adverts and writing about your new flat", minutes = 20, references = refs + B.ref("Unser neues Zuhause: practise the flat and the move", GermanA1.GOETHE + "prj/mwd/en/deu/unz.html") + B.ref("A1 practice set 2 (PDF)", GermanA1.GOETHE + "pro/relaunch/prf/materialien/A1_sd1/sd_1_uebungssatz02.pdf"),
         blocks = listOf(
             B.warmup(
                 "de5-practice-w1", "de5-practice",

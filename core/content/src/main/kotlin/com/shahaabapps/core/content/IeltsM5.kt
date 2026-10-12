@@ -2,10 +2,10 @@ package com.shahaabapps.core.content
 
 /** IELTS module 5: General Training Writing Task 1, the letter. */
 internal object IeltsM5 {
-    private val refs = Ielts.commonRefs + B.ref("Writing test format", Ielts.ORG + "take-a-test/test-format/writing")
+    private val refs = Ielts.commonRefs
 
     private val tone = Topic(
-        id = "ie5-tone", title = "Three tones, one structure: choosing formal, semi-formal or informal", minutes = 24, references = refs,
+        id = "ie5-tone", title = "Three tones, one structure: choosing formal, semi-formal or informal", minutes = 24, references = refs + B.ref("General Training Writing: the format in detail", Ielts.ORG + "take-a-test/test-types/ielts-general-training-test/ielts-general-training-format-writing") + B.ref("General Training sample questions, paper by paper", Ielts.ORG + "take-a-test/preparation-resources/sample-test-questions/general-training-test"),
         blocks = listOf(
             B.warmup(
                 "ie5-tone-w1", "ie5-tone",
@@ -89,7 +89,7 @@ internal object IeltsM5 {
     )
 
     private val types = Topic(
-        id = "ie5-types", title = "The five letters that keep appearing, with the sentences to reuse", minutes = 26, references = refs,
+        id = "ie5-types", title = "The five letters that keep appearing, with the sentences to reuse", minutes = 26, references = refs + B.ref("General Training Writing: the format in detail", Ielts.ORG + "take-a-test/test-types/ielts-general-training-test/ielts-general-training-format-writing") + B.ref("General Training sample questions, paper by paper", Ielts.ORG + "take-a-test/preparation-resources/sample-test-questions/general-training-test"),
         blocks = listOf(
             B.warmup(
                 "ie5-types-w1", "ie5-types",
@@ -223,7 +223,7 @@ internal object IeltsM5 {
     )
 
     private val practice = Topic(
-        id = "ie5-practice", title = "Write two letters and have them marked", minutes = 22, references = refs,
+        id = "ie5-practice", title = "Write two letters and have them marked", minutes = 22, references = refs + B.ref("Writing test resources and answer sheets", Ielts.ORG + "take-a-test/preparation-resources/writing-test-resources") + B.ref("General Training sample questions, paper by paper", Ielts.ORG + "take-a-test/preparation-resources/sample-test-questions/general-training-test"),
         blocks = listOf(
             B.warmup(
                 "ie5-practice-w1", "ie5-practice",

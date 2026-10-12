@@ -7,10 +7,15 @@ package com.shahaabapps.core.content
  */
 object Ielts {
     internal const val ORG = "https://ielts.org/"
+    // Six ielts.org urls in this course were 404 by the time anyone tapped
+    // them: take-a-test/test-format, its four per-paper children, which each
+    // module added to its own topics, and .../free-practice-tests. ielts.org
+    // moved its preparation section and the app kept the old paths. Every url
+    // in the course was fetched when these were written, and returned 200.
     internal val commonRefs = listOf(
-        B.ref("IELTS test format", ORG + "take-a-test/test-format"),
-        B.ref("How IELTS is scored", ORG + "take-a-test/preparation-resources/understanding-your-score/ielts-scoring-in-detail"),
-        B.ref("Free practice tests", ORG + "take-a-test/preparation-resources/free-practice-tests"),
+        B.ref("IELTS Academic: the four papers", ORG + "take-a-test/test-types/ielts-academic-test"),
+        B.ref("IELTS General Training: the four papers", ORG + "take-a-test/test-types/ielts-general-training-test"),
+        B.ref("Sample test questions and practice papers", ORG + "take-a-test/preparation-resources/sample-test-questions"),
     )
 
     /**

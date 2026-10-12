@@ -5,7 +5,7 @@ internal object GermanA1M6 {
     private val refs = GermanA1.commonRefs
 
     private val words = Topic(
-        id = "de6-words", title = "Words: jobs, the workplace and school", minutes = 22, references = refs,
+        id = "de6-words", title = "Words: jobs, the workplace and school", minutes = 22, references = refs + B.ref("Deutsch am Arbeitsplatz: German at work", GermanA1.GOETHE + "prj/mwd/en/deu/tzs.html") + B.ref("Practice material: work and career", GermanA1.GOETHE + "en/spr/ueb/aub.html"),
         blocks = listOf(
             B.warmup(
                 "de6-words-w1", "de6-words",
@@ -98,7 +98,7 @@ internal object GermanA1M6 {
     )
 
     private val grammar = Topic(
-        id = "de6-grammar", title = "Grammar: können, müssen, möchten and the verb bracket", minutes = 26, references = refs,
+        id = "de6-grammar", title = "Grammar: können, müssen, möchten and the verb bracket", minutes = 26, references = refs + B.ref("Free practice at A1 and A2", GermanA1.GOETHE + "en/spr/ueb/ele.html") + B.ref("Deutsch für dich: free exercises and a community", GermanA1.GOETHE + "prj/dfd/en/home.cfm"),
         blocks = listOf(
             B.warmup(
                 "de6-grammar-w1", "de6-grammar",
@@ -208,7 +208,7 @@ internal object GermanA1M6 {
     )
 
     private val dialogue = Topic(
-        id = "de6-dialogue", title = "Dialogue: talking about your job and calling in sick", minutes = 18, references = refs,
+        id = "de6-dialogue", title = "Dialogue: talking about your job and calling in sick", minutes = 18, references = refs + B.ref("Deutsch am Arbeitsplatz: German at work", GermanA1.GOETHE + "prj/mwd/en/deu/tzs.html") + B.ref("Practice material: work and career", GermanA1.GOETHE + "en/spr/ueb/aub.html"),
         blocks = listOf(
             B.warmup(
                 "de6-dialogue-w1", "de6-dialogue",
@@ -286,7 +286,7 @@ internal object GermanA1M6 {
     )
 
     private val practice = Topic(
-        id = "de6-practice", title = "Practice: a job notice, an email to the boss, your introduction", minutes = 20, references = refs,
+        id = "de6-practice", title = "Practice: a job notice, an email to the boss, your introduction", minutes = 20, references = refs + B.ref("Deutsch am Arbeitsplatz: German at work", GermanA1.GOETHE + "prj/mwd/en/deu/tzs.html") + B.ref("A1 practice set 1 (PDF)", GermanA1.GOETHE + "pro/relaunch/prf/materialien/A1_sd1/sd_1_uebungssatz01.pdf"),
         blocks = listOf(
             B.warmup(
                 "de6-practice-w1", "de6-practice",

@@ -5,7 +5,7 @@ internal object GermanA1M4 {
     private val refs = GermanA1.commonRefs
 
     private val words = Topic(
-        id = "de4-words", title = "Words: food, drink and the supermarket", minutes = 18, references = refs,
+        id = "de4-words", title = "Words: food, drink and the supermarket", minutes = 18, references = refs + B.ref("Vocabulary trainer app", GermanA1.GOETHE + "prj/dvt/en/index.html") + B.ref("Practice material: everyday life", GermanA1.GOETHE + "en/spr/ueb/lua.html"),
         blocks = listOf(
             B.warmup(
                 "de4-words-w1", "de4-words",
@@ -79,7 +79,7 @@ internal object GermanA1M4 {
     )
 
     private val grammar = Topic(
-        id = "de4-grammar", title = "Grammar: articles, plurals, the accusative and the two ways to say no", minutes = 26, references = refs,
+        id = "de4-grammar", title = "Grammar: articles, plurals, the accusative and the two ways to say no", minutes = 26, references = refs + B.ref("Free practice at A1 and A2", GermanA1.GOETHE + "en/spr/ueb/ele.html") + B.ref("Deutsch für dich: free exercises and a community", GermanA1.GOETHE + "prj/dfd/en/home.cfm"),
         blocks = listOf(
             B.warmup(
                 "de4-grammar-w1", "de4-grammar",
@@ -210,7 +210,7 @@ internal object GermanA1M4 {
     )
 
     private val dialogue = Topic(
-        id = "de4-dialogue", title = "Dialogue: at the bakery and the café", minutes = 14, references = refs,
+        id = "de4-dialogue", title = "Dialogue: at the bakery and the café", minutes = 14, references = refs + B.ref("Practice material: everyday life", GermanA1.GOETHE + "en/spr/ueb/lua.html") + B.ref("Fotogeschichten: everyday life in pictures", GermanA1.GOETHE + "prj/mwd/en/deu/fot.html"),
         blocks = listOf(
             B.warmup(
                 "de4-dialogue-w1", "de4-dialogue",
@@ -272,7 +272,7 @@ internal object GermanA1M4 {
     )
 
     private val practice = Topic(
-        id = "de4-practice", title = "Practice: a shopping list and a note", minutes = 16, references = refs,
+        id = "de4-practice", title = "Practice: a shopping list and a note", minutes = 16, references = refs + B.ref("A1 practice set 2 (PDF)", GermanA1.GOETHE + "pro/relaunch/prf/materialien/A1_sd1/sd_1_uebungssatz02.pdf") + B.ref("Practice material: everyday life", GermanA1.GOETHE + "en/spr/ueb/lua.html"),
         blocks = listOf(
             B.warmup(
                 "de4-practice-w1", "de4-practice",

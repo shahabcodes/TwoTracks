@@ -5,7 +5,7 @@ internal object IeltsM8 {
     private val refs = Ielts.commonRefs
 
     private val lexis = Topic(
-        id = "ie8-lexis", title = "Lexical Resource: collocation, topic banks and paraphrase", minutes = 28, references = refs,
+        id = "ie8-lexis", title = "Lexical Resource: collocation, topic banks and paraphrase", minutes = 28, references = refs + B.ref("Teaching resources and lesson plans", Ielts.ORG + "organisations/teachers/teaching-resources") + B.ref("Improving your results", Ielts.ORG + "take-a-test/your-results/improving-your-results"),
         blocks = listOf(
             B.warmup(
                 "ie8-lexis-w1", "ie8-lexis",
@@ -109,7 +109,7 @@ internal object IeltsM8 {
     )
 
     private val grammar = Topic(
-        id = "ie8-grammar", title = "Grammatical Range and Accuracy: the four structures that lift a band", minutes = 28, references = refs,
+        id = "ie8-grammar", title = "Grammatical Range and Accuracy: the four structures that lift a band", minutes = 28, references = refs + B.ref("Teaching resources and lesson plans", Ielts.ORG + "organisations/teachers/teaching-resources") + B.ref("How IELTS is scored, in detail", Ielts.ORG + "take-a-test/your-results/ielts-scoring-in-detail"),
         blocks = listOf(
             B.warmup(
                 "ie8-grammar-w1", "ie8-grammar",
@@ -220,7 +220,7 @@ internal object IeltsM8 {
     )
 
     private val finalWeeks = Topic(
-        id = "ie8-final", title = "The last two weeks, and the test day itself", minutes = 20, references = refs,
+        id = "ie8-final", title = "The last two weeks, and the test day itself", minutes = 20, references = refs + B.ref("On test day", Ielts.ORG + "take-a-test/preparation-resources/on-test-day") + B.ref("The free IELTS trial test", Ielts.ORG + "take-a-test/preparation-resources/ielts-trial-test"),
         blocks = listOf(
             B.warmup(
                 "ie8-final-w1", "ie8-final",

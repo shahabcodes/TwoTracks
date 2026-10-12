@@ -7,9 +7,12 @@ package com.shahaabapps.core.content
  */
 object GermanA1 {
     internal const val GOETHE = "https://www.goethe.de/"
+    // Both of the first two redirected to the same exam-training page, so the
+    // pair read as one source twice. Every url here was fetched and returned
+    // 200; a topic's own sources are listed beside its id.
     internal val commonRefs = listOf(
-        B.ref("Goethe-Zertifikat A1: exam overview", GOETHE + "en/spr/kup/prf/prf/gzsd1.html"),
-        B.ref("A1 practice materials and model papers", GOETHE + "en/spr/kup/prf/prf/gzsd1/ueb.html"),
+        B.ref("Goethe-Zertifikat A1: exam training", GOETHE + "en/spr/prf/ueb/pa1.html"),
+        B.ref("The official A1 word list (PDF)", GOETHE + "pro/relaunch/prf/de/A1_SD1_Wortliste_02.pdf"),
     )
 
     /**

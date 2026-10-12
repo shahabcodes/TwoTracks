@@ -5,7 +5,7 @@ internal object GermanA1M9 {
     private val refs = GermanA1.commonRefs
 
     private val words = Topic(
-        id = "de9-words", title = "Words: hobbies, sport, weather and the seasons", minutes = 22, references = refs,
+        id = "de9-words", title = "Words: hobbies, sport, weather and the seasons", minutes = 22, references = refs + B.ref("Learn German with music", GermanA1.GOETHE + "prj/stg/en/mus.html") + B.ref("Vocabulary trainer app", GermanA1.GOETHE + "prj/dvt/en/index.html"),
         blocks = listOf(
             B.warmup(
                 "de9-words-w1", "de9-words",
@@ -63,7 +63,6 @@ internal object GermanA1M9 {
                 B.w("m9-winter", "Winter", "winter", "Der Winter ist lang.", "The winter is long.", article = "der"),
                 B.w("m9-jahreszeit", "Jahreszeit", "season", "Welche Jahreszeit magst du?", "Which season do you like?", article = "die", plural = "Jahreszeiten"),
                 B.w("m9-monat", "Monat", "month", "Der Monat hat 30 Tage.", "The month has 30 days.", article = "der", plural = "Monate"),
-                B.w("m9-jahr", "Jahr", "year", "Das Jahr hat zwölf Monate.", "The year has twelve months.", article = "das", plural = "Jahre"),
             ),
             B.table(
                 listOf("Monat", "Monat", "Monat"),
@@ -109,7 +108,7 @@ internal object GermanA1M9 {
     )
 
     private val grammar = Topic(
-        id = "de9-grammar", title = "Grammar: gern, mögen, word order with time, and the Perfekt begins", minutes = 24, references = refs,
+        id = "de9-grammar", title = "Grammar: gern, mögen, word order with time, and the Perfekt begins", minutes = 24, references = refs + B.ref("Free practice at A1 and A2", GermanA1.GOETHE + "en/spr/ueb/ele.html") + B.ref("Deutsch für dich: free exercises and a community", GermanA1.GOETHE + "prj/dfd/en/home.cfm"),
         blocks = listOf(
             B.warmup(
                 "de9-grammar-w1", "de9-grammar",
@@ -214,7 +213,6 @@ internal object GermanA1M9 {
             ),
             B.vocab(
                 B.w("m9-moegen", "mögen", "to like (a thing)", "Ich mag Kaffee.", "I like coffee."),
-                B.w("m9-gestern", "gestern", "yesterday", "Gestern war ich im Kino.", "Yesterday I was at the cinema."),
                 B.w("m9-oft", "oft", "often", "Wir gehen oft spazieren.", "We often go for a walk."),
                 B.w("m9-manchmal", "manchmal", "sometimes", "Manchmal koche ich.", "Sometimes I cook."),
                 B.w("m9-nie", "nie", "never", "Ich tanze nie.", "I never dance."),
@@ -226,7 +224,7 @@ internal object GermanA1M9 {
     )
 
     private val dialogue = Topic(
-        id = "de9-dialogue", title = "Dialogue: weekend plans and the weather report", minutes = 18, references = refs,
+        id = "de9-dialogue", title = "Dialogue: weekend plans and the weather report", minutes = 18, references = refs + B.ref("Learn German with music", GermanA1.GOETHE + "prj/stg/en/mus.html") + B.ref("Practice material: everyday life", GermanA1.GOETHE + "en/spr/ueb/lua.html"),
         blocks = listOf(
             B.warmup(
                 "de9-dialogue-w1", "de9-dialogue",
@@ -301,7 +299,7 @@ internal object GermanA1M9 {
     )
 
     private val practice = Topic(
-        id = "de9-practice", title = "Practice: a club notice, an invitation and the Hobby card", minutes = 20, references = refs,
+        id = "de9-practice", title = "Practice: a club notice, an invitation and the Hobby card", minutes = 20, references = refs + B.ref("A1 practice set 2 (PDF)", GermanA1.GOETHE + "pro/relaunch/prf/materialien/A1_sd1/sd_1_uebungssatz02.pdf") + B.ref("Practice material: children and teenagers", GermanA1.GOETHE + "en/spr/ueb/kuj.html"),
         blocks = listOf(
             B.warmup(
                 "de9-practice-w1", "de9-practice",

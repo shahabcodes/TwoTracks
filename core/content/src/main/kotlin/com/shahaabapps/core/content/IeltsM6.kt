@@ -2,10 +2,10 @@ package com.shahaabapps.core.content
 
 /** IELTS module 6: Writing Task 2, the essay. Both versions, two thirds of the Writing mark. */
 internal object IeltsM6 {
-    private val refs = Ielts.commonRefs + B.ref("Writing test format", Ielts.ORG + "take-a-test/test-format/writing")
+    private val refs = Ielts.commonRefs
 
     private val questions = Topic(
-        id = "ie6-questions", title = "Five question types, and answering the one you were asked", minutes = 26, references = refs,
+        id = "ie6-questions", title = "Five question types, and answering the one you were asked", minutes = 26, references = refs + B.ref("Academic Writing: the format in detail", Ielts.ORG + "take-a-test/test-types/ielts-academic-test/ielts-academic-format-writing") + B.ref("General Training Writing: the format in detail", Ielts.ORG + "take-a-test/test-types/ielts-general-training-test/ielts-general-training-format-writing"),
         blocks = listOf(
             B.warmup(
                 "ie6-questions-w1", "ie6-questions",
@@ -97,7 +97,7 @@ internal object IeltsM6 {
     )
 
     private val structure = Topic(
-        id = "ie6-structure", title = "Four paragraphs, and what goes in each sentence", minutes = 28, references = refs,
+        id = "ie6-structure", title = "Four paragraphs, and what goes in each sentence", minutes = 28, references = refs + B.ref("Academic Writing: the format in detail", Ielts.ORG + "take-a-test/test-types/ielts-academic-test/ielts-academic-format-writing") + B.ref("Writing test resources and answer sheets", Ielts.ORG + "take-a-test/preparation-resources/writing-test-resources"),
         blocks = listOf(
             B.warmup(
                 "ie6-structure-w1", "ie6-structure",
@@ -214,7 +214,7 @@ internal object IeltsM6 {
     )
 
     private val practice = Topic(
-        id = "ie6-practice", title = "Write two essays and have them marked", minutes = 26, references = refs,
+        id = "ie6-practice", title = "Write two essays and have them marked", minutes = 26, references = refs + B.ref("Writing test resources and answer sheets", Ielts.ORG + "take-a-test/preparation-resources/writing-test-resources") + B.ref("General Training Writing: the format in detail", Ielts.ORG + "take-a-test/test-types/ielts-general-training-test/ielts-general-training-format-writing"),
         blocks = listOf(
             B.warmup(
                 "ie6-practice-w1", "ie6-practice",

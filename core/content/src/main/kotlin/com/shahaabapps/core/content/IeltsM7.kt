@@ -2,10 +2,10 @@ package com.shahaabapps.core.content
 
 /** IELTS module 7: Speaking. Three parts, with recorded practice the phone checks. */
 internal object IeltsM7 {
-    private val refs = Ielts.commonRefs + B.ref("Speaking test format", Ielts.ORG + "take-a-test/test-format/speaking")
+    private val refs = Ielts.commonRefs
 
     private val part1 = Topic(
-        id = "ie7-part1", title = "Part 1: familiar questions, answered the band 7 way", minutes = 24, references = refs,
+        id = "ie7-part1", title = "Part 1: familiar questions, answered the band 7 way", minutes = 24, references = refs + B.ref("Speaking: the format in detail", Ielts.ORG + "take-a-test/test-types/ielts-academic-test/ielts-academic-format-speaking") + B.ref("General Training Speaking: the format in detail", Ielts.ORG + "take-a-test/test-types/ielts-general-training-test/ielts-general-training-format-speaking"),
         blocks = listOf(
             B.warmup(
                 "ie7-part1-w1", "ie7-part1",
@@ -109,7 +109,7 @@ internal object IeltsM7 {
     )
 
     private val part2 = Topic(
-        id = "ie7-part2", title = "Part 2: the long turn, planned in sixty seconds", minutes = 26, references = refs,
+        id = "ie7-part2", title = "Part 2: the long turn, planned in sixty seconds", minutes = 26, references = refs + B.ref("Speaking: the format in detail", Ielts.ORG + "take-a-test/test-types/ielts-academic-test/ielts-academic-format-speaking") + B.ref("Academic sample questions, paper by paper", Ielts.ORG + "take-a-test/preparation-resources/sample-test-questions/academic-test"),
         blocks = listOf(
             B.warmup(
                 "ie7-part2-w1", "ie7-part2",
@@ -216,7 +216,7 @@ internal object IeltsM7 {
     )
 
     private val part3 = Topic(
-        id = "ie7-part3", title = "Part 3: the discussion that decides your band", minutes = 26, references = refs,
+        id = "ie7-part3", title = "Part 3: the discussion that decides your band", minutes = 26, references = refs + B.ref("Speaking: the format in detail", Ielts.ORG + "take-a-test/test-types/ielts-academic-test/ielts-academic-format-speaking") + B.ref("Teaching resources and lesson plans", Ielts.ORG + "organisations/teachers/teaching-resources"),
         blocks = listOf(
             B.warmup(
                 "ie7-part3-w1", "ie7-part3",

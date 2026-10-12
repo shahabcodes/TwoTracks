@@ -2,10 +2,10 @@ package com.shahaabapps.core.content
 
 /** IELTS module 2: Listening. The four parts, question types, prediction, distractors, spelling and numbers. */
 internal object IeltsM2 {
-    private val refs = Ielts.commonRefs + B.ref("Listening test format", Ielts.ORG + "take-a-test/test-format/listening")
+    private val refs = Ielts.commonRefs
 
     private val parts = Topic(
-        id = "ie2-parts", title = "The four parts and the five question types", minutes = 22, references = refs,
+        id = "ie2-parts", title = "The four parts and the five question types", minutes = 22, references = refs + B.ref("Listening: the format in detail", Ielts.ORG + "take-a-test/test-types/ielts-academic-test/ielts-academic-format-listening") + B.ref("General Training Listening: the format in detail", Ielts.ORG + "take-a-test/test-types/ielts-general-training-test/ielts-general-training-format-listening"),
         blocks = listOf(
             B.warmup(
                 "ie2-parts-w1", "ie2-parts",
@@ -81,7 +81,7 @@ internal object IeltsM2 {
     )
 
     private val traps = Topic(
-        id = "ie2-traps", title = "Paraphrase, distractors and corrections: how questions are built", minutes = 24, references = refs,
+        id = "ie2-traps", title = "Paraphrase, distractors and corrections: how questions are built", minutes = 24, references = refs + B.ref("Listening: the format in detail", Ielts.ORG + "take-a-test/test-types/ielts-academic-test/ielts-academic-format-listening") + B.ref("Academic sample questions, paper by paper", Ielts.ORG + "take-a-test/preparation-resources/sample-test-questions/academic-test"),
         blocks = listOf(
             B.warmup(
                 "ie2-traps-w1", "ie2-traps",
@@ -166,7 +166,7 @@ internal object IeltsM2 {
     )
 
     private val details = Topic(
-        id = "ie2-details", title = "Numbers, spellings, maps and Part 4 completion", minutes = 24, references = refs,
+        id = "ie2-details", title = "Numbers, spellings, maps and Part 4 completion", minutes = 24, references = refs + B.ref("Academic sample questions, paper by paper", Ielts.ORG + "take-a-test/preparation-resources/sample-test-questions/academic-test") + B.ref("General Training sample questions, paper by paper", Ielts.ORG + "take-a-test/preparation-resources/sample-test-questions/general-training-test"),
         blocks = listOf(
             B.warmup(
                 "ie2-details-w1", "ie2-details",
