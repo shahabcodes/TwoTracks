@@ -2,15 +2,7 @@ package com.shahaabapps.twotracks.feature.settings
 
 import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.layout.fillMaxSize
-import com.shahaabapps.twotracks.feature.auth.companionAspect
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.aspectRatio
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.Row
-import com.shahaabapps.twotracks.ui.components.SegmentedChoice
-import com.shahaabapps.twotracks.feature.auth.MascotState
-import com.shahaabapps.twotracks.feature.auth.CompanionKind
-import com.shahaabapps.twotracks.feature.auth.Companion
 import com.shahaabapps.twotracks.ui.components.DialogButton
 import com.shahaabapps.twotracks.reminders.ReminderNotifications
 import com.shahaabapps.twotracks.ui.guide.GuideAnchors
@@ -106,7 +98,7 @@ private val SETTINGS_GUIDE_ITEMS = mapOf(
     GuideAnchors.SET_START_DATE to 2,
     GuideAnchors.SET_FULL_SCREEN to 2,
     GuideAnchors.SET_BIOMETRICS to 3,
-    GuideAnchors.SET_COMPANION to 4,
+    GuideAnchors.SET_APPEARANCE to 4,
     GuideAnchors.SET_SEED to 5,
     GuideAnchors.SET_VOICES to 6,
     GuideAnchors.SET_WIDGETS to 6,
@@ -114,14 +106,6 @@ private val SETTINGS_GUIDE_ITEMS = mapOf(
     GuideAnchors.SET_SIGN_OUT to 8,
 )
 
-/**
- * The slot the Settings chooser gives the companion preview.
- *
- * Wide enough that the people, which are all but square, fill its 150dp of
- * height exactly. The other two are about twice as wide as they are tall, so
- * the same width makes them short rather than cut off.
- */
-private val CompanionPreview = 148.dp
 
 @Composable
 fun SettingsScreen(
@@ -263,28 +247,7 @@ fun SettingsScreen(
 
                     item {
                         Column(modifier = Modifier.padding(horizontal = Spacing.listHorizontal)) {
-                            ThemeSettingsSection(mode = mode, onModeChange = themeViewModel::setThemeMode)
-                            val companion by themeViewModel.companion.collectAsStateWithLifecycle()
-                            Text("SIGN-IN COMPANION", style = MaterialTheme.typography.labelMedium, color = AppTheme.colors.secondaryLabel, modifier = Modifier.padding(top = Spacing.md, start = Spacing.sectionStart).guideAnchor(GuideAnchors.SET_COMPANION))
-                            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.md), modifier = Modifier.padding(top = Spacing.sm)) {
-                                Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(Spacing.sm)) {
-                                    SegmentedChoice(options = listOf(CompanionKind.BUDDY, CompanionKind.PLANE), selected = companion, label = { it.label }, onSelect = themeViewModel::setCompanion)
-                                    SegmentedChoice(options = listOf(CompanionKind.SANYA, CompanionKind.USAID), selected = companion, label = { it.label }, onSelect = themeViewModel::setCompanion)
-                                }
-                                // A fixed slot, so switching kind does not make the
-                                // row jump, with the drawing inside it at its own
-                                // shape. fillMaxSize gave all four the same tall box
-                                // and the wide ones drew out over the controls.
-                                Box(modifier = Modifier.size(width = CompanionPreview, height = 150.dp), contentAlignment = Alignment.Center) {
-                                    Companion(
-                                        kind = companion,
-                                        state = MascotState(mood = 0.8f),
-                                        modifier = Modifier.width(CompanionPreview).aspectRatio(companionAspect(companion)),
-                                        lively = false,
-                                    )
-                                }
-                            }
-                            Text("Lives on the sign-in screen and reacts to what you type.", style = MaterialTheme.typography.bodySmall, color = AppTheme.colors.secondaryLabel, modifier = Modifier.padding(top = Spacing.xs, start = Spacing.sectionStart))
+                            ThemeSettingsSection(mode = mode, onModeChange = themeViewModel::setThemeMode, modifier = Modifier.guideAnchor(GuideAnchors.SET_APPEARANCE))
                         }
                     }
 

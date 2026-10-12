@@ -126,9 +126,9 @@ fun guideSteps(
         "Fingerprint, face or PIN when it opens.",
     ),
     GuideStep(
-        settingsRoute, GuideAnchors.SET_COMPANION,
+        settingsRoute, GuideAnchors.SET_APPEARANCE,
         "How it looks",
-        "Light or dark, four accents, and who keeps you company when you sign in.",
+        "Light, dark, or whichever the phone is using.",
     ),
     GuideStep(
         settingsRoute, GuideAnchors.SET_VOICES,

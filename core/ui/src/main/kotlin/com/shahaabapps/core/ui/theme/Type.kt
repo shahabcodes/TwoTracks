@@ -1,9 +1,11 @@
 package com.shahaabapps.core.ui.theme
 
 import androidx.compose.material3.Typography
+import androidx.compose.ui.text.ExperimentalTextApi
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontVariation
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import com.shahaabapps.core.ui.R
@@ -15,10 +17,23 @@ import com.shahaabapps.core.ui.R
  * uppercase labels, times and figures.
  */
 val SansFamily = FontFamily(
-    Font(R.font.schibsted_grotesk, FontWeight.Normal),
-    Font(R.font.schibsted_grotesk, FontWeight.Medium),
-    Font(R.font.schibsted_grotesk, FontWeight.SemiBold),
-    Font(R.font.schibsted_grotesk, FontWeight.Bold),
+    sans(FontWeight.Normal),
+    sans(FontWeight.Medium),
+    sans(FontWeight.SemiBold),
+    sans(FontWeight.Bold),
+)
+
+/**
+ * One weight of the variable file. The `wght` setting has to be passed by
+ * name: the shorter Font(resId, weight) overload only labels the entry with a
+ * weight and draws the file's default instance, so every weight came out as
+ * Regular.
+ */
+@OptIn(ExperimentalTextApi::class)
+private fun sans(weight: FontWeight) = Font(
+    R.font.schibsted_grotesk,
+    weight,
+    variationSettings = FontVariation.Settings(FontVariation.weight(weight.weight)),
 )
 
 val MonoFamily = FontFamily(

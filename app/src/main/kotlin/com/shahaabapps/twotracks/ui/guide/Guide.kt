@@ -214,7 +214,6 @@ object GuideAnchors {
     const val SET_FULL_SCREEN = "set.fullScreen"
     const val SET_BIOMETRICS = "set.biometrics"
     const val SET_APPEARANCE = "set.appearance"
-    const val SET_COMPANION = "set.companion"
     const val SET_VOICES = "set.voices"
     const val SET_WIDGETS = "set.widgets"
     const val SET_SEED = "set.seed"

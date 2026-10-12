@@ -4,7 +4,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.shahaabapps.core.common.datastore.ThemePreferences
 import com.shahaabapps.core.ui.theme.ThemeMode
-import com.shahaabapps.twotracks.feature.auth.CompanionKind
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -21,14 +20,6 @@ class ThemeViewModel @Inject constructor(
     val themeMode: StateFlow<ThemeMode> = themePreferences.themeModeName
         .map { runCatching { ThemeMode.valueOf(it) }.getOrDefault(ThemeMode.LIGHT) }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), ThemeMode.LIGHT)
-
-    val companion: StateFlow<CompanionKind> = themePreferences.companionName
-        .map { runCatching { CompanionKind.valueOf(it) }.getOrDefault(CompanionKind.SANYA) }
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), CompanionKind.SANYA)
-
-    fun setCompanion(kind: CompanionKind) {
-        viewModelScope.launch { themePreferences.setCompanionName(kind.name) }
-    }
 
     fun setThemeMode(mode: ThemeMode) {
         viewModelScope.launch { themePreferences.setThemeModeName(mode.name) }
