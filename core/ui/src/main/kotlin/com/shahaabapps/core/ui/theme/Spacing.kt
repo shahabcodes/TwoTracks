@@ -3,7 +3,7 @@ package com.shahaabapps.core.ui.theme
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.unit.dp
 
-/** Spacing and shape tokens tuned to the browser app's iOS metrics. */
+/** Spacing tokens from the Parallel prototype: a 24dp gutter and 56dp rows. */
 object Spacing {
     val xs = 4.dp
     val sm = 8.dp
@@ -11,39 +11,43 @@ object Spacing {
     val lg = 20.dp
     val xl = 32.dp
 
-    /** Standard leading/trailing inset for grouped lists and cards. */
-    val listHorizontal = 16.dp
-    val rowMinHeight = 46.dp
+    /** The page gutter. */
+    val listHorizontal = 24.dp
+    val rowMinHeight = 56.dp
 
-    /** Divider inset so hairlines start at the label, past a 29dp icon tile (12 + 29 + 12). */
-    val dividerInsetWithIcon = 53.dp
-    val dividerInset = 16.dp
+    /** Hairlines run the full width of a section; nothing is inset. */
+    val dividerInsetWithIcon = 0.dp
+    val dividerInset = 0.dp
 
-    /** Section header: 18dp above, 8dp below, 4dp extra start inset. */
-    val sectionTop = 18.dp
-    val sectionBottom = 8.dp
-    val sectionStart = 4.dp
+    /** Section header: 22dp above, 6dp below its label, flush with the gutter. */
+    val sectionTop = 22.dp
+    val sectionBottom = 6.dp
+    val sectionStart = 0.dp
+
+    /** The ink rule that opens a section, and the hairline between its rows. */
+    val rule = 1.5.dp
+    val hairline = 1.dp
 }
 
 object Shapes {
-    /** iOS settings card (bg_settings_card). */
-    val card = RoundedCornerShape(12.dp)
-    /** Content card with more presence (bg_card). */
+    /** A boxed list, where one is still wanted. */
+    val card = RoundedCornerShape(16.dp)
+    /** An outlined content card. */
     val contentCard = RoundedCornerShape(16.dp)
-    /** Filled buttons. */
+    /** Filled and outlined buttons. */
     val button = RoundedCornerShape(12.dp)
-    /** Text fields and pills (bg_pill). */
-    val field = RoundedCornerShape(10.dp)
+    /** Text fields and pills. */
+    val field = RoundedCornerShape(12.dp)
     /** Segmented control track. */
-    val segment = RoundedCornerShape(12.dp)
-    /** Segmented control thumb and seg chips. */
-    val segmentThumb = RoundedCornerShape(9.dp)
+    val segment = RoundedCornerShape(10.dp)
+    /** Segmented control thumb and chips. */
+    val segmentThumb = RoundedCornerShape(8.dp)
     /** Settings icon tile. */
     val iconTile = RoundedCornerShape(7.dp)
     /** Bottom sheets (top corners). */
-    val sheet = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)
+    val sheet = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp)
     /** Alert dialogs. */
-    val dialog = RoundedCornerShape(14.dp)
-    /** Hero banner bottom edge. */
-    val hero = RoundedCornerShape(bottomStart = 32.dp, bottomEnd = 32.dp)
+    val dialog = RoundedCornerShape(20.dp)
+    /** The page header is square: Parallel has no banner edge. */
+    val hero = RoundedCornerShape(0.dp)
 }

@@ -29,7 +29,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -72,8 +71,7 @@ class StudyReminderActivity : ComponentActivity() {
 
         setContent {
             val themeMode by themeViewModel.themeMode.collectAsStateWithLifecycle()
-            val accentPalette by themeViewModel.accentPalette.collectAsStateWithLifecycle()
-            AppThemeRoot(themeMode = themeMode, accentPalette = accentPalette) {
+            AppThemeRoot(themeMode = themeMode) {
                 ReminderScreen(
                     title = title,
                     text = text,
@@ -140,14 +138,14 @@ private fun ReminderScreen(title: String, text: String, onStart: () -> Unit, onL
             Text(
                 "TWO TRACKS",
                 style = MaterialTheme.typography.labelMedium,
-                color = Color.White.copy(alpha = 0.75f),
+                color = AppTheme.colors.onSolid.copy(alpha = 0.75f),
                 letterSpacing = 3.sp,
             )
             Spacer(Modifier.height(Spacing.md))
             Text(
                 title,
                 style = MaterialTheme.typography.displaySmall.copy(fontWeight = FontWeight.Bold),
-                color = Color.White,
+                color = AppTheme.colors.onSolid,
                 textAlign = TextAlign.Center,
             )
             if (text.isNotBlank()) {
@@ -155,7 +153,7 @@ private fun ReminderScreen(title: String, text: String, onStart: () -> Unit, onL
                 Text(
                     text,
                     style = MaterialTheme.typography.titleMedium,
-                    color = Color.White.copy(alpha = 0.9f),
+                    color = AppTheme.colors.onSolid.copy(alpha = 0.9f),
                     textAlign = TextAlign.Center,
                 )
             }
@@ -163,18 +161,18 @@ private fun ReminderScreen(title: String, text: String, onStart: () -> Unit, onL
             // The app's own buttons are drawn in the accent, which is what this
             // whole screen is painted in: an accent button on an accent
             // background is a rectangle you cannot read. On top of the accent
-            // the roles swap, so the button is white and carries the accent.
+            // the roles swap, so the button takes the ink that sits on the accent and carries the accent.
             Button(
                 onClick = onStart,
                 modifier = Modifier.fillMaxWidth().height(52.dp),
                 shape = RoundedCornerShape(14.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color.White, contentColor = accent),
+                colors = ButtonDefaults.buttonColors(containerColor = AppTheme.colors.onSolid, contentColor = accent),
             ) {
                 Text("Start studying", style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold))
             }
             Spacer(Modifier.height(Spacing.xs))
             TextButton(onClick = onLater, modifier = Modifier.fillMaxWidth()) {
-                Text("Not now", style = MaterialTheme.typography.titleMedium, color = Color.White.copy(alpha = 0.92f))
+                Text("Not now", style = MaterialTheme.typography.titleMedium, color = AppTheme.colors.onSolid.copy(alpha = 0.92f))
             }
         }
     }

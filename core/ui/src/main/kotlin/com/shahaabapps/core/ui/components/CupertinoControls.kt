@@ -1,6 +1,7 @@
 package com.shahaabapps.core.ui.components
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -16,13 +17,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.shahaabapps.core.ui.theme.AppTheme
 import com.shahaabapps.core.ui.theme.Shapes
+import com.shahaabapps.core.ui.theme.Spacing
 
-/** An iOS-style toggle whose "on" track takes the current accent (maroon on the Qatar theme). */
+/** A toggle whose "on" track is ink. */
 @Composable
 fun CupertinoSwitch(
     checked: Boolean,
@@ -36,19 +38,19 @@ fun CupertinoSwitch(
         enabled = enabled,
         modifier = modifier,
         colors = SwitchDefaults.colors(
-            checkedThumbColor = Color.White,
+            checkedThumbColor = AppTheme.colors.onSolid,
             checkedTrackColor = AppTheme.colors.accent,
             checkedBorderColor = Color.Transparent,
-            uncheckedThumbColor = Color.White,
+            uncheckedThumbColor = AppTheme.colors.secondaryLabel,
             uncheckedTrackColor = AppTheme.colors.fill,
-            uncheckedBorderColor = Color.Transparent,
+            uncheckedBorderColor = AppTheme.colors.secondaryLabel,
             disabledCheckedTrackColor = AppTheme.colors.accent.copy(alpha = 0.4f),
             disabledUncheckedTrackColor = AppTheme.colors.fill.copy(alpha = 0.5f),
         ),
     )
 }
 
-/** A filled, full-width iOS-style primary button: solid accent, 12dp radius, 50dp tall. */
+/** A full-width primary button: solid ink, 12dp radius, 52dp tall. */
 @Composable
 fun CupertinoPrimaryButton(
     text: String,
@@ -59,23 +61,23 @@ fun CupertinoPrimaryButton(
     Box(
         modifier = modifier
             .fillMaxWidth()
-            .heightIn(min = 50.dp)
+            .heightIn(min = 52.dp)
             .clip(Shapes.button)
-            .background(if (enabled) AppTheme.colors.accent else AppTheme.colors.accent.copy(alpha = 0.35f))
-            .clickable(enabled = enabled, onClick = onClick)
-            .padding(vertical = 14.dp),
+            .background(if (enabled) AppTheme.colors.accent else AppTheme.colors.accent.copy(alpha = 0.3f))
+            .clickable(enabled = enabled, role = Role.Button, onClick = onClick)
+            .padding(vertical = 14.dp, horizontal = Spacing.md),
         contentAlignment = Alignment.Center,
     ) {
         Text(
             text = text,
             color = AppTheme.colors.onSolid,
-            style = MaterialTheme.typography.bodyLarge,
-            fontWeight = FontWeight.SemiBold,
+            style = MaterialTheme.typography.labelLarge,
+            textAlign = TextAlign.Center,
         )
     }
 }
 
-/** A tonal secondary button: translucent gray fill with accent text. */
+/** A full-width secondary button: the page colour inside a hairline, ink text. */
 @Composable
 fun CupertinoSecondaryButton(
     text: String,
@@ -86,23 +88,23 @@ fun CupertinoSecondaryButton(
     Box(
         modifier = modifier
             .fillMaxWidth()
-            .heightIn(min = 50.dp)
+            .heightIn(min = 52.dp)
             .clip(Shapes.button)
-            .background(AppTheme.colors.fill)
-            .clickable(enabled = enabled, onClick = onClick)
-            .padding(vertical = 14.dp),
+            .border(Spacing.rule, AppTheme.colors.separator, Shapes.button)
+            .clickable(enabled = enabled, role = Role.Button, onClick = onClick)
+            .padding(vertical = 14.dp, horizontal = Spacing.md),
         contentAlignment = Alignment.Center,
     ) {
         Text(
             text = text,
-            color = AppTheme.colors.accentText,
-            style = MaterialTheme.typography.bodyLarge,
-            fontWeight = FontWeight.SemiBold,
+            color = if (enabled) AppTheme.colors.ink else AppTheme.colors.secondaryLabel,
+            style = MaterialTheme.typography.labelLarge,
+            textAlign = TextAlign.Center,
         )
     }
 }
 
-/** A borderless iOS-style text button (e.g. "Cancel", "Sign out"). */
+/** A borderless text button (e.g. "Cancel", "Sign out"): blue, or red when [destructive]. */
 @Composable
 fun CupertinoTextButton(
     text: String,
@@ -115,13 +117,13 @@ fun CupertinoTextButton(
         modifier = modifier
             .fillMaxWidth()
             .heightIn(min = 44.dp)
-            .clickable(onClick = onClick),
+            .clickable(role = Role.Button, onClick = onClick),
     ) {
         Text(
             text = text,
             color = color,
             textAlign = TextAlign.Center,
-            style = MaterialTheme.typography.bodyLarge,
+            style = MaterialTheme.typography.labelLarge,
             modifier = Modifier
                 .fillMaxWidth()
                 .wrapContentHeight()

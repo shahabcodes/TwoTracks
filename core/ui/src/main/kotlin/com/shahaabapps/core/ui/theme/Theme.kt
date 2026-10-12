@@ -8,80 +8,57 @@ import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 
 /** User-selectable light/dark preference. */
 enum class ThemeMode { SYSTEM, LIGHT, DARK }
 
-private fun lightColors(accent: Color, grouped: Color) = lightColorScheme(
-    primary = accent,
-    onPrimary = Color.White,
-    secondary = accent,
+private val lightColors = lightColorScheme(
+    primary = Palette.AccentLight,
+    onPrimary = Palette.OnSolidLight,
+    secondary = Palette.AccentTextLight,
     error = Palette.DestructiveLight,
-    background = grouped,
+    background = Palette.PageLight,
     onBackground = Palette.LabelLight,
-    surface = Palette.SurfaceLight,
+    surface = Palette.CardLight,
     onSurface = Palette.LabelLight,
     surfaceVariant = Palette.SurfaceVariantLight,
     onSurfaceVariant = Palette.SecondaryLabelLight,
-    outline = Palette.OutlineLight,
+    outline = Palette.SeparatorLight,
+    outlineVariant = Palette.SeparatorLight,
 )
 
-private fun darkColors(accent: Color, grouped: Color) = darkColorScheme(
-    primary = accent,
-    onPrimary = Color(0xFF0B1220),
-    secondary = accent,
+private val darkColors = darkColorScheme(
+    primary = Palette.AccentDark,
+    onPrimary = Palette.OnSolidDark,
+    secondary = Palette.AccentTextDark,
     error = Palette.DestructiveDark,
-    background = grouped,
+    background = Palette.PageDark,
     onBackground = Palette.LabelDark,
-    surface = Palette.SurfaceDark,
+    surface = Palette.CardDark,
     onSurface = Palette.LabelDark,
     surfaceVariant = Palette.SurfaceVariantDark,
     onSurfaceVariant = Palette.SecondaryLabelDark,
-    outline = Palette.OutlineDark,
-)
-
-private fun cupertinoColors(dark: Boolean, palette: AccentPalette) = CupertinoColors(
-    groupedBackground = if (dark) palette.groupedDark else palette.groupedLight,
-    card = if (dark) Palette.SurfaceDark else Palette.SurfaceLight,
-    secondaryLabel = if (dark) Palette.SecondaryLabelDark else Palette.SecondaryLabelLight,
-    separator = if (dark) Palette.SeparatorDark else Palette.SeparatorLight,
-    fill = if (dark) Palette.FillDark else palette.fillLight,
-    accent = if (dark) palette.accentDark else palette.accentLight,
-    accentText = if (dark) palette.accentTextDark else palette.accentTextLight,
-    onSolid = if (dark) Palette.OnSolidDark else Palette.OnSolidLight,
-    gradient = palette.gradient,
-    destructive = if (dark) Palette.DestructiveDark else Palette.DestructiveLight,
-    success = if (dark) Palette.SuccessDark else Palette.SuccessLight,
-    blocked = if (dark) Palette.DestructiveDark else Palette.DestructiveLight,
-    blockedBackground = if (dark) Palette.BlockedBgDark else Palette.BlockedBgLight,
-    allowed = if (dark) Palette.SuccessDark else Palette.SuccessLight,
-    allowedBackground = if (dark) Palette.AllowedBgDark else Palette.AllowedBgLight,
-    warn = if (dark) Palette.WarnDark else Palette.WarnLight,
+    outline = Palette.SeparatorDark,
+    outlineVariant = Palette.SeparatorDark,
 )
 
 /**
- * Material3 shapes mapped to the browser app's radii: dialogs 14dp
- * (extraLarge), sheets and content cards 16dp (large), settings cards 12dp
- * (medium), fields and pills 10dp (small).
+ * Material3 shapes at Parallel's radii: 12dp buttons and fields, 16dp cards,
+ * 28dp sheets.
  */
-private val CupertinoM3Shapes = M3Shapes(
-    extraSmall = RoundedCornerShape(7.dp),
+private val ParallelM3Shapes = M3Shapes(
+    extraSmall = RoundedCornerShape(6.dp),
     small = RoundedCornerShape(10.dp),
     medium = RoundedCornerShape(12.dp),
     large = RoundedCornerShape(16.dp),
-    extraLarge = RoundedCornerShape(14.dp),
+    extraLarge = RoundedCornerShape(28.dp),
 )
 
-/**
- * Root theme: Material3 scheme keyed to the chosen [accentPalette], plus the
- * app's [CupertinoColors].
- */
+/** Root theme: the Parallel palette in light or dark, and its type. */
 @Composable
 fun AppTheme(
     themeMode: ThemeMode = ThemeMode.LIGHT,
-    accentPalette: AccentPalette = AccentPalette.QATAR,
     content: @Composable () -> Unit,
 ) {
     val dark = when (themeMode) {
@@ -89,13 +66,11 @@ fun AppTheme(
         ThemeMode.LIGHT -> false
         ThemeMode.DARK -> true
     }
-    val accent = if (dark) accentPalette.accentDark else accentPalette.accentLight
-
-    CompositionLocalProvider(LocalCupertinoColors provides cupertinoColors(dark, accentPalette)) {
+    CompositionLocalProvider(LocalCupertinoColors provides parallelColors(dark)) {
         MaterialTheme(
-            colorScheme = if (dark) darkColors(accent, accentPalette.groupedDark) else lightColors(accent, accentPalette.groupedLight),
+            colorScheme = if (dark) darkColors else lightColors,
             typography = CupertinoTypography,
-            shapes = CupertinoM3Shapes,
+            shapes = ParallelM3Shapes,
             content = content,
         )
     }

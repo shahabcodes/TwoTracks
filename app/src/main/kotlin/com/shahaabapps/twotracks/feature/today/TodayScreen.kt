@@ -2,11 +2,11 @@ package com.shahaabapps.twotracks.feature.today
 
 import com.shahaabapps.core.ui.components.CupertinoSecondaryButton
 import androidx.compose.foundation.layout.fillMaxSize
-import com.shahaabapps.twotracks.ui.components.AuroraLayer
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -39,7 +39,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -87,7 +86,7 @@ fun TodayScreen(
     Box {
         LazyColumn(verticalArrangement = Arrangement.spacedBy(Spacing.md), contentPadding = PaddingValues(bottom = Spacing.xl)) {
             item {
-                Hero(title = "Today", subtitle = Clock.formatLong(state.today), backdrop = { AuroraLayer(modifier = Modifier.fillMaxSize(), sky = false, grid = false, intensity = 0.8f, seed = 3) }) {
+                Hero(title = "Today", subtitle = Clock.formatLong(state.today)) {
                     state.level?.let { lvl ->
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
@@ -95,26 +94,26 @@ fun TodayScreen(
                                 .fillMaxWidth()
                                 .padding(top = Spacing.sm)
                                 .clip(Shapes.card)
-                                .background(Color.White.copy(alpha = 0.18f))
+                                .border(Spacing.rule, AppTheme.colors.ink, Shapes.card)
                                 .clickable { onOpenLevel(lvl.level.id) }
                                 .padding(horizontal = Spacing.md, vertical = 12.dp),
                         ) {
                             Column(modifier = Modifier.weight(1f)) {
-                                Text("Level ${lvl.level.number} · ${lvl.level.name}", style = MaterialTheme.typography.titleMedium, color = Color.White)
+                                Text("Level ${lvl.level.number} · ${lvl.level.name}", style = MaterialTheme.typography.titleMedium)
                                 Text(
                                     "${lvl.requiredDone} of ${lvl.requiredTotal} done · " + when {
                                         lvl.daysLeft == null -> ""
                                         lvl.daysLeft!! < 0 -> "${-lvl.daysLeft!!} days overdue"
                                         else -> "${lvl.daysLeft} days left"
                                     },
-                                    style = MaterialTheme.typography.bodySmall, color = Color.White.copy(alpha = 0.9f),
+                                    style = MaterialTheme.typography.bodySmall, color = AppTheme.colors.secondaryLabel,
                                 )
                                 ProgressBar(
                                     fraction = if (lvl.requiredTotal == 0) 0f else lvl.requiredDone.toFloat() / lvl.requiredTotal,
-                                    color = Color.White, height = 5.dp, modifier = Modifier.padding(top = 6.dp),
+                                    color = AppTheme.colors.accent, height = 5.dp, modifier = Modifier.padding(top = 6.dp),
                                 )
                             }
-                            Text("›", color = Color.White, style = MaterialTheme.typography.headlineMedium, modifier = Modifier.padding(start = Spacing.sm))
+                            CupertinoDisclosure(modifier = Modifier.padding(start = Spacing.sm))
                         }
                     }
                 }

@@ -51,7 +51,6 @@ class MainActivity : FragmentActivity() {
         setContent {
             val themeViewModel: ThemeViewModel = hiltViewModel()
             val themeMode by themeViewModel.themeMode.collectAsStateWithLifecycle()
-            val accentPalette by themeViewModel.accentPalette.collectAsStateWithLifecycle()
 
             // Status and navigation bar icons follow the app's own light/dark choice, not the system's.
             val dark = when (themeMode) {
@@ -65,11 +64,11 @@ class MainActivity : FragmentActivity() {
                     isAppearanceLightNavigationBars = !dark
                 }
             }
-            AppTheme(themeMode = themeMode, accentPalette = accentPalette) {
+            AppTheme(themeMode = themeMode) {
                 Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
                     Box(Modifier.fillMaxSize()) {
                         AppRoot(appLock, widgetLaunch)
-                        CelebrationOverlay(celebrations, accentPalette)
+                        CelebrationOverlay(celebrations)
                     }
                 }
             }

@@ -1,6 +1,5 @@
 package com.shahaabapps.core.ui.components
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -8,25 +7,29 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.shahaabapps.core.ui.theme.AppTheme
-import com.shahaabapps.core.ui.theme.Shapes
 import com.shahaabapps.core.ui.theme.Spacing
 
 /**
- * A grouped, inset-rounded list section in the iOS Settings style, with an
- * optional uppercase header and footer caption (Browse Safe SettingsSectionTitle).
+ * A Parallel section: an optional mono uppercase header, a 1.5dp ink rule,
+ * then rows separated by hairlines, all inside the page gutter. There is no
+ * card behind it; the rule is what groups the rows.
  */
 @Composable
 fun CupertinoListSection(
@@ -35,46 +38,38 @@ fun CupertinoListSection(
     footer: String? = null,
     content: @Composable () -> Unit,
 ) {
-    Column(modifier = modifier.fillMaxWidth()) {
+    Column(modifier = modifier.fillMaxWidth().padding(horizontal = Spacing.listHorizontal)) {
         if (header != null) {
-            Text(
-                text = header.uppercase(),
-                style = MaterialTheme.typography.labelMedium,
-                color = AppTheme.colors.secondaryLabel,
-                modifier = Modifier.padding(
-                    start = Spacing.listHorizontal + Spacing.sectionStart,
-                    end = Spacing.listHorizontal,
-                    bottom = Spacing.sectionBottom,
-                ),
-            )
+            SectionLabel(header, modifier = Modifier.padding(bottom = Spacing.sectionBottom))
         }
-        Column(
-            modifier = Modifier
-                .padding(horizontal = Spacing.listHorizontal)
-                .clip(Shapes.card)
-                .background(AppTheme.colors.card),
-            content = { content() },
-        )
+        HorizontalDivider(color = AppTheme.colors.ink, thickness = Spacing.rule)
+        Column { content() }
         if (footer != null) {
             Text(
                 text = footer,
                 style = MaterialTheme.typography.bodySmall,
                 color = AppTheme.colors.secondaryLabel,
-                modifier = Modifier.padding(
-                    start = Spacing.listHorizontal + Spacing.sectionStart,
-                    end = Spacing.listHorizontal,
-                    top = Spacing.sectionBottom,
-                ),
+                modifier = Modifier.padding(top = Spacing.sm + 2.dp),
             )
         }
     }
 }
 
+/** The 11sp mono uppercase label that heads a section or sits above a title. */
+@Composable
+fun SectionLabel(text: String, modifier: Modifier = Modifier, color: Color = AppTheme.colors.secondaryLabel) {
+    Text(
+        text = text.uppercase(),
+        style = MaterialTheme.typography.labelMedium,
+        color = color,
+        modifier = modifier.semantics { heading() },
+    )
+}
+
 /**
- * A single row within a [CupertinoListSection], modelled on the browser app's
- * HubRow: optional 29dp coloured icon tile, 17sp label, optional subtitle,
- * trailing slot (value text, switch, chevron), and a hairline divider inset
- * to the label's start.
+ * A row within a [CupertinoListSection]: optional leading glyph, a label,
+ * an optional second line, a trailing slot (value, switch, chevron), and the
+ * full-width hairline beneath it.
  */
 @Composable
 fun CupertinoListRow(
@@ -82,7 +77,7 @@ fun CupertinoListRow(
     modifier: Modifier = Modifier,
     subtitle: String? = null,
     leadingIcon: ImageVector? = null,
-    iconColor: Color = AppTheme.colors.accentText,
+    iconColor: Color = AppTheme.colors.ink,
     showDivider: Boolean = true,
     onClick: (() -> Unit)? = null,
     titleColor: Color = MaterialTheme.colorScheme.onSurface,
@@ -91,19 +86,19 @@ fun CupertinoListRow(
     Column {
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            horizontalArrangement = Arrangement.spacedBy(14.dp),
             modifier = modifier
                 .fillMaxWidth()
                 .then(if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier)
                 .heightIn(min = Spacing.rowMinHeight)
-                .padding(start = 12.dp, end = 14.dp, top = 8.dp, bottom = 8.dp),
+                .padding(vertical = 10.dp),
         ) {
             if (leadingIcon != null) {
-                IconTile(icon = leadingIcon, color = iconColor)
+                Icon(leadingIcon, contentDescription = null, tint = iconColor, modifier = Modifier.size(22.dp))
             }
             Column(
                 verticalArrangement = Arrangement.spacedBy(2.dp),
-                modifier = Modifier.weight(1f).padding(start = if (leadingIcon == null) 4.dp else 0.dp),
+                modifier = Modifier.weight(1f),
             ) {
                 Text(
                     text = title,
@@ -123,23 +118,19 @@ fun CupertinoListRow(
             trailing?.invoke()
         }
         if (showDivider) {
-            HorizontalDivider(
-                color = AppTheme.colors.separator,
-                thickness = 0.5.dp,
-                modifier = Modifier.padding(start = if (leadingIcon != null) Spacing.dividerInsetWithIcon else Spacing.dividerInset),
-            )
+            HorizontalDivider(color = AppTheme.colors.separator, thickness = Spacing.hairline)
         }
     }
 }
 
-/** The iOS "›" disclosure glyph used on the trailing edge of a pushing row. */
+/** The chevron on the trailing edge of a row that opens another screen. */
 @Composable
 fun CupertinoDisclosure(modifier: Modifier = Modifier) {
-    Text(
-        text = "›",
-        color = AppTheme.colors.secondaryLabel,
-        fontSize = 22.sp,
-        modifier = modifier.padding(start = 4.dp),
+    Icon(
+        Icons.AutoMirrored.Filled.KeyboardArrowRight,
+        contentDescription = null,
+        tint = AppTheme.colors.secondaryLabel,
+        modifier = modifier.size(20.dp),
     )
 }
 
@@ -148,7 +139,7 @@ fun CupertinoDisclosure(modifier: Modifier = Modifier) {
 fun CupertinoValue(text: String) {
     Text(
         text = text,
-        style = MaterialTheme.typography.bodyLarge,
+        style = MaterialTheme.typography.bodyMedium,
         color = AppTheme.colors.secondaryLabel,
         maxLines = 1,
         overflow = TextOverflow.Ellipsis,

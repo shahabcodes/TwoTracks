@@ -13,19 +13,22 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import com.shahaabapps.core.ui.theme.AppTheme
 import com.shahaabapps.core.ui.theme.Spacing
 
 /**
- * A screen scaffold with the iOS "large title" (31sp bold, like the browser
- * app's Settings sheet) inline at the top of the grouped backdrop, with an
- * optional trailing action slot (e.g. a bold accent "Done" or "+").
+ * A top-level screen: an optional mono [eyebrow] above a 34sp page title,
+ * flush with the gutter on the white page, and an optional trailing action
+ * slot.
  */
 @Composable
 fun CupertinoScaffold(
     title: String,
     modifier: Modifier = Modifier,
+    eyebrow: String? = null,
     actions: @Composable RowScope.() -> Unit = {},
     content: @Composable (PaddingValues) -> Unit,
 ) {
@@ -34,24 +37,21 @@ fun CupertinoScaffold(
         containerColor = AppTheme.colors.groupedBackground,
     ) { innerPadding ->
         Column(modifier = Modifier.fillMaxSize().padding(innerPadding)) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
+            Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(
-                        start = Spacing.listHorizontal,
-                        end = Spacing.listHorizontal,
-                        top = Spacing.sm,
-                        bottom = 14.dp,
-                    ),
+                    .padding(start = Spacing.listHorizontal, end = Spacing.listHorizontal, top = Spacing.md, bottom = Spacing.sm),
             ) {
-                Text(
-                    text = title,
-                    style = MaterialTheme.typography.displayLarge,
-                    color = MaterialTheme.colorScheme.onBackground,
-                    modifier = Modifier.weight(1f),
-                )
-                actions()
+                if (eyebrow != null) SectionLabel(eyebrow, modifier = Modifier.padding(bottom = 6.dp))
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        text = title,
+                        style = MaterialTheme.typography.displayLarge,
+                        color = MaterialTheme.colorScheme.onBackground,
+                        modifier = Modifier.weight(1f).semantics { heading() },
+                    )
+                    actions()
+                }
             }
             content(PaddingValues(0.dp))
         }

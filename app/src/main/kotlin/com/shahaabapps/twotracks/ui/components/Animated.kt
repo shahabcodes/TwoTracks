@@ -123,7 +123,7 @@ fun SwipeToDelete(
             ) {
                 val iconScale = remember(active) { if (active) 1.15f else 1f }
                 Box(contentAlignment = Alignment.Center) {
-                    Icon(Icons.Filled.Delete, contentDescription = "Delete", tint = Color.White, modifier = Modifier.scale(iconScale))
+                    Icon(Icons.Filled.Delete, contentDescription = "Delete", tint = AppTheme.colors.onSolid, modifier = Modifier.scale(iconScale))
                 }
             }
         },

@@ -40,7 +40,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
@@ -134,9 +133,9 @@ private fun DialogueLine(ln: Line, left: Boolean, speaker: Speaker?) {
                 .background(if (left) AppTheme.colors.fill else AppTheme.colors.accent)
                 .clickable { show = !show }.padding(horizontal = 12.dp, vertical = 8.dp),
         ) {
-            Text(ln.speaker, style = MaterialTheme.typography.labelSmall, color = if (left) AppTheme.colors.secondaryLabel else Color.White.copy(alpha = 0.8f))
-            Text(ln.de, style = MaterialTheme.typography.bodyMedium, color = if (left) MaterialTheme.colorScheme.onSurface else Color.White)
-            if (show) Text(ln.en, style = MaterialTheme.typography.bodySmall, color = if (left) AppTheme.colors.accent else Color.White.copy(alpha = 0.9f), modifier = Modifier.padding(top = 2.dp))
+            Text(ln.speaker, style = MaterialTheme.typography.labelSmall, color = if (left) AppTheme.colors.secondaryLabel else AppTheme.colors.onSolid.copy(alpha = 0.8f))
+            Text(ln.de, style = MaterialTheme.typography.bodyMedium, color = if (left) MaterialTheme.colorScheme.onSurface else AppTheme.colors.onSolid)
+            if (show) Text(ln.en, style = MaterialTheme.typography.bodySmall, color = if (left) AppTheme.colors.accent else AppTheme.colors.onSolid.copy(alpha = 0.9f), modifier = Modifier.padding(top = 2.dp))
         }
         if (left) SpeakButton(ln.de, speaker, size = 28.dp)
     }
@@ -283,7 +282,7 @@ private fun WritingExercise(ex: Ex.Writing) {
         val on = i in ticks
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.clickable { if (on) ticks.remove(i) else ticks.add(i) }) {
             Box(modifier = Modifier.size(18.dp).clip(RoundedCornerShape(5.dp)).background(if (on) AppTheme.colors.success else AppTheme.colors.fill), contentAlignment = Alignment.Center) {
-                if (on) Icon(Icons.Filled.Check, contentDescription = null, tint = Color.White, modifier = Modifier.size(12.dp))
+                if (on) Icon(Icons.Filled.Check, contentDescription = null, tint = AppTheme.colors.onSolid, modifier = Modifier.size(12.dp))
             }
             Text(p, style = MaterialTheme.typography.bodySmall)
         }

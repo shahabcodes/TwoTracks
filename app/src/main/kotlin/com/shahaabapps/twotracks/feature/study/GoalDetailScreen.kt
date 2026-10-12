@@ -1,7 +1,6 @@
 package com.shahaabapps.twotracks.feature.study
 
 import androidx.compose.foundation.clickable
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import com.shahaabapps.core.ui.theme.Shapes
 import com.shahaabapps.twotracks.ui.components.DialogButton
@@ -144,7 +143,7 @@ fun GoalDetailScreen(
                                             .padding(vertical = 8.dp, horizontal = 4.dp),
                                         horizontalAlignment = Alignment.CenterHorizontally,
                                     ) {
-                                        Text("${m.module.number}", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = if (m.finished) Color.White else MaterialTheme.colorScheme.onSurface)
+                                        Text("${m.module.number}", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = if (m.finished) AppTheme.colors.onSolid else MaterialTheme.colorScheme.onSurface)
                                         Text(
                                             when {
                                                 !m.module.available -> "soon"
@@ -152,7 +151,7 @@ fun GoalDetailScreen(
                                                 m.passed -> "${m.learned}/${m.total}"
                                                 else -> "${m.learned}/${m.total}" + (m.bestPercent?.let { " · $it%" } ?: "")
                                             },
-                                            style = MaterialTheme.typography.labelSmall, color = if (m.finished) Color.White.copy(alpha = 0.9f) else AppTheme.colors.secondaryLabel,
+                                            style = MaterialTheme.typography.labelSmall, color = if (m.finished) AppTheme.colors.onSolid.copy(alpha = 0.9f) else AppTheme.colors.secondaryLabel,
                                         )
                                     }
                                 }
