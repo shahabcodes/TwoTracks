@@ -19,6 +19,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -52,7 +53,10 @@ import java.util.Locale
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FitSheet(fit: FitCheck, onChoose: (FitChoice) -> Unit, onDismiss: () -> Unit) {
-    ModalBottomSheet(onDismissRequest = onDismiss, containerColor = AppTheme.colors.groupedBackground, dragHandle = { SheetGrabber() }) {
+    // Open all the way, as the prototype's sheet does: half open, the choice
+    // and its button sit below the fold and the sheet reads as a warning only.
+    val state = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    ModalBottomSheet(onDismissRequest = onDismiss, sheetState = state, containerColor = AppTheme.colors.groupedBackground, dragHandle = { SheetGrabber() }) {
         FitContent(fit, onChoose, onDismiss)
     }
 }
