@@ -7,9 +7,8 @@ package com.shahaabapps.twotracks.ui.guide
  * with a thumb on Next, and a paragraph on a dimmed screen is skipped rather
  * than read — which costs more than saying less would have.
  *
- * It explains the app in the order someone would use it: the studying first,
- * then the day it belongs to, then the longer views, then every row of
- * Settings. Each step names the screen it belongs to and the app navigates
+ * It explains the app in the order someone would use it: the day first,
+ * then the studying, then the longer views, then every row of Settings. Each step names the screen it belongs to and the app navigates
  * there as the tour moves, so nothing describes a screen the reader is not
  * looking at.
  *
@@ -27,11 +26,18 @@ fun guideSteps(
     usRoute: String,
     settingsRoute: String,
 ): List<GuideStep> = listOf(
+    // ---- the day ----
+    GuideStep(
+        todayRoute, GuideAnchors.TAB_TODAY,
+        "Start here",
+        "Today opens the app: your next session first, then both your days and the run you share.",
+    ),
+
     // ---- the studying ----
     GuideStep(
         learnRoute, GuideAnchors.TAB_LEARN,
-        "Start here",
-        "Both courses live on Learn, and the app opens on it.",
+        "Learn",
+        "Both courses live here.",
     ),
     GuideStep(
         learnRoute, GuideAnchors.LEARN_TODAY_CARD,
@@ -54,32 +60,27 @@ fun guideSteps(
         "German words become cards once you read their topic. Wrong answers return in Daily review.",
     ),
 
-    // ---- the day, the ladder, the two of you ----
-    GuideStep(
-        todayRoute, GuideAnchors.TAB_TODAY,
-        "Today",
-        "Your slots and your streak. Minutes count themselves as you read — nothing to fill in.",
-    ),
-    GuideStep(
-        levelsRoute, GuideAnchors.TAB_LEVELS,
-        "Levels",
-        "Five checklists with dates: courses to pass, paperwork to do. Tick things off as they happen.",
-    ),
-    GuideStep(
-        levelsRoute, GuideAnchors.TAB_LEVELS,
-        "Below the levels",
-        "Countries, test scores, documents and budget. All from the guide, all editable.",
-    ),
+    // ---- the two of you, and the ladder ----
     GuideStep(
         usRoute, GuideAnchors.TAB_US,
-        "US",
-        "The shared run counts only days you both studied. Below it, four weeks and your weekly counts.",
+        "Together",
+        "The two of you side by side, and everything you are planning as a pair.",
+    ),
+    GuideStep(
+        usRoute, GuideAnchors.US_LEVELS,
+        "Levels",
+        "Five checklists with dates each: courses to pass, paperwork to do.",
+    ),
+    GuideStep(
+        levelsRoute, GuideAnchors.LEVELS_LADDER,
+        "Tick things off as they happen",
+        "Below the levels: countries, test scores, documents and budget. All from the guide, all editable.",
     ),
 
     // ---- settings, row by row ----
     GuideStep(
         settingsRoute, GuideAnchors.SET_NAME,
-        "Settings is at the bottom of US",
+        "Settings is behind the gear on Today",
         "Your name is what your partner sees.",
     ),
     GuideStep(

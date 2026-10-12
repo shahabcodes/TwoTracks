@@ -1,5 +1,8 @@
 package com.shahaabapps.twotracks.ui.components
 
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.foundation.border
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
@@ -12,9 +15,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -35,9 +36,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.shahaabapps.core.ui.components.CupertinoSegmentedControl
-import com.shahaabapps.core.ui.components.CupertinoTextButton
 import com.shahaabapps.core.ui.theme.AppTheme
-import com.shahaabapps.core.ui.theme.Shapes
 import com.shahaabapps.core.ui.theme.Spacing
 
 /** iOS segmented control (delegates to the shared Cupertino component). */
@@ -52,12 +51,12 @@ fun <T> SegmentedChoice(
     CupertinoSegmentedControl(options = options, selected = selected, label = label, onSelect = onSelect, modifier = modifier)
 }
 
-/** A rounded horizontal progress bar on the translucent gray track. */
+/** A thin progress bar on a hairline track, as the Parallel prototype draws them. */
 @Composable
 fun ProgressBar(
     fraction: Float,
     modifier: Modifier = Modifier,
-    height: Dp = 8.dp,
+    height: Dp = 4.dp,
     color: Color = AppTheme.colors.accent,
 ) {
     val animated by animateFloatAsState(
@@ -69,22 +68,20 @@ fun ProgressBar(
         modifier = modifier
             .fillMaxWidth()
             .height(height)
-            .clip(CircleShape)
-            .background(AppTheme.colors.fill),
+            .background(AppTheme.colors.separator),
     ) {
         Box(
             modifier = Modifier
                 .fillMaxWidth(animated)
                 .height(height)
-                .clip(CircleShape)
                 .background(color),
         )
     }
 }
 
 /**
- * iOS filter pill (Browse Safe PillChip / bg_pill_selected): translucent gray
- * when idle, solid accent with white text when selected. 13sp label, 10dp radius.
+ * A filter pill in the Parallel style: a hairline outline and ink text when
+ * idle, filled with ink when selected.
  */
 @Composable
 fun Chip(
@@ -94,23 +91,24 @@ fun Chip(
 ) {
     Box(
         modifier = Modifier
-            .clip(Shapes.field)
-            .background(if (selected) AppTheme.colors.accent else AppTheme.colors.fill)
-            .clickable(onClick = onClick)
-            .heightIn(min = 32.dp)
-            .padding(horizontal = 12.dp, vertical = 7.dp),
+            .clip(CircleShape)
+            .background(if (selected) AppTheme.colors.accent else Color.Transparent)
+            .border(Spacing.rule, if (selected) AppTheme.colors.accent else AppTheme.colors.separator, CircleShape)
+            .clickable(role = Role.Button, onClick = onClick)
+            .heightIn(min = 36.dp)
+            .padding(horizontal = 14.dp, vertical = 8.dp),
         contentAlignment = Alignment.Center,
     ) {
         Text(
             text = text,
             style = MaterialTheme.typography.bodySmall,
             fontWeight = FontWeight.Medium,
-            color = if (selected) AppTheme.colors.onSolid else AppTheme.colors.accentText,
+            color = if (selected) AppTheme.colors.onSolid else AppTheme.colors.ink,
         )
     }
 }
 
-/** iOS grouped-list section header: 12sp uppercase gray, 18dp above, 8dp below, 4dp extra inset. */
+/** A section header outside a [CupertinoListSection]: 11sp mono uppercase, in the gutter. */
 @Composable
 fun SectionLabel(text: String, modifier: Modifier = Modifier) {
     Text(
@@ -125,33 +123,33 @@ fun SectionLabel(text: String, modifier: Modifier = Modifier) {
     )
 }
 
-/** Key/value stat tile on a settings-card surface. */
+/** A figure and its label, under a 1.5dp ink rule. */
 @Composable
 fun StatTile(label: String, value: String, modifier: Modifier = Modifier, valueColor: Color = MaterialTheme.colorScheme.onSurface) {
+    val inkRule = AppTheme.colors.ink
     Column(
         modifier = modifier
-            .clip(Shapes.card)
-            .background(AppTheme.colors.card)
-            .padding(horizontal = Spacing.md, vertical = 12.dp),
+            .drawBehind { drawLine(inkRule, androidx.compose.ui.geometry.Offset(0f, 0f), androidx.compose.ui.geometry.Offset(size.width, 0f), Spacing.rule.toPx()) }
+            .padding(top = 12.dp, bottom = 8.dp),
     ) {
-        Text(label, style = MaterialTheme.typography.bodySmall, color = AppTheme.colors.secondaryLabel)
         Text(value, style = MaterialTheme.typography.headlineMedium, color = valueColor)
+        Text(label, style = MaterialTheme.typography.bodySmall, color = AppTheme.colors.secondaryLabel)
     }
 }
 
 /** Compact timezone picker: a value field that opens a list of common zones plus the device default. */
 @Composable
 fun TimezonePicker(selected: String, onSelect: (String) -> Unit) {
+    val lineColor = AppTheme.colors.separator
     var open by remember { mutableStateOf(false) }
     Text(
         text = selected,
         style = MaterialTheme.typography.bodyLarge,
         modifier = Modifier
             .fillMaxWidth()
-            .clip(Shapes.field)
-            .background(AppTheme.colors.fill)
-            .clickable { open = true }
-            .padding(horizontal = 16.dp, vertical = 14.dp),
+            .clickable(role = Role.Button) { open = true }
+            .drawBehind { drawLine(lineColor, androidx.compose.ui.geometry.Offset(0f, size.height), androidx.compose.ui.geometry.Offset(size.width, size.height), Spacing.rule.toPx()) }
+            .padding(vertical = 14.dp),
     )
     if (open) TimezoneDialog(selected = selected, onSelect = onSelect, onDismiss = { open = false })
 }

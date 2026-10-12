@@ -56,6 +56,12 @@ data class SessionRow(
      * it happens away from the app and only a person can say how long it ran.
      */
     val timeFromCourse: Boolean = false,
+    /**
+     * When it starts on the reader's clock, in minutes of the day. Today puts
+     * both days on one line, so the partner's sessions are moved into the
+     * reader's time zone; [timeLabel] keeps the owner's own clock.
+     */
+    val readerStartMinutes: Int = session.startMinutes,
 )
 
 data class NextTopic(val courseId: String, val topicId: String, val title: String, val minutes: Int)
@@ -95,6 +101,8 @@ data class TodayUiState(
     val whatsNew: Release? = null,
 )
 
+private data class BriefInputs(val dismissed: Boolean, val requested: Boolean, val whatsNew: Release?, val progress: List<TopicProgress>)
+
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class TodayViewModel @Inject constructor(
@@ -112,6 +120,8 @@ class TodayViewModel @Inject constructor(
     private val message = MutableStateFlow<String?>(null)
     private val prefs = context.getSharedPreferences("daily_brief", Context.MODE_PRIVATE)
     private val briefDismissed = MutableStateFlow(false)
+    /** Set when the date on Today is tapped: the brief again, whether or not it was seen this morning. */
+    private val briefRequested = MutableStateFlow(false)
 
     private val sessionsFlow = sessionStore.session.flatMapLatest { s ->
         if (s == null) flowOf(emptyList()) else {
@@ -127,13 +137,15 @@ class TodayViewModel @Inject constructor(
     }
 
     val uiState: StateFlow<TodayUiState> = combine(
-        planStore.plan, sessionsFlow, dataStore.deadlines, message, combine(briefDismissed, changelog.unseen, dataStore.topicProgress) { d, w, tp -> Triple(d, w, tp) },
-    ) { plan, sessions, deadlines, msg, (dismissed, whatsNew, topicProgress) ->
+        planStore.plan, sessionsFlow, dataStore.deadlines, message, combine(briefDismissed, briefRequested, changelog.unseen, dataStore.topicProgress) { d, r, w, tp -> BriefInputs(d, r, w, tp) },
+    ) { plan, sessions, deadlines, msg, (dismissed, requested, whatsNew, topicProgress) ->
         if (plan == null) return@combine TodayUiState(loading = true, message = msg)
         val goalsById = plan.me.goals.plus(plan.partner.goals).associateBy { it.id }
 
         fun card(p: PersonPlan): PersonCard {
             val profile = plan.session.profileFor(p.role)
+            val ownerZone = Clock.zone(profile ?: plan.session.me)
+            val readerZone = Clock.zone(plan.session.me)
             val todayIso = Dates.format(p.today)
             val rows = sessions.filter { it.owner == p.role && it.dateIso == todayIso }.sortedBy { it.startMinutes }.map { s ->
                 val g = goalsById[s.goalId]
@@ -144,6 +156,7 @@ class TodayViewModel @Inject constructor(
                     nextTopic = nextTopicFor(p.role, s.goalId, s.componentId, topicProgress),
                     review = reviewFor(p.role, s.goalId, s.componentId, topicProgress),
                     timeFromCourse = !s.isClass && Courses.covers(s.goalId, s.componentId),
+                    readerStartMinutes = Clock.convert(p.today, s.startMinutes, ownerZone, readerZone).let { it.hour * 60 + it.minute },
                 )
             }
             return PersonCard(
@@ -157,7 +170,7 @@ class TodayViewModel @Inject constructor(
             .minByOrNull { it.second }
         val myCard = card(plan.me)
         val todayIso = Dates.format(plan.me.today)
-        val briefDue = !dismissed && prefs.getString("shown_on", null) != todayIso
+        val briefDue = requested || (!dismissed && prefs.getString("shown_on", null) != todayIso)
         TodayUiState(
             loading = false, today = plan.me.today, level = plan.me.current, partnerLevel = plan.partner.current, me = myCard, partner = card(plan.partner),
             status = plan.me.statusSentence, goals = plan.me.goals, activeGoals = plan.me.activeGoals,
@@ -196,7 +209,11 @@ class TodayViewModel @Inject constructor(
     fun dismissBrief() {
         prefs.edit().putString("shown_on", Dates.format(Clock.today(sessionStore.current()?.me))).apply()
         briefDismissed.value = true
+        briefRequested.value = false
     }
+
+    /** The brief again, from the date at the top of Today. */
+    fun openBrief() { briefRequested.value = true }
 
     fun dismissWhatsNew() = changelog.markSeen()
 
