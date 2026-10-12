@@ -106,7 +106,7 @@ class DesignPreviewActivity : ComponentActivity() {
                             PlanSamples.goalEdit(), onCancel = {}, onTitle = {}, onWhy = {}, onKind = {}, onTargetDate = {}, onPriority = {}, onRequiredForLevel = {},
                             onComponent = { _, _, _, _ -> }, onAddComponent = {}, onRemoveComponent = {}, onPreset = { _, _ -> }, onSave = {}, onDelete = {},
                         )
-                        "fit" -> FitContent(PlanSamples.fit(), onChoose = {}, onBack = {})
+                        "fit" -> com.shahaabapps.twotracks.feature.study.FitSheet(PlanSamples.fit(), onChoose = {}, onDismiss = {})
                         "us" -> UsContent(TogetherSamples.us(), onNavigate = {}, onOpenLevel = {})
                         "partner" -> PartnerContent(TogetherSamples.partner(), onBack = {}, onOpenLevel = {}, onOpenGoal = {})
                         "countries" -> CountriesContent(TogetherSamples.countries(), onBack = {}, onOpen = {})
