@@ -69,11 +69,9 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.shahaabapps.core.content.Block
 import com.shahaabapps.core.content.CalloutKind
 import com.shahaabapps.core.ui.components.CupertinoPrimaryButton
-import com.shahaabapps.core.ui.components.CupertinoSecondaryButton
 import com.shahaabapps.core.ui.components.CupertinoTextButton
 import com.shahaabapps.core.ui.theme.AppTheme
 import com.shahaabapps.core.ui.theme.Spacing
-import com.shahaabapps.twotracks.ui.components.DetailScaffold
 import com.shahaabapps.twotracks.ui.components.PopIn
 import androidx.compose.ui.text.style.TextAlign
 import com.shahaabapps.core.ui.components.CupertinoTextField
