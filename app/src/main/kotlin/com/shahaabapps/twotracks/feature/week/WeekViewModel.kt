@@ -47,6 +47,8 @@ data class WeekUiState(
     val weekStart: LocalDate = LocalDate.now(),
     val days: List<DayPlan> = emptyList(),
     val viewingRole: PersonRole = PersonRole.TECH,
+    /** The first name of whoever's week this is. */
+    val viewingName: String = "",
     val isMe: Boolean = true,
     val myGoals: List<StudyGoal> = emptyList(),
     val capacity: CapacityReport? = null,
@@ -99,7 +101,7 @@ class WeekViewModel @Inject constructor(
         val weekIso = Dates.format(weekStart)
         val weekEndIso = Dates.format(weekStart.plusDays(6))
         WeekUiState(
-            weekStart = weekStart, days = days, viewingRole = role, isMe = !vp, myGoals = roleGoals.filter { it.active },
+            weekStart = weekStart, days = days, viewingRole = role, viewingName = session.profileFor(role)?.name.orEmpty(), isMe = !vp, myGoals = roleGoals.filter { it.active },
             capacity = CapacityReport.build(avail.weeklyStudyMinutes, progress.values),
             plannedMinutes = sessions.filter { it.owner == role }.sumOf { it.durationMinutes },
             doneMinutes = logs.filter { it.owner == role && it.dateIso in weekIso..weekEndIso }.sumOf { it.minutes },

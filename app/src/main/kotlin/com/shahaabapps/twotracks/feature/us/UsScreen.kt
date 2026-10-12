@@ -1,5 +1,8 @@
 package com.shahaabapps.twotracks.feature.us
 
+import androidx.compose.material.icons.filled.Flag
+import com.shahaabapps.twotracks.ui.guide.GuideAnchors
+import com.shahaabapps.twotracks.ui.guide.guideAnchor
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -52,7 +55,6 @@ import com.shahaabapps.twotracks.session.PlanSnapshot
 import com.shahaabapps.twotracks.session.PlanStore
 import com.shahaabapps.twotracks.ui.Routes
 import com.shahaabapps.twotracks.ui.components.AnimatedNumber
-import com.shahaabapps.twotracks.ui.components.SectionLabel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -110,12 +112,12 @@ class UsViewModel @Inject constructor(
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), UsUiState())
 }
 
-/** Tab 2: the two of you side by side, then Settings. */
+/** Together: the two of you side by side, then the plan you share. */
 @Composable
 fun UsScreen(onNavigate: (String) -> Unit, onOpenLevel: (String) -> Unit, viewModel: UsViewModel = hiltViewModel()) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val plan = state.plan
-    CupertinoScaffold(title = "US") {
+    CupertinoScaffold(title = "Together", eyebrow = "Two tracks · one move") {
         LazyColumn(verticalArrangement = Arrangement.spacedBy(Spacing.md), contentPadding = PaddingValues(bottom = Spacing.xl)) {
             if (plan != null) {
                 listOf(plan.me, plan.partner).forEach { person ->
@@ -126,9 +128,9 @@ fun UsScreen(onNavigate: (String) -> Unit, onOpenLevel: (String) -> Unit, viewMo
                     }
                 }
             }
-            item { SectionLabel("App") }
             item {
-                CupertinoListSection {
+                CupertinoListSection(header = "The plan") {
+                    CupertinoListRow("Levels", subtitle = "Five each, then countries, tests, documents and budget", leadingIcon = Icons.Filled.Flag, modifier = Modifier.guideAnchor(GuideAnchors.US_LEVELS), onClick = { onNavigate(Routes.LEVELS) }, trailing = { CupertinoDisclosure() })
                     CupertinoListRow("Settings", subtitle = "Profile, schedule, reminders, partner invite", leadingIcon = Icons.Filled.Settings, iconColor = IosColors.Gray, showDivider = false, onClick = { onNavigate(Routes.SETTINGS) }, trailing = { CupertinoDisclosure() })
                 }
             }

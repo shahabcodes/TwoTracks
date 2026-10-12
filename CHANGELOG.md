@@ -5,6 +5,10 @@ build number is appended by CI (for example `0.1.0 (build 12)`).
 
 ## [Unreleased]
 
+## [0.73.0] - 2026-10-12
+### Changed
+- Today, your week and both weeks are the prototype's screens, and the app opens on Today.
+
 ## [0.72.0] - 2026-10-12
 ### Changed
 - Signing in and setting up look like the prototype, and the companion is gone.

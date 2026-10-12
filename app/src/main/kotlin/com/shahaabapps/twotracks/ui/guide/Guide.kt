@@ -198,7 +198,8 @@ object GuideAnchors {
     const val TAB_LEARN = "tab.learn"
     const val TAB_TODAY = "tab.today"
     const val TAB_US = "tab.us"
-    const val TAB_LEVELS = "tab.levels"
+    const val LEVELS_LADDER = "levels.ladder"
+    const val US_LEVELS = "us.levels"
     const val LEARN_TODAY_CARD = "learn.today"
     const val LEARN_COURSES = "learn.courses"
 
