@@ -140,5 +140,7 @@ class SettingsViewModel @Inject constructor(
 
     fun clearMessage() { message.value = null }
 
+    fun say(text: String) { message.value = text }
+
     fun roleLabel(role: PersonRole) = if (role == PersonRole.TECH) "Developer (Germany, Ireland, Netherlands first)" else "Teacher (Canada, New Zealand first)"
 }

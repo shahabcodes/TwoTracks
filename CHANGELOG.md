@@ -5,6 +5,10 @@ build number is appended by CI (for example `0.1.0 (build 12)`).
 
 ## [Unreleased]
 
+## [0.77.0] - 2026-10-12
+### Changed
+- Settings, weekly hours, voices, widgets and what's new are the prototype's screens, with the new icon.
+
 ## [0.76.0] - 2026-10-12
 ### Changed
 - Together, your partner, countries, tests, documents and budget are the prototype's screens.

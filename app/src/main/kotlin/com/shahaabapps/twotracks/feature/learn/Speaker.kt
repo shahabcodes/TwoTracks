@@ -55,11 +55,16 @@ class Speaker @Inject constructor(
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
     private var language: Locale = Locale.GERMANY
 
+    /** The chosen pace, kept in step with the stored one. */
+    @Volatile
+    private var rate: Float = SpeechPreferences.DEFAULT_RATE
+
     /** Written on a background thread, read from several; hence volatile. */
     @Volatile
     private var tts: TextToSpeech? = null
 
     init {
+        scope.launch { speechPreferences.rate().collect { rate = it } }
         // Built off the main thread. This is a singleton injected into a view
         // model, so it is constructed during composition — and constructing a
         // TextToSpeech binds to the speech service and looks up the engine,
@@ -86,7 +91,7 @@ class Speaker @Inject constructor(
         val r = engine.setLanguage(language)
         _state.value = if (r == TextToSpeech.LANG_MISSING_DATA || r == TextToSpeech.LANG_NOT_SUPPORTED) State.MISSING_LANGUAGE else State.READY
         if (_state.value != State.READY) return
-        engine.setSpeechRate(0.9f)
+        engine.setSpeechRate(rate)
         // The stored choice is applied here rather than at start-up, because
         // a voice can only be set once the engine has a language.
         scope.launch {
@@ -200,7 +205,8 @@ class Speaker @Inject constructor(
     fun speak(text: String, slow: Boolean = false) {
         val engine = tts ?: return
         if (_state.value != State.READY) return
-        engine.setSpeechRate(if (slow) 0.6f else 0.9f)
+        // Slow is two thirds of the chosen pace, as it was of the old fixed 0.9.
+        engine.setSpeechRate(if (slow) rate * 2f / 3f else rate)
         engine.speak(text, TextToSpeech.QUEUE_FLUSH, null, "tt-" + text.hashCode())
     }
 

@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.floatPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -66,9 +67,24 @@ class SpeechPreferences @Inject constructor(
         }
     }
 
+    /**
+     * How fast every language is read, 1.0 being the engine's normal pace.
+     * Below it suits Hören and IELTS Listening in the first months.
+     */
+    fun rate(): Flow<Float> = context.speechDataStore.data.map { prefs -> prefs[RATE] ?: DEFAULT_RATE }
+
+    suspend fun setRate(rate: Float) {
+        context.speechDataStore.edit { prefs -> prefs[RATE] = rate.coerceIn(MIN_RATE, MAX_RATE) }
+    }
+
     private fun key(languageTag: String) = stringPreferencesKey("voice_" + languageTag.lowercase())
 
-    private companion object {
-        const val LABEL_PREFIX = "label_"
+    companion object {
+        private const val LABEL_PREFIX = "label_"
+        private val RATE = floatPreferencesKey("rate")
+        /** What the app always read at before the pace could be chosen. */
+        const val DEFAULT_RATE = 0.9f
+        const val MIN_RATE = 0.7f
+        const val MAX_RATE = 1.2f
     }
 }

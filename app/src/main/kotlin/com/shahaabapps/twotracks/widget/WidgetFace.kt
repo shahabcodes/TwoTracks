@@ -158,7 +158,7 @@ fun paletteFor(
 ): WidgetPalette {
     val base = when (config.theme) {
         WidgetTheme.LIGHT -> Color.White
-        WidgetTheme.DARK -> Color(0xFF1C1C1E)
+        WidgetTheme.DARK -> Color(0xFF111214)
         WidgetTheme.FOLLOW -> themed
     }
     val background = if (config.translucent) base.copy(alpha = WASH_ALPHA) else base

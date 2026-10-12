@@ -74,29 +74,14 @@ fun guideSteps(
     GuideStep(
         levelsRoute, GuideAnchors.LEVELS_LADDER,
         "Tick things off as they happen",
-        "Below the levels: countries, test scores, documents and budget. All from the guide, all editable.",
+        "Countries, tests, documents and budget sit on Together, under the move. All from the guide, all editable.",
     ),
 
     // ---- settings, row by row ----
     GuideStep(
         settingsRoute, GuideAnchors.SET_NAME,
         "Settings is behind the gear on Today",
-        "Your name is what your partner sees.",
-    ),
-    GuideStep(
-        settingsRoute, GuideAnchors.SET_TRACK,
-        "Your track",
-        "Decides your courses and your roadmap.",
-    ),
-    GuideStep(
-        settingsRoute, GuideAnchors.SET_PASSWORD,
-        "Password",
-        "Change it here, or have a reset link sent.",
-    ),
-    GuideStep(
-        settingsRoute, GuideAnchors.SET_TIMEZONE,
-        "Timezone",
-        "Sets when your day rolls over and when reminders fire.",
+        "Edit holds your name, time zone and password. Your name is what your partner sees.",
     ),
     GuideStep(
         settingsRoute, GuideAnchors.SET_INVITE,
@@ -104,16 +89,16 @@ fun guideSteps(
         // Read by whoever created the space and by whoever joined it, so it
         // cannot say "your partner enters this": for one of the two that
         // already happened, and the other way round it is simply wrong.
-        "The six letters that put the two of you in one space.",
+        "The six letters that put the two of you in one space. Tap to copy.",
     ),
     GuideStep(
         settingsRoute, GuideAnchors.SET_TEMPLATE,
-        "Weekly template",
+        "Weekly hours",
         "The hours you actually have. Everything about pace is measured against it.",
     ),
     GuideStep(
         settingsRoute, GuideAnchors.SET_START_DATE,
-        "Start date",
+        "Study started",
         "Nothing before this counts as a day you missed.",
     ),
     GuideStep(
@@ -122,14 +107,14 @@ fun guideSteps(
         "On, a reminder takes over the screen. Off, it waits as a banner.",
     ),
     GuideStep(
-        settingsRoute, GuideAnchors.SET_BIOMETRICS,
-        "Lock the app",
-        "Fingerprint, face or PIN when it opens.",
-    ),
-    GuideStep(
         settingsRoute, GuideAnchors.SET_APPEARANCE,
         "How it looks",
         "Light, dark, or whichever the phone is using.",
+    ),
+    GuideStep(
+        settingsRoute, GuideAnchors.SET_BIOMETRICS,
+        "Lock the app",
+        "Fingerprint, face or PIN when it opens.",
     ),
     GuideStep(
         settingsRoute, GuideAnchors.SET_VOICES,
@@ -137,9 +122,9 @@ fun guideSteps(
         "One per language. Tap to hear it. Describe tells the list what you heard.",
     ),
     GuideStep(
-        settingsRoute, GuideAnchors.SET_SEED,
-        "Guide content",
-        "Puts the plan back to the guide and restarts its dates. Your hours are kept.",
+        settingsRoute, GuideAnchors.SET_WIDGETS,
+        "Home screen widgets",
+        "Four of them. This is where you say what each one shows, whose, and which course.",
     ),
     GuideStep(
         settingsRoute, GuideAnchors.SET_TOUR,
@@ -147,9 +132,9 @@ fun guideSteps(
         "It runs on every sign-in, and it is here whenever you want it again.",
     ),
     GuideStep(
-        settingsRoute, GuideAnchors.SET_WIDGETS,
-        "Home screen widgets",
-        "Four of them. This is where you say what each one shows, whose, and which course.",
+        settingsRoute, GuideAnchors.SET_SEED,
+        "Guide content",
+        "Puts the plan back to the guide and restarts its dates. Your hours are kept.",
     ),
     GuideStep(
         settingsRoute, GuideAnchors.SET_SIGN_OUT,
