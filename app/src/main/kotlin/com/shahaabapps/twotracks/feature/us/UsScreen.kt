@@ -130,7 +130,12 @@ fun UsScreen(onNavigate: (String) -> Unit, onOpenLevel: (String) -> Unit, viewMo
             }
             item {
                 CupertinoListSection(header = "The plan") {
-                    CupertinoListRow("Levels", subtitle = "Five each, then countries, tests, documents and budget", leadingIcon = Icons.Filled.Flag, modifier = Modifier.guideAnchor(GuideAnchors.US_LEVELS), onClick = { onNavigate(Routes.LEVELS) }, trailing = { CupertinoDisclosure() })
+                    CupertinoListRow("Levels", subtitle = "Five each, quarter by quarter", leadingIcon = Icons.Filled.Flag, modifier = Modifier.guideAnchor(GuideAnchors.US_LEVELS), onClick = { onNavigate(Routes.LEVELS) }, trailing = { CupertinoDisclosure() })
+                    // These were under Levels. The prototype puts them on Together.
+                    CupertinoListRow("Countries", subtitle = "Six tracks, who leads, what to do", onClick = { onNavigate(Routes.COUNTRIES) }, trailing = { CupertinoDisclosure() })
+                    CupertinoListRow("Tests", subtitle = "Official results against targets", onClick = { onNavigate(Routes.TESTS) }, trailing = { CupertinoDisclosure() })
+                    CupertinoListRow("Documents", subtitle = "Checklist per person", onClick = { onNavigate(Routes.DOCUMENTS) }, trailing = { CupertinoDisclosure() })
+                    CupertinoListRow("Budget", subtitle = "Planned versus spent", onClick = { onNavigate(Routes.BUDGET) }, trailing = { CupertinoDisclosure() })
                     CupertinoListRow("Settings", subtitle = "Profile, schedule, reminders, partner invite", leadingIcon = Icons.Filled.Settings, iconColor = IosColors.Gray, showDivider = false, onClick = { onNavigate(Routes.SETTINGS) }, trailing = { CupertinoDisclosure() })
                 }
             }

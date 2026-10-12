@@ -1,5 +1,7 @@
 package com.shahaabapps.twotracks.ui.components
 
+import androidx.compose.ui.graphics.takeOrElse
+import androidx.compose.ui.graphics.Color
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -44,6 +46,7 @@ fun DetailScaffold(
     modifier: Modifier = Modifier,
     backLabel: String = "Back",
     eyebrow: String? = null,
+    eyebrowColor: Color = Color.Unspecified,
     actions: @Composable () -> Unit = {},
     content: @Composable (PaddingValues) -> Unit,
 ) {
@@ -67,7 +70,7 @@ fun DetailScaffold(
                 actions()
             }
             Column(modifier = Modifier.fillMaxWidth().padding(start = Spacing.listHorizontal, end = Spacing.listHorizontal, top = 4.dp, bottom = Spacing.sm)) {
-                if (eyebrow != null) SectionLabel(eyebrow, modifier = Modifier.padding(bottom = 6.dp))
+                if (eyebrow != null) SectionLabel(eyebrow, modifier = Modifier.padding(bottom = 6.dp), color = eyebrowColor.takeOrElse { AppTheme.colors.secondaryLabel })
                 Text(
                     text = title,
                     style = MaterialTheme.typography.displayLarge,
