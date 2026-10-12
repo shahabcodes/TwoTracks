@@ -29,6 +29,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -91,7 +92,10 @@ class SettingsViewModel @Inject constructor(
         }
     }
 
-    fun saveAvailability(blocks: List<AvailabilityBlock>) = viewModelScope.launch {
+    // Weekly hours saves as the page closes, and closing the page clears this
+    // view model: started in its scope the re-plan could be cut off half done.
+    // Non-cancellable, it finishes whatever the page does next.
+    fun saveAvailability(blocks: List<AvailabilityBlock>) = viewModelScope.launch(NonCancellable) {
         val s = sessionStore.current() ?: return@launch
         studyRepository.saveAvailability(s.coupleId, Availability(owner = s.myRole, blocks = blocks))
         val today = Clock.today(s.me)

@@ -7,7 +7,7 @@ build number is appended by CI (for example `0.1.0 (build 12)`).
 
 ## [0.77.1] - 2026-10-12
 ### Fixed
-- The fit check opens all the way.
+- The fit check opens all the way, and weekly hours finish saving after the page closes.
 
 ## [0.77.0] - 2026-10-12
 ### Changed
