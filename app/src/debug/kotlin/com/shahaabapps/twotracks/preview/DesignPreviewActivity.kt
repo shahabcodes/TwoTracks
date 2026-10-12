@@ -1,5 +1,10 @@
 package com.shahaabapps.twotracks.preview
 
+import com.shahaabapps.twotracks.feature.learn.DeckContent
+import com.shahaabapps.twotracks.feature.learn.QuizContent
+import com.shahaabapps.twotracks.feature.learn.TopicContent
+import com.shahaabapps.twotracks.feature.learn.CourseContent
+import com.shahaabapps.twotracks.feature.learn.LearnContent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -44,7 +49,7 @@ import java.time.LocalDate
  *
  *   adb shell am start -n com.shahaabapps.twotracks/.preview.DesignPreviewActivity --es screen today [--ez dark true]
  *
- * Screens: today, week, both.
+ * Screens: today, week, both, learn, course, topic, quiz, results, deck.
  */
 class DesignPreviewActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -62,6 +67,15 @@ class DesignPreviewActivity : ComponentActivity() {
                             onAssign = { _, _, _ -> }, onAddBlock = { _, _, _ -> }, onMessageShown = {},
                         )
                         "both" -> BothWeeksContent(state = Samples.both(), onBack = {})
+                        "learn" -> LearnContent(LearnSamples.learn(), onOpenCourse = {}, onOpenTopic = { _, _ -> }, onOpenDeck = {}, onOpenQuiz = { _, _ -> })
+                        "course" -> CourseContent(LearnSamples.germanId, LearnSamples.learn(), Samples.today, onBack = {}, onOpenTopic = { _, _ -> }, onOpenQuiz = { _, _ -> })
+                        "topic" -> TopicContent(
+                            LearnSamples.topic(), speaker = null, voiceMissing = false, recognizer = null, onBack = {}, onOpenTopic = { _, _ -> }, onOpenQuiz = { _, _ -> },
+                            onInstallVoice = {}, onChecked = { _, _, _, _ -> }, onConfidence = { _, _ -> }, onMarkLearned = {}, onUnlearn = {}, onMessageShown = {},
+                        )
+                        "quiz" -> QuizContent(LearnSamples.quiz(), speaker = null, onBack = {}, onOpenTopic = { _, _ -> }, onToggle = {}, onCheck = {}, onNext = {}, onRetake = {})
+                        "results" -> QuizContent(LearnSamples.results(), speaker = null, onBack = {}, onOpenTopic = { _, _ -> }, onToggle = {}, onCheck = {}, onNext = {}, onRetake = {})
+                        "deck" -> DeckContent(LearnSamples.deck(), speaker = null, onBack = {}, onFlip = {}, onAnswer = {}, onPractiseAnyway = {}, onAgain = {}, onInstallVoice = {})
                         else -> TodayContent(
                             state = Samples.today(), onOpenLevel = {}, onOpenPartner = {}, onOpenGoal = {}, onOpenWeek = {},
                             onOpenSettings = {}, onOpenChangelog = {}, onOpenTopic = { _, _ -> }, onOpenQuiz = { _, _ -> },
@@ -75,7 +89,7 @@ class DesignPreviewActivity : ComponentActivity() {
 }
 
 /** The prototype's Monday, 12 October 2026, for Usaid in Doha and Sanya in Karachi. */
-private object Samples {
+internal object Samples {
     val today: LocalDate = LocalDate.of(2026, 10, 12)
     private val usaid = Profile(uid = "u", name = "Usaid", role = PersonRole.TECH, timezone = "Asia/Qatar")
     private val sanya = Profile(uid = "s", name = "Sanya", role = PersonRole.TEACHER, timezone = "Asia/Karachi")

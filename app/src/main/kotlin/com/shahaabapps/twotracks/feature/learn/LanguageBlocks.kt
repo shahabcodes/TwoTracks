@@ -60,11 +60,11 @@ import java.text.Normalizer
 fun SpeakButton(text: String, speaker: Speaker?, size: androidx.compose.ui.unit.Dp = 32.dp, slow: Boolean = false) {
     val enabled = speaker != null
     Box(
-        modifier = Modifier.size(size).clip(CircleShape).background(if (enabled) AppTheme.colors.accent.copy(alpha = 0.14f) else AppTheme.colors.fill)
+        modifier = Modifier.size(size).clip(CircleShape).border(Spacing.rule, AppTheme.colors.separator, CircleShape)
             .clickable(enabled = enabled) { speaker?.speak(text, slow) },
         contentAlignment = Alignment.Center,
     ) {
-        Icon(Icons.Filled.VolumeUp, contentDescription = "Listen", tint = if (enabled) AppTheme.colors.accent else AppTheme.colors.secondaryLabel, modifier = Modifier.size(size * 0.55f))
+        Icon(Icons.Filled.VolumeUp, contentDescription = if (slow) "Listen slowly" else "Listen", tint = if (enabled) AppTheme.colors.ink else AppTheme.colors.secondaryLabel, modifier = Modifier.size(size * 0.45f))
     }
 }
 
@@ -111,7 +111,7 @@ private fun WordCard(w: Word, speaker: Speaker?) {
 /** A dialogue: speakers alternate sides; tap a line for the English; play per line. */
 @Composable
 fun DialogueBlock(block: Block.Dialogue, speaker: Speaker?) {
-    Column(modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(16.dp)).background(AppTheme.colors.card).padding(Spacing.md), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+    Column(modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(16.dp)).border(Spacing.rule, AppTheme.colors.separator, RoundedCornerShape(16.dp)).padding(Spacing.md), verticalArrangement = Arrangement.spacedBy(10.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(block.title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1f))
             CupertinoTextButton(text = "Play all", onClick = { speaker?.speak(block.lines.joinToString(" . ") { it.de }) }, modifier = Modifier.width(96.dp))
@@ -149,7 +149,7 @@ private fun norm(s: String): String = Normalizer.normalize(s.trim().lowercase(),
 fun ExerciseBlock(block: Block.Exercise, speaker: Speaker?, recognizer: Recognizer? = null, lang: String? = null) {
     val accent = AppTheme.colors.accent
     val accentText = AppTheme.colors.accentText
-    Column(modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(14.dp)).background(accent.copy(alpha = 0.08f)).padding(Spacing.md), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+    Column(modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(16.dp)).border(Spacing.rule, AppTheme.colors.separator, RoundedCornerShape(16.dp)).padding(Spacing.md), verticalArrangement = Arrangement.spacedBy(10.dp)) {
         // German courses use the Goethe paper names; everything else uses plain English.
         val german = lang?.startsWith("de") == true
         val label = when (val e = block.exercise) {
@@ -289,7 +289,7 @@ private fun WritingExercise(ex: Ex.Writing) {
     }
     if (!checked) CupertinoPrimaryButton(text = "Compare with a model answer", enabled = words >= 5, onClick = { checked = true })
     if (checked) {
-        Column(modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(10.dp)).background(AppTheme.colors.card).padding(Spacing.sm)) {
+        Column(modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(10.dp)).border(Spacing.hairline, AppTheme.colors.separator, RoundedCornerShape(10.dp)).padding(Spacing.sm)) {
             Text("Model answer", style = MaterialTheme.typography.labelMedium, color = AppTheme.colors.accentText)
             Text(ex.model, style = MaterialTheme.typography.bodyMedium, lineHeight = 21.sp)
             Text("Tick the points you covered. ${ticks.size} of ${ex.points.size} is your score in the exam's terms.", style = MaterialTheme.typography.labelSmall, color = AppTheme.colors.secondaryLabel, modifier = Modifier.padding(top = 4.dp))
