@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.shahaabapps.core.model.LevelItem
 import com.shahaabapps.core.model.LevelItemKind
+import com.shahaabapps.core.model.PersonRole
 import com.shahaabapps.core.model.StudyGoal
 import com.shahaabapps.core.planner.LevelProgress
 import com.shahaabapps.core.planner.LevelState
@@ -18,6 +19,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import kotlin.math.roundToInt
 
 data class LevelUiState(
     val progress: LevelProgress? = null,
@@ -26,6 +28,10 @@ data class LevelUiState(
     val goalsById: Map<String, StudyGoal> = emptyMap(),
     val next: LevelProgress? = null,
     val message: String? = null,
+    /** Whose colour the level is drawn in. */
+    val isTech: Boolean = true,
+    /** Hours logged and hours the goal needs, by goal id, rounded to the hour. */
+    val goalHours: Map<String, Pair<Int, Int>> = emptyMap(),
 )
 
 @HiltViewModel
@@ -47,6 +53,8 @@ class LevelViewModel @Inject constructor(
             goalsById = person.goals.associateBy { it.id },
             next = person.levels.firstOrNull { it.level.number > progress.level.number },
             message = msg,
+            isTech = person.role == PersonRole.TECH,
+            goalHours = person.goalProgress.mapValues { (_, g) -> g.hoursLogged.roundToInt() to g.hoursRequired.roundToInt() },
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), LevelUiState())
 

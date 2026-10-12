@@ -5,6 +5,10 @@ build number is appended by CI (for example `0.1.0 (build 12)`).
 
 ## [Unreleased]
 
+## [0.75.0] - 2026-10-12
+### Changed
+- Levels, a level, a goal, the goal form and the fit check are the prototype's screens.
+
 ## [0.74.0] - 2026-10-12
 ### Changed
 - Learn, a course, a topic, a test and the word deck are the prototype's screens.

@@ -1,5 +1,12 @@
 package com.shahaabapps.twotracks.preview
 
+import androidx.compose.runtime.remember
+import androidx.compose.material3.SnackbarHostState
+import com.shahaabapps.twotracks.feature.study.FitContent
+import com.shahaabapps.twotracks.feature.study.GoalEditContent
+import com.shahaabapps.twotracks.feature.study.GoalDetailContent
+import com.shahaabapps.twotracks.feature.levels.LevelContent
+import com.shahaabapps.twotracks.feature.levels.LevelsContent
 import com.shahaabapps.twotracks.feature.learn.DeckContent
 import com.shahaabapps.twotracks.feature.learn.QuizContent
 import com.shahaabapps.twotracks.feature.learn.TopicContent
@@ -49,7 +56,7 @@ import java.time.LocalDate
  *
  *   adb shell am start -n com.shahaabapps.twotracks/.preview.DesignPreviewActivity --es screen today [--ez dark true]
  *
- * Screens: today, week, both, learn, course, topic, quiz, results, deck.
+ * Screens: today, week, both, learn, course, topic, quiz, results, deck, levels, level, goal, goaledit, fit.
  */
 class DesignPreviewActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -75,6 +82,20 @@ class DesignPreviewActivity : ComponentActivity() {
                         )
                         "quiz" -> QuizContent(LearnSamples.quiz(), speaker = null, onBack = {}, onOpenTopic = { _, _ -> }, onToggle = {}, onCheck = {}, onNext = {}, onRetake = {})
                         "results" -> QuizContent(LearnSamples.results(), speaker = null, onBack = {}, onOpenTopic = { _, _ -> }, onToggle = {}, onCheck = {}, onNext = {}, onRetake = {})
+                        "levels" -> LevelsContent(PlanSamples.levels(), onBack = {}, onOpenLevel = {}, onShowPartner = {})
+                        "level" -> LevelContent(
+                            PlanSamples.level(), onBack = {}, onOpenGoal = {}, onNewGoal = {}, onToggleTask = {}, onAddTask = { _, _, _ -> }, onRemove = {},
+                            onStartNext = {}, onChooseBranch = {}, onMessageShown = {},
+                        )
+                        "goal" -> GoalDetailContent(
+                            PlanSamples.goal(), remember { SnackbarHostState() }, onBack = {}, onEdit = {}, onOpenCourse = {},
+                            onSetPassed = {}, onAddMock = { _, _ -> }, onDeleteMock = {}, onDeleteLog = {},
+                        )
+                        "goaledit" -> GoalEditContent(
+                            PlanSamples.goalEdit(), onCancel = {}, onTitle = {}, onWhy = {}, onKind = {}, onTargetDate = {}, onPriority = {}, onRequiredForLevel = {},
+                            onComponent = { _, _, _, _ -> }, onAddComponent = {}, onRemoveComponent = {}, onPreset = { _, _ -> }, onSave = {}, onDelete = {},
+                        )
+                        "fit" -> FitContent(PlanSamples.fit(), onChoose = {}, onBack = {})
                         "deck" -> DeckContent(LearnSamples.deck(), speaker = null, onBack = {}, onFlip = {}, onAnswer = {}, onPractiseAnyway = {}, onAgain = {}, onInstallVoice = {})
                         else -> TodayContent(
                             state = Samples.today(), onOpenLevel = {}, onOpenPartner = {}, onOpenGoal = {}, onOpenWeek = {},

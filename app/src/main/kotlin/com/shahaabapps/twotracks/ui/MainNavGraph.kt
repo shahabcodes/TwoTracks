@@ -301,7 +301,7 @@ fun MainNavGraph(session: AppSession, widgetLaunch: WidgetLaunch) {
                 )
             }
             composable(Routes.LEVELS) {
-                LevelsScreen(onBack = { navController.popBackStack() }, onOpenLevel = { navController.navigate(Routes.level(it)) }, onNavigate = { navController.navigate(it) })
+                LevelsScreen(onBack = { navController.popBackStack() }, onOpenLevel = { navController.navigate(Routes.level(it)) })
             }
             composable(Routes.LEARN) {
                 LearnScreen(onOpenCourse = { navController.navigate(Routes.course(it)) }, onOpenTopic = { c, t -> navController.navigate(Routes.topic(c, t)) }, onOpenDeck = { navController.navigate(Routes.deck(it)) }, onOpenQuiz = { c, m -> navController.navigate(Routes.quiz(c, m)) })
@@ -336,7 +336,6 @@ fun MainNavGraph(session: AppSession, widgetLaunch: WidgetLaunch) {
                     levelId = lid,
                     onBack = { navController.popBackStack() },
                     onOpenGoal = { navController.navigate(Routes.goalDetail(it)) },
-                    onOpenLevel = { navController.navigate(Routes.level(it)) },
                     onNewGoal = { navController.navigate(Routes.newGoal(lid)) },
                 )
             }
