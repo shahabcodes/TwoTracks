@@ -87,7 +87,7 @@ fun ListenExercise(ex: Ex.Listen, speaker: Speaker?) {
         }
     }
     if (answered) {
-        Column(modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(10.dp)).background(AppTheme.colors.card).padding(Spacing.sm)) {
+        Column(modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(10.dp)).border(Spacing.hairline, AppTheme.colors.separator, RoundedCornerShape(10.dp)).padding(Spacing.sm)) {
             Text(if (picked == ex.correct) "Richtig" else "Not quite", style = MaterialTheme.typography.labelMedium, color = if (picked == ex.correct) AppTheme.colors.success else AppTheme.colors.destructive, fontWeight = FontWeight.SemiBold)
             Text("You heard: ${ex.audio}", style = MaterialTheme.typography.bodySmall, lineHeight = 20.sp, modifier = Modifier.padding(top = 4.dp))
         }
@@ -138,7 +138,7 @@ fun SpeakExercise(ex: Ex.Speak, speaker: Speaker?, recognizer: Recognizer?) {
     heard?.let { h ->
         val match = SpeechMatch.of(ex.target, h)
         val pct = match.percent
-        Column(modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(10.dp)).background(AppTheme.colors.card).padding(Spacing.sm), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        Column(modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(10.dp)).border(Spacing.hairline, AppTheme.colors.separator, RoundedCornerShape(10.dp)).padding(Spacing.sm), verticalArrangement = Arrangement.spacedBy(4.dp)) {
             Text(if (pct >= 80) "Sehr gut: $pct% of the words" else if (pct >= 50) "Getting there: $pct% of the words" else "Try once more: $pct% of the words", style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.SemiBold, color = if (pct >= 80) AppTheme.colors.success else AppTheme.colors.warn)
             Text("You said: $h", style = MaterialTheme.typography.bodySmall)
             Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
@@ -189,7 +189,7 @@ fun MarkedWritingExercise(ex: Ex.Writing) {
         )
     }
     result?.let { r ->
-        Column(modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(10.dp)).background(AppTheme.colors.card).padding(Spacing.sm), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        Column(modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(10.dp)).border(Spacing.hairline, AppTheme.colors.separator, RoundedCornerShape(10.dp)).padding(Spacing.sm), verticalArrangement = Arrangement.spacedBy(6.dp)) {
             Text("${r.score} of ${r.maxScore} points", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold, color = if (r.score >= r.maxScore - 1) AppTheme.colors.success else AppTheme.colors.warn)
             ex.points.forEachIndexed { i, p -> MarkRow(p, r.points[i]) }
             r.checks.forEach { c -> MarkRow(c.label, c.ok) }

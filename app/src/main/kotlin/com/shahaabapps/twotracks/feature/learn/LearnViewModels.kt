@@ -176,6 +176,9 @@ data class LearnUiState(
     val dailyDue: Map<String, Int> = emptyMap(),
     /** Today's loop across every course: one topic, the words due, the questions back round. */
     val daily: DailyStudy = DailyStudy(),
+    /** Whose goals each course serves, by course id: the reader, the partner, or both. */
+    val owners: Map<String, Set<PersonRole>> = emptyMap(),
+    val myRole: PersonRole = PersonRole.TECH,
 )
 
 @HiltViewModel
@@ -183,7 +186,7 @@ class LearnViewModel @Inject constructor(
     sessionStore: SessionStore,
     dataStore: CoupleDataStore,
 ) : ViewModel() {
-    val uiState: StateFlow<LearnUiState> = combine(sessionStore.state, dataStore.topicProgress, dataStore.quizAttempts, dataStore.flashcards) { state, progress, attempts, cards ->
+    val uiState: StateFlow<LearnUiState> = combine(sessionStore.state, dataStore.topicProgress, dataStore.quizAttempts, dataStore.flashcards, dataStore.goals) { state, progress, attempts, cards, goals ->
         val session = (state as? com.shahaabapps.twotracks.session.SessionState.Ready)?.session ?: return@combine LearnUiState()
         val partnerRole = if (session.myRole == PersonRole.TECH) PersonRole.TEACHER else PersonRole.TECH
         val today = Clock.today(session.me)
@@ -194,6 +197,8 @@ class LearnViewModel @Inject constructor(
             daily = DailyStudy.of(session.myRole, Courses.all, mine, progress, attempts, cards, today),
             partnerProgress = Courses.all.associate { it.id to CourseProgress.of(partnerRole, it.id, progress, attempts) },
             partnerName = session.partner?.name ?: "Partner",
+            owners = Courses.all.associate { c -> c.id to goals.filter { it.id in c.goalIds }.map { it.owner }.toSet() },
+            myRole = session.myRole,
             decks = Courses.all.filter { Courses.words(it).isNotEmpty() }.associate { c ->
                 c.id to DeckInfo(WordDeck.dueCount(session.myRole, c, cards, today), WordDeck.newCount(session.myRole, c, cards, progress), cards.count { it.owner == session.myRole && it.courseId == c.id })
             },

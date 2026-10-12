@@ -1,71 +1,68 @@
 package com.shahaabapps.twotracks.feature.learn
 
-import androidx.compose.foundation.clickable
-import androidx.compose.material.icons.filled.Style
-import com.shahaabapps.core.ui.theme.Shapes
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.Lock
-import androidx.compose.material.icons.filled.MenuBook
-import androidx.compose.material.icons.filled.Quiz
-import androidx.compose.material.icons.filled.Replay
-import androidx.compose.material.icons.filled.Schedule
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.shahaabapps.core.content.Course
 import com.shahaabapps.core.content.CourseProgress
-import com.shahaabapps.core.content.DailyStudy
-import com.shahaabapps.core.content.StudyKind
-import com.shahaabapps.core.content.StudyStep
 import com.shahaabapps.core.content.Courses
+import com.shahaabapps.core.content.Mastery
 import com.shahaabapps.core.content.Module
-import com.shahaabapps.core.ui.components.CupertinoCard
-import com.shahaabapps.core.ui.components.CupertinoDisclosure
-import com.shahaabapps.core.ui.components.CupertinoListRow
-import com.shahaabapps.core.ui.components.CupertinoListSection
-import com.shahaabapps.core.ui.components.CupertinoPrimaryButton
+import com.shahaabapps.core.content.StudyKind
+import com.shahaabapps.core.content.TopicMastery
+import com.shahaabapps.core.content.mastery
+import com.shahaabapps.core.content.revisits
+import com.shahaabapps.core.model.PersonRole
 import com.shahaabapps.core.ui.components.CupertinoScaffold
-import com.shahaabapps.core.ui.components.StatusChip
-import com.shahaabapps.twotracks.ui.guide.GuideAnchors
-import com.shahaabapps.twotracks.ui.guide.guideAnchor
 import com.shahaabapps.core.ui.theme.AppTheme
+import com.shahaabapps.core.ui.theme.MonoFamily
 import com.shahaabapps.core.ui.theme.Spacing
 import com.shahaabapps.twotracks.ui.components.DetailScaffold
-import com.shahaabapps.twotracks.ui.components.ProgressBar
-import com.shahaabapps.twotracks.ui.components.SectionLabel
+import com.shahaabapps.twotracks.ui.guide.GuideAnchors
+import com.shahaabapps.twotracks.ui.guide.guideAnchor
 import java.time.LocalDate
-import androidx.compose.runtime.remember
-import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.material3.CircularProgressIndicator
-import com.shahaabapps.core.content.revisits
-import com.shahaabapps.core.content.mastery
-import com.shahaabapps.core.content.TopicMastery
-import com.shahaabapps.core.content.Mastery
 
-/** Tab 4: the courses, with your progress and a one-tap "continue". */
+/** The Learn tab. */
 @Composable
 fun LearnScreen(
     onOpenCourse: (String) -> Unit,
@@ -75,151 +72,171 @@ fun LearnScreen(
     viewModel: LearnViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
-    CupertinoScaffold(title = "Learn") {
-        LazyColumn(verticalArrangement = Arrangement.spacedBy(Spacing.md), contentPadding = PaddingValues(bottom = Spacing.xl)) {
-            if (state.daily.total > 0) {
-                item {
-                    Box(modifier = Modifier.guideAnchor(GuideAnchors.LEARN_TODAY_CARD)) {
-                    TodayStudyCard(state.daily) { step ->
-                        when (step.kind) {
-                            StudyKind.TOPIC -> step.topicId?.let { onOpenTopic(step.courseId, it) }
-                            StudyKind.WORDS -> onOpenDeck(step.courseId)
-                            StudyKind.QUESTIONS -> onOpenQuiz(step.courseId, Courses.DAILY_MODULE_ID)
-                        }
-                    }
-                    }
+    LearnContent(state, onOpenCourse, onOpenTopic, onOpenDeck, onOpenQuiz)
+}
+
+/**
+ * Learn, as the Parallel prototype draws it: how many courses and how many
+ * are yours, two tiles for what has come back round (the daily review and
+ * the words), then each course with a bar for each of you on it and the next
+ * topic to continue with.
+ *
+ * The "today's study" card this replaces had three steps; two of them are
+ * the tiles and the third is each course's Continue.
+ */
+@Composable
+fun LearnContent(
+    state: LearnUiState,
+    onOpenCourse: (String) -> Unit,
+    onOpenTopic: (String, String) -> Unit,
+    onOpenDeck: (String) -> Unit,
+    onOpenQuiz: (String, String) -> Unit,
+) {
+    val meIsTech = state.myRole == PersonRole.TECH
+    val myColor = AppTheme.colors.track(meIsTech)
+    val partnerColor = AppTheme.colors.track(!meIsTech)
+    val mine = state.courses.count { state.myRole in state.owners[it.id].orEmpty() }
+    CupertinoScaffold(title = "Learn", eyebrow = coursesLine(state.courses.size, mine)) {
+        LazyColumn(contentPadding = PaddingValues(bottom = Spacing.xl)) {
+            item {
+                val questions = state.daily.steps.firstOrNull { it.kind == StudyKind.QUESTIONS }
+                val words = state.daily.steps.firstOrNull { it.kind == StudyKind.WORDS }
+                val due = state.dailyDue.values.sum()
+                val reviewCourse = questions?.courseId ?: state.dailyDue.maxByOrNull { it.value }?.key
+                val deckDue = state.decks.values.sumOf { it.due + it.fresh }
+                val deckCourse = words?.courseId ?: state.decks.keys.firstOrNull()
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                    modifier = Modifier.padding(start = Spacing.listHorizontal, end = Spacing.listHorizontal, top = 12.dp).guideAnchor(GuideAnchors.LEARN_TODAY_CARD),
+                ) {
+                    Tile(
+                        label = "Daily review", value = "$due",
+                        detail = if (due == 0) "nothing back round today" else "question${if (due == 1) "" else "s"} back round, about ${(due * 0.8).toInt().coerceAtLeast(1)} min",
+                        labelColor = myColor, emphasized = due > 0,
+                        onClick = reviewCourse?.takeIf { due > 0 }?.let { c -> { onOpenQuiz(c, Courses.DAILY_MODULE_ID) } },
+                        modifier = Modifier.weight(1f),
+                    )
+                    Tile(
+                        label = "Words", value = "$deckDue",
+                        detail = if (deckDue == 0) "nothing due in the deck" else "German card${if (deckDue == 1) "" else "s"} due, about ${(deckDue / 4).coerceAtLeast(1)} min",
+                        labelColor = AppTheme.colors.secondaryLabel, emphasized = false,
+                        onClick = deckCourse?.let { c -> { onOpenDeck(c) } },
+                        modifier = Modifier.weight(1f),
+                    )
                 }
             }
-            state.courses.forEach { course ->
-                val p = state.progress[course.id]
-                val next = p?.nextTopic(course)
-                item {
-                    CupertinoCard(
-                        modifier = Modifier
-                            .padding(horizontal = Spacing.listHorizontal)
-                            .then(if (course.id == state.courses.firstOrNull()?.id) Modifier.guideAnchor(GuideAnchors.LEARN_COURSES) else Modifier),
-                        onClick = { onOpenCourse(course.id) },
-                    ) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Column(modifier = Modifier.weight(1f)) {
-                                Text(course.title, style = MaterialTheme.typography.headlineMedium)
-                                Text(course.subtitle, style = MaterialTheme.typography.bodySmall, color = AppTheme.colors.secondaryLabel)
-                            }
-                            CupertinoDisclosure()
-                        }
-                        val done = p?.let { pr -> course.modules.sumOf { pr.moduleLearned(it) } } ?: 0
-                        ProgressBar(fraction = p?.courseFraction(course) ?: 0f, modifier = Modifier.padding(top = Spacing.sm))
-                        Text(
-                            "$done of ${course.topicCount} topics learned · ${p?.modulesPassed(course) ?: 0} of ${course.modules.count { it.available }} tests passed",
-                            style = MaterialTheme.typography.bodySmall, color = AppTheme.colors.secondaryLabel, modifier = Modifier.padding(top = Spacing.xs),
-                        )
-                        if (next != null) {
-                            CupertinoPrimaryButton(
-                                text = "Continue: ${next.second.title.substringBefore(":")}",
-                                onClick = { onOpenTopic(course.id, next.second.id) },
-                                modifier = Modifier.padding(top = Spacing.sm),
-                            )
-                        }
-                        // Questions due again today: the one tap that keeps a finished course alive.
-                        val due = state.dailyDue[course.id] ?: 0
-                        if (due > 0) {
-                            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = Spacing.sm).fillMaxWidth().clip(Shapes.field).background(AppTheme.colors.fill).clickable { onOpenQuiz(course.id, Courses.DAILY_MODULE_ID) }.padding(horizontal = Spacing.md, vertical = 10.dp)) {
-                                Icon(Icons.Filled.Schedule, contentDescription = null, tint = AppTheme.colors.accentText, modifier = Modifier.size(20.dp))
-                                Column(modifier = Modifier.weight(1f).padding(start = Spacing.sm)) {
-                                    Text("Daily review: $due due", style = MaterialTheme.typography.titleMedium)
-                                    Text("Questions coming back before they fade", style = MaterialTheme.typography.bodySmall, color = AppTheme.colors.secondaryLabel)
-                                }
-                                CupertinoDisclosure()
-                            }
-                        }
-                        state.decks[course.id]?.let { d ->
-                            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = Spacing.sm).fillMaxWidth().clip(Shapes.field).background(AppTheme.colors.fill).clickable { onOpenDeck(course.id) }.padding(horizontal = Spacing.md, vertical = 10.dp)) {
-                                Icon(Icons.Filled.Style, contentDescription = null, tint = AppTheme.colors.accentText, modifier = Modifier.size(20.dp))
-                                Column(modifier = Modifier.weight(1f).padding(start = Spacing.sm)) {
-                                    Text("Words: ${d.due} due · ${d.fresh} new", style = MaterialTheme.typography.titleMedium)
-                                    Text(if (d.size == 0 && d.fresh == 0) "Read a Words topic to start the deck" else "${d.size} in the deck · a few minutes a day", style = MaterialTheme.typography.bodySmall, color = AppTheme.colors.secondaryLabel)
-                                }
-                                CupertinoDisclosure()
-                            }
-                        }
-                        val partner = state.partnerProgress[course.id]
-                        if (partner != null && partner.learnedTopicIds.isNotEmpty()) {
-                            Text(
-                                "${state.partnerName}: ${course.modules.sumOf { partner.moduleLearned(it) }} topics, ${partner.modulesPassed(course)} tests passed",
-                                style = MaterialTheme.typography.bodySmall, color = AppTheme.colors.secondaryLabel, modifier = Modifier.padding(top = Spacing.sm),
-                            )
-                        }
-                    }
+            item {
+                HorizontalDivider(color = AppTheme.colors.ink, thickness = Spacing.rule, modifier = Modifier.padding(start = Spacing.listHorizontal, end = Spacing.listHorizontal, top = 24.dp))
+            }
+            state.courses.forEachIndexed { i, course ->
+                item(key = course.id) {
+                    val owners = state.owners[course.id].orEmpty()
+                    val forMe = state.myRole in owners
+                    val forPartner = owners.any { it != state.myRole }
+                    val p = state.progress[course.id]
+                    val partner = state.partnerProgress[course.id]
+                    val next = p?.nextTopic(course)
+                    CourseRow(
+                        course = course,
+                        who = when {
+                            forMe && forPartner -> "Both"
+                            forMe -> "You"
+                            forPartner -> state.partnerName
+                            else -> ""
+                        },
+                        bars = buildList {
+                            if (forMe || !forPartner) add(Triple("You", p, myColor))
+                            if (forPartner) add(Triple(state.partnerName, partner, partnerColor))
+                        },
+                        next = when {
+                            forMe && next != null -> "Continue: ${next.second.title.substringBefore(":")}"
+                            forMe -> "Every topic read · see the course"
+                            else -> "See ${state.partnerName}'s progress"
+                        },
+                        nextColor = if (forMe) myColor else partnerColor,
+                        onOpen = { onOpenCourse(course.id) },
+                        onNext = { if (forMe && next != null) onOpenTopic(course.id, next.second.id) else onOpenCourse(course.id) },
+                        modifier = if (i == 0) Modifier.guideAnchor(GuideAnchors.LEARN_COURSES) else Modifier,
+                    )
                 }
             }
         }
     }
 }
 
-/**
- * Today's study, across every course: read one topic, clear the words that are
- * due, answer the questions that have come back round. Three rows that can all
- * be ticked, so the day has an end rather than only a middle.
- */
-@Composable
-private fun TodayStudyCard(daily: DailyStudy, onStep: (StudyStep) -> Unit) {
-    CupertinoCard(modifier = Modifier.padding(horizontal = Spacing.listHorizontal)) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Column(modifier = Modifier.weight(1f)) {
-                Text(if (daily.closed) "Done for today" else "Today's study", style = MaterialTheme.typography.headlineMedium)
-                Text(
-                    if (daily.closed) {
-                        "Everything due is cleared. The rest comes back when it is meant to."
-                    } else {
-                        "${daily.doneCount} of ${daily.total} done · about ${daily.minutesLeft} min left"
-                    },
-                    style = MaterialTheme.typography.bodySmall, color = AppTheme.colors.secondaryLabel,
-                )
-            }
-            if (daily.closed) {
-                Icon(Icons.Filled.CheckCircle, contentDescription = null, tint = AppTheme.colors.success, modifier = Modifier.size(28.dp))
-            }
-        }
-        ProgressBar(
-            fraction = daily.fraction,
-            color = if (daily.closed) AppTheme.colors.success else AppTheme.colors.accent,
-            modifier = Modifier.padding(top = Spacing.sm),
-        )
-        daily.steps.forEach { step ->
-            val icon = when (step.kind) {
-                StudyKind.TOPIC -> Icons.Filled.MenuBook
-                StudyKind.WORDS -> Icons.Filled.Style
-                StudyKind.QUESTIONS -> Icons.Filled.Schedule
-            }
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.padding(top = Spacing.sm).fillMaxWidth().clip(Shapes.field)
-                    .background(AppTheme.colors.fill)
-                    .clickable(enabled = !step.done) { onStep(step) }
-                    .padding(horizontal = Spacing.md, vertical = 10.dp),
-            ) {
-                Icon(
-                    if (step.done) Icons.Filled.CheckCircle else icon,
-                    contentDescription = null,
-                    tint = if (step.done) AppTheme.colors.success else AppTheme.colors.accent,
-                    modifier = Modifier.size(20.dp),
-                )
-                Column(modifier = Modifier.weight(1f).padding(start = Spacing.sm)) {
-                    Text(step.title, style = MaterialTheme.typography.titleMedium, color = if (step.done) AppTheme.colors.secondaryLabel else Color.Unspecified)
-                    Text(step.detail, style = MaterialTheme.typography.bodySmall, color = AppTheme.colors.secondaryLabel)
-                }
-                if (!step.done) CupertinoDisclosure()
-            }
-        }
-        daily.next?.let { next ->
-            CupertinoPrimaryButton(
-                text = "Start: ${next.title.substringBefore(":")}",
-                onClick = { onStep(next) },
-                modifier = Modifier.padding(top = Spacing.md),
-            )
-        }
+/** "THREE COURSES · TWO OF THEM YOURS" */
+internal fun coursesLine(total: Int, mine: Int): String {
+    fun word(n: Int) = when (n) { 0 -> "none"; 1 -> "one"; 2 -> "two"; 3 -> "three"; 4 -> "four"; else -> n.toString() }
+    val head = "${word(total)} course${if (total == 1) "" else "s"}"
+    return when {
+        mine == total -> "$head · all of them yours"
+        mine == 0 -> "$head · none of them yours yet"
+        else -> "$head · ${word(mine)} of them yours"
     }
 }
+
+@Composable
+private fun Tile(label: String, value: String, detail: String, labelColor: Color, emphasized: Boolean, onClick: (() -> Unit)?, modifier: Modifier) {
+    val shape = RoundedCornerShape(16.dp)
+    Column(
+        verticalArrangement = Arrangement.spacedBy(6.dp),
+        modifier = modifier
+            .heightIn(min = 104.dp)
+            .clip(shape)
+            .border(Spacing.rule, if (emphasized) AppTheme.colors.ink else AppTheme.colors.separator, shape)
+            .then(if (onClick != null) Modifier.clickable(role = Role.Button, onClick = onClick) else Modifier)
+            .padding(14.dp),
+    ) {
+        Text(label.uppercase(), style = MaterialTheme.typography.labelMedium.copy(fontSize = 10.sp), color = labelColor)
+        Text(value, style = MaterialTheme.typography.headlineMedium.copy(fontSize = 26.sp))
+        Text(detail, style = MaterialTheme.typography.bodySmall.copy(fontSize = 12.sp, lineHeight = 16.sp), color = AppTheme.colors.secondaryLabel)
+    }
+}
+
+@Composable
+private fun CourseRow(
+    course: Course,
+    who: String,
+    bars: List<Triple<String, CourseProgress?, Color>>,
+    next: String,
+    nextColor: Color,
+    onOpen: () -> Unit,
+    onNext: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Column(modifier = modifier.padding(horizontal = Spacing.listHorizontal)) {
+        Column(
+            verticalArrangement = Arrangement.spacedBy(10.dp),
+            modifier = Modifier.fillMaxWidth().clickable(onClick = onOpen).padding(vertical = 18.dp),
+        ) {
+            Row(verticalAlignment = Alignment.Top) {
+                Text(course.title, style = MaterialTheme.typography.titleLarge, modifier = Modifier.weight(1f).semantics { heading() })
+                if (who.isNotBlank()) Text(who.uppercase(), style = MaterialTheme.typography.labelMedium, color = AppTheme.colors.secondaryLabel, modifier = Modifier.padding(start = 12.dp, top = 4.dp))
+            }
+            Text(course.subtitle, style = MaterialTheme.typography.bodySmall, color = AppTheme.colors.secondaryLabel)
+            bars.forEach { (name, p, color) ->
+                val done = p?.let { pr -> course.modules.sumOf { pr.moduleLearned(it) } } ?: 0
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                    Text(name, style = MaterialTheme.typography.bodySmall.copy(fontSize = 12.sp), color = AppTheme.colors.secondaryLabel, modifier = Modifier.width(52.dp), maxLines = 1)
+                    Box(Modifier.weight(1f).height(4.dp).background(AppTheme.colors.separator)) {
+                        Box(Modifier.fillMaxWidth((done.toFloat() / course.topicCount.coerceAtLeast(1)).coerceIn(0.02f, 1f)).height(4.dp).background(color))
+                    }
+                    Text("$done / ${course.topicCount}", style = MaterialTheme.typography.bodySmall.copy(fontFamily = MonoFamily, fontSize = 11.sp), color = AppTheme.colors.secondaryLabel, modifier = Modifier.width(60.dp))
+                }
+            }
+            Row(
+                verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp),
+                modifier = Modifier.clip(CircleShape).clickable(role = Role.Button, onClick = onNext).heightIn(min = 32.dp),
+            ) {
+                Text(next, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold, color = nextColor)
+                Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = null, tint = nextColor, modifier = Modifier.size(14.dp))
+            }
+        }
+        HorizontalDivider(color = AppTheme.colors.separator, thickness = Spacing.hairline)
+    }
+}
+
+// ------------------------------------------------------------------ course
 
 /** A course: its modules in exam order, each with topics learned and the test result. */
 @Composable
@@ -231,200 +248,235 @@ fun CourseScreen(
     viewModel: LearnViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
-    val course = Courses.byId(courseId)
-    val p = state.progress[courseId]
-    val today = remember { LocalDate.now() }
-    val mastery = remember(course, p, today) { if (course == null || p == null) emptyMap() else course.mastery(p, today) }
-    val revisits = remember(course, p, today) { if (course == null || p == null) emptyList() else course.revisits(p, today) }
-    DetailScaffold(title = course?.title ?: "Course", onBack = onBack) {
-        if (course == null) return@DetailScaffold
-        LazyColumn(verticalArrangement = Arrangement.spacedBy(Spacing.md), contentPadding = PaddingValues(bottom = Spacing.xl)) {
-            item {
-                Column(modifier = Modifier.padding(horizontal = Spacing.listHorizontal)) {
-                    Text(course.subtitle, style = MaterialTheme.typography.bodyMedium, color = AppTheme.colors.secondaryLabel)
-                    ProgressBar(fraction = p?.courseFraction(course) ?: 0f, modifier = Modifier.padding(top = Spacing.sm))
-                }
-            }
-            if (revisits.isNotEmpty()) {
-                item { RevisitSection(course, revisits, onOpenTopic) }
-            }
-            course.modules.forEach { m ->
-                item { ModuleSection(course, m, p, mastery, onOpenTopic, onOpenQuiz) }
-            }
-            item { ExamPracticeSection(course, p, state.dailyDue[courseId] ?: 0, onOpenQuiz) }
-        }
-    }
+    CourseContent(courseId, state, LocalDate.now(), onBack, onOpenTopic, onOpenQuiz)
 }
 
 /**
- * Topics worth going back to, rather than a course you walk once.
- *
- * Everything here is derived: a topic appears because one of its own questions
- * is due again or was missed and never put right, not because anything decided
- * to nag. Missed first, then the reading left longest.
+ * A course, as the Parallel prototype draws it: what it leads to and how far
+ * each of you has got, the one topic most worth going back to, then the
+ * modules as numbered rows with a pip per topic for each of you. The module
+ * you are in opens to its topics and its test; any other opens on a tap. The
+ * paper practice is last, outlined.
  */
 @Composable
-private fun RevisitSection(course: Course, revisits: List<TopicMastery>, onOpenTopic: (String, String) -> Unit) {
-    Column {
-        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(start = Spacing.listHorizontal + Spacing.sectionStart, end = Spacing.listHorizontal + Spacing.sectionStart, bottom = 6.dp)) {
-            Text("WORTH GOING BACK TO", style = MaterialTheme.typography.labelMedium, color = AppTheme.colors.secondaryLabel, modifier = Modifier.weight(1f))
-        }
-        CupertinoListSection(footer = "These came back round on their own schedule. Rereading one before it is missed is cheaper than after.") {
-            revisits.forEachIndexed { i, r ->
-                val t = Courses.topic(course.id, r.topicId)?.second
-                CupertinoListRow(
-                    title = t?.title?.substringBefore(":") ?: r.topicId,
-                    subtitle = buildList {
-                        if (r.missed > 0) add("${r.missed} missed")
-                        if (r.due > 0) add("${r.due} due again")
-                        r.readOn?.let { add("read $it") }
-                    }.joinToString(" · "),
-                    leadingIcon = Icons.Filled.Refresh,
-                    iconColor = if (r.missed > 0) AppTheme.colors.warn else AppTheme.colors.accent,
-                    showDivider = i < revisits.size - 1,
-                    onClick = { onOpenTopic(course.id, r.topicId) },
-                    trailing = { CupertinoDisclosure() },
-                )
-            }
-        }
-    }
-}
-
-/** The mock exam, the daily review and the review set, after the modules. */
-@Composable
-private fun ExamPracticeSection(course: Course, p: CourseProgress?, dailyDue: Int, onOpenQuiz: (String, String) -> Unit) {
-    val mock = course.mockExam
-    val review = p?.reviewQuestions(course).orEmpty()
-    val held = p?.questionsHeld ?: 0
-    val passedAll = p != null && p.modulesPassed(course) == course.modules.count { it.available }
-    Column {
-        Text("EXAM PRACTICE", style = MaterialTheme.typography.labelMedium, color = AppTheme.colors.secondaryLabel, modifier = Modifier.padding(start = Spacing.listHorizontal + Spacing.sectionStart, bottom = 6.dp))
-        CupertinoListSection(footer = "Questions you miss anywhere collect in the review set until you answer them correctly. Ones you get right come back on a widening schedule until they stick.") {
-            if (mock != null) {
-                CupertinoListRow(
-                    title = mock.title,
-                    subtitle = when {
-                        p?.mockPassed == true -> "Passed, best ${p.mockBest}%"
-                        p?.mockBest != null -> "Best ${p.mockBest}%, need ${mock.passPercent}%"
-                        !passedAll -> "${mock.drawCount ?: mock.questions.size} questions, ${mock.timeLimitMinutes} min. Pass the module tests first for a fair reading"
-                        else -> "${mock.drawCount ?: mock.questions.size} questions drawn from ${mock.questions.size}, ${mock.timeLimitMinutes} min, pass at ${mock.passPercent}%"
-                    },
-                    leadingIcon = Icons.Filled.Quiz, iconColor = if (p?.mockPassed == true) AppTheme.colors.success else AppTheme.colors.accent,
-                    showDivider = true,
-                    onClick = { onOpenQuiz(course.id, Courses.MOCK_MODULE_ID) },
-                    trailing = { if (p?.mockPassed == true) StatusChip("Passed", AppTheme.colors.success) else CupertinoDisclosure() },
-                )
-            }
-            CupertinoListRow(
-                title = "Daily review",
-                subtitle = when {
-                    dailyDue > 0 -> "$dailyDue due · about ${(dailyDue * 1.5).toInt().coerceAtLeast(2)} min"
-                    held > 0 -> "Nothing due today · $held held"
-                    else -> "Sit a test or read a topic and questions start coming back here"
-                },
-                leadingIcon = Icons.Filled.Schedule, iconColor = if (dailyDue > 0) AppTheme.colors.accent else AppTheme.colors.secondaryLabel,
-                showDivider = true,
-                onClick = if (dailyDue == 0) null else ({ onOpenQuiz(course.id, Courses.DAILY_MODULE_ID) }),
-                trailing = { if (dailyDue > 0) CupertinoDisclosure() },
-            )
-            CupertinoListRow(
-                title = "Review missed questions",
-                subtitle = if (review.isEmpty()) "Nothing waiting" else "${review.size} to get right · about ${(review.size * 1.5).toInt().coerceAtLeast(2)} min",
-                leadingIcon = Icons.Filled.Replay, iconColor = if (review.isEmpty()) AppTheme.colors.secondaryLabel else AppTheme.colors.warn,
-                showDivider = false,
-                onClick = if (review.isEmpty()) null else ({ onOpenQuiz(course.id, Courses.REVIEW_MODULE_ID) }),
-                trailing = { if (review.isNotEmpty()) CupertinoDisclosure() },
-            )
-        }
-    }
-}
-
-/**
- * Where a topic has got to, in 22dp. Held is a filled tick; practised and read
- * are the same ring filling up, so the difference between "I pressed the
- * button" and "I can answer its questions" is visible at a glance.
- */
-@Composable
-private fun MasteryPip(mt: TopicMastery?) {
-    val level = mt?.level ?: Mastery.UNREAD
-    val tone = when {
-        mt?.needsRevisit == true -> AppTheme.colors.warn
-        level == Mastery.HELD -> AppTheme.colors.success
-        level == Mastery.UNREAD -> AppTheme.colors.fill
-        else -> AppTheme.colors.accent
-    }
-    if (level == Mastery.HELD && mt?.needsRevisit != true) {
-        Icon(Icons.Filled.CheckCircle, contentDescription = mt?.label ?: "Held", tint = tone, modifier = Modifier.size(22.dp))
-        return
-    }
-    Box(modifier = Modifier.size(22.dp), contentAlignment = Alignment.Center) {
-        Box(modifier = Modifier.size(22.dp).clip(CircleShape).background(AppTheme.colors.fill))
-        if (level != Mastery.UNREAD) {
-            CircularProgressIndicator(
-                progress = { mt?.fraction ?: 0f },
-                modifier = Modifier.size(22.dp),
-                color = tone,
-                trackColor = Color.Transparent,
-                strokeWidth = 3.dp,
-                strokeCap = StrokeCap.Round,
-            )
-        }
-    }
-}
-
-@Composable
-private fun ModuleSection(
-    course: Course,
-    m: Module,
-    p: CourseProgress?,
-    mastery: Map<String, TopicMastery>,
+fun CourseContent(
+    courseId: String,
+    state: LearnUiState,
+    today: LocalDate,
+    onBack: () -> Unit,
     onOpenTopic: (String, String) -> Unit,
     onOpenQuiz: (String, String) -> Unit,
 ) {
-    val learned = p?.moduleLearned(m) ?: 0
-    val passed = p?.passedModuleIds?.contains(m.id) == true
-    val best = p?.bestPercentByModule?.get(m.id)
-    Column {
-        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(start = Spacing.listHorizontal + Spacing.sectionStart, end = Spacing.listHorizontal + Spacing.sectionStart, bottom = 6.dp)) {
-            Text("MODULE ${m.number} · ${m.title.uppercase()}", style = MaterialTheme.typography.labelMedium, color = AppTheme.colors.secondaryLabel, modifier = Modifier.weight(1f))
-            Text(m.examWeight, style = MaterialTheme.typography.labelSmall, color = AppTheme.colors.secondaryLabel)
-        }
-        CupertinoListSection(footer = if (m.available) null else "${m.summary} Coming in the next update.") {
-            if (!m.available) {
-                CupertinoListRow(m.summary, leadingIcon = Icons.Filled.Lock, iconColor = AppTheme.colors.secondaryLabel, showDivider = false)
+    val course = Courses.byId(courseId)
+    val p = state.progress[courseId]
+    val partner = state.partnerProgress[courseId]
+    val owners = state.owners[courseId].orEmpty()
+    val meIsTech = state.myRole == PersonRole.TECH
+    val myColor = AppTheme.colors.track(meIsTech)
+    val partnerColor = AppTheme.colors.track(!meIsTech)
+    val showPartner = owners.any { it != state.myRole }
+    val showMe = state.myRole in owners || !showPartner
+    val mastery = remember(course, p, today) { if (course == null || p == null) emptyMap() else course.mastery(p, today) }
+    val revisits = remember(course, p, today) { if (course == null || p == null) emptyList() else course.revisits(p, today) }
+    val nextTopic = course?.let { p?.nextTopic(it) }
+    var open by rememberSaveable(courseId) { mutableStateOf(nextTopic?.first?.id ?: course?.modules?.firstOrNull()?.id) }
+
+    DetailScaffold(
+        title = course?.title ?: "Course",
+        onBack = onBack,
+        eyebrow = course?.let { "${it.subtitle.substringBefore(".")} · ${it.modules.size} modules" },
+    ) {
+        if (course == null) return@DetailScaffold
+        LazyColumn(contentPadding = PaddingValues(bottom = Spacing.xl)) {
+            item {
+                Row(horizontalArrangement = Arrangement.spacedBy(20.dp), modifier = Modifier.padding(start = Spacing.listHorizontal, end = Spacing.listHorizontal, bottom = 18.dp)) {
+                    if (showMe) Who("You", p, course, myColor)
+                    if (showPartner) Who(state.partnerName, partner, course, partnerColor)
+                }
             }
-            m.topics.forEachIndexed { i, t ->
-                // A rung, not a tick: reading a topic is one step of knowing it,
-                // and the row says which step rather than claiming it is finished.
-                val mt = mastery[t.id]
-                val base = "${t.title.substringAfter(": ", "").ifBlank { "" }}${if (t.title.contains(": ")) " · " else ""}${t.minutes} min"
-                CupertinoListRow(
-                    title = t.title.substringBefore(":"),
-                    subtitle = when {
-                        mt == null || mt.level == Mastery.UNREAD -> base
-                        mt.needsRevisit -> "${mt.label} · worth another look"
-                        else -> "${mt.label} · ${t.minutes} min"
+            revisits.firstOrNull()?.let { r ->
+                item {
+                    val t = Courses.topic(course.id, r.topicId)?.second
+                    Column(modifier = Modifier.padding(horizontal = Spacing.listHorizontal)) {
+                        HorizontalDivider(color = AppTheme.colors.ink, thickness = Spacing.rule)
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp),
+                            modifier = Modifier.fillMaxWidth().clickable { onOpenTopic(course.id, r.topicId) }.padding(vertical = 14.dp),
+                        ) {
+                            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                                Text("WORTH GOING BACK TO", style = MaterialTheme.typography.labelMedium.copy(fontSize = 10.sp), color = myColor)
+                                Text(
+                                    (t?.title?.substringBefore(":") ?: r.topicId) + buildList {
+                                        if (r.missed > 0) add("${r.missed} missed")
+                                        if (r.due > 0) add("${r.due} due again")
+                                    }.joinToString(" · ", prefix = " · ").takeIf { r.missed > 0 || r.due > 0 }.orEmpty(),
+                                    style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold,
+                                )
+                                if (revisits.size > 1) Text("and ${revisits.size - 1} more", style = MaterialTheme.typography.bodySmall, color = AppTheme.colors.secondaryLabel)
+                            }
+                            Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null, tint = AppTheme.colors.ink, modifier = Modifier.size(18.dp))
+                        }
+                        HorizontalDivider(color = AppTheme.colors.separator, thickness = Spacing.hairline)
+                    }
+                }
+            }
+            course.modules.forEach { m ->
+                item(key = m.id) {
+                    ModuleRow(
+                        course = course, m = m, p = p, partner = partner.takeIf { showPartner },
+                        mastery = mastery, isOpen = open == m.id, nextTopicId = nextTopic?.second?.id,
+                        myColor = myColor, partnerColor = partnerColor,
+                        onToggle = { open = if (open == m.id) null else m.id },
+                        onOpenTopic = onOpenTopic, onOpenQuiz = onOpenQuiz,
+                    )
+                }
+            }
+            item { PaperPractice(course, p, state.dailyDue[courseId] ?: 0, onOpenQuiz) }
+        }
+    }
+}
+
+@Composable
+private fun Who(name: String, p: CourseProgress?, course: Course, color: Color) {
+    val done = p?.let { pr -> course.modules.sumOf { pr.moduleLearned(it) } } ?: 0
+    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+        Box(Modifier.size(8.dp).clip(CircleShape).background(color))
+        Text("$name $done / ${course.topicCount}", style = MaterialTheme.typography.bodySmall, color = AppTheme.colors.secondaryLabel)
+    }
+}
+
+/** A module: its number, its title, a pip per topic for each of you, and when open, its topics and test. */
+@Composable
+private fun ModuleRow(
+    course: Course,
+    m: Module,
+    p: CourseProgress?,
+    partner: CourseProgress?,
+    mastery: Map<String, TopicMastery>,
+    isOpen: Boolean,
+    nextTopicId: String?,
+    myColor: Color,
+    partnerColor: Color,
+    onToggle: () -> Unit,
+    onOpenTopic: (String, String) -> Unit,
+    onOpenQuiz: (String, String) -> Unit,
+) {
+    val mine = p?.moduleLearned(m) ?: 0
+    val theirs = partner?.moduleLearned(m) ?: 0
+    Column(modifier = Modifier.padding(horizontal = Spacing.listHorizontal)) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp),
+            modifier = Modifier.fillMaxWidth().clickable(onClickLabel = if (isOpen) "Close the module" else "Open the module", onClick = onToggle).padding(vertical = 14.dp),
+        ) {
+            Text("%02d".format(m.number), style = MaterialTheme.typography.bodyMedium.copy(fontFamily = MonoFamily, fontSize = 13.sp), color = AppTheme.colors.secondaryLabel, modifier = Modifier.width(28.dp))
+            Text(m.title, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.SemiBold, color = if (m.available) AppTheme.colors.ink else AppTheme.colors.secondaryLabel, modifier = Modifier.weight(1f))
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(4.dp),
+                modifier = Modifier.semantics { contentDescription = "You $mine of ${m.topics.size}" + if (partner != null) ", partner $theirs of ${m.topics.size}" else "" },
+            ) {
+                repeat(m.topics.size.coerceAtMost(6)) { k ->
+                    val c = when {
+                        k < mine -> myColor
+                        partner != null && k < theirs -> partnerColor
+                        else -> AppTheme.colors.separator
+                    }
+                    Box(Modifier.size(8.dp).clip(RoundedCornerShape(2.dp)).background(c))
+                }
+            }
+        }
+        if (isOpen) {
+            Column(modifier = Modifier.padding(start = 40.dp, bottom = 6.dp)) {
+                if (!m.available) {
+                    Text("${m.summary} Coming in the next update.", style = MaterialTheme.typography.bodySmall, color = AppTheme.colors.secondaryLabel, modifier = Modifier.padding(bottom = 10.dp))
+                }
+                m.topics.forEach { t ->
+                    val mt = mastery[t.id]
+                    val isNext = t.id == nextTopicId
+                    val (status, statusColor) = when {
+                        mt?.needsRevisit == true -> "LOOK AGAIN" to AppTheme.colors.warn
+                        isNext -> "NEXT · ${t.minutes} MIN" to myColor
+                        mt != null && mt.level == Mastery.HELD -> "HELD" to AppTheme.colors.success
+                        mt != null && mt.level != Mastery.UNREAD -> "READ" to AppTheme.colors.success
+                        else -> "${t.minutes} MIN" to AppTheme.colors.secondaryLabel
+                    }
+                    TopicLine(
+                        title = t.title.substringBefore(":").let { kind -> t.title.substringAfter(": ", "").takeIf { it.isNotBlank() }?.let { "$kind · $it" } ?: kind },
+                        status = status, statusColor = statusColor, titleColor = if (isNext) myColor else AppTheme.colors.ink, bold = isNext,
+                        onClick = { onOpenTopic(course.id, t.id) },
+                    )
+                }
+                m.quiz?.let { q ->
+                    val passed = p?.passedModuleIds?.contains(m.id) == true
+                    val best = p?.bestPercentByModule?.get(m.id)
+                    TopicLine(
+                        title = q.title,
+                        status = when {
+                            passed -> "PASSED · $best%"
+                            best != null -> "BEST $best% · NEED ${q.passPercent}%"
+                            mine < m.topics.size -> "AFTER THE TOPICS"
+                            else -> "${q.questions.size} QUESTIONS"
+                        },
+                        statusColor = if (passed) AppTheme.colors.success else AppTheme.colors.secondaryLabel,
+                        titleColor = AppTheme.colors.ink, bold = false,
+                        onClick = { onOpenQuiz(course.id, m.id) },
+                    )
+                }
+            }
+        }
+        HorizontalDivider(color = AppTheme.colors.separator, thickness = Spacing.hairline)
+    }
+}
+
+@Composable
+private fun TopicLine(title: String, status: String, statusColor: Color, titleColor: Color, bold: Boolean, onClick: () -> Unit) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp),
+        modifier = Modifier.fillMaxWidth().heightIn(min = 44.dp).clickable(onClick = onClick),
+    ) {
+        Text(title, style = MaterialTheme.typography.bodyMedium, fontWeight = if (bold) FontWeight.SemiBold else FontWeight.Normal, color = titleColor, modifier = Modifier.weight(1f))
+        Text(status, style = MaterialTheme.typography.labelMedium.copy(fontSize = 11.sp, letterSpacing = 0.4.sp), color = statusColor, maxLines = 1)
+    }
+}
+
+/** The mock exam, outlined, and under it the review sets when anything is waiting in them. */
+@Composable
+private fun PaperPractice(course: Course, p: CourseProgress?, dailyDue: Int, onOpenQuiz: (String, String) -> Unit) {
+    val mock = course.mockExam
+    val review = p?.reviewQuestions(course).orEmpty()
+    val passedAll = p != null && p.modulesPassed(course) == course.modules.count { it.available }
+    Column(modifier = Modifier.padding(start = Spacing.listHorizontal, end = Spacing.listHorizontal, top = 16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        if (mock != null) {
+            val shape = RoundedCornerShape(16.dp)
+            Column(
+                verticalArrangement = Arrangement.spacedBy(4.dp),
+                modifier = Modifier.fillMaxWidth().clip(shape).border(Spacing.rule, AppTheme.colors.ink, shape)
+                    .clickable { onOpenQuiz(course.id, Courses.MOCK_MODULE_ID) }.padding(16.dp),
+            ) {
+                Text("PAPER PRACTICE", style = MaterialTheme.typography.labelMedium.copy(fontSize = 10.sp), color = AppTheme.colors.secondaryLabel)
+                Text(mock.title, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.SemiBold)
+                Text(
+                    when {
+                        p?.mockPassed == true -> "Passed, best ${p.mockBest}%."
+                        p?.mockBest != null -> "Best ${p.mockBest}%, need ${mock.passPercent}%."
+                        !passedAll -> "${mock.drawCount ?: mock.questions.size} questions, ${mock.timeLimitMinutes} minutes. Pass the module tests first for a fair reading."
+                        else -> "${mock.drawCount ?: mock.questions.size} questions, ${mock.timeLimitMinutes} minutes, pass at ${mock.passPercent}%."
                     },
-                    showDivider = true,
-                    onClick = { onOpenTopic(course.id, t.id) },
-                    trailing = { MasteryPip(mt) },
+                    style = MaterialTheme.typography.bodySmall, color = AppTheme.colors.secondaryLabel,
                 )
             }
-            if (m.quiz != null) {
-                CupertinoListRow(
-                    title = m.quiz!!.title,
-                    subtitle = when {
-                        passed -> "Passed, best $best%"
-                        best != null -> "Best $best%, need ${m.quiz!!.passPercent}%"
-                        learned < m.topics.size -> "Read the topics first (${learned} of ${m.topics.size})"
-                        else -> "${m.quiz!!.questions.size} questions, pass at ${m.quiz!!.passPercent}%"
-                    },
-                    leadingIcon = Icons.Filled.Quiz, iconColor = if (passed) AppTheme.colors.success else AppTheme.colors.accent,
-                    showDivider = false,
-                    onClick = { onOpenQuiz(course.id, m.id) },
-                    trailing = { if (passed) StatusChip("Passed", AppTheme.colors.success) else CupertinoDisclosure() },
-                )
-            }
         }
+        if (dailyDue > 0) PracticeLink("Daily review · $dailyDue due") { onOpenQuiz(course.id, Courses.DAILY_MODULE_ID) }
+        if (review.isNotEmpty()) PracticeLink("Review ${review.size} missed question${if (review.size == 1) "" else "s"}") { onOpenQuiz(course.id, Courses.REVIEW_MODULE_ID) }
+    }
+}
+
+@Composable
+private fun PracticeLink(text: String, onClick: () -> Unit) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp),
+        modifier = Modifier.clip(CircleShape).clickable(role = Role.Button, onClick = onClick).heightIn(min = 44.dp),
+    ) {
+        Text(text, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold, color = AppTheme.colors.accentText)
+        Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = null, tint = AppTheme.colors.accentText, modifier = Modifier.size(14.dp))
     }
 }

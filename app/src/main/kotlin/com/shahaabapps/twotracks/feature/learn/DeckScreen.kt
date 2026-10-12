@@ -1,5 +1,23 @@
 package com.shahaabapps.twotracks.feature.learn
 
+import com.shahaabapps.core.ui.theme.MonoFamily
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.graphics.Color
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Icon
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.Icons
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.border
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
@@ -14,11 +32,8 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -37,8 +52,6 @@ import com.shahaabapps.core.ui.components.CupertinoPrimaryButton
 import com.shahaabapps.core.ui.components.CupertinoSecondaryButton
 import com.shahaabapps.core.ui.theme.AppTheme
 import com.shahaabapps.core.ui.theme.Spacing
-import com.shahaabapps.twotracks.ui.components.DetailScaffold
-import com.shahaabapps.twotracks.ui.components.ProgressBar
 import com.shahaabapps.twotracks.ui.components.StatTile
 
 /**
@@ -51,57 +64,102 @@ fun DeckScreen(onBack: () -> Unit, viewModel: DeckViewModel = hiltViewModel()) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val speaker = viewModel.speaker
     LaunchedEffect(state.course?.speechLanguage) { state.course?.speechLanguage?.let { speaker.setLanguage(it) } }
-    DetailScaffold(title = "Words", onBack = onBack, backLabel = "Exit") {
-        val course = state.course ?: return@DetailScaffold
-        Column(modifier = Modifier.verticalScroll(rememberScrollState()).padding(horizontal = Spacing.listHorizontal).padding(bottom = Spacing.xl), verticalArrangement = Arrangement.spacedBy(Spacing.md)) {
+    DeckContent(
+        state = state, speaker = speaker.takeIf { state.canSpeak }, onBack = onBack,
+        onFlip = viewModel::flip, onAnswer = viewModel::answer, onPractiseAnyway = viewModel::practiseAnyway, onAgain = viewModel::again,
+        onInstallVoice = speaker::openInstallPage,
+    )
+}
+
+/**
+ * The word deck, as the Parallel prototype draws it: a close button, the
+ * course and where you are, a thin bar, then one card outlined in ink that
+ * turns over when tapped, buttons to hear it, and Again or Got it at the
+ * foot with when each one brings the card back.
+ */
+@Composable
+fun DeckContent(
+    state: DeckUiState,
+    speaker: Speaker?,
+    onBack: () -> Unit,
+    onFlip: () -> Unit,
+    onAnswer: (Boolean) -> Unit,
+    onPractiseAnyway: () -> Unit,
+    onAgain: () -> Unit,
+    onInstallVoice: () -> Unit,
+) {
+    val course = state.course
+    Scaffold(containerColor = AppTheme.colors.groupedBackground) { inner ->
+        Column(modifier = Modifier.fillMaxSize().padding(inner)) {
+            val count = if (state.session.isEmpty() || state.finished) "" else "${(state.index + 1).coerceAtMost(state.session.size)} / ${state.session.size}"
+            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth().padding(start = Spacing.listHorizontal, end = Spacing.listHorizontal, top = 6.dp)) {
+                Box(
+                    contentAlignment = Alignment.Center,
+                    modifier = Modifier.offset(x = (-10).dp).size(44.dp).clip(CircleShape).clickable(role = Role.Button, onClickLabel = "Close the deck", onClick = onBack),
+                ) { Icon(Icons.Filled.Close, contentDescription = "Close the deck", tint = AppTheme.colors.ink) }
+                Text(((course?.title ?: "") + " · words").uppercase(), style = MaterialTheme.typography.labelMedium, color = AppTheme.colors.secondaryLabel, textAlign = TextAlign.Center, modifier = Modifier.weight(1f))
+                Text(count, style = MaterialTheme.typography.bodyMedium.copy(fontFamily = MonoFamily, fontSize = 13.sp), fontWeight = FontWeight.Medium, textAlign = TextAlign.End, modifier = Modifier.width(54.dp))
+            }
+            if (course == null) return@Column
+            if (state.session.isNotEmpty() && !state.finished) {
+                Box(Modifier.padding(start = Spacing.listHorizontal, end = Spacing.listHorizontal, top = 14.dp).fillMaxWidth().height(3.dp).background(AppTheme.colors.separator)) {
+                    Box(Modifier.fillMaxWidth(((state.index + 1).toFloat() / state.session.size).coerceIn(0f, 1f)).height(3.dp).background(AppTheme.colors.accentText))
+                }
+            }
             when {
-                state.finished -> Finished(state, onBack, viewModel::again)
-                state.session.isEmpty() -> {
-                    Text("Nothing due", style = MaterialTheme.typography.displayLarge, fontWeight = FontWeight.Bold)
+                state.finished -> Finished(state, onBack, onAgain)
+                state.session.isEmpty() -> Column(modifier = Modifier.padding(horizontal = Spacing.listHorizontal, vertical = 28.dp), verticalArrangement = Arrangement.spacedBy(Spacing.md)) {
+                    Text("Nothing due", style = MaterialTheme.typography.headlineLarge, modifier = Modifier.semantics { heading() })
                     Text("Every word you have met is scheduled for later. Read a Words topic in ${course.title} to add more, or come back tomorrow.", style = MaterialTheme.typography.bodyMedium, color = AppTheme.colors.secondaryLabel)
-                    CupertinoSecondaryButton(text = "Practise 10 anyway", onClick = viewModel::practiseAnyway)
+                    CupertinoSecondaryButton(text = "Practise 10 anyway", onClick = onPractiseAnyway)
                 }
                 else -> {
                     val w = state.current ?: return@Column
-                    Text("Card ${state.index + 1} of ${state.session.size} · ${state.dueCount} due · ${state.newCount} new", style = MaterialTheme.typography.labelMedium, color = AppTheme.colors.secondaryLabel)
-                    ProgressBar(fraction = state.index.toFloat() / state.session.size)
-                    AnimatedContent(targetState = w.id, transitionSpec = { (slideInHorizontally(tween(260)) { it / 3 } + fadeIn(tween(200))) togetherWith (slideOutHorizontally(tween(200)) { -it / 3 } + fadeOut(tween(140))) }, label = "card") { _ ->
-                        Column(
-                            modifier = Modifier.fillMaxWidth().heightIn(min = 260.dp).clip(RoundedCornerShape(24.dp))
-                                .background(if (state.flipped) AppTheme.colors.accent else AppTheme.colors.card)
-                                .clickable { viewModel.flip() }.padding(Spacing.lg),
-                            horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center,
-                        ) {
-                            if (!state.flipped) {
-                                Text(w.display, style = MaterialTheme.typography.displayLarge, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center)
-                                w.plural?.let { Text("pl. $it", style = MaterialTheme.typography.bodySmall, color = AppTheme.colors.secondaryLabel) }
-                                Row(modifier = Modifier.padding(top = Spacing.md), horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
-                                    SpeakButton(w.display, speaker.takeIf { state.canSpeak }, size = 44.dp)
-                                    SpeakButton(w.example, speaker.takeIf { state.canSpeak }, size = 44.dp, slow = true)
+                    Column(modifier = Modifier.weight(1f).padding(Spacing.listHorizontal), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                        AnimatedContent(
+                            targetState = w.id,
+                            transitionSpec = { (slideInHorizontally(tween(260)) { it / 3 } + fadeIn(tween(200))) togetherWith (slideOutHorizontally(tween(200)) { -it / 3 } + fadeOut(tween(140))) },
+                            label = "card", modifier = Modifier.weight(1f),
+                        ) { _ ->
+                            val shape = RoundedCornerShape(22.dp)
+                            Column(
+                                modifier = Modifier.fillMaxSize().clip(shape).border(Spacing.rule, AppTheme.colors.ink, shape)
+                                    .clickable(onClickLabel = if (state.flipped) "Show the German side" else "Show the meaning", onClick = onFlip).padding(24.dp),
+                                verticalArrangement = Arrangement.SpaceBetween,
+                            ) {
+                                Text(if (state.flipped) "BACK" else "FRONT", style = MaterialTheme.typography.labelMedium, color = AppTheme.colors.secondaryLabel)
+                                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                                    w.article?.let { Text(it, style = MaterialTheme.typography.bodyLarge.copy(fontSize = 18.sp), color = AppTheme.colors.secondaryLabel) }
+                                    Text(w.de, style = MaterialTheme.typography.displayLarge.copy(fontSize = 48.sp, lineHeight = 50.sp, letterSpacing = (-1.4).sp), fontWeight = FontWeight.Bold)
+                                    w.plural?.let { Text("pl. $it", style = MaterialTheme.typography.bodyMedium, color = AppTheme.colors.secondaryLabel) }
                                 }
-                                Text("Tap to flip", style = MaterialTheme.typography.labelSmall, color = AppTheme.colors.secondaryLabel, modifier = Modifier.padding(top = Spacing.md))
-                            } else {
-                                Text(w.en, style = MaterialTheme.typography.displayLarge, fontWeight = FontWeight.Bold, color = AppTheme.colors.onSolid, textAlign = TextAlign.Center)
-                                Text(w.example, style = MaterialTheme.typography.bodyMedium, color = AppTheme.colors.onSolid, textAlign = TextAlign.Center, modifier = Modifier.padding(top = Spacing.md), lineHeight = 22.sp)
-                                Text(w.exampleEn, style = MaterialTheme.typography.bodySmall, color = AppTheme.colors.onSolid.copy(alpha = 0.85f), textAlign = TextAlign.Center)
+                                if (state.flipped) {
+                                    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                                        HorizontalDivider(color = AppTheme.colors.separator, thickness = Spacing.hairline, modifier = Modifier.padding(bottom = 8.dp))
+                                        Text(w.en, style = MaterialTheme.typography.headlineMedium.copy(fontSize = 26.sp), color = AppTheme.colors.accentText)
+                                        Text(w.example, style = MaterialTheme.typography.bodyLarge, lineHeight = 22.sp)
+                                        Text(w.exampleEn, style = MaterialTheme.typography.bodyMedium, color = AppTheme.colors.secondaryLabel)
+                                    }
+                                } else {
+                                    Text("Say it, then tap to check", style = MaterialTheme.typography.bodyMedium, color = AppTheme.colors.secondaryLabel)
+                                }
                             }
                         }
-                    }
-                    if (state.flipped) {
-                        Row(horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
-                            Box(modifier = Modifier.weight(1f)) { CupertinoSecondaryButton(text = "Not yet", onClick = { viewModel.answer(false) }) }
-                            Box(modifier = Modifier.weight(1f)) { CupertinoPrimaryButton(text = "I knew it", onClick = { viewModel.answer(true) }) }
+                        Row(horizontalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterHorizontally), modifier = Modifier.fillMaxWidth()) {
+                            SpeakButton(w.display, speaker, size = 52.dp)
+                            SpeakButton(w.example, speaker, size = 52.dp, slow = true)
                         }
-                        Text("Known words come back in ${state.nextIntervalDays} day${if (state.nextIntervalDays == 1L) "" else "s"}; missed ones tomorrow.", style = MaterialTheme.typography.labelSmall, color = AppTheme.colors.secondaryLabel)
-                    } else {
-                        CupertinoPrimaryButton(text = "Show the meaning", onClick = viewModel::flip)
+                        if (speaker == null) {
+                            Text(
+                                if (state.speakerState == Speaker.State.MISSING_LANGUAGE) "${course.languageName} voice not installed. Tap to open the download page." else "Text-to-speech is not available on this phone.",
+                                style = MaterialTheme.typography.bodySmall, color = AppTheme.colors.warn, textAlign = TextAlign.Center,
+                                modifier = Modifier.fillMaxWidth().clickable(enabled = state.speakerState == Speaker.State.MISSING_LANGUAGE, onClick = onInstallVoice),
+                            )
+                        }
                     }
-                    if (!state.canSpeak) {
-                        Text(
-                            if (state.speakerState == Speaker.State.MISSING_LANGUAGE) "${course.languageName} voice not installed. Tap to open the download page." else "Text-to-speech is not available on this phone.",
-                            style = MaterialTheme.typography.labelSmall, color = AppTheme.colors.warn,
-                            modifier = Modifier.clickable(enabled = state.speakerState == Speaker.State.MISSING_LANGUAGE) { speaker.openInstallPage() },
-                        )
+                    Row(horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.padding(start = Spacing.listHorizontal, end = Spacing.listHorizontal, bottom = 28.dp).navigationBarsPadding()) {
+                        AnswerButton("Again", "back tomorrow", primary = false, modifier = Modifier.weight(1f)) { onAnswer(false) }
+                        AnswerButton("Got it", "back in ${state.nextIntervalDays} day${if (state.nextIntervalDays == 1L) "" else "s"}", primary = true, modifier = Modifier.weight(1f)) { onAnswer(true) }
                     }
                 }
             }
@@ -110,14 +168,31 @@ fun DeckScreen(onBack: () -> Unit, viewModel: DeckViewModel = hiltViewModel()) {
 }
 
 @Composable
-private fun Finished(state: DeckUiState, onDone: () -> Unit, onAgain: () -> Unit) {
-    Text("Done for today", style = MaterialTheme.typography.displayLarge, fontWeight = FontWeight.Bold, color = AppTheme.colors.success)
-    Text("${state.minutes} minutes logged to Vocabulary. The words you knew moved up the ladder; the others come back tomorrow.", style = MaterialTheme.typography.bodyMedium, color = AppTheme.colors.secondaryLabel)
-    Row(horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
-        StatTile(label = "Knew", value = "${state.known}", modifier = Modifier.weight(1f), valueColor = AppTheme.colors.success)
-        StatTile(label = "Not yet", value = "${state.missed}", modifier = Modifier.weight(1f), valueColor = AppTheme.colors.warn)
-        StatTile(label = "In deck", value = "${state.deckSize}", modifier = Modifier.weight(1f))
+private fun AnswerButton(label: String, detail: String, primary: Boolean, modifier: Modifier, onClick: () -> Unit) {
+    val shape = RoundedCornerShape(14.dp)
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center,
+        modifier = modifier.height(56.dp).clip(shape)
+            .background(if (primary) AppTheme.colors.accent else Color.Transparent)
+            .then(if (primary) Modifier else Modifier.border(Spacing.rule, AppTheme.colors.separator, shape))
+            .clickable(role = Role.Button, onClick = onClick),
+    ) {
+        Text(label, style = MaterialTheme.typography.labelLarge.copy(fontSize = 16.sp), color = if (primary) AppTheme.colors.onSolid else AppTheme.colors.ink)
+        Text(detail, style = MaterialTheme.typography.bodySmall.copy(fontSize = 11.sp), color = if (primary) AppTheme.colors.onSolid.copy(alpha = 0.75f) else AppTheme.colors.secondaryLabel)
     }
-    CupertinoPrimaryButton(text = "Back", onClick = onDone)
-    CupertinoSecondaryButton(text = "Go again with the missed ones", enabled = state.missed > 0, onClick = onAgain)
+}
+
+@Composable
+private fun Finished(state: DeckUiState, onDone: () -> Unit, onAgain: () -> Unit) {
+    Column(modifier = Modifier.padding(horizontal = Spacing.listHorizontal, vertical = 28.dp), verticalArrangement = Arrangement.spacedBy(Spacing.md)) {
+        Text("Done for today", style = MaterialTheme.typography.headlineLarge, color = AppTheme.colors.success, modifier = Modifier.semantics { heading() })
+        Text("${state.minutes} minutes logged to Vocabulary. The words you knew moved up the ladder; the others come back tomorrow.", style = MaterialTheme.typography.bodyMedium, color = AppTheme.colors.secondaryLabel)
+        Row(horizontalArrangement = Arrangement.spacedBy(24.dp)) {
+            StatTile(label = "knew", value = "${state.known}", modifier = Modifier.weight(1f), valueColor = AppTheme.colors.success)
+            StatTile(label = "not yet", value = "${state.missed}", modifier = Modifier.weight(1f), valueColor = AppTheme.colors.warn)
+            StatTile(label = "in the deck", value = "${state.deckSize}", modifier = Modifier.weight(1f))
+        }
+        CupertinoPrimaryButton(text = "Back", onClick = onDone)
+        CupertinoSecondaryButton(text = "Go again with the missed ones", enabled = state.missed > 0, onClick = onAgain)
+    }
 }
