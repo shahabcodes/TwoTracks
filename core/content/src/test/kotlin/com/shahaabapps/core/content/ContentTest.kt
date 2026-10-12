@@ -128,17 +128,23 @@ class ContentTest {
     }
 
     @Test
-    fun `AZ-204 asks three times in every topic`() {
-        // One check at the end of a 28-minute read is a reading comprehension
+    fun `every topic asks three times`() {
+        // One check at the end of a long read is a reading comprehension
         // question, not retrieval practice. Three, spread through the topic,
         // mean each section is recalled before the next one starts.
         //
-        // AZ-204 only, for now: its topics are long prose, where German's and
-        // IELTS's are short and carry exercises of their own instead. German's
-        // grammar topics are the exception and have their own rule below.
-        Az204.course.allTopics.forEach { t ->
-            val checks = t.blocks.count { it is Block.Check }
-            assertTrue("az-204/${t.id} has $checks check(s), wanted 3 or more", checks >= 3)
+        // This was AZ-204 only for a while, on the argument that German's and
+        // IELTS's topics are shorter and carry exercises of their own. The
+        // argument did not survive contact with the data: a gap-fill is
+        // answered and forgotten, where a check is recorded, scheduled and
+        // asks how sure you were. The two courses sat at 1.2 and 1.3 checks a
+        // topic against AZ-204's 3.0, so the rule now holds everywhere and a
+        // fourth course has to be written up to it.
+        courses.forEach { c ->
+            c.allTopics.forEach { t ->
+                val checks = t.blocks.count { it is Block.Check }
+                assertTrue("${c.id}/${t.id} has $checks check(s), wanted 3 or more", checks >= 3)
+            }
         }
     }
 
@@ -180,22 +186,6 @@ class ContentTest {
                 assertTrue("${quiz.id} should give instant feedback", quiz.instantFeedback)
             }
             course.mockExam?.let { assertFalse("${it.id} should not give instant feedback", it.instantFeedback) }
-        }
-    }
-
-    @Test
-    fun `every German grammar topic asks for the rule back`() {
-        // These carried no checks at all. They were not unpractised — each has
-        // four to seven gap-fills — but a gap-fill is answered and forgotten:
-        // nothing records it, so none of it reaches the review set, the spaced
-        // schedule, or the question that asks how sure you were. Grammar is
-        // where being confidently wrong matters most, and it was the one part
-        // of the course that could not report it.
-        val grammar = GermanA1.course.allTopics.filter { it.id.endsWith("-grammar") }
-        assertTrue("expected German to have grammar topics, saw ${grammar.size}", grammar.size >= 10)
-        grammar.forEach { t ->
-            val checks = t.blocks.count { it is Block.Check }
-            assertTrue("de/${t.id} has $checks check(s), wanted 3 or more", checks >= 3)
         }
     }
 

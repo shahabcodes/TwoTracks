@@ -56,6 +56,26 @@ internal object GermanA1M2 {
             ),
             B.tip("sechzehn and siebzehn drop the s and en: not sechszehn. dreißig has ß, every other ten has z."),
             B.check("de2-words-k1", "de2-words", "How do you say 34?", listOf("dreißigundvier", "vierunddreißig", "dreivierzig"), 1, "Units first: vier und dreißig."),
+            B.check(
+                "de2-words-k2", "de2-words",
+                "Sanya is 24. Written out, that is",
+                listOf("vierundzwanzig", "zwanzigundvier", "zweiundvierzig"), 0,
+                "Units, und, tens: vier-und-zwanzig. It is one word, with no spaces.",
+                whyWrong = mapOf(
+                    1 to "That is the English order with und dropped in. German puts the unit in front.",
+                    2 to "zweiundvierzig is 42. The two halves are the right way round but the wrong numbers.",
+                ),
+            ),
+            B.check(
+                "de2-words-k3", "de2-words",
+                "At A1, die Frau carries two meanings:",
+                listOf("woman, and wife", "mother, and sister", "girl, and daughter"), 0,
+                "Frau is both the word for a woman and the word for a wife, exactly as Mann is man and husband.",
+                whyWrong = mapOf(
+                    1 to "Those are Mutter and Schwester, which are their own words.",
+                    2 to "Mädchen and Tochter do that pair.",
+                ),
+            ),
             B.glossary("Geschwister" to "Siblings.", "ledig" to "Single (unmarried).", "Staatsangehörigkeit" to "Nationality, a form word."),
             B.recap("Family words come with der, die, das; learn the article with the word.", "Two-digit numbers go units-und-tens.", "Ich spreche … names your languages."),
         ),
@@ -188,6 +208,26 @@ internal object GermanA1M2 {
                 aspect = 0.4f,
             ),
             B.check("de2-dialogue-k1", "de2-dialogue", "'Hast du Geschwister?' asks about", listOf("children", "siblings", "parents"), 1, "Geschwister are brothers and sisters together."),
+            B.check(
+                "de2-dialogue-k2", "de2-dialogue",
+                "Asked whether he is married, Usaid says 'Noch nicht.' He means",
+                listOf("not yet", "never", "of course"), 0,
+                "noch nicht is not yet: true now, and not for much longer. It is the kindest way to answer a question you are about to outgrow.",
+                whyWrong = mapOf(
+                    1 to "nie is never, and it closes the subject rather than dating it.",
+                    2 to "natürlich is of course.",
+                ),
+            ),
+            B.check(
+                "de2-dialogue-k3", "de2-dialogue",
+                "Lena's sisters are 'dreiundzwanzig und dreißig'. How old?",
+                listOf("23 and 30", "33 and 20", "13 and 30"), 0,
+                "drei-und-zwanzig reads units first: 23. dreißig is the plain tens word, 30.",
+                whyWrong = mapOf(
+                    1 to "That reads the halves in the order they are written, which is the trap the whole number system sets.",
+                    2 to "dreizehn would be 13. dreiundzwanzig has the und in it, and -zehn is what marks the teens.",
+                ),
+            ),
             B.glossary("Verlobte" to "Fiancée (die); Verlobter for the man.", "heiraten" to "To marry.", "noch nicht" to "Not yet."),
             B.recap("Bist du verheiratet? Hast du Geschwister? Wie alt …?", "Und du? hands the question back.", "Say ages with the backwards numbers."),
         ),
@@ -211,9 +251,35 @@ internal object GermanA1M2 {
             B.p("Ich heiße Sanya und bin 24 Jahre alt. Ich komme aus Pakistan und wohne in Karachi. Ich bin Lehrerin. Meine Familie ist groß: Ich habe zwei Schwestern und einen Bruder. Meine Eltern wohnen auch in Karachi. Mein Verlobter heißt Usaid. Er wohnt in Doha und ist Softwareentwickler. Wir sprechen Englisch und Urdu, und wir lernen Deutsch."),
             B.check("de2-practice-k1", "de2-practice", "Richtig oder falsch: Sanya hat einen Bruder.", listOf("Richtig", "Falsch"), 0, "The text says 'einen Bruder'. Richtig."),
             B.check("de2-practice-k2", "de2-practice", "Richtig oder falsch: Usaid wohnt in Karachi.", listOf("Richtig", "Falsch"), 1, "Usaid wohnt in Doha. Falsch."),
+            B.check(
+                "de2-practice-k3", "de2-practice",
+                "Richtig oder falsch: Sanya und Usaid sprechen nur Deutsch.",
+                listOf("Richtig", "Falsch"), 1,
+                "The text says they speak English and Urdu and are learning German. nur, only, is what makes it false.",
+                whyWrong = mapOf(
+                    0 to "German is the one they are still learning. A statement with nur in it is usually the one to check twice.",
+                ),
+            ),
             B.match("de2-p-match1", "Match the number.", "achtundzwanzig" to "28", "vierundzwanzig" to "24", "dreißig" to "30", "siebzehn" to "17"),
             B.gap("de2-p-gap1", "Complete with haben.", "Sanya ___ zwei Schwestern.", "hat"),
             B.gap("de2-p-gap2", "Complete with the possessive (her).", "___ Eltern wohnen in Karachi.", "Ihre", hint = "Capital at the start of the sentence."),
+            B.worked("""
+                Worked example. Usaid writes his five lines. Size first, so the reader knows what is coming: Meine
+                Familie ist klein. Then who is in it, with haben: Ich habe einen Bruder. Then an age: Er ist 31 Jahre
+                alt. Then a job: Er ist Ingenieur. Last, where they live: Meine Eltern wohnen in Indien.
+            """),
+            B.faded(
+                "de2-practice-f1",
+                "Lena's turn, same five lines. Her family is big: two sisters, twenty-three and thirty, and parents in Hamburg.",
+                listOf(
+                    "Size: Meine Familie ist groß.",
+                    "Who is in it. Siblings take haben, and zwei makes the noun plural: Ich habe zwei Schwestern.",
+                    "An age, and the units come first: Eine Schwester ist ___ Jahre alt.",
+                    "Where they live: Meine Eltern wohnen in Hamburg.",
+                ),
+                2, listOf("dreiundzwanzig"),
+                "Ages are where the backwards numbers bite, because you have to produce one rather than recognise it.",
+            ),
             B.writing("de2-p-write", "Write 5 sentences about your family: who is in it, their ages or jobs, where they live.",
                 """
                 Meine Familie ist klein. Ich habe einen Bruder. Er ist 31 Jahre alt und Ingenieur. Meine Eltern wohnen in Indien. Meine Verlobte Sanya ist Lehrerin und kommt aus Pakistan.

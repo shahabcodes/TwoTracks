@@ -76,6 +76,26 @@ internal object GermanA1M7 {
                 aspect = 0.7f,
             ),
             B.check("de7-words-k1", "de7-words", "'halb acht' is", listOf("7:30", "8:30", "8:00"), 0, "halb means half way to the hour named: halb acht is 7:30."),
+            B.check(
+                "de7-words-k2", "de7-words",
+                "At the counter you are asked 'einfach oder hin und zurück?'. A return is",
+                listOf("hin und zurück", "einfach", "umsteigen"), 0,
+                "hin is there and zurück is back, so hin und zurück is the return. einfach is the single.",
+                whyWrong = mapOf(
+                    1 to "einfach is one way, and it also means simple, which is what makes it easy to pick by mistake.",
+                    2 to "umsteigen is changing trains, which is a different question.",
+                ),
+            ),
+            B.check(
+                "de7-words-k3", "de7-words",
+                "A board shows 'Ankunft 18:40'. That is when the train",
+                listOf("arrives", "departs", "is delayed until"), 0,
+                "ankommen is to arrive, abfahren is to depart. The prefix is the whole word.",
+                whyWrong = mapOf(
+                    1 to "Abfahrt is the departure, and the two words sit next to each other on every board.",
+                    2 to "A delay is Verspätung, and it is announced separately.",
+                ),
+            ),
             B.glossary("Bahnsteig" to "Platform as a place (der); Gleis is the track number.", "Fahrplan" to "Timetable (der).", "Schalter" to "Ticket counter (der)."),
             B.recap("Transport words and their articles; mit dem Zug, mit der U-Bahn.", "Separable verbs of travel: abfahren, ankommen, umsteigen, einsteigen, aussteigen.", "Official times are 24-hour; halb goes to the next hour."),
         ),
@@ -251,6 +271,26 @@ internal object GermanA1M7 {
                 B.w("m7-gute-reise", "Gute Reise!", "Have a good trip!", "Gute Reise und bis Sonntag!", "Have a good trip and see you Sunday!"),
             ),
             B.check("de7-dialogue-k1", "de7-dialogue", "'Der Zug hat Verspätung' means the train is", listOf("early", "late", "cancelled"), 1, "Verspätung is a delay. Cancelled would be fällt aus."),
+            B.check(
+                "de7-dialogue-k2", "de7-dialogue",
+                "'Muss ich umsteigen?' asks whether you have to",
+                listOf("change trains", "pay extra", "get off at the next stop"), 0,
+                "umsteigen is to get out of one train and into another. ein- is getting on, aus- is getting off, um- is swapping.",
+                whyWrong = mapOf(
+                    1 to "That would be Muss ich mehr bezahlen?",
+                    2 to "aussteigen is getting off, and it is the one you do at the end.",
+                ),
+            ),
+            B.check(
+                "de7-dialogue-k3", "de7-dialogue",
+                "An announcement gives 'Abfahrt 10 Uhr 32' and 'zwanzig Minuten Verspätung'. The train leaves at about",
+                listOf("10:52", "10:32", "10:12"), 0,
+                "The board keeps the planned time and the delay is added to it, so the real departure is 10:52.",
+                whyWrong = mapOf(
+                    1 to "That is the time printed on the timetable, which is the one the announcement has just contradicted.",
+                    2 to "A Verspätung is never taken off; a train that could leave early waits.",
+                ),
+            ),
             B.glossary("ICE" to "The fast intercity train.", "Regionalzug" to "Regional train (der).", "schließen" to "To close."),
             B.recap("Ticket counter: einfach oder hin und zurück, Gleis, umsteigen, ankommen.", "Announcements: catch the platform, the time, Verspätung and the word nicht.", "Airport: Flug, Gate, startet, landet."),
         ),
@@ -284,6 +324,24 @@ internal object GermanA1M7 {
             B.gap("de7-p-gap2", "Wohin?", "Wir fliegen ___ Pakistan.", "nach"),
             B.gap("de7-p-gap3", "mit + dative.", "Ich fahre mit ___ Fahrrad. (das)", "dem"),
             B.h("Schreiben"),
+            B.worked("""
+                Worked example. Usaid writes about the trip. Where and when, with nach for a town and am for a day:
+                Am Freitag fahre ich nach Hamburg. How, with mit plus the dative: Ich fahre mit dem Zug um acht Uhr.
+                Where he sleeps: Ich schlafe im Hotel am Bahnhof. Then the request, as a question: Kannst du mich am
+                Sonntag abholen?
+            """),
+            B.faded(
+                "de7-practice-f1",
+                "Sanya writes the same message about a different trip: Munich on Saturday, by plane, staying with a friend, and she wants company.",
+                listOf(
+                    "Where and when. A town takes no article at all, and one preposition: Am Samstag fliege ich ___ München.",
+                    "How, with mit plus the dative: Ich fliege mit dem Flugzeug um sieben Uhr.",
+                    "Where you sleep: Ich schlafe bei einer Freundin.",
+                    "The request, as a question: Kommst du mit?",
+                ),
+                0, listOf("nach"),
+                "nach for towns and countries without an article, zu for people and places, in plus the accusative when there is an article. Getting the first one right is most of travel German.",
+            ),
             B.marked("de7-p-write", "Write to a friend about a trip (Schreiben part 2 style): say where you are going, when and how you travel, where you sleep, and ask them to come along or to pick you up.",
                 """
                 Hallo Sanya, am Freitag fahre ich nach Hamburg. Ich fahre mit dem Zug um acht Uhr und komme um zwölf Uhr an. Ich schlafe im Hotel am Bahnhof. Kannst du mich am Bahnhof abholen? Viele Grüße, Usaid

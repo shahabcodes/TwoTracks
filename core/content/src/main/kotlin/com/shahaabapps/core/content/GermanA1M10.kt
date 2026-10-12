@@ -59,6 +59,26 @@ internal object GermanA1M10 {
                 aspect = 0.42f,
             ),
             B.check("de10-words-k1", "de10-words", "'Ich habe noch nicht gegessen' means", listOf("I have already eaten", "I have not eaten yet", "I never eat"), 1, "noch nicht is not yet; schon is already."),
+            B.check(
+                "de10-words-k2", "de10-words",
+                "Which of these builds its past with sein rather than haben?",
+                listOf("fahren", "essen", "lesen"), 0,
+                "Verbs of movement from one place to another take sein: Ich bin gefahren. Most other verbs take haben.",
+                whyWrong = mapOf(
+                    1 to "Ich habe gegessen. Eating takes you nowhere.",
+                    2 to "Ich habe gelesen, for the same reason.",
+                ),
+            ),
+            B.check(
+                "de10-words-k3", "de10-words",
+                "Putting a day in order, the three words you reach for are",
+                listOf("zuerst, dann, danach", "schon, noch nicht, immer", "gestern, heute, morgen"), 0,
+                "zuerst, dann and danach sequence the events inside the day. The examiner listens for them.",
+                whyWrong = mapOf(
+                    1 to "Those say whether something has happened, not in what order.",
+                    2 to "Those place the day itself, which is a different job and usually one sentence.",
+                ),
+            ),
             B.glossary("Vergangenheit" to "The past.", "frühstücken" to "To have breakfast; participle gefrühstückt.", "letzte / letztes" to "Last: letzte Woche, letztes Jahr, letzten Monat."),
             B.recap("Time words for the past: gestern, letzte Woche, letztes Jahr, früher.", "Sequence: zuerst, dann, danach, am Abend.", "Learn each verb with its participle and whether it takes sein."),
         ),
@@ -222,6 +242,26 @@ internal object GermanA1M10 {
                 B.w("m10-lange", "lange", "for a long time", "Ich habe lange geschlafen.", "I slept for a long time."),
             ),
             B.check("de10-dialogue-k1", "de10-dialogue", "'Ich habe den Bus verpasst' means", listOf("I took the bus", "I missed the bus", "I waited for the bus"), 1, "verpassen is to miss; no ge- because of ver-."),
+            B.check(
+                "de10-dialogue-k2", "de10-dialogue",
+                "'Wir sind am Rhein spazieren gegangen.' Why sind and not haben?",
+                listOf("going somewhere takes sein", "wir always takes sein", "spazieren is irregular"), 0,
+                "gehen, fahren, fliegen, kommen and bleiben take sein. Everything else here takes haben, which is why the same sentence has haben … gesehen beside it.",
+                whyWrong = mapOf(
+                    1 to "wir haben gekocht is in the same dialogue.",
+                    2 to "The helper is chosen by what the verb does, not by how it is spelt.",
+                ),
+            ),
+            B.check(
+                "de10-dialogue-k3", "de10-dialogue",
+                "Lena says 'Ich war krank.' Why not Ich bin krank gewesen?",
+                listOf("sein and haben prefer the simple past, even in speech", "it is the wrong tense", "war is the future"), 0,
+                "sein, haben and the modals use war, hatte, konnte in conversation where other verbs use the Perfekt. Both are correct; only one sounds natural.",
+                whyWrong = mapOf(
+                    1 to "It is past either way. The question is which past German speakers actually use.",
+                    2 to "war is the past of sein.",
+                ),
+            ),
             B.glossary("Rhein" to "The river Rhine.", "Kein Problem" to "No problem.", "schon geantwortet" to "Already replied."),
             B.recap("Wie war dein Wochenende? Am Samstag bin ich …, am Sonntag habe ich …", "Excuses: Der Zug hatte Verspätung. Ich habe den Bus verpasst. Ich war krank.", "weil sends the verb to the end: weil ich krank war."),
         ),
@@ -258,6 +298,25 @@ internal object GermanA1M10 {
             B.gap("de10-p-gap2", "Participle.", "Ich habe einen Brief ___. (schreiben)", "geschrieben"),
             B.gap("de10-p-gap3", "war or hatte?", "Letzte Woche ___ ich Urlaub. (haben)", "hatte"),
             B.h("Schreiben"),
+            B.worked("""
+                Worked example. Sanya writes the postcard. Greeting and where from: Liebe Lena, viele Grüße aus
+                Hamburg! How you got there, and fahren takes sein: Wir sind am Freitag mit dem Zug gekommen. What you
+                did, with haben and the participle at the end: Am Samstag haben wir den Hafen gesehen. The weather,
+                with war rather than the Perfekt: Das Wetter war leider schlecht. When you come back: Am Montag
+                fliegen wir zurück.
+            """),
+            B.faded(
+                "de10-practice-f1",
+                "Usaid writes a postcard from Munich. They flew on Thursday, saw a museum and ate well, the weather was fine, and they are back on Sunday.",
+                listOf(
+                    "Greeting and where from: Lieber Tom, viele Grüße aus München!",
+                    "How you got there, and fliegen is movement: Wir ___ am Donnerstag geflogen.",
+                    "What you did, with haben and the participle last: Wir haben das Museum gesehen und gut gegessen.",
+                    "The weather, then the return: Das Wetter war schön. Am Sonntag kommen wir zurück.",
+                ),
+                1, listOf("sind"),
+                "Movement from one place to another takes sein. The participle is the easy half; the helper is the half that is marked.",
+            ),
             B.marked("de10-p-write", "Write a postcard from a trip (Schreiben part 2 style): say where you were, two things you did (Perfekt), how the weather was, and when you come back.",
                 """
                 Hallo Lena, viele Grüße aus Berlin! Ich war drei Tage hier. Ich habe das Brandenburger Tor gesehen und bin viel spazieren gegangen. Das Wetter war schön und warm. Am Sonntag komme ich zurück nach Doha. Bis bald, Usaid

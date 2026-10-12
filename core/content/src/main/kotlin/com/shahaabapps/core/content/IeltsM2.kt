@@ -43,6 +43,26 @@ internal object IeltsM2 {
             ),
             B.remember("Answers come in order for completion and multiple-choice questions. If you hear the answer to question 14, you missed 13; move on, never go back."),
             B.check("ie2-parts-k1", "ie2-parts", "The instruction says NO MORE THAN TWO WORDS AND/OR A NUMBER. Which answer breaks it?", listOf("25 Park Road", "second floor", "the main library"), 2, "'the main library' is three words. '25 Park Road' is a number and two words, which is allowed."),
+            B.check(
+                "ie2-parts-k2", "ie2-parts",
+                "The silence before each Listening part is for",
+                listOf("reading the questions that are coming", "checking the answers you just wrote", "resting"), 0,
+                "It is the only moment you get to decide what to listen for. Underline the keywords and predict the answer type.",
+                whyWrong = mapOf(
+                    1 to "Checking looks backwards, and the part that is about to play is worth ten marks.",
+                    2 to "Thirty seconds of rest buys nothing; thirty seconds of reading buys the part.",
+                ),
+            ),
+            B.check(
+                "ie2-parts-k3", "ie2-parts",
+                "Which part is an academic lecture with one speaker?",
+                listOf("Part 4", "Part 2", "Part 3"), 0,
+                "Part 4 is the lecture, usually sentence or summary completion, and it runs without the breaks the earlier parts have.",
+                whyWrong = mapOf(
+                    1 to "Part 2 is one speaker too, but on an everyday topic: a tour, a talk, a recorded message.",
+                    2 to "Part 3 is several people in an academic setting.",
+                ),
+            ),
             B.h("Hear it: a Part 1 booking"),
             B.listen("ie2-p-l1", "Receptionist: Good morning, City Dental. Caller: Hi, I'd like to make an appointment, please. My name is Patel, that's P-A-T-E-L. Receptionist: Thank you, Mr Patel. And a contact number? Caller: It's oh seven seven double two, nine one four, six oh three. Receptionist: And is it a check-up or a problem? Caller: A check-up, but actually one tooth has been hurting since Monday.",
                 "What is the reason for the appointment?", listOf("a check-up only", "a check-up and a painful tooth", "an emergency"), 1),
@@ -106,6 +126,26 @@ internal object IeltsM2 {
             B.listen("ie2-t-l3", "You're welcome to bring a laptop into the library, but phones must be left in the lockers by the entrance. Food isn't allowed, though you can bring water in a bottle with a lid.",
                 "Which item may you take into the library?", listOf("a phone", "a laptop", "a sandwich"), 1),
             B.check("ie2-traps-k1", "ie2-traps", "You hear 'it's twenty pounds, no, sorry, twenty-five with the booking fee'. The cost is", listOf("20 pounds", "25 pounds", "45 pounds"), 1, "The correction wins: twenty-five."),
+            B.check(
+                "ie2-traps-k2", "ie2-traps",
+                "In a multiple-choice item the speakers mention all three options. The answer is usually",
+                listOf("the one they settle on", "the first one mentioned", "the one repeated most"), 0,
+                "Two options are raised and dismissed before the third is agreed. Hearing a word does not make its option right.",
+                whyWrong = mapOf(
+                    1 to "The first is mentioned first on purpose, to catch the pen that moves early.",
+                    2 to "A dismissed option is often discussed at greater length than the right one.",
+                ),
+            ),
+            B.check(
+                "ie2-traps-k3", "ie2-traps",
+                "The question asks about the cost. The audio never says 'cost'. That is because",
+                listOf("the question paraphrases the audio", "the question is about something else", "the information is missing"), 0,
+                "Questions are written in different words from the recording by design: the fee, how much it comes to, the price. Listening for the question's own words is listening for the one thing that will not be said.",
+                whyWrong = mapOf(
+                    1 to "Every question has an answer in the recording.",
+                    2 to "Nothing is left out; it is said another way.",
+                ),
+            ),
             B.vocab(
                 B.w("ie2-settle", "settle on", "decide finally", "They settled on Thursday.", "After discussing the other days."),
                 B.w("ie2-clash", "clash with", "happen at the same time as", "It clashes with a lecture.", "A reason to reject an option."),
@@ -175,6 +215,26 @@ internal object IeltsM2 {
                 "Why do city bees often produce more honey? Choose the completion: because of a greater variety of … and a longer …", listOf("gardens / winter", "flowers / season", "parks / day"), 1),
             B.gap("ie2-d-g6", "Sentence completion, ONE WORD ONLY.", "City bees benefit from a greater variety of ___.", "flowers", audio = "City bees often produce more honey because gardens and parks offer a greater variety of flowers."),
             B.check("ie2-details-k1", "ie2-details", "You hear 'G-R-double E-N'. You write", listOf("Green", "Greeen", "Gren"), 0, "'double E' is two Es: Green."),
+            B.check(
+                "ie2-details-k2", "ie2-details",
+                "The speaker says 'fifty'. The word that would have sounded different is",
+                listOf("fifteen, which is stressed on the second syllable", "five, which is shorter", "neither; they sound the same"), 0,
+                "fifTEEN takes the stress at the end, FIFty at the start. It is the commonest number error in Part 1, and it costs a whole mark each time.",
+                whyWrong = mapOf(
+                    1 to "five is rarely confused with fifty; the teens are the pair that catch people.",
+                    2 to "They are told apart by stress, reliably, once you know which syllable to listen to.",
+                ),
+            ),
+            B.check(
+                "ie2-details-k3", "ie2-details",
+                "A map labelling question mentions a post office. You should label it",
+                listOf("only if the speaker says the label goes there", "as soon as you hear it", "never; landmarks are not labelled"), 0,
+                "Landmarks are named to tell you where you are: opposite the post office, past the post office. Labelling the reference point itself is the trap the type is built on.",
+                whyWrong = mapOf(
+                    1 to "That is exactly the mistake; the first building named is usually the one you navigate from.",
+                    2 to "A landmark can be the answer. It just has to be said to be the answer.",
+                ),
+            ),
             B.vocab(
                 B.w("ie2-double", "double (as in double L)", "two of the same letter", "Double L in Hill.", "H-I-double L."),
                 B.w("ie2-postcode", "postcode", "the UK address code", "Postcode BN1 4GH.", "Letters and numbers in groups."),

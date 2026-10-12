@@ -56,6 +56,45 @@ internal object IeltsM7 {
             ),
             B.remember("Hesitating to search for an idea is normal and barely penalised. Hesitating to search for a word is what lowers Fluency. If a word will not come, paraphrase it: 'the thing you use to…' and keep going."),
             B.check("ie7-part1-k1", "ie7-part1", "The examiner asks 'Do you prefer tea or coffee?' The best answer is", listOf("Coffee.", "Coffee, definitely. I need one before I can speak to anyone in the morning, although I switch to tea after lunch.", "Coffee is a drink that many people around the world consume daily and it has a long history."), 1, "Answer, reason, detail; the third is off-topic and sounds memorised."),
+            B.check(
+                "ie7-part1-k2", "ie7-part1",
+                "Talking for a full minute on a Part 1 question",
+                listOf("gets you interrupted; Part 1 is not Part 2", "is rewarded as fluency", "is required for band 7"), 0,
+                "Part 1 answers are two or three sentences. The examiner has a fixed set of questions to get through and will cut you off.",
+                whyWrong = mapOf(
+                    1 to "Length is only fluency when the question invites it, and these do not.",
+                    2 to "Band 7 here is range inside three sentences, not volume.",
+                ),
+            ),
+            B.check(
+                "ie7-part1-k3", "ie7-part1",
+                "Which two Part 1 topics always come up?",
+                listOf("where you live, and work or study", "food, and the weather", "holidays, and the internet"), 0,
+                "Those two open every interview, which makes them the only Part 1 answers worth rehearsing.",
+                whyWrong = mapOf(
+                    1 to "They are common, but they are drawn from a rotating set rather than fixed.",
+                    2 to "Same: possible, not compulsory.",
+                ),
+            ),
+            B.worked("""
+                Worked example. Answer, reason, detail, and then stop. Examiner: Do you enjoy cooking? The direct
+                answer comes first, because an examiner who cannot hear your position has to ask again: I do,
+                actually. Then the reason, which is what turns a yes into an answer: I find it quite relaxing after a
+                long day at a screen. Then one specific detail, which is where the vocabulary lives: last weekend I
+                tried making bread for the first time, and it was a disaster. Three sentences, about fifteen seconds.
+            """),
+            B.faded(
+                "ie7-part1-f1",
+                "A different question, the same three moves. Examiner: Do you often listen to music?",
+                listOf(
+                    "The direct answer first, so the examiner is not left prompting: I do, most of the day in fact.",
+                    "Then the reason, which is the move that turns a yes into an answer: It helps me concentrate when I'm working.",
+                    "Then one specific ___, which is where the interesting vocabulary lives: I've been working through a lot of old jazz recordings lately, mostly on the commute.",
+                    "Then stop. Two or three sentences is the whole shape; a fourth invites an interruption.",
+                ),
+                2, listOf("detail", "example"),
+                "Answer, reason, detail. The detail is the move candidates drop, and it is the only one of the three that shows any range at all.",
+            ),
             B.vocab(
                 B.w("ie7-get-into", "get into something", "start to enjoy or take up", "I got into cooking a few years ago.", "Natural Part 1 phrasing."),
                 B.w("ie7-take-mind-off", "take your mind off", "distract you from", "It takes my mind off work.", "Idiomatic and correct."),
@@ -124,6 +163,45 @@ internal object IeltsM7 {
             B.listen("ie7-p2-l1", "Candidate: The skill I would like to learn is swimming. I want to learn it because it is good exercise. I would learn it at the local pool. It would change my life because I would be healthier. That's all.",
                 "What is the main weakness of this long turn?", listOf("The grammar is wrong", "Each prompt gets one short sentence with no detail or example, so it ends far too early", "The topic is unsuitable"), 1),
             B.check("ie7-part2-k1", "ie7-part2", "In the one minute of preparation you should write", listOf("full sentences to read aloud", "one or two words per prompt plus one extra idea", "nothing, to sound natural"), 1, "Reading aloud destroys Fluency; notes keep you going to two minutes."),
+            B.check(
+                "ie7-part2-k2", "ie7-part2",
+                "The last bullet on the card always begins with 'and explain'. It should take",
+                listOf("the most speaking time", "the least, since it is last", "about the same as the others"), 0,
+                "It invites reasons rather than facts, so it stretches. It is also where candidates who planned only facts fall silent at ninety seconds.",
+                whyWrong = mapOf(
+                    1 to "It is last because it is the hardest, not because it matters least.",
+                    2 to "The first bullets are naming; this one is reasoning, and reasoning fills time.",
+                ),
+            ),
+            B.check(
+                "ie7-part2-k3", "ie7-part2",
+                "You dry up after ninety seconds. The usual cause is",
+                listOf("planning facts and no reasons", "speaking too slowly", "an unfamiliar topic"), 0,
+                "Facts run out. Reasons, comparisons and hypotheticals do not, which is why the plan should carry one extra idea for the ending.",
+                whyWrong = mapOf(
+                    1 to "Speaking slowly fills time but costs Fluency, and it is a symptom rather than the cause.",
+                    2 to "Every card can be answered from your own life; the cards are chosen to be universal.",
+                ),
+            ),
+            B.worked("""
+                Worked example. Sixty seconds of planning for: Describe a skill you would like to learn. Not
+                sentences. One or two words against each prompt: what, sailing. Why, grandfather's boat. How, club
+                on the coast, two summers. Explain, confidence on water, something to do with the children. Then one
+                extra idea held back for the ending: how learning anything slowly as an adult feels different. That
+                last note is what carries you from ninety seconds to two minutes.
+            """),
+            B.faded(
+                "ie7-part2-f1",
+                "A different card, the same sixty seconds. Describe a journey you remember well. You should say: where you went; who you went with; what happened; and explain why you remember it.",
+                listOf(
+                    "Not sentences. One or two words per prompt: where, Karachi to Lahore. Who, my brother.",
+                    "What happened: train delayed, overnight, strangers sharing food.",
+                    "The last prompt begins with and explain, so it carries the most time: first journey alone, what it changed.",
+                    "Then one ___ idea, held back for the ending, which is what carries you from ninety seconds to two minutes: how differently I'd see the same trip now.",
+                ),
+                3, listOf("extra", "additional", "spare"),
+                "The plan has five notes, not four. The spare one exists because the turn is longer than the prompts are.",
+            ),
             B.vocab(
                 B.w("ie7-take-up", "take something up", "start a hobby or activity", "I'd like to take up sailing.", "Phrasal verb for Part 2."),
                 B.w("ie7-come-up", "come up", "arise, present itself", "The opportunity never came up.", "Natural and idiomatic."),
@@ -199,6 +277,46 @@ internal object IeltsM7 {
                 "Going silent when challenged instead of defending or conceding.",
             ),
             B.check("ie7-part3-k1", "ie7-part3", "The examiner asks 'Why do people in your country work such long hours?' A band 7 answer would", listOf("describe your own working day", "give a societal reason, an example, and a hedged qualification", "say 'because they need money' and stop"), 1, "Part 3 asks about society and rewards developed, hedged reasoning."),
+            B.check(
+                "ie7-part3-k2", "ie7-part3",
+                "The examiner disagrees with something you said. That means",
+                listOf("it is a prompt to reason; defending or conceding both score", "you got it wrong", "time is running out"), 0,
+                "Nothing in Part 3 is scored on being right. The pushback exists to see whether you can argue, and changing your mind with a reason scores as well as holding it.",
+                whyWrong = mapOf(
+                    1 to "There is no right answer to an abstract question, so there is nothing to get wrong.",
+                    2 to "The examiner is working to a clock but the challenge is not a signal about it.",
+                ),
+            ),
+            B.check(
+                "ie7-part3-k3", "ie7-part3",
+                "'People always prefer…' is weaker than 'People tend to prefer…' because",
+                listOf("the absolute sounds naive and the hedge shows judgement", "tend is a rarer word", "always is grammatically wrong"), 0,
+                "Hedging is the language of band 7 and 8 here, and it buys thinking time while you build the rest of the answer.",
+                whyWrong = mapOf(
+                    1 to "Lexical Resource is not counting rarity; both words are common.",
+                    2 to "Both sentences are correct. The difference is judgement, not grammar.",
+                ),
+            ),
+            B.worked("""
+                Worked example. The four moves of an abstract answer. Question: Should museums be free? Position
+                first: On balance I'd say they should be, at least the national ones. Reason: Charging turns a public
+                collection into a day out for people who can afford it. Example, which may be invented: When entry
+                charges were dropped in Britain in the early 2000s, visitor numbers roughly doubled. Then the
+                qualification that shows you can see the other side: That said, free entry only works if the funding
+                comes from somewhere else, which is not guaranteed.
+            """),
+            B.faded(
+                "ie7-part3-f1",
+                "A different abstract question, the same four moves. Examiner: Do you think people will read fewer books in the future?",
+                listOf(
+                    "Position first, hedged rather than absolute: I'd imagine they'll read fewer printed ones, though not necessarily less overall.",
+                    "Reason: Attention is being competed for by things that are designed to be easier than a book.",
+                    "Example, which may be invented: Most people I know who stopped reading didn't replace it with anything in particular; it just went.",
+                    "Then the ___ that shows you can see the other side: That said, audiobooks have brought a lot of people back, so the format may matter more than the habit.",
+                ),
+                3, listOf("qualification", "concession", "counterpoint"),
+                "Position, reason, example, qualification. The last move is what separates a 6 from an 8, because it shows the answer was reasoned rather than recalled.",
+            ),
             B.vocab(
                 B.w("ie7-tend-to", "tend to", "usually do", "People tend to prefer convenience.", "Essential hedging verb."),
                 B.w("ie7-id-argue", "I'd argue that", "I would claim that", "I'd argue the opposite is true.", "Confident but not absolute."),

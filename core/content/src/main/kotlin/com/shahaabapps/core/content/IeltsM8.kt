@@ -73,6 +73,26 @@ internal object IeltsM8 {
                 "Informal vocabulary in Writing: kids, stuff, a lot of, things like that.",
             ),
             B.check("ie8-lexis-k1", "ie8-lexis", "Which is the natural collocation?", listOf("do a decision", "make a decision", "take a decision about nothing"), 1, "Make is the verb that goes with decision."),
+            B.check(
+                "ie8-lexis-k2", "ie8-lexis",
+                "One essay uses three rare words, two of them slightly wrong. Another uses ordinary words in the right pairs. On Lexical Resource",
+                listOf("the ordinary one scores higher", "the rare one scores higher, for range", "they tie"), 0,
+                "The criterion asks for the right word in the right company. A wrong pair is noticed far more than a simple one.",
+                whyWrong = mapOf(
+                    1 to "Range is rewarded only when it is accurate; two errors in three attempts is not range.",
+                    2 to "Accuracy separates them, and the band descriptors say so explicitly.",
+                ),
+            ),
+            B.check(
+                "ie8-lexis-k3", "ie8-lexis",
+                "'Air pollution ___ a serious threat to public health.' The verb is",
+                listOf("poses", "makes", "does"), 0,
+                "pose is the verb that travels with threat, risk, problem and challenge.",
+                whyWrong = mapOf(
+                    1 to "make goes with a decision, progress, an effort, a contribution.",
+                    2 to "do goes with research, homework, damage, business.",
+                ),
+            ),
             B.vocab(
                 B.w("ie8-collocation", "collocation", "words that naturally occur together", "Heavy traffic is a collocation.", "Strong traffic is not."),
                 B.w("ie8-sedentary", "sedentary lifestyle", "a way of living with little exercise", "A sedentary lifestyle harms health.", "Health topic bank."),
@@ -160,6 +180,26 @@ internal object IeltsM8 {
             B.speak("ie8-g-s1", "If public transport were more reliable, far fewer people would choose to drive into the city centre.", "A second conditional said aloud. Speaking rewards the same structures as Writing."),
             B.speak("ie8-g-s2", "The government's decision to raise fees, which was announced last year, has provoked considerable criticism.", "Nominalisation plus a non-defining relative clause in one sentence."),
             B.check("ie8-grammar-k1", "ie8-grammar", "Which sentence is error-free?", listOf("The number of students are increasing every year.", "The number of students is increasing every year.", "The numbers of student is increasing every year."), 1, "'The number of' takes a singular verb."),
+            B.check(
+                "ie8-grammar-k2", "ie8-grammar",
+                "Band 7 asks for 'a variety of complex structures'. In practice you need",
+                listOf("about four, used accurately", "as many as you can collect", "one, used throughout"), 0,
+                "Four structures you control, mixed with simple sentences, satisfy range and keep accuracy. Reaching for a fifth you cannot control costs more than it earns.",
+                whyWrong = mapOf(
+                    1 to "Range and accuracy are judged together, and collecting structures sacrifices the second.",
+                    2 to "One structure repeated is not a variety, however well it is used.",
+                ),
+            ),
+            B.check(
+                "ie8-grammar-k3", "ie8-grammar",
+                "'Fees have doubled, which has deterred many applicants.' The which here refers to",
+                listOf("the whole preceding clause", "fees", "applicants"), 0,
+                "A non-defining which after a comma can comment on everything before it. It is the cheapest complex structure in the test and almost nobody uses it.",
+                whyWrong = mapOf(
+                    1 to "If it referred to fees the verb would be have, not has.",
+                    2 to "applicants comes after the which, so it cannot be its antecedent.",
+                ),
+            ),
             B.mistakes(
                 "Writing every sentence long; a short sentence after two long ones is good style and easy to get right.",
                 "Using 'Despite' with a full clause instead of 'Although'.",
@@ -220,6 +260,26 @@ internal object IeltsM8 {
             B.h("If a paper goes badly"),
             B.p("Candidates lose whole bands by carrying a bad Listening into Reading. The papers are marked separately; the next one is untouched by the last. Close it and start again. If the result does overall fall short, One Skill Retake lets you resit a single component rather than the whole test, where it is offered."),
             B.check("ie8-final-k1", "ie8-final", "Three days before the test is the best time to", listOf("learn a new grammar area", "review your error log and rehearse cue cards", "sit three full tests"), 1, "The last days consolidate; new material unsettles more than it adds."),
+            B.check(
+                "ie8-final-k2", "ie8-final",
+                "You sit a full practice test on day 1 of the fortnight. The next two days go on",
+                listOf("marking it and writing the reason for every wrong answer", "sitting another one", "resting"), 0,
+                "The reasons group into two or three dominant causes, and those are what day 7 drills. A test you do not diagnose teaches nothing.",
+                whyWrong = mapOf(
+                    1 to "A second test before the first is understood repeats the same errors at the same cost.",
+                    2 to "Rest belongs at the end of the fortnight, not after the first paper.",
+                ),
+            ),
+            B.check(
+                "ie8-final-k3", "ie8-final",
+                "In the Writing paper, if you tend to overrun you should",
+                listOf("start with Task 2", "start with Task 1 as printed", "split the hour evenly"), 0,
+                "Task 2 is worth twice Task 1, so if something has to be rushed it should be the smaller one. Taking it first protects the bigger mark.",
+                whyWrong = mapOf(
+                    1 to "The printed order is not an instruction, and it is the order that leaves the heavier task to whatever is left.",
+                    2 to "An even split gives the smaller task the same time as one worth double.",
+                ),
+            ),
             B.speak("ie8-f-s1", "I'd like to talk about a decision I made that changed my life.", "A cue-card opener you can use with almost any 'describe a time when' card."),
             B.speak("ie8-f-s2", "That's an interesting question. I suppose the main reason would be economic, at least in my country.", "A hedged opener for Part 3 that buys you two seconds of thinking time."),
             B.vocab(

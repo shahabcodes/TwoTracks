@@ -46,6 +46,35 @@ internal object IeltsM5 {
             B.p("You may invent any detail you need: names, dates, prices, flat numbers. Examiners do not check facts; they check that each bullet is covered fully and convincingly. Vague answers lose marks, invented specifics do not."),
             B.check("ie5-tone-k1", "ie5-tone", "A letter to the manager of a shop whose name you do not know should end with", listOf("Yours sincerely", "Yours faithfully", "Best wishes"), 1, "No name means Dear Sir or Madam and Yours faithfully."),
             B.check("ie5-tone-k2", "ie5-tone", "Which opening suits an informal letter?", listOf("I am writing to express my dissatisfaction.", "Hi Anna, how are things? I thought I'd write because I've got some news.", "I wish to draw your attention to a matter."), 1, "Contractions, a question to the reader and everyday vocabulary mark the informal register."),
+            B.check(
+                "ie5-tone-k3", "ie5-tone",
+                "Your formal letter needs a date and an order number that the task did not give you. You should",
+                listOf("invent them", "write 'date unknown'", "leave the bullet uncovered"), 0,
+                "Invented detail is expected and is never checked. What is marked is whether the bullet was covered, and a specific detail covers it better than a vague one.",
+                whyWrong = mapOf(
+                    1 to "That reads as an unfinished letter and covers nothing.",
+                    2 to "A missing bullet is the heaviest penalty in this task.",
+                ),
+            ),
+            B.worked("""
+                Worked example. The tone decision, made once, settles everything after it. The task says: write to the
+                manager of a company about a faulty laptop. You do not have a name, so the greeting is Dear Sir or
+                Madam and the sign-off is Yours faithfully. Formal means no contractions, so I am writing rather than
+                I'm writing, and no phrasal verbs, so tolerate rather than put up with. The opening line states the
+                purpose in one sentence: I am writing to complain about a laptop purchased from your Leeds branch.
+            """),
+            B.faded(
+                "ie5-tone-f1",
+                "A different task, the same decision. Write to Dr Khan, your course tutor, whom you have met several times, to ask for an extension on an assignment.",
+                listOf(
+                    "You have a name, so the greeting takes it: Dear Dr Khan,",
+                    "A name pairs with one closing and only one: Yours ___,",
+                    "Semi-formal means no contractions and few phrasal verbs: I am writing to ask whether the deadline could be extended.",
+                    "The closing line looks forward: I would be grateful for any advice you are able to offer.",
+                ),
+                1, listOf("sincerely"),
+                "Dear Sir or Madam with Yours faithfully; a name with Yours sincerely. Mixing the halves is the most common avoidable error in the whole task.",
+            ),
             B.vocab(
                 B.w("ie5-faithfully", "Yours faithfully", "formal close after Dear Sir or Madam", "Yours faithfully, U. Shahab", "Used when the name is unknown."),
                 B.w("ie5-sincerely", "Yours sincerely", "formal close after a name", "Yours sincerely, Sanya Khan", "Used when you address a person by name."),
@@ -134,6 +163,46 @@ internal object IeltsM5 {
             B.gap("ie5-t-g2", "Formal close after Dear Sir or Madam.", "Yours ___,", "faithfully"),
             B.gap("ie5-t-g3", "Informal close to a friend.", "Best ___, Usaid", "wishes", "regards"),
             B.check("ie5-types-k1", "ie5-types", "Which sentence suits a formal complaint?", listOf("Your delivery was rubbish and I want my money back.", "I was extremely disappointed with the delivery and would be grateful if you could refund the charge.", "Hi, the delivery didn't turn up, can you sort it?"), 1, "Formal letters state dissatisfaction politely and make a clear request."),
+            B.check(
+                "ie5-types-k2", "ie5-types",
+                "A complaint letter has four moves. Which one do candidates most often leave out?",
+                listOf("the request", "the explanation", "the opening"), 0,
+                "People describe the problem at length and never say what they want done. The bullet usually asks for it in so many words.",
+                whyWrong = mapOf(
+                    1 to "The explanation is the part that writes itself; it is usually too long rather than missing.",
+                    2 to "The opening line is the one sentence everybody remembers.",
+                ),
+            ),
+            B.check(
+                "ie5-types-k3", "ie5-types",
+                "An enquiry letter's middle paragraph should contain",
+                listOf("the specific questions you want answered", "your whole life story", "a complaint about the website"), 0,
+                "An enquiry asks. Could you please let me know whether … and what … covers two bullets in one sentence.",
+                whyWrong = mapOf(
+                    1 to "Context is one sentence; the questions are the task.",
+                    2 to "That is a different letter type, and answering the wrong one costs Task Achievement.",
+                ),
+            ),
+            B.worked("""
+                Worked example. A complaint, built from its four moves. Open with the purpose and a date: I am
+                writing to complain about the service I received at your Oxford Street branch on 14 March. Explain
+                what happened, with an invented but specific detail: I purchased a washing machine which was
+                delivered three days later than the agreed date. Give the impact, which is what turns a description
+                into a complaint: As a result, I was forced to take a further day off work. Then request something
+                concrete: I would be grateful if you could arrange a replacement and refund the delivery charge.
+            """),
+            B.faded(
+                "ie5-types-f1",
+                "A different complaint, the same four moves: a hotel room that was noisy and not the one you booked.",
+                listOf(
+                    "Open with the purpose and a date: I am writing to complain about a room I stayed in at your Manchester hotel on 2 May.",
+                    "Explain, with an invented detail: I had reserved a quiet double room at the rear of the building, but was given one overlooking the main road.",
+                    "The move people leave out is the one that says what you want done. State it: I would be grateful if you could ___ the difference in rate and confirm the booking for my next stay.",
+                    "Close looking forward: I look forward to receiving your response within fourteen days.",
+                ),
+                2, listOf("refund", "reimburse", "repay"),
+                "Describing the problem is not complaining. The bullet nearly always asks what you want the company to do, and a letter that never says it has left a bullet uncovered.",
+            ),
             B.mistakes(
                 "Covering two bullets and forgetting the third; Task Achievement drops a whole band.",
                 "Starting Dear Sir or Madam and signing Yours sincerely.",
@@ -221,6 +290,44 @@ internal object IeltsM5 {
                 "Read it aloud: does the tone stay the same from greeting to sign-off?", "Count your complex sentences: aim for at least four with although, which, if or because", "Replace two basic words with precise ones: nice, good, bad, thing", "Check every bullet has a specific detail, not a vague sentence", "Time it: 20 minutes including two minutes of planning",
             ),
             B.check("ie5-practice-k1", "ie5-practice", "The marker says the sign-off is missing from your formal letter. You should add", listOf("Thanks!", "Yours faithfully, and your name", "The End"), 1, "A formal letter to an unnamed recipient closes with Yours faithfully and your full name."),
+            B.check(
+                "ie5-practice-k2", "ie5-practice",
+                "You cover two of the three bullets very well and run out of time on the third. Task Achievement",
+                listOf("drops a long way", "is unaffected if the English is strong", "rises, for depth"), 0,
+                "A bullet is a part of the task, and an uncovered part is the heaviest single penalty in this paper.",
+                whyWrong = mapOf(
+                    1 to "Task Achievement asks whether you did what was asked, not how well you wrote the rest.",
+                    2 to "Depth on two bullets does not buy the third.",
+                ),
+            ),
+            B.check(
+                "ie5-practice-k3", "ie5-practice",
+                "After the marker reports back, the step that moves the band is",
+                listOf("rewriting this letter with the gaps filled", "writing a new letter", "reading the model answer first"), 0,
+                "The rewrite is where the correction is practised. Reading the model before your own attempt replaces your plan with somebody else's.",
+                whyWrong = mapOf(
+                    1 to "A new letter repeats whatever habit produced the gap.",
+                    2 to "The model is read last, once your own version exists to compare it against.",
+                ),
+            ),
+            B.worked("""
+                Worked example. How the twenty minutes go. Two minutes deciding the tone and therefore the greeting
+                and sign-off. One minute turning the three bullets into three paragraph plans. Fourteen minutes
+                writing, one bullet at a time, inventing any detail the bullet needs. Three minutes checking: are all
+                three bullets there, is the length over 150 words, and do the greeting and sign-off match.
+            """),
+            B.faded(
+                "ie5-practice-f1",
+                "You open Task 1 and it is an informal letter to a friend who has invited you to stay. Plan the twenty minutes before writing a word.",
+                listOf(
+                    "Two minutes on tone. A friend takes Dear Anna, or Hi Anna, and contractions are not only allowed but expected.",
+                    "One minute turning the three bullets into three paragraph plans.",
+                    "Fourteen minutes writing, and any detail a bullet needs may simply be ___ rather than remembered.",
+                    "Three minutes checking: all three bullets covered, over 150 words, greeting and sign-off matching.",
+                ),
+                2, listOf("invented", "made up"),
+                "Nothing in Task 1 is fact-checked. Candidates lose marks hesitating over a detail they were always free to supply.",
+            ),
             B.vocab(
                 B.w("ie5-dispatch", "dispatch", "send out goods", "Damaged before it was dispatched.", "Formal commercial verb."),
                 B.w("ie5-handset", "handset", "a mobile phone", "The handset was faulty.", "Formal alternative."),

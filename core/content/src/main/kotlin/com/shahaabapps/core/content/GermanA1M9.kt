@@ -83,6 +83,26 @@ internal object GermanA1M9 {
                 aspect = 0.5f,
             ),
             B.check("de9-words-k1", "de9-words", "'Es sind 30 Grad und die Sonne scheint' describes", listOf("a hot sunny day", "a cold snowy day", "a windy evening"), 0, "30 degrees and sunshine: heiß und sonnig."),
+            B.check(
+                "de9-words-k2", "de9-words",
+                "'Ich lese gern, aber ich koche lieber.' Which do you prefer?",
+                listOf("cooking", "reading", "neither, equally"), 0,
+                "gern likes it, lieber prefers it, am liebsten puts it first of all. The three are one ladder.",
+                whyWrong = mapOf(
+                    1 to "Reading is the one you merely like. lieber is the rung above it.",
+                    2 to "lieber is a comparison, so one of the two has won.",
+                ),
+            ),
+            B.check(
+                "de9-words-k3", "de9-words",
+                "Asked about a film, you say it was langweilig. You mean it was",
+                listOf("boring", "long", "funny"), 0,
+                "langweilig is boring. The lang- in it is a trap: a short film can be langweilig too.",
+                whyWrong = mapOf(
+                    1 to "lang is long, and it is the half of the word that misleads.",
+                    2 to "lustig is funny.",
+                ),
+            ),
             B.glossary("sonnig / regnerisch" to "Sunny / rainy.", "Verein" to "Club (der), where Germans do their sport.", "Ausflug" to "Day trip (der)."),
             B.recap("Hobbies as verbs: schwimmen, lesen, kochen; or Ich spiele / Ich mache + noun.", "gern, lieber, am liebsten for likes and preferences.", "Weather: Es ist …, Es regnet, Die Sonne scheint; seasons and months take im."),
         ),
@@ -255,6 +275,26 @@ internal object GermanA1M9 {
                 B.w("m9-schoen", "schön", "nice, beautiful", "Das Wetter ist schön.", "The weather is nice."),
             ),
             B.check("de9-dialogue-k1", "de9-dialogue", "'Bei Regen ist das Fest in der Stadthalle' means", listOf("the festival is cancelled if it rains", "if it rains the festival moves indoors", "the festival is only on rainy days"), 1, "bei Regen = in case of rain; Stadthalle is the town hall building."),
+            B.check(
+                "de9-dialogue-k2", "de9-dialogue",
+                "Sanya says 'Am liebsten lese ich.' Why is ich behind the verb?",
+                listOf("something other than the subject came first", "it is a question", "liebsten always takes that order"), 0,
+                "Am liebsten is in first position, so the verb keeps second place and the subject goes behind it. The rule is the same one that moves ich in Heute bin ich müde.",
+                whyWrong = mapOf(
+                    1 to "A question would have no first element in front of the verb at all.",
+                    2 to "It is the position, not the word. Ich lese am liebsten is just as correct.",
+                ),
+            ),
+            B.check(
+                "de9-dialogue-k3", "de9-dialogue",
+                "The forecast says 'Morgen regnet es den ganzen Tag, nur 15 Grad.' Tomorrow is",
+                listOf("rainy and cooler", "sunny and warm", "cloudy in the evening only"), 0,
+                "regnet es is it rains, and nur 15 Grad marks the drop against today's 28.",
+                whyWrong = mapOf(
+                    1 to "That is today in the same forecast, which is the sentence before it.",
+                    2 to "The clouds are this evening. Tomorrow it rains all day.",
+                ),
+            ),
             B.glossary("Zuhörer" to "Listeners (radio).", "Stadthalle" to "Town hall for events (die).", "bis 28 Grad" to "Up to 28 degrees."),
             B.recap("Weekend plans with am Samstag … gehe ich …", "Weather: heute, morgen, am Wochenende, then sonnig, Regen, Grad.", "Bei Regen …: a condition the exam likes to test."),
         ),
@@ -290,6 +330,24 @@ internal object GermanA1M9 {
             B.gap("de9-p-gap2", "Perfekt participle.", "Wir haben am Sonntag ___. (kochen)", "gekocht"),
             B.gap("de9-p-gap3", "Word order: which word comes second?", "Am Samstag ___ wir ins Kino. (gehen)", "gehen"),
             B.h("Schreiben"),
+            B.worked("""
+                Worked example. Usaid replies to Tom. Thank him first: Vielen Dank für die Einladung. Then say yes
+                and with whom, with mit plus the dative: Ich komme gern, und ich bringe Sanya mit. Then a question,
+                so there is something to answer: Was soll ich mitbringen? Then the rainy plan, with bei setting the
+                condition: Bei Regen kommen wir zu dir.
+            """),
+            B.faded(
+                "de9-practice-f1",
+                "Sanya replies to the same invitation. She is coming with a friend, she wants to know whether to bring cake, and in the rain she would rather go to the café.",
+                listOf(
+                    "Thank him: Vielen Dank für die Einladung.",
+                    "Say yes and with whom, with mit plus the dative: Ich komme gern, und ich komme mit einer Freundin.",
+                    "Ask a question: Soll ich Kuchen mitbringen?",
+                    "The rainy plan. One short preposition sets the condition rather than naming a place: ___ Regen gehen wir ins Café.",
+                ),
+                3, listOf("bei"),
+                "bei Regen, bei Schnee, bei gutem Wetter: bei plus a weather word is the German for if it does that. It is two words where English needs a clause.",
+            ),
             B.marked("de9-p-write", "Reply to Tom (Schreiben part 2 style): thank him, say you are coming and with whom, ask what to bring, and say what you do if it rains.",
                 """
                 Hallo Tom, vielen Dank für deine E-Mail! Ja, ich komme gern am Samstag um vier Uhr in den Park. Sanya kommt auch mit. Was soll ich mitbringen? Vielleicht Getränke? Bei Regen kommen wir zu dir nach Hause. Bis Samstag! Viele Grüße, Usaid

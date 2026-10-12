@@ -61,7 +61,46 @@ internal object IeltsM4 {
                 Bicycle ownership, meanwhile, remained between 40 and 45 percent throughout, making it the
                 most stable of the three categories.
             """),
+            B.worked("""
+                Worked example. Read the report above against the four paragraphs. Sentence one paraphrases the task
+                and names the chart, the period and the three items. The second paragraph opens with Overall and
+                gives the three big movements with no figures at all. The third and fourth group the data rather than
+                listing it: the early years first, then the crossover and the end state, each with approximate
+                figures and a comparison. Nothing anywhere says why.
+            """),
+            B.faded(
+                "ie4-structure-f1",
+                "A different chart, the same four paragraphs. A pie chart pair shows how a city's households heated their homes in 2000 and 2020: gas fell from 65 to 30 percent, electricity rose from 20 to 55 percent, and oil stayed near 15 percent.",
+                listOf(
+                    "Introduction, one sentence, paraphrasing the task: The two pie charts compare the fuels used to heat homes in one city at two points twenty years apart.",
+                    "The overview. It names the big movements and carries ___ at all: Overall, electricity replaced gas as the main source of heating, while oil changed very little.",
+                    "Detail A, grouped and with approximate figures: In 2000, gas heated roughly two thirds of homes, over three times the proportion using electricity.",
+                    "Detail B, the remaining group and the comparison: By 2020 electricity had risen to about 55 percent, whereas gas had fallen to under a third. Oil remained close to 15 percent across both years.",
+                ),
+                1, listOf("no figures"),
+                "The overview is the paragraph the examiner looks for first and the one most reports are missing. It states what happened; the figures that prove it belong in the two detail paragraphs.",
+            ),
             B.check("ie4-structure-k1", "ie4-structure", "Which sentence belongs in the overview?", listOf("In 2005 cars stood at 70 percent.", "Overall, smartphone ownership rose dramatically while car ownership fell.", "This suggests people prefer phones to cars."), 1, "The overview states big features without figures. The first has numbers; the third gives a reason, which Task 1 never does."),
+            B.check(
+                "ie4-structure-k2", "ie4-structure",
+                "A report with no overview is capped at which band for Task Achievement?",
+                listOf("5", "7", "6"), 0,
+                "However accurate the figures and however good the English, the missing paragraph puts a ceiling on the criterion.",
+                whyWrong = mapOf(
+                    1 to "A 7 needs every part of the task covered, and the overview is a part.",
+                    2 to "The cap is lower than people expect, which is why the paragraph is worth starting with Overall.",
+                ),
+            ),
+            B.check(
+                "ie4-structure-k3", "ie4-structure",
+                "You copy the question's first sentence into your introduction. Those words",
+                listOf("are not counted toward the 150", "are fine, since the task supplied them", "cost a band outright"), 0,
+                "Copied wording is discounted, so a report that opens with it can fall under the word count without looking short.",
+                whyWrong = mapOf(
+                    1 to "Being given the words is exactly why they do not count as yours.",
+                    2 to "No single band is taken off; the damage is the length penalty and a weak Lexical Resource.",
+                ),
+            ),
             B.mistakes(
                 "Copying the question sentence into the introduction; copied words are not counted toward the 150.",
                 "Listing every number with no grouping or comparison.",
@@ -149,6 +188,45 @@ internal object IeltsM4 {
             ),
             B.remember("'Percent' and 'percentage point' are different. Going from 20 percent to 25 percent is a rise of five percentage points, or a 25 percent increase. When unsure, write 'from 20 to 25 percent' and avoid the trap."),
             B.check("ie4-language-k1", "ie4-language", "Which sentence is correct and varied?", listOf("The number of users increased dramatically between 2010 and 2020.", "The number of users was dramatically increase from 2010 until 2020.", "The users number increased dramatic in 2010 to 2020."), 0, "Verb plus adverb, with the correct prepositions 'between … and'."),
+            B.check(
+                "ie4-language-k2", "ie4-language",
+                "A bar sits a little under halfway. The safest thing to write is",
+                listOf("just under 50 percent", "exactly 50 percent", "roughly 45 percent"), 0,
+                "Approximation is expected and rewarded. A precise figure you cannot read off the chart is a factual error waiting to be marked.",
+                whyWrong = mapOf(
+                    1 to "exactly claims a reading the chart does not give you.",
+                    2 to "roughly 45 is also a claim, and a less defensible one than just under 50.",
+                ),
+            ),
+            B.check(
+                "ie4-language-k3", "ie4-language",
+                "'There was a sharp fall in prices' is the same movement as",
+                listOf("Prices fell sharply.", "Prices were sharply fallen.", "Prices fall sharp."), 0,
+                "Adjective plus noun and verb plus adverb are the two ways to say one thing. Alternating between them is most of Lexical Resource in a report.",
+                whyWrong = mapOf(
+                    1 to "fall is intransitive, so it has no passive.",
+                    2 to "sharp is the adjective; the verb needs the adverb sharply.",
+                ),
+            ),
+            B.worked("""
+                Worked example. One movement, written four ways. The line graph shows sales climbing steeply from
+                2010 to 2015. Verb plus adverb: Sales rose sharply between 2010 and 2015. Adjective plus noun: There
+                was a sharp rise in sales over the same period. With the figure attached: Sales climbed steeply, from
+                around 2 million to roughly 6 million. As a comparison: By 2015 sales stood at three times the 2010
+                figure. Four sentences, one fact, and no word reused.
+            """),
+            B.faded(
+                "ie4-language-f1",
+                "A different movement: visitor numbers drop a little each year, from 800,000 in 2015 to 750,000 in 2020.",
+                listOf(
+                    "Verb plus adverb, and a small change takes a small adverb: Visitor numbers fell gradually between 2015 and 2020.",
+                    "Adjective plus noun, which needs the matching adjective: There was a ___ decline in visitor numbers over the five-year period.",
+                    "With the figures attached: Numbers dipped from approximately 800,000 to around 750,000.",
+                    "As a comparison: The 2020 figure was marginally lower than that recorded five years earlier.",
+                ),
+                1, listOf("gradual", "slight", "marginal", "steady"),
+                "The adjective has to match the size of the change the adverb claimed. Writing a dramatic decline after calling it gradual is a contradiction the examiner reads as carelessness.",
+            ),
             B.vocab(
                 B.w("ie4-fluctuate", "fluctuate", "rise and fall irregularly", "Prices fluctuated throughout the year.", "Noun: fluctuation."),
                 B.w("ie4-plateau", "plateau / level off", "stop changing", "Numbers levelled off after 2015.", "Also: remained stable."),
@@ -235,6 +313,45 @@ internal object IeltsM4 {
                 listOf("Expanded", "was extended, was widened, now occupies a larger area"),
             ),
             B.check("ie4-kinds-k1", "ie4-kinds", "For a process diagram, the overview should state", listOf("the main trend and the highest figure", "the number of stages and whether it is a cycle", "why the process is used"), 1, "Processes have no figures and no trends; stages and shape are the big features."),
+            B.check(
+                "ie4-kinds-k2", "ie4-kinds",
+                "Task 1 is a map of a village in 1990 and today. The verbs you reach for are",
+                listOf("was replaced by, was converted into, has been built", "rose, fell, peaked", "argues, suggests, demonstrates"), 0,
+                "A map has no quantities, so nothing can rise or fall. It has changes, and they are described in the passive.",
+                whyWrong = mapOf(
+                    1 to "Trend verbs need a number to move, and a map gives none.",
+                    2 to "Those belong to Task 2, where there is an argument to report.",
+                ),
+            ),
+            B.check(
+                "ie4-kinds-k3", "ie4-kinds",
+                "Given a table rather than a graph, you group the detail",
+                listOf("by row or by column", "cell by cell", "by whichever cells are most interesting"), 0,
+                "A table is read in lines. Taking it cell by cell produces a list rather than a report, which is what caps Coherence.",
+                whyWrong = mapOf(
+                    1 to "That is the listing the criterion penalises.",
+                    2 to "Interest is not a grouping, and it leaves the rest of the table unreported.",
+                ),
+            ),
+            B.worked("""
+                Worked example. The same four paragraphs, bent to a process. Introduction: The diagram illustrates
+                how recycled paper is produced. Overview: it says how many stages there are, where it starts and
+                ends, and whether it is a cycle, because that is what a process has instead of a trend. The two detail
+                paragraphs follow the sequence rather than grouping by size, and every verb is passive: the paper is
+                collected, the pulp is bleached. No reason is given for any step.
+            """),
+            B.faded(
+                "ie4-kinds-f1",
+                "A map instead: a coastal village in 1990 and today. The farmland to the east is now housing, the small harbour has become a marina, and the single shop on the main road is unchanged.",
+                listOf(
+                    "Introduction: The two maps show how a coastal village changed over roughly thirty years.",
+                    "The overview, which for a map states the scale and direction of change: Overall, the village developed from a farming settlement into a residential and tourist one, with most of the change taking place to the east.",
+                    "Detail, in the passive, because a map says what was done and not who did it: The farmland east of the village ___ replaced by housing.",
+                    "What stayed, which is as reportable as what moved: The shop on the main road remains in its original position.",
+                ),
+                2, listOf("was", "has been"),
+                "A map task is written in the passive throughout. It keeps you from inventing an actor, which is the map equivalent of explaining a trend.",
+            ),
             B.gap("ie4-k-g1", "Process language, passive voice.", "The beans ___ then roasted at high temperature.", "are"),
             B.gap("ie4-k-g2", "Map language.", "A supermarket ___ built on the site of the old school.", "was", "has been"),
             B.h("Two charts in one task"),
@@ -318,6 +435,45 @@ internal object IeltsM4 {
                 "Counted how many different movement verbs you used", "Replaced any repeated verb with a noun form", "Checked every from/to and between/and", "Rewrote the overview without a single figure", "Timed yourself: 20 minutes, no more",
             ),
             B.check("ie4-practice-k1", "ie4-practice", "Your report has four paragraphs and figures but the marker says the overview is missing. The likely cause is", listOf("too few words", "no sentence starting Overall or In general", "too many comparisons"), 1, "The marker, like the examiner, looks for an explicit overview statement."),
+            B.check(
+                "ie4-practice-k2", "ie4-practice",
+                "Of the sixty minutes for Writing, Task 1 should take",
+                listOf("twenty", "thirty", "whatever is left after Task 2"), 0,
+                "Task 2 carries twice the marks, so it gets forty minutes. Spending half the hour on the report costs you where the marks are.",
+                whyWrong = mapOf(
+                    1 to "Half and half gives the smaller task the same time as the one worth double.",
+                    2 to "Leaving it to the end means writing 150 words in whatever is left, which is usually ten minutes.",
+                ),
+            ),
+            B.check(
+                "ie4-practice-k3", "ie4-practice",
+                "You write 130 words for Task 1. The result is",
+                listOf("an automatic penalty for length", "nothing, if the content is complete", "a deduction only in Academic"), 0,
+                "Under 150 words is penalised whatever is in them, which is why the overview and two grouped details are a word count as well as a structure.",
+                whyWrong = mapOf(
+                    1 to "The minimum is applied before the content is judged.",
+                    2 to "The rule is the same in both versions of the test.",
+                ),
+            ),
+            B.worked("""
+                Worked example. How to spend the twenty minutes. Two minutes reading the chart and deciding the two
+                groups the detail paragraphs will take. One minute writing the introduction, paraphrasing the task
+                rather than copying it. Two minutes on the overview, naming the big movements with no figures.
+                Twelve minutes on the two detail paragraphs, with approximate figures and a comparison in each. Three
+                minutes checking the count is over 150 and that no sentence explains why anything happened.
+            """),
+            B.faded(
+                "ie4-practice-f1",
+                "You open Task 1 and it is a bar chart with four categories at two dates. Plan the twenty minutes before writing a word.",
+                listOf(
+                    "Two minutes reading it, and the decision you make is which categories go together, so the detail paragraphs have a shape.",
+                    "One minute on the introduction, paraphrasing the task rather than copying it.",
+                    "Two minutes on the overview. It names the largest and smallest and the biggest gap, and it begins with the word the examiner looks for: ___",
+                    "Twelve minutes on the two detail paragraphs, three checking the length and that nothing explains why.",
+                ),
+                2, listOf("Overall"),
+                "Overall, or In general. It is one word, it costs nothing, and without it the whole criterion is capped at 5.",
+            ),
             B.vocab(
                 B.w("ie4-cullet", "cullet", "crushed recycled glass", "The cullet is melted in a furnace.", "Process vocabulary."),
                 B.w("ie4-furnace", "furnace", "a very hot oven", "Melted in a furnace at 1500 degrees.", "Manufacturing processes."),

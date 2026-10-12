@@ -72,6 +72,26 @@ internal object GermanA1M6 {
                 aspect = 0.4f,
             ),
             B.check("de6-words-k1", "de6-words", "'Ich bin ___ Informatiker.'", listOf("ein", "der", "nothing"), 2, "Jobs after sein take no article: Ich bin Informatiker."),
+            B.check(
+                "de6-words-k2", "de6-words",
+                "Sanya teaches. Her job title is",
+                listOf("Lehrerin", "Lehrer", "Lehrerinnen"), 0,
+                "-in makes the female form of a job. It is the busiest ending in this whole vocabulary list.",
+                whyWrong = mapOf(
+                    1 to "Lehrer is the male form, and the one a dictionary gives you first.",
+                    2 to "Lehrerinnen is the plural: several women.",
+                ),
+            ),
+            B.check(
+                "de6-words-k3", "de6-words",
+                "A colleague says 'Schönen Feierabend!' as you leave. They mean",
+                listOf("enjoy the end of your working day", "happy holiday", "have a good party"), 0,
+                "Feierabend is the moment work stops, and German has a word for it because it is treated as an event.",
+                whyWrong = mapOf(
+                    1 to "Urlaub is the holiday, and that would be Schönen Urlaub.",
+                    2 to "The feier- in it suggests a party, which is the trap. Nobody is going anywhere but home.",
+                ),
+            ),
             B.glossary("von Beruf" to "By profession: Was sind Sie von Beruf?", "Kunde" to "Customer (der).", "Aufgabe" to "Task (die)."),
             B.recap("Job titles without an article; -in for the female form.", "Workplace and school words: Büro, Firma, Klasse, Unterricht, Prüfung, Pause.", "Verbs of the working day: anfangen, aufhören, helfen, erklären, verdienen."),
         ),
@@ -240,6 +260,26 @@ internal object GermanA1M6 {
                 B.w("m6-faellt-aus", "fällt aus", "is cancelled", "Der Kurs fällt aus.", "The course is cancelled."),
             ),
             B.check("de6-dialogue-k1", "de6-dialogue", "'Auf Wiederhören' is used", listOf("on the phone", "in a shop", "at the door"), 0, "Wiederhören = hear again: the phone goodbye. Auf Wiedersehen is face to face."),
+            B.check(
+                "de6-dialogue-k2", "de6-dialogue",
+                "Asked what she does, Sanya says 'Ich unterrichte Englisch an einer Schule.' unterrichten is",
+                listOf("to teach", "to study", "to understand"), 0,
+                "Unterricht is the lesson, and unterrichten is to give one.",
+                whyWrong = mapOf(
+                    1 to "lernen is to study, which is what her pupils do.",
+                    2 to "verstehen is to understand.",
+                ),
+            ),
+            B.check(
+                "de6-dialogue-k3", "de6-dialogue",
+                "Usaid's voicemail says who he is, that he is ill, and that Herr Khan can take the meeting. What is still missing?",
+                listOf("when he is back", "an apology", "his phone number"), 0,
+                "Who, what is wrong, what should happen, when you return: the fourth part is the one people drop, and the exam marks all four.",
+                whyWrong = mapOf(
+                    1 to "leider carries the apology, and more than that sounds odd in German.",
+                    2 to "He gives it: Sie können mich auf dem Handy anrufen.",
+                ),
+            ),
             B.glossary("Meeting / Besprechung" to "Meeting (das / die).", "Raum" to "Room (der), used for classrooms.", "Achtung" to "Attention."),
             B.recap("Ich bin … von Beruf. Ich arbeite bei … / an einer Schule.", "Voicemail: who, problem, what should happen, when you are back.", "Announcements: listen for the day, the time and the room."),
         ),
@@ -273,6 +313,24 @@ internal object GermanA1M6 {
             B.gap("de6-p-gap2", "Modal verb.", "___ Sie mir helfen? (können)", "Können", "können"),
             B.gap("de6-p-gap3", "Possessive.", "Wie heißt ___ Chef? (du, der Chef)", "dein"),
             B.h("Schreiben"),
+            B.worked("""
+                Worked example. Usaid writes to his manager. The formal opening takes a title and a comma: Sehr
+                geehrte Frau Braun, and the next word stays lower case. Then the problem, with leider softening it:
+                ich kann morgen leider nicht ins Büro kommen. Then the reason: Ich bin krank. Then when he is back:
+                Am Donnerstag bin ich wieder da. Then a question. Last the formal sign-off: Mit freundlichen Grüßen.
+            """),
+            B.faded(
+                "de6-practice-f1",
+                "Sanya writes the same email to her head teacher, Herr Braun. She cannot teach on Monday, she has a doctor's appointment, and she is back on Tuesday.",
+                listOf(
+                    "The formal opening. A man takes geehrter rather than geehrte: Sehr ___ Herr Braun,",
+                    "The problem, softened with leider: ich kann am Montag leider nicht kommen.",
+                    "The reason, with a modal pushing the verb to the end: Ich muss zum Arzt gehen.",
+                    "When you are back, then the question and the sign-off: Am Dienstag bin ich wieder da. Können Sie bitte die Klasse informieren? Mit freundlichen Grüßen, Sanya Khan",
+                ),
+                0, listOf("geehrter"),
+                "geehrte for a woman, geehrter for a man. It is one letter, it is the first word of the email, and the marker reads it first.",
+            ),
             B.marked("de6-p-write", "Write an email to your boss or teacher (Schreiben part 2 style): say you cannot come tomorrow, say why, say when you can come, and ask a question about the meeting or lesson.",
                 """
                 Sehr geehrte Frau Braun, ich kann morgen leider nicht ins Büro kommen. Ich bin krank und muss zum Arzt gehen. Am Donnerstag bin ich wieder da und kann arbeiten. Können wir das Meeting am Donnerstag machen? Mit freundlichen Grüßen, Usaid Shahab

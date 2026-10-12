@@ -52,6 +52,26 @@ internal object GermanA1M12 {
                 B.w("m12-pruefer", "Prüfer / Prüferin", "examiner", "Die Prüferin stellt Fragen.", "The examiner asks questions.", article = "der"),
             ),
             B.check("de12-overview-k1", "de12-overview", "You score 10 in Hören, 20 in Lesen, 18 in Schreiben and 14 in Sprechen (all scaled). Result?", listOf("Pass, 62", "Fail, 58", "Pass only if Hören is retaken"), 0, "10 + 20 + 18 + 14 = 62, and there is no per-paper minimum."),
+            B.check(
+                "de12-overview-k2", "de12-overview",
+                "Which paper is not sat alone?",
+                listOf("Sprechen", "Hören", "Schreiben"), 0,
+                "Sprechen is a group of up to four candidates with two examiners, and parts 2 and 3 go round the group.",
+                whyWrong = mapOf(
+                    1 to "Hören is played to the room, but every candidate answers on their own sheet.",
+                    2 to "Schreiben is written alone, on paper.",
+                ),
+            ),
+            B.check(
+                "de12-overview-k3", "de12-overview",
+                "Where do your Hören answers have to end up?",
+                listOf("on the Antwortbogen", "in the question booklet", "either, they are both collected"), 0,
+                "You transfer them to the answer sheet during the pauses. Only the Antwortbogen is marked.",
+                whyWrong = mapOf(
+                    1 to "The booklet is working paper. Marks are read off the answer sheet alone.",
+                    2 to "The pauses exist for exactly this transfer, so the booklet is not read.",
+                ),
+            ),
             B.glossary("Start Deutsch 1" to "The older name of the same exam.", "Prüfungsteilnehmer" to "Candidate.", "Zertifikat" to "The certificate you receive."),
             B.recap("Four papers of 25 each; 60 passes; no per-paper minimum.", "Hören and Sprechen are where instructions matter most; know the format cold.", "Pencil, passport, answer sheet; the timings above are the whole day."),
         ),
@@ -113,6 +133,26 @@ internal object GermanA1M12 {
                 B.w("m12-spaeter", "später", "later", "Der Kurs beginnt eine Stunde später.", "The course starts an hour later."),
             ),
             B.check("de12-listening-k1", "de12-listening", "You hear 'nicht am Dienstag, sondern am Mittwoch'. The statement says the appointment is on Tuesday. You tick", listOf("Richtig", "Falsch"), 1, "nicht … sondern replaces the first with the second: Wednesday. Falsch."),
+            B.check(
+                "de12-listening-k2", "de12-listening",
+                "Which part of Hören is played once only?",
+                listOf("Teil 2, the announcements", "Teil 1, the dialogues", "Teil 3, the phone messages"), 0,
+                "Teil 2 is heard once, so the reading window before it is the whole strategy: know the one detail you are listening for.",
+                whyWrong = mapOf(
+                    1 to "Teil 1 is heard twice, which is why you can take the gist first and the detail second.",
+                    2 to "Teil 3 is heard twice as well.",
+                ),
+            ),
+            B.check(
+                "de12-listening-k3", "de12-listening",
+                "A speaker says 'um neun, nein, um halb zehn'. The answer is",
+                listOf("half past nine", "nine", "both are wrong, it was a mistake"), 0,
+                "Speakers correct themselves on purpose. The second number is always the one that counts.",
+                whyWrong = mapOf(
+                    1 to "That is the one being withdrawn, and it is the one the options will offer you.",
+                    2 to "The correction is the point of the item, not a slip.",
+                ),
+            ),
             B.mistakes(
                 "Ticking the first number you hear; wait for the correction.",
                 "Choosing an option because its word appeared; check it is the answer to the question.",
@@ -200,6 +240,26 @@ internal object GermanA1M12 {
             ),
             B.remember("If you do not understand, say 'Wie bitte?' or 'Noch einmal, bitte'. Asking for a repeat costs nothing; silence costs the point."),
             B.check("de12-speaking-k1", "de12-speaking", "In part 2 the card says 'Familie: Kinder'. The best question is", listOf("Kinder?", "Hast du Kinder?", "Ich habe keine Kinder."), 1, "A full question with the word; the answer is then a full sentence."),
+            B.check(
+                "de12-speaking-k2", "de12-speaking",
+                "You do not catch what the examiner asked. You say",
+                listOf("Wie bitte? Können Sie das wiederholen?", "nothing, and wait", "an answer to a different question"), 0,
+                "Asking for a repeat costs nothing at all and is the one move that rescues the item. Silence scores zero.",
+                whyWrong = mapOf(
+                    1 to "A pause reads as not understanding, and nothing arrives to change it.",
+                    2 to "Answering something else is marked as not having understood, and it uses up your turn.",
+                ),
+            ),
+            B.check(
+                "de12-speaking-k3", "de12-speaking",
+                "Part 3 shows a picture card. You are expected to produce",
+                listOf("a polite request, and an answer to the one you are given", "a description of the picture", "a question about the picture"), 0,
+                "Teil 3 is requests: the card shows a thing, you ask for it with Können Sie bitte … and answer the request made of you.",
+                whyWrong = mapOf(
+                    1 to "Describing the picture is not asked for and spends the turn.",
+                    2 to "Questions from a word card are Teil 2.",
+                ),
+            ),
             B.mistakes(
                 "One-word answers in part 2; always a full sentence.",
                 "Reading the card word instead of making a question with it.",

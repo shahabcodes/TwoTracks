@@ -44,6 +44,26 @@ internal object IeltsM3 {
             ),
             B.tip("General Training candidates often lose marks in section 1 by rushing the easy texts. Six marks there are worth the same as six in the long passage and take a third of the time."),
             B.check("ie3-timing-k1", "ie3-timing", "You have five minutes left and six questions blank. The best move is", listOf("read the passage again carefully", "fill every blank with a plausible guess", "leave them blank to avoid errors"), 1, "There is no penalty for wrong answers, so a blank wastes a possible mark."),
+            B.check(
+                "ie3-timing-k2", "ie3-timing",
+                "Twenty minutes are up on section 1 and three questions are unanswered. You should",
+                listOf("move to section 2 and come back if there is time", "finish section 1 properly first", "split the remaining time evenly over what is left"), 0,
+                "Every section carries the same marks, and section 3 holds the hardest questions. Overrunning section 1 pays for easy marks with hard ones you never see.",
+                whyWrong = mapOf(
+                    1 to "Those three questions cost the same as three in section 3, which you have not read at all.",
+                    2 to "Evening out the leftover is still a late start; the clock has to be enforced section by section.",
+                ),
+            ),
+            B.check(
+                "ie3-timing-k3", "ie3-timing",
+                "Before the questions you should read the passage",
+                listOf("as a two-minute skim of titles and topic sentences", "in full, carefully", "not at all"), 0,
+                "The skim tells you what each paragraph is about, which is what the questions ask you to use. Reading it in full means reading it twice.",
+                whyWrong = mapOf(
+                    1 to "A full read uses a third of the section's time and still has to be repeated once you know the questions.",
+                    2 to "Going in blind means hunting for every answer with no map at all.",
+                ),
+            ),
             B.h("Words you will not know"),
             B.p("Every passage contains vocabulary you have never seen. That is designed. You do not need the word; you need the sentence around it. If a question depends on an unknown word, the answer is usually a paraphrase in the next sentence or a contrast after 'but' or 'however'."),
             B.vocab(
@@ -154,6 +174,26 @@ internal object IeltsM3 {
             B.h("Worked example"),
             B.p("Paragraph: When the city introduced its bicycle-sharing scheme, planners expected commuters to be the main users. Surveys after the first year told a different story. Nearly two thirds of journeys were made at weekends, and the most popular routes ran through parks rather than between stations and offices. The scheme was, in effect, being used for recreation."),
             B.check("ie3-headings-k1", "ie3-headings", "Which heading fits the paragraph?", listOf("The cost of running a bicycle scheme", "An unexpected pattern of use", "How commuters travel to work"), 1, "The paragraph's whole point is that use differed from expectations. The other two match single words, not the idea."),
+            B.check(
+                "ie3-headings-k2", "ie3-headings",
+                "Nine headings are offered for six paragraphs. The three spares exist",
+                listOf("so a near-match cannot be reached by elimination", "because some paragraphs take two", "as a printing convention"), 0,
+                "The extras are built to be tempting. They also mean leftovers at the end are normal and not a sign you have gone wrong.",
+                whyWrong = mapOf(
+                    1 to "Each paragraph takes exactly one heading unless the instructions say otherwise, and they do not.",
+                    2 to "They are written, not left over.",
+                ),
+            ),
+            B.check(
+                "ie3-headings-k3", "ie3-headings",
+                "Matching information to paragraphs is best left until last because",
+                listOf("it is slow, and the keywords you located for other questions help", "it is worth fewer marks", "it is usually guessable"), 0,
+                "It sends you hunting through the whole passage for a detail. Doing it after the other types means you already know where most things are.",
+                whyWrong = mapOf(
+                    1 to "Every question in Reading is worth one mark.",
+                    2 to "A buried detail is the hardest thing in the paper to guess.",
+                ),
+            ),
             B.h("Matching information to paragraphs"),
             B.p("Here you are told a fact and must say which paragraph contains it. Unlike headings, the fact can be a detail buried anywhere, and one paragraph may hold two answers. This type is slow: leave it until last, and use the keywords you have already located while answering other questions."),
             B.h("Summary completion"),
