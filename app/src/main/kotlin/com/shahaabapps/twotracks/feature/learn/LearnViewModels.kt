@@ -383,41 +383,24 @@ class QuizViewModel @Inject constructor(
         }
     }
 
-    fun toggle(option: Int) = _uiState.update { s ->
-        if (s.revealed) return@update s
-        val q = s.question ?: return@update s
-        val next = if (q.multi) (if (option in s.selected) s.selected - option else s.selected + option) else setOf(option)
-        s.copy(selected = next)
-    }
+    fun toggle(option: Int) = _uiState.update { QuizFlow.toggled(it, option) }
 
     /** Records the answer. With instant feedback the explanation shows; in exam mode the next question follows at once. */
     fun check() {
-        val s = _uiState.value
-        val q = s.question ?: return
-        if (s.selected.isEmpty()) return
-        // Measured to here, not to Next: on instant feedback the explanation
-        // is read after answering, and reading it is not deciding.
-        val took = ((System.currentTimeMillis() - questionShownAt) / 1_000L).toInt().coerceAtLeast(1)
-        _uiState.update {
-            it.copy(
-                revealed = true,
-                answers = it.answers + (q.id to (it.selected == q.correct)),
-                picked = it.picked + (q.id to it.selected),
-                seconds = it.seconds + (q.id to took),
-            )
-        }
-        if (!s.instant) next()
+        val before = _uiState.value
+        val took = ((System.currentTimeMillis() - questionShownAt) / 1_000L).toInt()
+        val after = QuizFlow.answered(before, took)
+        // Nothing selected, or Check tapped twice: neither records anything,
+        // and neither should move the paper on.
+        if (after === before) return
+        _uiState.value = after
+        if (!before.instant) next()
     }
 
     fun next() {
-        val s = _uiState.value
-        if (s.index + 1 >= s.total) {
-            _uiState.update { it.copy(finished = true) }
-            save()
-        } else {
-            questionShownAt = System.currentTimeMillis()
-            _uiState.update { it.copy(index = it.index + 1, selected = emptySet(), revealed = false) }
-        }
+        val after = QuizFlow.advanced(_uiState.value)
+        _uiState.value = after
+        if (after.finished) save() else questionShownAt = System.currentTimeMillis()
     }
 
     private fun save() = viewModelScope.launch {

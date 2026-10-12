@@ -6,7 +6,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.shahaabapps.core.common.AppResult
 import com.shahaabapps.core.data.study.StudyRepository
-import com.shahaabapps.core.model.GoalComponent
 import com.shahaabapps.core.model.GoalKind
 import com.shahaabapps.core.model.StudyGoal
 import com.shahaabapps.core.planner.FitPlanner
@@ -22,7 +21,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import java.util.Locale
 import javax.inject.Inject
 
 data class ComponentDraft(val id: String, val name: String, val hours: String, val targetScore: String)
@@ -47,10 +45,7 @@ data class GoalEditUiState(
     /** Set when the save would overload the level: the sheet with the two ways out. */
     val fit: FitCheck? = null,
 ) {
-    val canSave: Boolean
-        get() = title.isNotBlank() && !saving && components.isNotEmpty() &&
-            components.all { it.name.isNotBlank() && (it.hours.toDoubleOrNull() ?: 0.0) > 0.0 } &&
-            (targetDateIso.isBlank() || Dates.parseOrNull(targetDateIso) != null)
+    val canSave: Boolean get() = GoalDrafts.canSave(this)
 }
 
 /** What the sheet shows: the computed result plus the level it was checked against. */
@@ -98,7 +93,7 @@ class GoalEditViewModel @Inject constructor(
                     it.copy(
                         loaded = true, title = goal.title, subtitle = goal.subtitle, why = goal.why, kind = goal.kind,
                         priority = goal.priority.toString(), targetDateIso = goal.targetDateIso.orEmpty(), active = goal.active,
-                        components = goal.components.map { c -> ComponentDraft(c.id, c.name, trimHours(c.hoursRequired), c.targetScore.orEmpty()) },
+                        components = goal.components.map { c -> ComponentDraft(c.id, c.name, GoalDrafts.hoursField(c.hoursRequired), c.targetScore.orEmpty()) },
                         canDelete = true,
                     )
                 }
@@ -106,13 +101,11 @@ class GoalEditViewModel @Inject constructor(
         }
     }
 
-    private fun trimHours(h: Double) = if (h % 1.0 == 0.0) h.toInt().toString() else h.toString()
-
     fun onTitle(v: String) = _uiState.update { it.copy(title = v) }
     fun onSubtitle(v: String) = _uiState.update { it.copy(subtitle = v) }
     fun onWhy(v: String) = _uiState.update { it.copy(why = v) }
     fun onKind(v: GoalKind) = _uiState.update { it.copy(kind = v) }
-    fun onPriority(v: String) = _uiState.update { it.copy(priority = v.filter { c -> c.isDigit() }.take(3)) }
+    fun onPriority(v: String) = _uiState.update { it.copy(priority = GoalDrafts.priorityField(v)) }
     fun onTargetDate(v: String) = _uiState.update { it.copy(targetDateIso = v.trim()) }
     fun onActive(v: Boolean) = _uiState.update { it.copy(active = v) }
     fun onRequiredForLevel(v: Boolean) = _uiState.update { it.copy(requiredForLevel = v) }
@@ -129,24 +122,11 @@ class GoalEditViewModel @Inject constructor(
 
     fun removeComponent(index: Int) = _uiState.update { s -> s.copy(components = s.components.filterIndexed { i, _ -> i != index }) }
 
-    fun applyPreset(names: List<String>, hoursEach: Int) = _uiState.update { s ->
-        s.copy(components = names.map { n -> ComponentDraft(n.lowercase(Locale.ENGLISH).replace(' ', '-'), n, hoursEach.toString(), "") })
-    }
+    fun applyPreset(names: List<String>, hoursEach: Int) =
+        _uiState.update { it.copy(components = GoalDrafts.preset(names, hoursEach)) }
 
-    private fun buildGoal(s: GoalEditUiState, owner: com.shahaabapps.core.model.PersonRole): StudyGoal {
-        val base = original ?: StudyGoal(id = "", owner = owner)
-        return base.copy(
-                title = s.title.trim(), subtitle = s.subtitle.trim(), why = s.why.trim(), kind = s.kind,
-                priority = s.priority.toIntOrNull() ?: 50, targetDateIso = s.targetDateIso.ifBlank { null }, active = s.active,
-                components = s.components.map { c ->
-                    GoalComponent(
-                        id = c.id.ifBlank { c.name.lowercase(Locale.ENGLISH).replace(' ', '-') }, name = c.name.trim(),
-                        hoursRequired = c.hours.toDoubleOrNull() ?: 0.0, targetScore = c.targetScore.ifBlank { null },
-                    )
-                },
-            defaultHours = false,
-        )
-    }
+    private fun buildGoal(s: GoalEditUiState, owner: com.shahaabapps.core.model.PersonRole): StudyGoal =
+        GoalDrafts.build(s, owner, original)
 
     /**
      * Runs the fit check first. If the hours still fit the level by its due
