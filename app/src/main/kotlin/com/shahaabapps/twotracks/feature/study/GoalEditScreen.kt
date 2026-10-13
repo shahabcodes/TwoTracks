@@ -105,6 +105,10 @@ fun GoalEditContent(
     onSave: () -> Unit,
     onDelete: () -> Unit,
 ) {
+    if (AppTheme.departures) {
+        BoardGoalEdit(s, onCancel, onTitle, onWhy, onKind, onTargetDate, onPriority, onRequiredForLevel, onComponent, onAddComponent, onRemoveComponent, onPreset, onSave, onDelete)
+        return
+    }
     Scaffold(
         containerColor = AppTheme.colors.groupedBackground,
         bottomBar = {

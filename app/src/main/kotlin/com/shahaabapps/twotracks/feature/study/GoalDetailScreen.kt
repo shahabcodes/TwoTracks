@@ -123,7 +123,13 @@ fun GoalDetailContent(
     val goal = state.goal
     val p = state.progress
     val color = AppTheme.colors.track(goal?.owner != PersonRole.TEACHER)
-    DetailScaffold(
+    if (AppTheme.departures) {
+        BoardGoalBody(
+            state, snackbar, onBack = onBack, onEdit = onEdit, onOpenCourse = onOpenCourse,
+            onAskPass = { confirmPass = true }, onReopen = { onSetPassed(false) }, onAddMock = { showMock = true },
+            onDeleteMock = onDeleteMock, onDeleteLog = onDeleteLog,
+        )
+    } else DetailScaffold(
         title = goal?.title ?: "Goal", onBack = onBack, backLabel = "Back",
         eyebrow = goal?.let { goalEyebrow(it) },
         actions = { if (state.isMine) NavAction("Edit", onEdit) },

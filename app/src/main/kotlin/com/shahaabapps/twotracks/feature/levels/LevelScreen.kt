@@ -106,72 +106,21 @@ fun LevelContent(
     LaunchedEffect(state.message) { state.message?.let { snackbar.showSnackbar(it); onMessageShown() } }
 
     val p = state.progress
-    val color = AppTheme.colors.track(state.isTech)
-    val eyebrowInk = when {
-        p == null -> color
-        p.state == LevelState.DONE -> AppTheme.colors.success
-        p.isOverdue -> AppTheme.colors.warn
-        p.state == LevelState.OPEN -> color
-        else -> AppTheme.colors.secondaryLabel
-    }
-    DetailScaffold(
-        title = p?.level?.name ?: "Level", onBack = onBack, backLabel = "Back to levels",
-        eyebrow = p?.let { levelEyebrow(it, if (state.isMine) null else state.ownerName) }, eyebrowColor = eyebrowInk,
-    ) {
-        if (p == null) return@DetailScaffold
-        Box {
-            LazyColumn(contentPadding = PaddingValues(bottom = Spacing.xl)) {
-                item { Header(p, color) }
-                item { HorizontalDivider(color = AppTheme.colors.ink, thickness = Spacing.rule, modifier = Modifier.padding(start = Spacing.listHorizontal, end = Spacing.listHorizontal, top = 20.dp)) }
-                p.items.forEach { ip ->
-                    item(key = ip.item.id) {
-                        val item = ip.item
-                        val row: @Composable () -> Unit = {
-                            ItemRow(
-                                ip, color, state,
-                                onClick = when (item.kind) {
-                                    LevelItemKind.GOAL -> item.goalId?.takeIf { it in state.goalsById }?.let { id -> { onOpenGoal(id) } }
-                                    LevelItemKind.TASK -> if (state.isMine) ({ haptic.performHapticFeedback(HapticFeedbackType.LongPress); onToggleTask(item) }) else null
-                                    LevelItemKind.COUNT -> null
-                                },
-                            )
-                        }
-                        if (item.id.startsWith("custom-") && state.isMine) {
-                            // Re-keying on swipeReset snaps the row back if the user taps "Keep".
-                            key(item.id, swipeReset) { SwipeToDelete(onDelete = { confirmRemove = item }) { Box(Modifier.background(AppTheme.colors.groupedBackground)) { row() } } }
-                        } else {
-                            row()
-                        }
-                    }
-                }
-                if (p.level.number == 5 && state.isMine) {
-                    item { Branch(p.level.branch, onChooseBranch) }
-                }
-                if (state.isMine) {
-                    item {
-                        Column(modifier = Modifier.padding(start = Spacing.listHorizontal, end = Spacing.listHorizontal, top = 18.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                            val shape = RoundedCornerShape(12.dp)
-                            Row(
-                                horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally), verticalAlignment = Alignment.CenterVertically,
-                                modifier = Modifier.fillMaxWidth().height(50.dp).clip(shape).border(Spacing.rule, AppTheme.colors.separator, shape)
-                                    .clickable(role = Role.Button) { adding = true },
-                            ) {
-                                Icon(Icons.Filled.Add, contentDescription = null, tint = AppTheme.colors.ink, modifier = Modifier.size(16.dp))
-                                Text("Add a goal to this level", style = MaterialTheme.typography.labelLarge.copy(fontSize = 15.sp), color = AppTheme.colors.ink)
-                            }
-                            val next = state.next
-                            if (next != null && next.state == LevelState.LOCKED) {
-                                Box(
-                                    contentAlignment = Alignment.Center,
-                                    modifier = Modifier.fillMaxWidth().height(50.dp).clip(shape).clickable(role = Role.Button, onClick = onStartNext),
-                                ) { Text("Start Level ${next.level.number} early", style = MaterialTheme.typography.labelLarge.copy(fontSize = 15.sp), color = AppTheme.colors.accentText) }
-                            }
-                        }
-                    }
-                }
-            }
-            SnackbarHost(snackbar, modifier = Modifier.align(Alignment.BottomCenter))
+    val clickOf: (LevelItem) -> (() -> Unit)? = { item ->
+        when (item.kind) {
+            LevelItemKind.GOAL -> item.goalId?.takeIf { it in state.goalsById }?.let { id -> { onOpenGoal(id) } }
+            LevelItemKind.TASK -> if (state.isMine) ({ haptic.performHapticFeedback(HapticFeedbackType.LongPress); onToggleTask(item) }) else null
+            LevelItemKind.COUNT -> null
         }
+    }
+    val removable: (LevelItem) -> Boolean = { it.id.startsWith("custom-") && state.isMine }
+    if (AppTheme.departures) {
+        BoardLevelBody(
+            state, snackbar, swipeReset, onBack = onBack, clickOf = clickOf, removable = removable,
+            onRemove = { confirmRemove = it }, onAdd = { adding = true }, onStartNext = onStartNext, onChooseBranch = onChooseBranch,
+        )
+    } else {
+        LevelBody(state, snackbar, swipeReset, onBack, clickOf, removable, onRemove = { confirmRemove = it }, onAdd = { adding = true }, onStartNext = onStartNext, onChooseBranch = onChooseBranch)
     }
 
     if (adding) {
@@ -215,6 +164,80 @@ fun LevelContent(
                 }
             },
         )
+    }
+}
+
+@Composable
+private fun LevelBody(
+    state: LevelUiState,
+    snackbar: SnackbarHostState,
+    swipeReset: Int,
+    onBack: () -> Unit,
+    clickOf: (LevelItem) -> (() -> Unit)?,
+    removable: (LevelItem) -> Boolean,
+    onRemove: (LevelItem) -> Unit,
+    onAdd: () -> Unit,
+    onStartNext: () -> Unit,
+    onChooseBranch: (String) -> Unit,
+) {
+    val p = state.progress
+    val color = AppTheme.colors.track(state.isTech)
+    val eyebrowInk = when {
+        p == null -> color
+        p.state == LevelState.DONE -> AppTheme.colors.success
+        p.isOverdue -> AppTheme.colors.warn
+        p.state == LevelState.OPEN -> color
+        else -> AppTheme.colors.secondaryLabel
+    }
+    DetailScaffold(
+        title = p?.level?.name ?: "Level", onBack = onBack, backLabel = "Back to levels",
+        eyebrow = p?.let { levelEyebrow(it, if (state.isMine) null else state.ownerName) }, eyebrowColor = eyebrowInk,
+    ) {
+        if (p == null) return@DetailScaffold
+        Box {
+            LazyColumn(contentPadding = PaddingValues(bottom = Spacing.xl)) {
+                item { Header(p, color) }
+                item { HorizontalDivider(color = AppTheme.colors.ink, thickness = Spacing.rule, modifier = Modifier.padding(start = Spacing.listHorizontal, end = Spacing.listHorizontal, top = 20.dp)) }
+                p.items.forEach { ip ->
+                    item(key = ip.item.id) {
+                        val item = ip.item
+                        val row: @Composable () -> Unit = { ItemRow(ip, color, state, onClick = clickOf(item)) }
+                        if (removable(item)) {
+                            // Re-keying on swipeReset snaps the row back if the user taps "Keep".
+                            key(item.id, swipeReset) { SwipeToDelete(onDelete = { onRemove(item) }) { Box(Modifier.background(AppTheme.colors.groupedBackground)) { row() } } }
+                        } else {
+                            row()
+                        }
+                    }
+                }
+                if (p.level.number == 5 && state.isMine) {
+                    item { Branch(p.level.branch, onChooseBranch) }
+                }
+                if (state.isMine) {
+                    item {
+                        Column(modifier = Modifier.padding(start = Spacing.listHorizontal, end = Spacing.listHorizontal, top = 18.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                            val shape = RoundedCornerShape(12.dp)
+                            Row(
+                                horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally), verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier.fillMaxWidth().height(50.dp).clip(shape).border(Spacing.rule, AppTheme.colors.separator, shape)
+                                    .clickable(role = Role.Button, onClick = onAdd),
+                            ) {
+                                Icon(Icons.Filled.Add, contentDescription = null, tint = AppTheme.colors.ink, modifier = Modifier.size(16.dp))
+                                Text("Add a goal to this level", style = MaterialTheme.typography.labelLarge.copy(fontSize = 15.sp), color = AppTheme.colors.ink)
+                            }
+                            val next = state.next
+                            if (next != null && next.state == LevelState.LOCKED) {
+                                Box(
+                                    contentAlignment = Alignment.Center,
+                                    modifier = Modifier.fillMaxWidth().height(50.dp).clip(shape).clickable(role = Role.Button, onClick = onStartNext),
+                                ) { Text("Start Level ${next.level.number} early", style = MaterialTheme.typography.labelLarge.copy(fontSize = 15.sp), color = AppTheme.colors.accentText) }
+                            }
+                        }
+                    }
+                }
+            }
+            SnackbarHost(snackbar, modifier = Modifier.align(Alignment.BottomCenter))
+        }
     }
 }
 
