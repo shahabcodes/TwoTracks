@@ -70,7 +70,8 @@ import java.time.LocalDate
  *
  * Screens: today, week, both, learn, course, topic, quiz, results, deck, levels, level, goal, goaledit, fit, us, partner, countries, country, tests, documents, budget, settings, hours, whatsnew, widgets.
  * Departures only (with --es look departures): signin, signup, reset, role, space, join, lock.
- * Both launcher icons, as a launcher crops them: icons. --es icon departures (or parallel) runs the real icon switch.
+ * Both launcher icons, as a launcher crops them: icons. --es icon departures (or parallel) runs the real icon switch;
+ * --es setlook departures saves the look and closes, for the whole path through the app itself.
  */
 class DesignPreviewActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -79,6 +80,13 @@ class DesignPreviewActivity : ComponentActivity() {
         val screen = intent?.getStringExtra("screen") ?: "today"
         val dark = intent?.getBooleanExtra("dark", false) == true
         val look = if (intent?.getStringExtra("look") == "departures") AppLook.DEPARTURES else AppLook.PARALLEL
+        // --es setlook departures|parallel saves the look as Settings does, so the app opened
+        // afterwards from its icon runs the whole path: the saved look, then the icon as it leaves.
+        intent?.getStringExtra("setlook")?.let { name ->
+            kotlinx.coroutines.runBlocking { com.shahaabapps.core.common.datastore.ThemePreferences(applicationContext).setLookName(name.uppercase()) }
+            finish()
+            return
+        }
         // --es icon departures|parallel runs the real icon switch, as the app does when it leaves the screen.
         intent?.getStringExtra("icon")?.let { com.shahaabapps.twotracks.LauncherIcon.apply(this, if (it == "departures") AppLook.DEPARTURES else AppLook.PARALLEL) }
         setContent {
