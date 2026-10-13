@@ -1,5 +1,18 @@
 package com.shahaabapps.twotracks.feature.settings
 
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.Scaffold
+import androidx.compose.ui.unit.em
+import androidx.compose.ui.text.TextStyle
+import com.shahaabapps.core.ui.theme.CondensedFamily
+import com.shahaabapps.twotracks.ui.board.BoardTitle
+import com.shahaabapps.twotracks.ui.board.BoardText
+import com.shahaabapps.twotracks.ui.board.BoardMono
+import com.shahaabapps.twotracks.ui.board.BoardLink
+import com.shahaabapps.twotracks.ui.board.BoardLabel
+import com.shahaabapps.twotracks.ui.board.BoardGutter
+import com.shahaabapps.twotracks.ui.board.BoardBack
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -254,8 +267,13 @@ fun VoiceSettingsSections(viewModel: VoiceSettingsViewModel) {
         }
         val hidden = lang.voices.size - shown.size
         Column(modifier = Modifier.padding(start = Spacing.listHorizontal, end = Spacing.listHorizontal, top = 22.dp)) {
-            Text(voiceHeading(lang.course), style = MaterialTheme.typography.labelMedium.copy(fontSize = 11.sp), color = AppTheme.colors.secondaryLabel, modifier = Modifier.padding(bottom = 4.dp).semantics { heading() })
-            HorizontalDivider(color = AppTheme.colors.ink, thickness = Spacing.rule)
+            if (AppTheme.departures) {
+                BoardLabel(voiceHeading(lang.course), size = 13.sp, spacing = 0.12.em, modifier = Modifier.padding(bottom = 6.dp).semantics { heading() })
+                HorizontalDivider(color = AppTheme.colors.separator, thickness = 1.dp)
+            } else {
+                Text(voiceHeading(lang.course), style = MaterialTheme.typography.labelMedium.copy(fontSize = 11.sp), color = AppTheme.colors.secondaryLabel, modifier = Modifier.padding(bottom = 4.dp).semantics { heading() })
+                HorizontalDivider(color = AppTheme.colors.ink, thickness = Spacing.rule)
+            }
             when {
                 lang.state == Speaker.State.UNAVAILABLE -> Note("This phone has no text-to-speech engine, so nothing can be read aloud.")
                 lang.state == Speaker.State.MISSING_LANGUAGE -> Note("${lang.course.languageName} is not installed on this phone yet. Add it below and its voices appear here.")
@@ -283,15 +301,26 @@ fun VoiceSettingsSections(viewModel: VoiceSettingsViewModel) {
             }
         }
     }
-    Column(modifier = Modifier.padding(start = Spacing.listHorizontal, end = Spacing.listHorizontal, top = 22.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-        Row {
-            Text("Speaking speed", style = MaterialTheme.typography.bodyMedium, modifier = Modifier.weight(1f))
-            Text(rateLabel(rate), style = MaterialTheme.typography.bodySmall.copy(fontFamily = MonoFamily, fontSize = 13.sp))
+    val board = AppTheme.departures
+    Column(
+        modifier = Modifier.padding(start = Spacing.listHorizontal, end = Spacing.listHorizontal, top = 22.dp)
+            .then(if (board) Modifier.clip(RoundedCornerShape(14.dp)).background(AppTheme.colors.card).padding(14.dp) else Modifier),
+        verticalArrangement = Arrangement.spacedBy(10.dp),
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            if (board) {
+                BoardLabel("Speaking speed", size = 14.sp, weight = FontWeight.Bold, spacing = 0.12.em, modifier = Modifier.weight(1f))
+                Text(rateLabel(rate), color = AppTheme.colors.accent, style = TextStyle(fontFamily = CondensedFamily, fontWeight = FontWeight.Bold, fontSize = 18.sp))
+            } else {
+                Text("Speaking speed", style = MaterialTheme.typography.bodyMedium, modifier = Modifier.weight(1f))
+                Text(rateLabel(rate), style = MaterialTheme.typography.bodySmall.copy(fontFamily = MonoFamily, fontSize = 13.sp))
+            }
         }
+        val knob = if (board) AppTheme.colors.accent else AppTheme.colors.ink
         Slider(
             value = rate, onValueChange = viewModel::setRate, onValueChangeFinished = viewModel::sayAtRate,
             valueRange = SpeechPreferences.MIN_RATE..SpeechPreferences.MAX_RATE, steps = 9,
-            colors = SliderDefaults.colors(thumbColor = AppTheme.colors.ink, activeTrackColor = AppTheme.colors.ink, inactiveTrackColor = AppTheme.colors.separator, activeTickColor = Color.Transparent, inactiveTickColor = Color.Transparent),
+            colors = SliderDefaults.colors(thumbColor = knob, activeTrackColor = knob, inactiveTrackColor = AppTheme.colors.separator, activeTickColor = Color.Transparent, inactiveTickColor = Color.Transparent),
             modifier = Modifier.semantics { contentDescription = "Speaking speed" },
         )
         Text("Slower than normal is better for Hören practice in the first months.", style = MaterialTheme.typography.bodySmall.copy(fontSize = 12.sp), color = AppTheme.colors.secondaryLabel)
@@ -313,6 +342,7 @@ private fun Note(text: String) {
 
 @Composable
 private fun Link(text: String, onClick: () -> Unit) {
+    if (AppTheme.departures) { BoardLink(text, onClick, size = 14.sp, modifier = Modifier.padding(vertical = 12.dp)); return }
     Text(
         text, style = MaterialTheme.typography.labelLarge.copy(fontSize = 14.sp), color = AppTheme.colors.accentText,
         modifier = Modifier.clip(RoundedCornerShape(6.dp)).clickable(role = Role.Button, onClick = onClick).padding(vertical = 12.dp),
@@ -321,6 +351,7 @@ private fun Link(text: String, onClick: () -> Unit) {
 
 @Composable
 private fun VoiceLine(title: String, mono: Boolean, tags: List<String>, chosen: Boolean, onPlay: (() -> Unit)?, onTags: (() -> Unit)?, onChoose: () -> Unit) {
+    if (AppTheme.departures) { BoardVoiceLine(title, mono, tags, chosen, onPlay, onTags, onChoose); return }
     Column {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.heightIn(min = 64.dp)) {
             if (onPlay != null) {
@@ -417,6 +448,21 @@ private fun DescribeVoiceDialog(
 fun VoiceSettingsScreen(onBack: () -> Unit) {
     val viewModel: VoiceSettingsViewModel = hiltViewModel()
     val loading by viewModel.loading.collectAsStateWithLifecycle()
+    if (AppTheme.departures) {
+        Scaffold(containerColor = AppTheme.colors.groupedBackground) { inner ->
+            Column(modifier = Modifier.fillMaxSize().padding(inner).verticalScroll(rememberScrollState()).padding(bottom = 40.dp)) {
+                Column(modifier = Modifier.padding(start = BoardGutter, end = BoardGutter, top = 6.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    Box(Modifier.height(44.dp), contentAlignment = Alignment.CenterStart) { BoardBack(onBack, "Back to settings") }
+                    BoardMono("THE ANNOUNCER")
+                    BoardTitle("Voices", size = 52.sp)
+                    BoardText("Your phone names its voices with a code that says nothing about how they sound. Play one, then label it.")
+                    if (loading) BoardText("Asking this phone what it can read with…", size = 13.sp)
+                }
+                VoiceSettingsSections(viewModel)
+            }
+        }
+        return
+    }
     DetailScaffold(title = "Voices", onBack = onBack, backLabel = "Back to settings") {
         Column(modifier = Modifier.verticalScroll(rememberScrollState()).padding(bottom = 40.dp)) {
             Text(
@@ -432,5 +478,44 @@ fun VoiceSettingsScreen(onBack: () -> Unit) {
             }
             VoiceSettingsSections(viewModel)
         }
+    }
+}
+
+@Composable
+private fun BoardVoiceLine(title: String, mono: Boolean, tags: List<String>, chosen: Boolean, onPlay: (() -> Unit)?, onTags: (() -> Unit)?, onChoose: () -> Unit) {
+    Column {
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.heightIn(min = 62.dp)) {
+            if (onPlay != null) {
+                Box(
+                    contentAlignment = Alignment.Center,
+                    modifier = Modifier.size(44.dp).clip(RoundedCornerShape(10.dp)).background(AppTheme.colors.card)
+                        .clickable(role = Role.Button, onClickLabel = "Play", onClick = onPlay),
+                ) { Icon(Icons.Filled.PlayArrow, contentDescription = "Play $title", tint = AppTheme.colors.accent, modifier = Modifier.size(20.dp)) }
+            } else {
+                Box(Modifier.size(44.dp))
+            }
+            Row(
+                verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp),
+                modifier = Modifier.weight(1f).heightIn(min = 56.dp).semantics { selected = chosen }.clickable(role = Role.RadioButton, onClick = onChoose),
+            ) {
+                Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    if (mono) BoardMono(title, color = AppTheme.colors.ink, size = 13.sp, weight = FontWeight.Bold, spacing = 0.sp)
+                    else BoardText(title, color = AppTheme.colors.ink)
+                    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                        tags.forEach { tag ->
+                            val shape = RoundedCornerShape(4.dp)
+                            Box(
+                                contentAlignment = Alignment.Center,
+                                modifier = Modifier.height(20.dp).clip(shape).border(1.dp, AppTheme.colors.separator, shape)
+                                    .then(if (onTags != null) Modifier.clickable(role = Role.Button, onClickLabel = "Say what it sounds like", onClick = onTags) else Modifier)
+                                    .padding(horizontal = 6.dp),
+                            ) { BoardLabel(if (tag == "label it") "+ Label it" else tag, color = AppTheme.colors.ink, size = 12.sp, spacing = 0.08.em) }
+                        }
+                    }
+                }
+                if (chosen) BoardLabel("In use", color = AppTheme.colors.accent, size = 13.sp, weight = FontWeight.Bold, spacing = 0.1.em)
+            }
+        }
+        HorizontalDivider(color = AppTheme.colors.separator, thickness = 1.dp)
     }
 }

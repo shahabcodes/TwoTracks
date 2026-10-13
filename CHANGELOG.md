@@ -5,6 +5,10 @@ build number is appended by CI (for example `0.1.0 (build 12)`).
 
 ## [Unreleased]
 
+## [0.84.0] - 2026-10-13
+### Changed
+- Settings, weekly hours, voices, widgets and what's new have their Departures screens.
+
 ## [0.83.0] - 2026-10-13
 ### Changed
 - Route, your partner, the destinations, a country, tests, documents and the budget have their Departures screens.

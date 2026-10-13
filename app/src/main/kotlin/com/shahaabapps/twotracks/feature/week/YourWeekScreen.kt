@@ -1,5 +1,17 @@
 package com.shahaabapps.twotracks.feature.week
 
+import androidx.compose.ui.unit.em
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.Box
+import androidx.compose.material3.Scaffold
+import com.shahaabapps.twotracks.ui.board.BoardTitle
+import com.shahaabapps.twotracks.ui.board.BoardStat
+import com.shahaabapps.twotracks.ui.board.BoardMono
+import com.shahaabapps.twotracks.ui.board.BoardLabel
+import com.shahaabapps.twotracks.ui.board.BoardGutter
+import com.shahaabapps.twotracks.ui.board.BoardBack
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -64,13 +76,27 @@ fun YourWeekScreen(
     viewModel: YourWeekViewModel = hiltViewModel(),
 ) {
     val me by viewModel.me.collectAsStateWithLifecycle()
-    DetailScaffold(title = "Will it fit", onBack = onBack, eyebrow = "The time you have against what it needs") {
-        val p = me ?: return@DetailScaffold
+    val board = AppTheme.departures
+    val body: @Composable () -> Unit = body@{
+        val p = me ?: return@body
         val cap = p.capacity
         Column(modifier = Modifier.verticalScroll(rememberScrollState()).padding(bottom = 40.dp)) {
-            Row(horizontalArrangement = Arrangement.spacedBy(24.dp), modifier = Modifier.padding(horizontal = Spacing.listHorizontal)) {
-                StatTile(label = "of study slots a week", value = "%.1f h".format(cap.weeklyCapacityHours), modifier = Modifier.weight(1f))
-                StatTile(label = "your open goals need", value = "%.1f h".format(cap.weeklyNeedHours), modifier = Modifier.weight(1f))
+            if (board) {
+                // No prototype has this page; on the board it takes the board's header and figures.
+                Column(modifier = Modifier.padding(start = BoardGutter, end = BoardGutter, top = 6.dp, bottom = 14.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    Box(Modifier.height(44.dp), contentAlignment = Alignment.CenterStart) { BoardBack(onBack, "Back to the timetable") }
+                    BoardMono("THE TIME YOU HAVE AGAINST WHAT IT NEEDS")
+                    BoardTitle("Will it fit", size = 52.sp)
+                }
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.padding(horizontal = BoardGutter).height(IntrinsicSize.Min)) {
+                    BoardStat("%.1fh".format(cap.weeklyCapacityHours), "Study slots a week", modifier = Modifier.weight(1f).fillMaxHeight())
+                    BoardStat("%.1fh".format(cap.weeklyNeedHours), "Your goals need", color = if (cap.fits) AppTheme.colors.ink else AppTheme.colors.warn, modifier = Modifier.weight(1f).fillMaxHeight())
+                }
+            } else {
+                Row(horizontalArrangement = Arrangement.spacedBy(24.dp), modifier = Modifier.padding(horizontal = Spacing.listHorizontal)) {
+                    StatTile(label = "of study slots a week", value = "%.1f h".format(cap.weeklyCapacityHours), modifier = Modifier.weight(1f))
+                    StatTile(label = "your open goals need", value = "%.1f h".format(cap.weeklyNeedHours), modifier = Modifier.weight(1f))
+                }
             }
             Row(
                 verticalAlignment = Alignment.Top, horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -114,13 +140,20 @@ fun YourWeekScreen(
             )
         }
     }
+    if (board) Scaffold(containerColor = AppTheme.colors.groupedBackground) { inner -> Box(Modifier.padding(inner)) { body() } }
+    else DetailScaffold(title = "Will it fit", onBack = onBack, eyebrow = "The time you have against what it needs") { body() }
 }
 
 @Composable
 private fun Section(title: String, content: @Composable () -> Unit) {
     Column(modifier = Modifier.padding(start = Spacing.listHorizontal, end = Spacing.listHorizontal, top = 22.dp)) {
-        Text(title, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(bottom = 8.dp))
-        HorizontalDivider(color = AppTheme.colors.ink, thickness = Spacing.rule)
+        if (AppTheme.departures) {
+            BoardLabel(title, size = 13.sp, spacing = 0.12.em, modifier = Modifier.padding(bottom = 8.dp))
+            HorizontalDivider(color = AppTheme.colors.separator, thickness = 1.dp)
+        } else {
+            Text(title, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(bottom = 8.dp))
+            HorizontalDivider(color = AppTheme.colors.ink, thickness = Spacing.rule)
+        }
         content()
     }
 }

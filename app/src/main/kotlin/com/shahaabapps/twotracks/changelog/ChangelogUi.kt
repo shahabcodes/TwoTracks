@@ -1,5 +1,18 @@
 package com.shahaabapps.twotracks.changelog
 
+import androidx.compose.ui.unit.em
+import androidx.compose.ui.Alignment
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.Scaffold
+import com.shahaabapps.twotracks.ui.board.BoardTitle
+import com.shahaabapps.twotracks.ui.board.BoardText
+import com.shahaabapps.twotracks.ui.board.BoardMono
+import com.shahaabapps.twotracks.ui.board.BoardLabel
+import com.shahaabapps.twotracks.ui.board.BoardGutter
+import com.shahaabapps.twotracks.ui.board.BoardBack
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -88,6 +101,7 @@ fun ChangelogScreen(onBack: () -> Unit, viewModel: ChangelogViewModel = hiltView
  */
 @Composable
 fun ChangelogContent(releases: List<Release>, current: String, onBack: () -> Unit) {
+    if (AppTheme.departures) { BoardChangelog(releases, current, onBack); return }
     DetailScaffold(title = "What's new", onBack = onBack, backLabel = "Back to settings", eyebrow = "You have $current") {
         LazyColumn(contentPadding = PaddingValues(bottom = 40.dp)) {
             item { HorizontalDivider(color = AppTheme.colors.ink, thickness = Spacing.rule, modifier = Modifier.padding(start = Spacing.listHorizontal, end = Spacing.listHorizontal, top = 12.dp)) }
@@ -109,6 +123,50 @@ fun ChangelogContent(releases: List<Release>, current: String, onBack: () -> Uni
                 }
             }
             if (releases.isEmpty()) item { Text("No changelog bundled with this build.", modifier = Modifier.padding(Spacing.listHorizontal), color = AppTheme.colors.secondaryLabel) }
+        }
+    }
+}
+
+/**
+ * What's new on the Departures board, as its prototype draws it: the
+ * releases as arrivals, a version and its date beside what changed, the one
+ * you have in yellow.
+ */
+@Composable
+private fun BoardChangelog(releases: List<Release>, current: String, onBack: () -> Unit) {
+    Scaffold(containerColor = AppTheme.colors.groupedBackground) { inner ->
+        LazyColumn(modifier = Modifier.fillMaxSize().padding(inner), contentPadding = PaddingValues(bottom = 40.dp)) {
+            item {
+                Column(modifier = Modifier.padding(start = BoardGutter, end = BoardGutter, top = 6.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    Box(Modifier.height(44.dp), contentAlignment = Alignment.CenterStart) { BoardBack(onBack, "Back to settings") }
+                    BoardMono("ARRIVALS · YOU HAVE $current")
+                    BoardTitle("What's new", size = 52.sp)
+                }
+            }
+            item {
+                Column(modifier = Modifier.padding(start = BoardGutter, end = BoardGutter, top = 16.dp)) {
+                    Row(horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.padding(bottom = 8.dp)) {
+                        BoardLabel("Version", spacing = 0.12.em, modifier = Modifier.width(70.dp))
+                        BoardLabel("What changed", spacing = 0.12.em)
+                    }
+                    Box(Modifier.fillMaxWidth().height(1.dp).background(AppTheme.colors.separator))
+                }
+            }
+            items(releases, key = { it.version }) { r ->
+                Column(modifier = Modifier.padding(horizontal = BoardGutter)) {
+                    Row(horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.padding(vertical = 12.dp)) {
+                        Column(modifier = Modifier.width(70.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                            BoardMono(r.version, color = if (r.version == current) AppTheme.colors.accent else AppTheme.colors.ink, size = 14.sp, weight = FontWeight.Bold, spacing = 0.sp)
+                            if (r.date.isNotBlank()) BoardMono(shortDate(r.date).uppercase(Locale.ENGLISH), size = 10.sp, spacing = 0.sp)
+                        }
+                        Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                            r.bullets.forEach { BoardText(it, color = AppTheme.colors.ink) }
+                        }
+                    }
+                    Box(Modifier.fillMaxWidth().height(1.dp).background(AppTheme.colors.separator))
+                }
+            }
+            if (releases.isEmpty()) item { BoardText("No changelog bundled with this build.", modifier = Modifier.padding(BoardGutter)) }
         }
     }
 }

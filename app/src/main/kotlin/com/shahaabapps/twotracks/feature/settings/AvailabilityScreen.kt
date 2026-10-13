@@ -1,5 +1,14 @@
 package com.shahaabapps.twotracks.feature.settings
 
+import androidx.compose.ui.unit.em
+import androidx.compose.material3.Scaffold
+import com.shahaabapps.core.ui.theme.CondensedFamily
+import com.shahaabapps.twotracks.ui.board.BoardTitle
+import com.shahaabapps.twotracks.ui.board.BoardText
+import com.shahaabapps.twotracks.ui.board.BoardLabel
+import com.shahaabapps.twotracks.ui.board.BoardGutter
+import com.shahaabapps.twotracks.ui.board.BoardButton
+import com.shahaabapps.twotracks.ui.board.BoardBack
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -115,15 +124,18 @@ fun AvailabilityContent(
         BlockKind.CLASS -> study.copy(alpha = 0.45f)
         BlockKind.WORK -> Color.Unspecified
     }
-    DetailScaffold(title = "Weekly hours", onBack = onBack, backLabel = "Back to settings") {
+    val board = AppTheme.departures
+    val work = if (board) AppTheme.colors.strongBorder else AppTheme.colors.separator
+    val body: @Composable () -> Unit = {
         Column(modifier = Modifier.fillMaxSize()) {
             Column(modifier = Modifier.weight(1f).verticalScroll(rememberScrollState())) {
                 Column(modifier = Modifier.padding(horizontal = Spacing.listHorizontal), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text("The template the plan fills. Study blocks get sessions; work blocks never do. Times are on your clock.", style = MaterialTheme.typography.bodyMedium, color = AppTheme.colors.secondaryLabel)
+                    if (board) BoardText("The template the plan fills. Study blocks get sessions; work blocks never do. Times are on your clock.")
+                    else Text("The template the plan fills. Study blocks get sessions; work blocks never do. Times are on your clock.", style = MaterialTheme.typography.bodyMedium, color = AppTheme.colors.secondaryLabel)
                     Row(horizontalArrangement = Arrangement.spacedBy(16.dp), modifier = Modifier.padding(top = 4.dp)) {
-                        Key(study, "Study · ${kindHours(blocks, BlockKind.STUDY)}")
-                        if (blocks.any { it.kind == BlockKind.CLASS }) Key(colorOf(BlockKind.CLASS), "Class · ${kindHours(blocks, BlockKind.CLASS)}")
-                        Key(AppTheme.colors.separator, "Work · ${kindHours(blocks, BlockKind.WORK)}")
+                        Key(study, "Study · ${kindHours(blocks, BlockKind.STUDY)}", board)
+                        if (blocks.any { it.kind == BlockKind.CLASS }) Key(colorOf(BlockKind.CLASS), "Class · ${kindHours(blocks, BlockKind.CLASS)}", board)
+                        Key(work, "Work · ${kindHours(blocks, BlockKind.WORK)}", board)
                     }
                 }
                 val hours = gridHours(blocks)
@@ -134,8 +146,9 @@ fun AvailabilityContent(
                         Box(Modifier.width(30.dp))
                         (1..7).forEach { d ->
                             Text(
-                                DayOfWeek.of(d).getDisplayName(TextStyle.NARROW, Locale.ENGLISH), style = MaterialTheme.typography.bodySmall.copy(fontSize = 12.sp),
-                                fontWeight = FontWeight.SemiBold, textAlign = TextAlign.Center, modifier = Modifier.weight(1f).padding(bottom = 6.dp),
+                                DayOfWeek.of(d).getDisplayName(TextStyle.NARROW, Locale.ENGLISH),
+                                style = if (board) androidx.compose.ui.text.TextStyle(fontFamily = CondensedFamily, fontSize = 14.sp, color = AppTheme.colors.ink) else MaterialTheme.typography.bodySmall.copy(fontSize = 12.sp),
+                                fontWeight = if (board) FontWeight.Bold else FontWeight.SemiBold, textAlign = TextAlign.Center, modifier = Modifier.weight(1f).padding(bottom = 6.dp),
                             )
                         }
                     }
@@ -149,14 +162,14 @@ fun AvailabilityContent(
                             }
                         }
                         (1..7).forEach { d ->
-                            Box(Modifier.weight(1f).height(height).background(AppTheme.colors.fill.copy(alpha = AppTheme.colors.fill.alpha * 0.4f))) {
+                            Box(Modifier.weight(1f).height(height).then(if (board) Modifier.clip(RoundedCornerShape(4.dp)).background(AppTheme.colors.card) else Modifier.background(AppTheme.colors.fill.copy(alpha = AppTheme.colors.fill.alpha * 0.4f)))) {
                                 blocks.filter { it.dayOfWeek == d }.sortedBy { it.kind != BlockKind.WORK }.forEach { b ->
                                     val top = hourDp * ((b.startMinutes - hours.first * 60) / 60f)
                                     val h = hourDp * ((b.endMinutes - b.startMinutes) / 60f)
                                     val shape = RoundedCornerShape(3.dp)
                                     Box(
                                         Modifier.padding(horizontal = 1.dp).offset(y = top).fillMaxWidth().height(h).clip(shape)
-                                            .background(if (b.kind == BlockKind.WORK) AppTheme.colors.separator else colorOf(b.kind))
+                                            .background(if (b.kind == BlockKind.WORK) work else colorOf(b.kind))
                                             .semantics { contentDescription = "${b.label.ifBlank { b.kind.name.lowercase() }}, ${Dates.minutesToClock(b.startMinutes)} to ${Dates.minutesToClock(b.endMinutes)}" }
                                             .clickable(role = Role.Button, onClickLabel = "Remove") { removing = b },
                                     )
@@ -169,15 +182,31 @@ fun AvailabilityContent(
             Column(modifier = Modifier.background(AppTheme.colors.groupedBackground).navigationBarsPadding()) {
                 HorizontalDivider(color = AppTheme.colors.separator, thickness = Spacing.hairline)
                 val shape = RoundedCornerShape(12.dp)
-                Box(
-                    contentAlignment = Alignment.Center,
-                    modifier = Modifier.padding(start = Spacing.listHorizontal, end = Spacing.listHorizontal, top = 12.dp, bottom = 24.dp).fillMaxWidth().height(52.dp)
-                        .clip(shape).background(AppTheme.colors.accent).clickable(role = Role.Button) { adding = true },
-                ) { Text("Add a block", style = MaterialTheme.typography.labelLarge.copy(fontSize = 15.sp), color = AppTheme.colors.onSolid) }
+                if (board) {
+                    BoardButton("Add a block", onClick = { adding = true }, arrow = false, modifier = Modifier.padding(start = BoardGutter, end = BoardGutter, top = 12.dp, bottom = 24.dp))
+                } else {
+                    Box(
+                        contentAlignment = Alignment.Center,
+                        modifier = Modifier.padding(start = Spacing.listHorizontal, end = Spacing.listHorizontal, top = 12.dp, bottom = 24.dp).fillMaxWidth().height(52.dp)
+                            .clip(shape).background(AppTheme.colors.accent).clickable(role = Role.Button) { adding = true },
+                    ) { Text("Add a block", style = MaterialTheme.typography.labelLarge.copy(fontSize = 15.sp), color = AppTheme.colors.onSolid) }
+                }
             }
         }
     }
-
+    if (board) {
+        Scaffold(containerColor = AppTheme.colors.groupedBackground) { inner ->
+            Column(modifier = Modifier.fillMaxSize().padding(inner)) {
+                Column(modifier = Modifier.padding(start = BoardGutter, end = BoardGutter, top = 6.dp, bottom = 8.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    Box(Modifier.height(44.dp), contentAlignment = Alignment.CenterStart) { BoardBack(onBack, "Back to settings") }
+                    BoardTitle("Weekly hours", size = 52.sp)
+                }
+                body()
+            }
+        }
+    } else {
+        DetailScaffold(title = "Weekly hours", onBack = onBack, backLabel = "Back to settings") { body() }
+    }
     removing?.let { b ->
         CupertinoDialog(
             onDismissRequest = { removing = null },
@@ -191,10 +220,11 @@ fun AvailabilityContent(
 }
 
 @Composable
-private fun Key(color: Color, label: String) {
+private fun Key(color: Color, label: String, board: Boolean = false) {
     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-        Box(Modifier.size(12.dp).background(color))
-        Text(label, style = MaterialTheme.typography.bodySmall.copy(fontSize = 12.sp), color = AppTheme.colors.secondaryLabel)
+        Box(Modifier.size(12.dp).then(if (board) Modifier.clip(RoundedCornerShape(2.dp)) else Modifier).background(color))
+        if (board) BoardLabel(label.replace(" h", "H"), size = 13.sp, spacing = 0.1.em)
+        else Text(label, style = MaterialTheme.typography.bodySmall.copy(fontSize = 12.sp), color = AppTheme.colors.secondaryLabel)
     }
 }
 
