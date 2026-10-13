@@ -1,5 +1,15 @@
 package com.shahaabapps.twotracks.feature.settings
 
+import androidx.compose.ui.unit.em
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.Scaffold
+import com.shahaabapps.twotracks.ui.board.BoardTitle
+import com.shahaabapps.twotracks.ui.board.BoardText
+import com.shahaabapps.twotracks.ui.board.BoardOutlineButton
+import com.shahaabapps.twotracks.ui.board.BoardMono
+import com.shahaabapps.twotracks.ui.board.BoardLabel
+import com.shahaabapps.twotracks.ui.board.BoardGutter
+import com.shahaabapps.twotracks.ui.board.BoardBack
 import android.appwidget.AppWidgetManager
 import android.content.Intent
 import androidx.compose.foundation.background
@@ -92,6 +102,7 @@ fun WidgetsScreen(onBack: () -> Unit) {
  */
 @Composable
 fun WidgetsContent(placed: List<PlacedWidget>?, snapshots: Map<String, WidgetSnapshot>, onBack: () -> Unit, onChange: (PlacedWidget) -> Unit) {
+    if (AppTheme.departures) { BoardWidgets(placed, snapshots, onBack, onChange); return }
     DetailScaffold(title = "Widgets", onBack = onBack, backLabel = "Back to settings") {
         Column(modifier = Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).padding(bottom = 40.dp)) {
             Text(
@@ -177,4 +188,78 @@ internal fun PlacedWidget.summary(): String {
         if (config.translucent) append(", translucent")
     }
     return "$whose · $course · $look"
+}
+
+/**
+ * Widgets on the Departures board, as its prototype draws them: what is on
+ * the home screen on its wallpaper, each with what it is set to and CHANGE,
+ * and the kinds there are. The previews are the widgets themselves, which
+ * keep their own look whatever the app is drawn in.
+ */
+@Composable
+private fun BoardWidgets(placed: List<PlacedWidget>?, snapshots: Map<String, WidgetSnapshot>, onBack: () -> Unit, onChange: (PlacedWidget) -> Unit) {
+    Scaffold(containerColor = AppTheme.colors.groupedBackground) { inner ->
+        Column(modifier = Modifier.fillMaxSize().padding(inner).verticalScroll(rememberScrollState()).padding(bottom = 40.dp)) {
+            Column(modifier = Modifier.padding(start = BoardGutter, end = BoardGutter, top = 6.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                Box(Modifier.height(44.dp), contentAlignment = Alignment.CenterStart) { BoardBack(onBack, "Back to settings") }
+                BoardTitle("Widgets", size = 52.sp)
+                BoardText("A small board on your home screen. It shows what it was told to show when you placed it, and two of the same kind can follow different people.")
+            }
+            val list = placed
+            if (list != null) {
+                Column(modifier = Modifier.padding(start = BoardGutter, end = BoardGutter, top = 16.dp)) {
+                    BoardLabel("On your home screen · ${list.size}", size = 13.sp, spacing = 0.12.em, modifier = Modifier.padding(bottom = 8.dp).semantics { heading() })
+                    if (list.isNotEmpty()) {
+                        Column(
+                            verticalArrangement = Arrangement.spacedBy(12.dp),
+                            modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(22.dp)).background(Backdrop).padding(14.dp),
+                        ) {
+                            list.chunked(2).forEach { pair ->
+                                Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                                    pair.forEach { w ->
+                                        WidgetPreview(
+                                            w.config, snapshots[w.config.snapshotKey] ?: WidgetSnapshot(), backdrop = false,
+                                            modifier = Modifier.weight(1f).aspectRatio(1f).clickable(role = Role.Button, onClickLabel = "Change") { onChange(w) },
+                                        )
+                                    }
+                                    if (pair.size == 1) Spacer(Modifier.weight(1f))
+                                }
+                            }
+                        }
+                    }
+                }
+                Column(modifier = Modifier.padding(start = BoardGutter, end = BoardGutter, top = 16.dp)) {
+                    if (list.isEmpty()) {
+                        BoardText("Nothing of ours is on the home screen yet.", modifier = Modifier.padding(vertical = 16.dp))
+                        Box(Modifier.fillMaxWidth().height(1.dp).background(AppTheme.colors.separator))
+                    }
+                    list.forEach { w ->
+                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.fillMaxWidth().heightIn(min = 60.dp)) {
+                            Column(modifier = Modifier.weight(1f).padding(vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                                BoardText(w.config.content.label, color = AppTheme.colors.ink, weight = FontWeight.Medium)
+                                BoardMono(w.summary().uppercase(Locale.ENGLISH), spacing = 0.sp)
+                            }
+                            BoardOutlineButton("Change", onClick = { onChange(w) }, height = 36.dp)
+                        }
+                        Box(Modifier.fillMaxWidth().height(1.dp).background(AppTheme.colors.separator))
+                    }
+                }
+            }
+            Column(modifier = Modifier.padding(start = BoardGutter, end = BoardGutter, top = 20.dp)) {
+                BoardLabel("Kinds you can add", size = 13.sp, spacing = 0.12.em, modifier = Modifier.padding(bottom = 6.dp).semantics { heading() })
+                Box(Modifier.fillMaxWidth().height(1.dp).background(AppTheme.colors.separator))
+                WidgetContent.entries.forEach { k ->
+                    Column(modifier = Modifier.fillMaxWidth().heightIn(min = 58.dp).padding(vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(2.dp, Alignment.CenterVertically)) {
+                        BoardText(k.label, color = AppTheme.colors.ink, weight = FontWeight.Medium)
+                        BoardText(k.blurb, size = 12.sp)
+                    }
+                    Box(Modifier.fillMaxWidth().height(1.dp).background(AppTheme.colors.separator))
+                }
+                BoardText(
+                    "Hold an empty part of the home screen, choose Widgets, and look for Two Tracks. It asks what to show as you drop it. Holding one and tapping the pencil opens the same settings as Change.",
+                    size = 12.sp, modifier = Modifier.padding(top = 12.dp),
+                )
+            }
+        }
+    }
 }

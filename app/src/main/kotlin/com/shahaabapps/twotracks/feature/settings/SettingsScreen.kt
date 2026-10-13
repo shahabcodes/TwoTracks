@@ -89,7 +89,7 @@ import java.util.Locale
  * its way there: it scrolls to the item first and the row reports itself once
  * it exists. Keep this in step with the order of the items below.
  */
-private val SETTINGS_GUIDE_ITEMS = mapOf(
+internal val SETTINGS_GUIDE_ITEMS = mapOf(
     GuideAnchors.SET_NAME to 0,
     GuideAnchors.SET_INVITE to 1,
     GuideAnchors.SET_TEMPLATE to 2,
@@ -336,6 +336,13 @@ fun SettingsContent(
     onReset: () -> Unit,
     onSignOut: () -> Unit,
 ) {
+    if (AppTheme.departures) {
+        BoardSettings(
+            v, snackbar, onBack, onEditProfile, onCopyInvite, onOpenAvailability, onEditStartDate, onOpenFullScreen,
+            onLook, onBiometric, onOpenVoices, onOpenWidgets, onOpenChangelog, onTour, onReset, onSignOut,
+        )
+        return
+    }
     DetailScaffold(title = "Settings", onBack = onBack, backLabel = "Back to Today") {
         Box {
             val pageScroll = rememberLazyListState()
