@@ -1,5 +1,6 @@
 package com.shahaabapps.twotracks.feature.today
 
+import com.shahaabapps.core.planner.Dates
 import com.shahaabapps.core.content.CourseProgress
 import com.shahaabapps.core.content.Courses
 import com.shahaabapps.core.content.WordDeck
@@ -168,6 +169,7 @@ object DailyBriefs {
             reasons = reasons,
             streakLine = streakLine(plan.streak),
             isRestDay = first == null,
+            time = first?.let { Dates.minutesToClock(it.session.startMinutes) },
         )
     }
 

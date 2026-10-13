@@ -1,5 +1,21 @@
 package com.shahaabapps.twotracks.feature.today
 
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.draw.clip
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.unit.em
+import androidx.compose.ui.unit.sp
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.TextStyle
+import com.shahaabapps.core.ui.theme.CondensedFamily
+import com.shahaabapps.twotracks.ui.board.BoardOutlineButton
+import com.shahaabapps.twotracks.ui.board.BoardButton
+import com.shahaabapps.twotracks.ui.board.BoardText
+import com.shahaabapps.twotracks.ui.board.BoardLabel
+import com.shahaabapps.twotracks.ui.board.BoardTitle
+import com.shahaabapps.twotracks.ui.board.BoardMono
+import com.shahaabapps.twotracks.ui.board.BoardGutter
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -44,6 +60,8 @@ data class DailyBrief(
     val reasons: List<BriefReason>,
     val streakLine: String,
     val isRestDay: Boolean,
+    /** When today's one thing starts, on the reader's clock; the board prints it beside the task. */
+    val time: String? = null,
 )
 
 /**
@@ -64,13 +82,18 @@ fun DailyBriefSheet(
     onDismiss: () -> Unit,
 ) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val departures = AppTheme.departures
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState,
-        containerColor = AppTheme.colors.groupedBackground,
+        containerColor = if (departures) AppTheme.colors.card else AppTheme.colors.groupedBackground,
         shape = Shapes.sheet,
         dragHandle = { SheetGrabber() },
     ) {
+        if (departures) {
+            BoardBrief(brief, onStart, onDismiss)
+            return@ModalBottomSheet
+        }
         Column(
             modifier = Modifier.verticalScroll(rememberScrollState()).padding(horizontal = Spacing.listHorizontal).padding(bottom = Spacing.md).navigationBarsPadding(),
         ) {
@@ -124,5 +147,46 @@ object BriefLabels {
         BriefKind.LEVEL -> "Level"
         BriefKind.LEARN -> "Learn"
         BriefKind.MOVE -> "The move"
+    }
+}
+
+/**
+ * The brief on the Departures board, as its prototype draws it: the date,
+ * the greeting in capitals, today's one departure with its time in yellow,
+ * why this one as rows of the board, and LATER beside BOARD NOW.
+ */
+@Composable
+private fun BoardBrief(brief: DailyBrief, onStart: () -> Unit, onDismiss: () -> Unit) {
+    Column(modifier = Modifier.verticalScroll(rememberScrollState()).padding(horizontal = BoardGutter).padding(bottom = 24.dp).navigationBarsPadding()) {
+        BoardMono(brief.dateLine.uppercase(java.util.Locale.ROOT), modifier = Modifier.padding(top = 14.dp))
+        BoardTitle(brief.greeting.removePrefix("Good "), size = 40.sp, modifier = Modifier.padding(top = 6.dp))
+        Row(
+            verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp),
+            modifier = Modifier.padding(top = 16.dp).fillMaxWidth().height(IntrinsicSize.Min).clip(RoundedCornerShape(16.dp)).background(AppTheme.colors.groupedBackground),
+        ) {
+            Box(Modifier.width(4.dp).fillMaxHeight().background(AppTheme.colors.accent))
+            Column(Modifier.weight(1f).padding(vertical = 14.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                BoardLabel(if (brief.isRestDay) "No departures today" else "Today's one departure", color = AppTheme.colors.accent, size = 13.sp, weight = FontWeight.Bold)
+                Text(brief.task, color = AppTheme.colors.ink, style = TextStyle(fontFamily = CondensedFamily, fontWeight = FontWeight.SemiBold, fontSize = 28.sp, lineHeight = 28.sp))
+                BoardText(brief.taskDetail, size = 13.sp)
+            }
+            brief.time?.let { BoardMono(it, color = AppTheme.colors.accent, size = 22.sp, weight = FontWeight.Bold, spacing = 0.sp, modifier = Modifier.padding(end = 14.dp)) }
+        }
+        Column(modifier = Modifier.padding(top = 16.dp)) {
+            BoardLabel("Why this one", size = 13.sp, modifier = Modifier.padding(bottom = 6.dp))
+            Box(Modifier.fillMaxWidth().height(1.dp).background(AppTheme.colors.separator))
+            brief.reasons.forEach { (kind, text) ->
+                Row(horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.padding(vertical = 9.dp)) {
+                    BoardLabel(BriefLabels.of(kind), color = if (kind == BriefKind.MOVE) AppTheme.colors.teacher else AppTheme.colors.accent, size = 13.sp, weight = FontWeight.Bold, spacing = 0.1.em, modifier = Modifier.width(74.dp))
+                    BoardText(text, color = AppTheme.colors.ink.copy(alpha = 0.92f), size = 13.sp, modifier = Modifier.weight(1f))
+                }
+                Box(Modifier.fillMaxWidth().height(1.dp).background(AppTheme.colors.separator))
+            }
+        }
+        BoardLabel(brief.streakLine, size = 15.sp, spacing = 0.08.em, modifier = Modifier.padding(top = 12.dp, bottom = 24.dp))
+        Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+            BoardOutlineButton("Later", onClick = onDismiss, height = 52.dp, modifier = Modifier.weight(1f))
+            BoardButton(if (brief.isRestDay) "Got it" else "Board now", onClick = onStart, arrow = !brief.isRestDay, modifier = Modifier.weight(2f))
+        }
     }
 }
