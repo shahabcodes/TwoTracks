@@ -1,5 +1,6 @@
 package com.shahaabapps.twotracks.ui.components
 
+import com.shahaabapps.core.ui.theme.displayCase
 import androidx.compose.ui.graphics.takeOrElse
 import androidx.compose.ui.graphics.Color
 import androidx.compose.foundation.clickable
@@ -72,7 +73,7 @@ fun DetailScaffold(
             Column(modifier = Modifier.fillMaxWidth().padding(start = Spacing.listHorizontal, end = Spacing.listHorizontal, top = 4.dp, bottom = Spacing.sm)) {
                 if (eyebrow != null) SectionLabel(eyebrow, modifier = Modifier.padding(bottom = 6.dp), color = eyebrowColor.takeOrElse { AppTheme.colors.secondaryLabel })
                 if (title.isNotEmpty()) Text(
-                    text = title,
+                    text = displayCase(title),
                     style = MaterialTheme.typography.displayLarge,
                     color = MaterialTheme.colorScheme.onBackground,
                     maxLines = 3,

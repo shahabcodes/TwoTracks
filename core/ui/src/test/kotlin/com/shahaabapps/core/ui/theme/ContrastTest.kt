@@ -61,7 +61,9 @@ class ContrastTest {
         const val LARGE = 3.0
     }
 
-    private val modes = listOf("light" to parallelColors(dark = false), "dark" to parallelColors(dark = true))
+    // Departures is a third palette rather than a mode, dark only, and is held
+    // to every rule the other two are.
+    private val modes = listOf("light" to parallelColors(dark = false), "dark" to parallelColors(dark = true), "departures" to departuresColors())
 
     /** The colours the app writes text in besides ink, by name. */
     private fun inks(c: CupertinoColors) = listOf(

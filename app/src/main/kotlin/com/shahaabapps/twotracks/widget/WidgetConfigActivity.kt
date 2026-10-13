@@ -85,7 +85,8 @@ class WidgetConfigActivity : ComponentActivity() {
 
         setContent {
             val themeMode by themeViewModel.themeMode.collectAsStateWithLifecycle()
-            AppThemeRoot(themeMode = themeMode) {
+            val look by themeViewModel.look.collectAsStateWithLifecycle()
+            AppThemeRoot(themeMode = themeMode, look = look) {
                 WidgetConfigScreen(
                     appWidgetId = appWidgetId,
                     existing = intent?.action != AppWidgetManager.ACTION_APPWIDGET_CONFIGURE,

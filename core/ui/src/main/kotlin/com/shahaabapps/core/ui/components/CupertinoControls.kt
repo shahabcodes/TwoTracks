@@ -1,5 +1,6 @@
 package com.shahaabapps.core.ui.components
 
+import com.shahaabapps.core.ui.theme.displayCase
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -69,7 +70,7 @@ fun CupertinoPrimaryButton(
         contentAlignment = Alignment.Center,
     ) {
         Text(
-            text = text,
+            text = displayCase(text),
             color = AppTheme.colors.onSolid,
             style = MaterialTheme.typography.labelLarge,
             textAlign = TextAlign.Center,
@@ -96,7 +97,7 @@ fun CupertinoSecondaryButton(
         contentAlignment = Alignment.Center,
     ) {
         Text(
-            text = text,
+            text = displayCase(text),
             color = if (enabled) AppTheme.colors.ink else AppTheme.colors.secondaryLabel,
             style = MaterialTheme.typography.labelLarge,
             textAlign = TextAlign.Center,

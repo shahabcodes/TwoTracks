@@ -75,3 +75,32 @@ object IosColors {
     val Yellow = Color(0xFFFFCC00)
     val Gray = Color(0xFF8E8E93)
 }
+
+/**
+ * The Departures palette: a departures board at night. One dark page, cards a
+ * step lighter, a near-black for the flip tiles, and one signal colour, yellow,
+ * for what is boarding now and for the developer's line. The teacher's line is
+ * blue, and on time, delayed and cancelled read green, orange and red, as a
+ * board does. There is no light version: the board is the look.
+ */
+internal object DeparturesPalette {
+    val Page = Color(0xFF131417)
+    val Card = Color(0xFF1C1E23)
+    /** The flip tiles behind a time. */
+    val Deep = Color(0xFF0B0C0E)
+    val Label = Color(0xFFF2F2EE)
+    val SecondaryLabel = Color(0xFFA3A7AF)
+    val Separator = Color(0xFF2C2F36)
+    /** The outline of an empty stop or an idle control. */
+    val StrongBorder = Color(0xFF4A4E57)
+    val Fill = Color(0x1AF2F2EE)
+    val Signal = Color(0xFFF5C518)
+    val OnSignal = Color(0xFF131417)
+    val Teacher = Color(0xFF4FA3FF)
+    val Success = Color(0xFF7CE38B)
+    val Warn = Color(0xFFFF9F5A)
+    val Destructive = Color(0xFFFF8A7F)
+    val SuccessBg = Color(0xFF16261A)
+    val DestructiveBg = Color(0xFF2A1715)
+    val Gradient = listOf(Color(0xFF22252B), Color(0xFF0B0C0E))
+}

@@ -5,6 +5,10 @@ build number is appended by CI (for example `0.1.0 (build 12)`).
 
 ## [Unreleased]
 
+## [0.78.0] - 2026-10-13
+### Added
+- A Departures look to choose in Settings, beside Parallel.
+
 ## [0.77.1] - 2026-10-12
 ### Fixed
 - The fit check opens all the way, and weekly hours finish saving after the page closes.
