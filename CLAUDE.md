@@ -49,6 +49,13 @@ The real gate, and what CI runs:
 Java 17. The build sets `sourceCompatibility`/`targetCompatibility` to 17 and
 will not work on a newer default JDK.
 
+The tap tests in `app/src/test/.../tap/` are part of `:app:testDebugUnitTest`.
+They draw each screen's `*Content` from the debug sample state under
+Robolectric, once in each look, press its controls and check which callback
+each press reached. A new control, or a new screen, gets a line there. They
+caught nothing on the way in, and a swapped answer on the board's deck is
+caught in one look and not the other, which is the point of running both.
+
 Two helper scripts exist for environments that cannot run Gradle at all:
 
 - `ci/jvm-tests.sh` — compiles and runs the pure-Kotlin tests (`core:model`,
