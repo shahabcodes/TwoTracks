@@ -1,5 +1,6 @@
 package com.shahaabapps.twotracks.feature.auth
 
+import com.shahaabapps.twotracks.ui.board.BoardGutter
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Animatable
@@ -95,6 +96,10 @@ fun AuthScreen(
         shake.animateTo(0f, keyframes { durationMillis = 420; 0f at 0; -14f at 60; 12f at 120; -8f at 180; 5f at 240; -2f at 300; 0f at 420 })
     }
 
+    val departures = AppTheme.departures
+    val actions = remember(viewModel) {
+        AuthActions(viewModel::onEmailChange, viewModel::onPasswordChange, viewModel::onConfirmChange, viewModel::setMode, viewModel::submit)
+    }
     AnimatedContent(
         targetState = state.mode,
         transitionSpec = { fadeIn(tween(220)) togetherWith fadeOut(tween(160)) },
@@ -107,10 +112,12 @@ fun AuthScreen(
                 .systemBarsPadding()
                 .imePadding()
                 .verticalScroll(rememberScrollState())
-                .padding(horizontal = Spacing.listHorizontal)
+                .padding(horizontal = if (departures) BoardGutter else Spacing.listHorizontal)
                 .offset { IntOffset(shake.value.roundToInt(), 0) },
         ) {
-            when (mode) {
+            if (departures) {
+                BoardAuth(state.copy(mode = mode), actions)
+            } else when (mode) {
                 AuthMode.SIGN_IN -> SignIn(state, viewModel)
                 AuthMode.SIGN_UP -> SignUp(state, viewModel)
                 AuthMode.RESET -> Reset(state, viewModel)

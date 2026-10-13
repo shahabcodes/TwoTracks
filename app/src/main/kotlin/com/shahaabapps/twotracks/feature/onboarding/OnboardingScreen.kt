@@ -1,5 +1,8 @@
 package com.shahaabapps.twotracks.feature.onboarding
 
+import com.shahaabapps.twotracks.feature.auth.BoardSpaceStep
+import com.shahaabapps.twotracks.feature.auth.BoardRoleStep
+import com.shahaabapps.twotracks.ui.board.BoardGutter
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
@@ -78,6 +81,7 @@ fun OnboardingScreen(
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     if (state.isSubmitting) LoadingOverlay("Setting up your space")
     var step by rememberSaveable { mutableIntStateOf(2) }
+    val departures = AppTheme.departures
 
     AnimatedContent(
         targetState = step,
@@ -91,9 +95,27 @@ fun OnboardingScreen(
                 .systemBarsPadding()
                 .imePadding()
                 .verticalScroll(rememberScrollState())
-                .padding(horizontal = Spacing.listHorizontal),
+                .padding(horizontal = if (departures) BoardGutter else Spacing.listHorizontal),
         ) {
-            if (current == 2) {
+            if (departures) {
+                if (current == 2) {
+                    BoardRoleStep(
+                        state.name, state.role, state.timezone, viewModel::onNameChange, viewModel::onRoleChange,
+                        onContinue = {
+                            if (state.mode == OnboardingMode.CHOOSE) viewModel.setMode(OnboardingMode.CREATE)
+                            step = 3
+                        },
+                        onSignOut = viewModel::signOut,
+                    )
+                } else {
+                    BoardSpaceStep(
+                        joining = state.mode == OnboardingMode.JOIN, inviteCode = state.inviteCode, error = state.errorMessage,
+                        submitting = state.isSubmitting, canSubmit = state.canSubmit,
+                        onJoining = { viewModel.setMode(if (it) OnboardingMode.JOIN else OnboardingMode.CREATE) },
+                        onCode = viewModel::onInviteCodeChange, onSubmit = viewModel::submit, onBack = { step = 2 },
+                    )
+                }
+            } else if (current == 2) {
                 RoleStep(state, viewModel) {
                     if (state.mode == OnboardingMode.CHOOSE) viewModel.setMode(OnboardingMode.CREATE)
                     step = 3

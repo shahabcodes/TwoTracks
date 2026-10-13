@@ -1,5 +1,8 @@
 package com.shahaabapps.twotracks.feature.lock
 
+import androidx.compose.foundation.layout.Spacer
+import com.shahaabapps.twotracks.ui.board.BoardFooter
+import com.shahaabapps.twotracks.feature.auth.BoardLock
 import androidx.biometric.BiometricPrompt
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -71,6 +74,21 @@ fun LockScreen(
     }
 
     LaunchedEffect(Unit) { prompt() }
+
+    if (AppTheme.departures) {
+        val now = java.time.LocalDateTime.now()
+        Column(modifier = Modifier.fillMaxSize().background(AppTheme.colors.deep).systemBarsPadding()) {
+            BoardLock(
+                date = now.format(java.time.format.DateTimeFormatter.ofPattern("EEE d MMM", java.util.Locale.ENGLISH)).uppercase(java.util.Locale.ROOT),
+                time = now.format(java.time.format.DateTimeFormatter.ofPattern("HH:mm")),
+                error = error, onUnlock = { error = null; prompt() },
+            )
+            Spacer(Modifier.weight(1f))
+            // The prompt offers the device PIN as well; this says so, as the prototype does.
+            BoardFooter("", "Use your device PIN", onClick = { error = null; prompt() }, modifier = Modifier.padding(bottom = 40.dp))
+        }
+        return
+    }
 
     Column(
         modifier = Modifier.fillMaxSize().background(AppTheme.colors.groupedBackground).systemBarsPadding().padding(horizontal = Spacing.listHorizontal),
