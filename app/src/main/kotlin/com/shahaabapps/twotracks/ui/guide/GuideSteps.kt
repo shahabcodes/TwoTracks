@@ -109,7 +109,7 @@ fun guideSteps(
     GuideStep(
         settingsRoute, GuideAnchors.SET_APPEARANCE,
         "How it looks",
-        "Light, dark, or whichever the phone is using.",
+        "Parallel or the Departures board, and for Parallel light, dark or whichever the phone is using. The icon follows the look.",
     ),
     GuideStep(
         settingsRoute, GuideAnchors.SET_BIOMETRICS,

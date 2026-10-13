@@ -70,6 +70,14 @@ class GuideState(private val steps: List<GuideStep>) {
     val total: Int get() = steps.size
     val isLast: Boolean get() = index == steps.lastIndex
 
+    /**
+     * The card's natural height and its distance from the ring, in pixels, as
+     * the overlay last measured them. Plain fields rather than state: they are
+     * written during layout and only read when deciding how far to scroll.
+     */
+    var cardHeight: Float = 0f
+    var cardGap: Float = 0f
+
     /** The rectangle to ring, or null when this step rings nothing. */
     val target: Rect? get() = step?.anchor?.let { anchors[it] }
 
@@ -100,13 +108,18 @@ class GuideState(private val steps: List<GuideStep>) {
         if (lazyList === state) { lazyList = null; lazyItems = emptyMap(); viewport = Rect.Zero }
     }
 
-    /** Whether the ring for the current step is on screen and inside the page. */
+    /**
+     * Whether the ring for the current step is on screen, inside the page, and
+     * with room on one side of it for the card. Without that last part a row
+     * scrolled to the middle of a short screen left the card no side to take.
+     */
     val revealed: Boolean
         get() {
             val key = step?.anchor ?: return true
             val bounds = anchors[key] ?: return false
             if (viewport.isEmpty) return true
-            return bounds.top >= viewport.top && bounds.bottom <= viewport.bottom
+            if (bounds.top < viewport.top || bounds.bottom > viewport.bottom) return false
+            return gapToAnchor(key) == null
         }
 
     /**
@@ -166,24 +179,28 @@ class GuideState(private val steps: List<GuideStep>) {
     }
 
     /**
-     * How far the page must move for the anchor to sit inside it, or null
-     * when it already does.
+     * How far the page must move for the anchor to sit inside it with room for
+     * the card on one side, or null when it already does.
      *
-     * The margin leaves room for the card, which sits at whichever end the
-     * anchor is not: landing a ring hard against either edge reads as cut off.
+     * The card wants its measured height and gap clear of the ring, above or
+     * below. When neither side has that, the anchor is moved the least that
+     * clears it below, which is where a thumb is: up when it sits too low,
+     * down off the top edge when it sits too high. The room asked for is
+     * capped at most of the page, so a tall card on a short screen still
+     * leaves the ring in view.
      */
     private fun gapToAnchor(key: String): Float? {
         val bounds = anchors[key] ?: return null
         if (viewport.isEmpty) return null
-        val margin = viewport.height * 0.28f
-        val top = viewport.top + margin
-        val bottom = viewport.bottom - margin
-        val delta = when {
-            bounds.top < top -> bounds.top - top
-            bounds.bottom > bottom -> bounds.bottom - bottom
-            else -> 0f
-        }
-        return delta.takeIf { it != 0f }
+        val need = (cardHeight + cardGap).coerceAtMost(viewport.height * 0.6f)
+        val edge = viewport.height * 0.04f
+        val clearBelow = bounds.top >= viewport.top + edge && viewport.bottom - bounds.bottom >= need
+        val clearAbove = bounds.bottom <= viewport.bottom - edge && bounds.top - viewport.top >= need
+        if (clearBelow || clearAbove) return null
+        val wantTop = if (bounds.top < viewport.top + edge) viewport.top + edge
+        else (viewport.bottom - need - bounds.height).coerceAtLeast(viewport.top + edge)
+        val delta = bounds.top - wantTop
+        return delta.takeIf { kotlin.math.abs(it) > 1f }
     }
 }
 
