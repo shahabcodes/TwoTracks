@@ -120,7 +120,7 @@ fun BudgetScreen(onBack: () -> Unit, viewModel: BudgetViewModel = hiltViewModel(
 @Composable
 fun BudgetContent(state: BudgetUiState, onBack: () -> Unit, onSave: (BudgetItem) -> Unit, onDelete: (String) -> Unit) {
     var editing by remember { mutableStateOf<BudgetItem?>(null) }
-    DetailScaffold(
+    if (AppTheme.departures) BoardBudget(state, onBack) { editing = it } else DetailScaffold(
         title = "Budget", onBack = onBack, backLabel = "Back to Together", eyebrow = "What the move costs, in the currency it is paid in",
         actions = { IconButton(onClick = { editing = BudgetItem(owner = state.myRole, order = 999) }) { Icon(Icons.Filled.Add, "Add an item", tint = AppTheme.colors.accentText) } },
     ) {

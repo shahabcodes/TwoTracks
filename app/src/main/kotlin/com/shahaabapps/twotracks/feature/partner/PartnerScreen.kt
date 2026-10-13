@@ -210,6 +210,7 @@ fun PartnerScreen(
 
 @Composable
 fun PartnerContent(state: PartnerUiState, onBack: () -> Unit, onOpenLevel: (String) -> Unit, onOpenGoal: (String) -> Unit) {
+    if (AppTheme.departures) { BoardPartner(state, onBack, onOpenLevel, onOpenGoal); return }
     val color = AppTheme.colors.track(state.isTech)
     DetailScaffold(title = "", onBack = onBack, backLabel = "Back to Together") {
         if (!state.loaded) return@DetailScaffold

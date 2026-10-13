@@ -139,7 +139,7 @@ fun DocumentsScreen(onBack: () -> Unit, viewModel: DocumentsViewModel = hiltView
 fun DocumentsContent(state: DocumentsUiState, onBack: () -> Unit, onFilter: (DocFilter) -> Unit, onCycle: (DocumentItem) -> Unit, onSave: (DocumentItem) -> Unit) {
     var editing by remember { mutableStateOf<DocumentItem?>(null) }
     val shown = state.shown
-    DetailScaffold(title = "Documents", onBack = onBack, backLabel = "Back to Together", eyebrow = "${state.done} of ${state.all.size} done · showing ${shown.size}") {
+    if (AppTheme.departures) BoardDocuments(state, onBack, onFilter, onCycle) { editing = it } else DetailScaffold(title = "Documents", onBack = onBack, backLabel = "Back to Together", eyebrow = "${state.done} of ${state.all.size} done · showing ${shown.size}") {
         LazyColumn(contentPadding = PaddingValues(bottom = Spacing.xl)) {
             item {
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.padding(start = Spacing.listHorizontal, end = Spacing.listHorizontal, top = 2.dp)) {

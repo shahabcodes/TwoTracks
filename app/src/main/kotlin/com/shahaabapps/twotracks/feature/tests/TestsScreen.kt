@@ -137,7 +137,7 @@ fun TestsScreen(onBack: () -> Unit, viewModel: TestsViewModel = hiltViewModel())
 @Composable
 fun TestsContent(state: TestsUiState, onBack: () -> Unit, onSave: (TestRecord) -> Unit) {
     var editing by remember { mutableStateOf<TestRecord?>(null) }
-    DetailScaffold(title = "Tests", onBack = onBack, backLabel = "Back to Together", eyebrow = "Official results against what each route needs") {
+    if (AppTheme.departures) BoardTests(state, onBack) { editing = it } else DetailScaffold(title = "Tests", onBack = onBack, backLabel = "Back to Together", eyebrow = "Official results against what each route needs") {
         LazyColumn(contentPadding = PaddingValues(bottom = Spacing.xl)) {
             item { HorizontalDivider(color = AppTheme.colors.ink, thickness = Spacing.rule, modifier = Modifier.padding(start = Spacing.listHorizontal, end = Spacing.listHorizontal, top = 10.dp)) }
             items(state.tests, key = { it.id }) { t ->

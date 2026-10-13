@@ -164,6 +164,7 @@ fun CountriesScreen(onBack: () -> Unit, onOpen: (String) -> Unit, viewModel: Cou
  */
 @Composable
 fun CountriesContent(state: CountriesUiState, onBack: () -> Unit, onOpen: (String) -> Unit) {
+    if (AppTheme.departures) { BoardCountries(state, onBack, onOpen); return }
     val r = state.reader
     val mine = AppTheme.colors.track(r.myRole == PersonRole.TECH)
     val theirs = AppTheme.colors.track(r.myRole != PersonRole.TECH)
@@ -246,6 +247,7 @@ fun CountryContent(
     onSaveNotes: (CountryTrack, String) -> Unit,
     onClearNotes: (CountryTrack) -> Unit,
 ) {
+    if (AppTheme.departures) { BoardCountry(state, onBack, onToggle, onSaveNotes, onClearNotes); return }
     val c = state.country
     val r = state.reader
     val (lead, leadRole) = c?.let { leadOf(it, r) } ?: ("" to null)
