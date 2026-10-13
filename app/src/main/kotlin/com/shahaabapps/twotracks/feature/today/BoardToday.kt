@@ -253,7 +253,7 @@ private fun Route(lp: LevelProgress, color: Color, onOpenLevel: (String) -> Unit
         Row(verticalAlignment = Alignment.CenterVertically) {
             BoardLabel(
                 "Route · level ${lp.level.number} ${lp.level.name} ›", size = 13.sp, spacing = 0.1.em,
-                modifier = Modifier.weight(1f).heightIn(min = 24.dp).clip(RoundedCornerShape(4.dp)).clickable(role = Role.Button) { onOpenLevel(lp.level.id) },
+                modifier = Modifier.weight(1f).heightIn(min = 24.dp).clip(RoundedCornerShape(4.dp)).clickable(role = Role.Button, onClickLabel = "Open the level") { onOpenLevel(lp.level.id) },
             )
             lp.daysLeft?.let { BoardLabel(if (it >= 0) "$it days" else "${-it} days late", size = 13.sp, spacing = 0.1.em, color = if (it >= 0) AppTheme.colors.secondaryLabel else AppTheme.colors.warn) }
         }

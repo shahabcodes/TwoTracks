@@ -26,6 +26,9 @@ android {
     }
 
     sourceSets.getByName("main").assets.srcDir(changelogAssets)
+
+    // The tap tests draw real screens under Robolectric, fonts and all.
+    testOptions.unitTests.isIncludeAndroidResources = true
 }
 
 tasks.named("preBuild") { dependsOn(copyChangelog) }
@@ -52,5 +55,10 @@ dependencies {
 
     testImplementation(libs.junit)
     testImplementation(libs.kotlinx.coroutines.test)
+    testImplementation(platform(libs.androidx.compose.bom))
+    testImplementation(libs.androidx.compose.ui.test.junit4)
+    testImplementation(libs.androidx.junit)
+    testImplementation(libs.robolectric)
+    debugImplementation(libs.androidx.compose.ui.test.manifest)
     androidTestImplementation(libs.androidx.junit)
 }
