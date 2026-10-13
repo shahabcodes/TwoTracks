@@ -132,6 +132,7 @@ class DesignPreviewActivity : ComponentActivity() {
                             emptyMap(), onBack = {}, onChange = {},
                         )
                         "signin", "signup", "reset", "role", "space", "join", "lock" -> BoardAccountPreview(screen)
+                        "brief" -> com.shahaabapps.twotracks.feature.today.DailyBriefSheet(sampleBrief(), AppTheme.colors.tech, onStart = {}, onDismiss = {})
                         "deck" -> DeckContent(LearnSamples.deck(), speaker = null, onBack = {}, onFlip = {}, onAnswer = {}, onPractiseAnyway = {}, onAgain = {}, onInstallVoice = {})
                         else -> TodayContent(
                             state = Samples.today(), onOpenLevel = {}, onOpenPartner = {}, onOpenGoal = {}, onOpenWeek = {},

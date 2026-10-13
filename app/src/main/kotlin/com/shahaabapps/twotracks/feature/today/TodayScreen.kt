@@ -138,7 +138,14 @@ fun TodayContent(
     val myColor = AppTheme.colors.track(meIsTech)
     val partnerColor = AppTheme.colors.track(!meIsTech)
 
-    Box {
+    if (AppTheme.departures) Box {
+        BoardTodayBody(
+            state, onOpenLevel = onOpenLevel, onOpenWeek = onOpenWeek, onOpenSettings = onOpenSettings, onOpenTopic = onOpenTopic, onOpenQuiz = onOpenQuiz,
+            onOpenBrief = onOpenBrief, onDone = { haptic.performHapticFeedback(HapticFeedbackType.LongPress); onDone(it) },
+            onTap = { row, isMine -> if (isMine) actionsFor = row else onOpenPartner() },
+        )
+        SnackbarHost(hostState = snackbar, modifier = Modifier.align(Alignment.BottomCenter))
+    } else Box {
         LazyColumn(contentPadding = PaddingValues(bottom = Spacing.xl)) {
             item { Header(state, myColor, partnerColor, onOpenBrief = onOpenBrief, onOpenSettings = onOpenSettings) }
 

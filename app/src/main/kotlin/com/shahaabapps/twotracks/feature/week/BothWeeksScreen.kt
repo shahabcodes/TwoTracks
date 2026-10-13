@@ -132,6 +132,7 @@ fun BothWeeksScreen(onBack: () -> Unit, viewModel: BothWeeksViewModel = hiltView
 /** Both weeks drawn from its state alone, so a preview can show it without an account. */
 @Composable
 fun BothWeeksContent(state: BothWeeksUiState, onBack: () -> Unit) {
+    if (AppTheme.departures) { BoardBothLines(state, onBack); return }
     DetailScaffold(title = "Both weeks", onBack = onBack, eyebrow = "Last 7 days") {
         val me = state.me ?: return@DetailScaffold
         val partner = state.partner

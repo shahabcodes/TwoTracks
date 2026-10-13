@@ -115,7 +115,10 @@ fun WeekContent(
 
     LaunchedEffect(state.message) { state.message?.let { snackbar.showSnackbar(it); onMessageShown() } }
 
-    DetailScaffold(
+    if (AppTheme.departures) BoardTimetable(
+        state, onBack, onOpenGoal, onOpenBothWeeks, onOpenFit, onPreviousWeek, onNextWeek, onThisWeek, onTogglePerson, onReplan,
+        onAssign = { day, row -> assignRow = day to row }, onAddBlock = { addBlockFor = it },
+    ) else DetailScaffold(
         title = if (state.isMe) "Your week" else "${state.viewingName.ifBlank { "Their" }}'s week",
         onBack = onBack,
         eyebrow = weekRange(state.weekStart),

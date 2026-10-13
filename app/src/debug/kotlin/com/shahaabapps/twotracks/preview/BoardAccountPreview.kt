@@ -35,3 +35,16 @@ internal fun BoardAccountPreview(screen: String) {
         }
     }
 }
+
+/** The morning brief, as Usaid's Monday has it. */
+internal fun sampleBrief() = com.shahaabapps.twotracks.feature.today.DailyBrief(
+    greeting = "Good morning, Usaid", dateLine = "Mon 12 Oct",
+    task = "AZ-204 · App Service", taskDetail = "Compute · 60 min · Gate Learn",
+    reasons = listOf(
+        com.shahaabapps.twotracks.feature.today.BriefReason(com.shahaabapps.twotracks.feature.today.BriefKind.GOAL, "AZ-204: 12 of 120 hours. About 4 a week reaches 31 Mar 2027."),
+        com.shahaabapps.twotracks.feature.today.BriefReason(com.shahaabapps.twotracks.feature.today.BriefKind.LEVEL, "Foundations: 2 of 5 done, 170 days left."),
+        com.shahaabapps.twotracks.feature.today.BriefReason(com.shahaabapps.twotracks.feature.today.BriefKind.LEARN, "App Service, about 28 minutes, counts toward Compute. 18 German cards waiting."),
+        com.shahaabapps.twotracks.feature.today.BriefReason(com.shahaabapps.twotracks.feature.today.BriefKind.MOVE, "Marriage in 112 days. Every session now is one less to squeeze in later."),
+    ),
+    streakLine = "6 days running. Keep the streak.", isRestDay = false, time = "19:00",
+)
