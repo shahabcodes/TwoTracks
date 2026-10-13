@@ -20,6 +20,7 @@ import androidx.compose.ui.Modifier
 import androidx.fragment.app.FragmentActivity
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.shahaabapps.core.ui.theme.AppLook
 import com.shahaabapps.core.ui.theme.AppTheme
 import com.shahaabapps.core.ui.theme.isDark
 import com.shahaabapps.twotracks.feature.auth.AuthScreen
@@ -37,13 +38,20 @@ import com.shahaabapps.twotracks.widget.WidgetRoutes
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
-/** FragmentActivity (not ComponentActivity) so BiometricPrompt can attach. */
+/**
+ * The app. FragmentActivity (not ComponentActivity) so BiometricPrompt can
+ * attach. The launcher reaches it through one of two aliases, one icon for
+ * each look; see LauncherIcon.
+ */
 @AndroidEntryPoint
-class MainActivity : FragmentActivity() {
+class AppActivity : FragmentActivity() {
 
     @Inject lateinit var appLock: AppLock
     @Inject lateinit var celebrations: Celebrations
     @Inject lateinit var widgetLaunch: WidgetLaunch
+
+    /** The look on screen, so the icon can follow it when the app leaves. */
+    private var look: AppLook? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()
@@ -53,6 +61,7 @@ class MainActivity : FragmentActivity() {
             val themeViewModel: ThemeViewModel = hiltViewModel()
             val themeMode by themeViewModel.themeMode.collectAsStateWithLifecycle()
             val look by themeViewModel.look.collectAsStateWithLifecycle()
+            LaunchedEffect(look) { this@AppActivity.look = look }
 
             // Status and navigation bar icons follow the app's own light/dark
             // choice, not the system's, and the Departures board is always dark.
@@ -89,6 +98,7 @@ class MainActivity : FragmentActivity() {
     override fun onStop() {
         super.onStop()
         appLock.onBackground()
+        look?.let { LauncherIcon.apply(this, it) }
     }
 }
 

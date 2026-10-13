@@ -13,7 +13,7 @@ data class Celebration(val kind: CelebrationKind, val label: String, val id: Lon
 /**
  * One-shot events for the full-screen celebration overlay. Any write path
  * calls [saved], [removed], [passed] or [logged] after its write succeeds; the
- * overlay hosted in MainActivity plays the matching animation.
+ * overlay hosted in AppActivity plays the matching animation.
  */
 @Singleton
 class Celebrations @Inject constructor() {

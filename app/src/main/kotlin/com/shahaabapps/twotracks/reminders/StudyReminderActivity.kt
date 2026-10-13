@@ -35,7 +35,7 @@ import com.shahaabapps.core.ui.theme.AppTheme
 import com.shahaabapps.core.ui.theme.Spacing
 import com.shahaabapps.core.ui.theme.AppTheme as AppThemeRoot
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.shahaabapps.twotracks.MainActivity
+import com.shahaabapps.twotracks.AppActivity
 import com.shahaabapps.twotracks.ui.components.TwoTracksMark
 import com.shahaabapps.twotracks.ui.ThemeViewModel
 import com.shahaabapps.twotracks.widget.WidgetRoutes
@@ -77,7 +77,7 @@ class StudyReminderActivity : ComponentActivity() {
                     text = text,
                     onStart = {
                         startActivity(
-                            Intent(this, MainActivity::class.java).apply {
+                            Intent(this, AppActivity::class.java).apply {
                                 flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
                                 route?.let { putExtra(WidgetRoutes.EXTRA, it) }
                             },

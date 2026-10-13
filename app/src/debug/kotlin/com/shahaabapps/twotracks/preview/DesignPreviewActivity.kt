@@ -70,6 +70,7 @@ import java.time.LocalDate
  *
  * Screens: today, week, both, learn, course, topic, quiz, results, deck, levels, level, goal, goaledit, fit, us, partner, countries, country, tests, documents, budget, settings, hours, whatsnew, widgets.
  * Departures only (with --es look departures): signin, signup, reset, role, space, join, lock.
+ * Both launcher icons, as a launcher crops them: icons. --es icon departures (or parallel) runs the real icon switch.
  */
 class DesignPreviewActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -78,6 +79,8 @@ class DesignPreviewActivity : ComponentActivity() {
         val screen = intent?.getStringExtra("screen") ?: "today"
         val dark = intent?.getBooleanExtra("dark", false) == true
         val look = if (intent?.getStringExtra("look") == "departures") AppLook.DEPARTURES else AppLook.PARALLEL
+        // --es icon departures|parallel runs the real icon switch, as the app does when it leaves the screen.
+        intent?.getStringExtra("icon")?.let { com.shahaabapps.twotracks.LauncherIcon.apply(this, if (it == "departures") AppLook.DEPARTURES else AppLook.PARALLEL) }
         setContent {
             AppTheme(themeMode = if (dark) ThemeMode.DARK else ThemeMode.LIGHT, look = look) {
                 Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
@@ -133,6 +136,7 @@ class DesignPreviewActivity : ComponentActivity() {
                         )
                         "signin", "signup", "reset", "role", "space", "join", "lock" -> BoardAccountPreview(screen)
                         "brief" -> com.shahaabapps.twotracks.feature.today.DailyBriefSheet(sampleBrief(), AppTheme.colors.tech, onStart = {}, onDismiss = {})
+                        "icons" -> IconsPreview()
                         "deck" -> DeckContent(LearnSamples.deck(), speaker = null, onBack = {}, onFlip = {}, onAnswer = {}, onPractiseAnyway = {}, onAgain = {}, onInstallVoice = {})
                         else -> TodayContent(
                             state = Samples.today(), onOpenLevel = {}, onOpenPartner = {}, onOpenGoal = {}, onOpenWeek = {},

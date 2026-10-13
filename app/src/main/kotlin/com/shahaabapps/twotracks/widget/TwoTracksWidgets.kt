@@ -40,7 +40,7 @@ import androidx.glance.unit.ColorProvider
 import com.shahaabapps.core.content.Courses
 import com.shahaabapps.core.content.StudyKind
 import com.shahaabapps.core.content.WidgetSnapshot
-import com.shahaabapps.twotracks.MainActivity
+import com.shahaabapps.twotracks.AppActivity
 import dagger.hilt.EntryPoint
 import dagger.hilt.InstallIn
 import dagger.hilt.android.EntryPointAccessors
@@ -69,7 +69,7 @@ import java.time.LocalDate
 
 /** Tapping a widget opens the app, and where sensible, the screen it is about. */
 internal fun openRoute(context: Context, route: String?): Intent =
-    Intent(context, MainActivity::class.java).apply {
+    Intent(context, AppActivity::class.java).apply {
         flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
         route?.let { putExtra(WidgetRoutes.EXTRA, it) }
         // A distinct action per route so the launcher does not reuse a

@@ -159,7 +159,7 @@ internal fun BoardSettings(
                         BoardLabel("Look", size = 13.sp, spacing = 0.12.em, modifier = Modifier.padding(bottom = 6.dp).semantics { heading() })
                         Rule()
                         BoardSegments(listOf(AppLook.PARALLEL to "Parallel", AppLook.DEPARTURES to "Departures"), selected = v.look, onSelect = onLook, modifier = Modifier.padding(top = 10.dp))
-                        BoardText("Departures is a board at night and is always dark.", size = 12.sp, modifier = Modifier.padding(top = 8.dp))
+                        BoardText("Departures is a board at night and is always dark. The home-screen icon follows once you leave the app.", size = 12.sp, modifier = Modifier.padding(top = 8.dp))
                     }
                 }
                 item {
