@@ -5,6 +5,10 @@ build number is appended by CI (for example `0.1.0 (build 12)`).
 
 ## [Unreleased]
 
+## [0.81.0] - 2026-10-13
+### Changed
+- Learn, a course, a topic, a test and the word deck have their Departures screens.
+
 ## [0.80.0] - 2026-10-13
 ### Changed
 - Today, the brief, your timetable and both lines have their Departures screens.

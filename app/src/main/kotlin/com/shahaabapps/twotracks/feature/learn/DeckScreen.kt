@@ -1,5 +1,14 @@
 package com.shahaabapps.twotracks.feature.learn
 
+import androidx.compose.ui.unit.em
+import com.shahaabapps.core.ui.theme.CondensedFamily
+import com.shahaabapps.twotracks.ui.board.Perforation
+import com.shahaabapps.twotracks.ui.board.BoardButton
+import com.shahaabapps.twotracks.ui.board.BoardTitle
+import com.shahaabapps.twotracks.ui.board.BoardText
+import com.shahaabapps.twotracks.ui.board.BoardMono
+import com.shahaabapps.twotracks.ui.board.BoardLabel
+import com.shahaabapps.twotracks.ui.board.BoardGutter
 import com.shahaabapps.core.ui.theme.MonoFamily
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.heading
@@ -88,6 +97,7 @@ fun DeckContent(
     onAgain: () -> Unit,
     onInstallVoice: () -> Unit,
 ) {
+    if (AppTheme.departures) { BoardDeck(state, speaker, onBack, onFlip, onAnswer, onPractiseAnyway, onAgain, onInstallVoice); return }
     val course = state.course
     Scaffold(containerColor = AppTheme.colors.groupedBackground) { inner ->
         Column(modifier = Modifier.fillMaxSize().padding(inner)) {
@@ -194,5 +204,122 @@ private fun Finished(state: DeckUiState, onDone: () -> Unit, onAgain: () -> Unit
         }
         CupertinoPrimaryButton(text = "Back", onClick = onDone)
         CupertinoSecondaryButton(text = "Go again with the missed ones", enabled = state.missed > 0, onClick = onAgain)
+    }
+}
+
+/**
+ * The word deck on the Departures board, as its prototype draws it: the
+ * card a step lighter than the page with the article on a yellow chip, the
+ * word in condensed capitals, and AGAIN in red beside GOT IT in yellow, each
+ * saying when the card comes back.
+ */
+@Composable
+private fun BoardDeck(
+    state: DeckUiState,
+    speaker: Speaker?,
+    onBack: () -> Unit,
+    onFlip: () -> Unit,
+    onAnswer: (Boolean) -> Unit,
+    onPractiseAnyway: () -> Unit,
+    onAgain: () -> Unit,
+    onInstallVoice: () -> Unit,
+) {
+    val course = state.course
+    Scaffold(containerColor = AppTheme.colors.groupedBackground) { inner ->
+        Column(modifier = Modifier.fillMaxSize().padding(inner)) {
+            val count = if (state.session.isEmpty() || state.finished) "" else "%02d/%02d".format((state.index + 1).coerceAtMost(state.session.size), state.session.size)
+            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth().padding(start = BoardGutter, end = BoardGutter, top = 6.dp)) {
+                Box(
+                    contentAlignment = Alignment.Center,
+                    modifier = Modifier.offset(x = (-10).dp).size(44.dp).clip(CircleShape).clickable(role = Role.Button, onClickLabel = "Close the deck", onClick = onBack),
+                ) { Icon(Icons.Filled.Close, contentDescription = "Close the deck", tint = AppTheme.colors.ink) }
+                BoardLabel(((course?.title ?: "") + " · words"), size = 14.sp, weight = FontWeight.Bold, textAlign = TextAlign.Center, modifier = Modifier.weight(1f))
+                BoardMono(count, color = AppTheme.colors.ink, size = 13.sp, weight = FontWeight.Bold, spacing = 0.sp, textAlign = TextAlign.End, modifier = Modifier.width(54.dp))
+            }
+            if (course == null) return@Column
+            if (state.session.isNotEmpty() && !state.finished) {
+                Box(Modifier.padding(start = BoardGutter, end = BoardGutter, top = 12.dp).fillMaxWidth().height(5.dp).clip(RoundedCornerShape(3.dp)).background(AppTheme.colors.separator)) {
+                    Box(Modifier.fillMaxWidth(((state.index + 1).toFloat() / state.session.size).coerceIn(0f, 1f)).height(5.dp).clip(RoundedCornerShape(3.dp)).background(AppTheme.colors.accent))
+                }
+            }
+            when {
+                state.finished -> Finished(state, onBack, onAgain)
+                state.session.isEmpty() -> Column(modifier = Modifier.padding(horizontal = BoardGutter, vertical = 28.dp), verticalArrangement = Arrangement.spacedBy(Spacing.md)) {
+                    BoardTitle("No service", size = 40.sp)
+                    BoardText("Every word you have met is scheduled for later. Read a Words topic in ${course.title} to add more, or come back tomorrow.")
+                    BoardButton("Practise 10 anyway", onClick = onPractiseAnyway, arrow = false)
+                }
+                else -> {
+                    val w = state.current ?: return@Column
+                    Column(modifier = Modifier.weight(1f).padding(BoardGutter), verticalArrangement = Arrangement.spacedBy(14.dp)) {
+                        AnimatedContent(
+                            targetState = w.id,
+                            transitionSpec = { (slideInHorizontally(tween(260)) { it / 3 } + fadeIn(tween(200))) togetherWith (slideOutHorizontally(tween(200)) { -it / 3 } + fadeOut(tween(140))) },
+                            label = "card", modifier = Modifier.weight(1f),
+                        ) { _ ->
+                            Column(
+                                modifier = Modifier.fillMaxSize().clip(RoundedCornerShape(20.dp)).background(AppTheme.colors.card)
+                                    .clickable(onClickLabel = if (state.flipped) "Show the German side" else "Show the meaning", onClick = onFlip).padding(20.dp),
+                                verticalArrangement = Arrangement.SpaceBetween,
+                            ) {
+                                Row {
+                                    BoardLabel(if (state.flipped) "Back" else "Front", size = 13.sp, weight = FontWeight.Bold, modifier = Modifier.weight(1f))
+                                    BoardLabel("Tap to flip", size = 13.sp, weight = FontWeight.Bold)
+                                }
+                                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                                    w.article?.let {
+                                        Box(contentAlignment = Alignment.Center, modifier = Modifier.height(30.dp).clip(RoundedCornerShape(6.dp)).background(AppTheme.colors.accent).padding(horizontal = 12.dp)) {
+                                            BoardMono(it, color = AppTheme.colors.onSolid, size = 16.sp, weight = FontWeight.Bold, spacing = 0.sp)
+                                        }
+                                    }
+                                    Text(w.de, color = AppTheme.colors.ink, style = androidx.compose.ui.text.TextStyle(fontFamily = CondensedFamily, fontWeight = FontWeight.Bold, fontSize = 60.sp, lineHeight = 58.sp))
+                                    w.plural?.let { BoardMono("PL. " + it.uppercase(), size = 13.sp, spacing = 0.sp) }
+                                }
+                                if (state.flipped) {
+                                    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                                        Perforation(Modifier.height(4.dp))
+                                        Text(w.en, color = AppTheme.colors.accent, style = androidx.compose.ui.text.TextStyle(fontFamily = CondensedFamily, fontWeight = FontWeight.SemiBold, fontSize = 30.sp, lineHeight = 32.sp))
+                                        BoardText(w.example, color = AppTheme.colors.ink, size = 16.sp)
+                                        BoardText(w.exampleEn, size = 14.sp)
+                                    }
+                                } else {
+                                    BoardText("Say it out loud, then flip to check.", size = 14.sp)
+                                }
+                            }
+                        }
+                        Row(horizontalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterHorizontally), modifier = Modifier.fillMaxWidth()) {
+                            SpeakButton(w.display, speaker, size = 52.dp)
+                            SpeakButton(w.example, speaker, size = 52.dp, slow = true)
+                        }
+                        if (speaker == null) {
+                            BoardText(
+                                if (state.speakerState == Speaker.State.MISSING_LANGUAGE) "${course.languageName} voice not installed. Tap to open the download page." else "Text-to-speech is not available on this phone.",
+                                color = AppTheme.colors.warn, size = 13.sp, textAlign = TextAlign.Center,
+                                modifier = Modifier.fillMaxWidth().clickable(enabled = state.speakerState == Speaker.State.MISSING_LANGUAGE, onClick = onInstallVoice),
+                            )
+                        }
+                    }
+                    Row(horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.padding(start = BoardGutter, end = BoardGutter, bottom = 28.dp).navigationBarsPadding()) {
+                        BoardAnswer("Again", "back tomorrow", primary = false, modifier = Modifier.weight(1f)) { onAnswer(false) }
+                        BoardAnswer("Got it", "back in ${state.nextIntervalDays} day" + (if (state.nextIntervalDays == 1L) "" else "s"), primary = true, modifier = Modifier.weight(1f)) { onAnswer(true) }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun BoardAnswer(label: String, detail: String, primary: Boolean, modifier: Modifier, onClick: () -> Unit) {
+    val shape = RoundedCornerShape(12.dp)
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(2.dp, Alignment.CenterVertically),
+        modifier = modifier.height(60.dp).clip(shape)
+            .background(if (primary) AppTheme.colors.accent else AppTheme.colors.blockedBackground)
+            .then(if (primary) Modifier else Modifier.border(1.5.dp, AppTheme.colors.destructive, shape))
+            .clickable(role = Role.Button, onClick = onClick),
+    ) {
+        BoardLabel(label, color = if (primary) AppTheme.colors.onSolid else AppTheme.colors.destructive, size = 18.sp, weight = FontWeight.Bold, spacing = 0.1.em)
+        BoardMono(detail.uppercase(), color = if (primary) AppTheme.colors.onSolid.copy(alpha = 0.75f) else AppTheme.colors.secondaryLabel, size = 10.sp, spacing = 0.sp)
     }
 }
