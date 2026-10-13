@@ -19,6 +19,7 @@ private val Context.themeDataStore: DataStore<Preferences> by preferencesDataSto
  * UI-agnostic:
  *  - theme mode: "SYSTEM" / "LIGHT" / "DARK"
  *  - accent palette: "MEADOW" / "BLOSSOM" / "OCEAN"
+ *  - look: "PARALLEL" / "DEPARTURES", which of the two designs the app is drawn in
  * The UI module maps these to its own enums.
  */
 @Singleton
@@ -31,6 +32,13 @@ class ThemePreferences @Inject constructor(
     val accentPaletteName: Flow<String> = context.themeDataStore.data
         .map { prefs -> prefs[KEY_ACCENT_PALETTE] ?: DEFAULT_PALETTE }
 
+    val lookName: Flow<String> = context.themeDataStore.data
+        .map { prefs -> prefs[KEY_LOOK] ?: DEFAULT_LOOK }
+
+    suspend fun setLookName(name: String) {
+        context.themeDataStore.edit { prefs -> prefs[KEY_LOOK] = name }
+    }
+
     suspend fun setThemeModeName(name: String) {
         context.themeDataStore.edit { prefs -> prefs[KEY_THEME_MODE] = name }
     }
@@ -42,7 +50,9 @@ class ThemePreferences @Inject constructor(
     private companion object {
         val KEY_THEME_MODE = stringPreferencesKey("theme_mode")
         val KEY_ACCENT_PALETTE = stringPreferencesKey("accent_palette")
+        val KEY_LOOK = stringPreferencesKey("look")
         const val DEFAULT_MODE = "LIGHT"
         const val DEFAULT_PALETTE = "QATAR"
+        const val DEFAULT_LOOK = "PARALLEL"
     }
 }

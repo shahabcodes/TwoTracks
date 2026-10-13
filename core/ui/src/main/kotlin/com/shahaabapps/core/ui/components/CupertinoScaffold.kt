@@ -1,5 +1,6 @@
 package com.shahaabapps.core.ui.components
 
+import com.shahaabapps.core.ui.theme.displayCase
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -45,7 +46,7 @@ fun CupertinoScaffold(
                 if (eyebrow != null) SectionLabel(eyebrow, modifier = Modifier.padding(bottom = 6.dp))
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
-                        text = title,
+                        text = displayCase(title),
                         style = MaterialTheme.typography.displayLarge,
                         color = MaterialTheme.colorScheme.onBackground,
                         modifier = Modifier.weight(1f).semantics { heading() },

@@ -44,6 +44,7 @@ import com.shahaabapps.core.planner.CapacityReport
 import com.shahaabapps.core.planner.LevelItemProgress
 import com.shahaabapps.core.planner.LevelProgress
 import com.shahaabapps.core.planner.LevelState
+import com.shahaabapps.core.ui.theme.AppLook
 import com.shahaabapps.core.ui.theme.AppTheme
 import com.shahaabapps.core.ui.theme.ThemeMode
 import com.shahaabapps.twotracks.feature.today.NextTopic
@@ -65,7 +66,7 @@ import java.time.LocalDate
  * data, with no account and no Firestore, so they can be put next to the
  * prototype and compared.
  *
- *   adb shell am start -n com.shahaabapps.twotracks/.preview.DesignPreviewActivity --es screen today [--ez dark true]
+ *   adb shell am start -n com.shahaabapps.twotracks/.preview.DesignPreviewActivity --es screen today [--ez dark true] [--es look departures]
  *
  * Screens: today, week, both, learn, course, topic, quiz, results, deck, levels, level, goal, goaledit, fit, us, partner, countries, country, tests, documents, budget, settings, hours, whatsnew, widgets.
  */
@@ -75,8 +76,9 @@ class DesignPreviewActivity : ComponentActivity() {
         enableEdgeToEdge()
         val screen = intent?.getStringExtra("screen") ?: "today"
         val dark = intent?.getBooleanExtra("dark", false) == true
+        val look = if (intent?.getStringExtra("look") == "departures") AppLook.DEPARTURES else AppLook.PARALLEL
         setContent {
-            AppTheme(themeMode = if (dark) ThemeMode.DARK else ThemeMode.LIGHT) {
+            AppTheme(themeMode = if (dark) ThemeMode.DARK else ThemeMode.LIGHT, look = look) {
                 Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
                     when (screen) {
                         "week" -> WeekContent(
@@ -116,7 +118,7 @@ class DesignPreviewActivity : ComponentActivity() {
                         "budget" -> BudgetContent(TogetherSamples.budget(), onBack = {}, onSave = {}, onDelete = {})
                         "settings" -> SettingsContent(
                             SettingsSamples.settings(), remember { SnackbarHostState() }, onBack = {}, onEditProfile = {}, onCopyInvite = {}, onOpenAvailability = {},
-                            onEditStartDate = {}, onOpenFullScreen = {}, onTheme = {}, onBiometric = {}, onOpenVoices = {}, onOpenWidgets = {}, onOpenChangelog = {},
+                            onEditStartDate = {}, onOpenFullScreen = {}, onTheme = {}, onLook = {}, onBiometric = {}, onOpenVoices = {}, onOpenWidgets = {}, onOpenChangelog = {},
                             onTour = {}, onReset = {}, onSignOut = {},
                         )
                         "hours" -> AvailabilityContent(SettingsSamples.blocks, isTech = true, goals = emptyList(), onBack = {}, onAdd = {}, onRemove = {})

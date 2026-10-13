@@ -29,6 +29,7 @@ import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
+import com.shahaabapps.twotracks.ui.components.BoardIcons
 import com.shahaabapps.twotracks.ui.components.ParallelIcons
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -142,6 +143,16 @@ private val tabs = listOf(
     Tab(Routes.US, "Together", Icons.Outlined.People),
 )
 
+/**
+ * The same three places on the Departures board, as its prototype names them:
+ * Today is the board itself, and Together is the route the two of you are on.
+ */
+private val boardTabs = listOf(
+    Tab(Routes.TODAY, "TODAY", BoardIcons.Board),
+    Tab(Routes.LEARN, "LEARN", Icons.AutoMirrored.Outlined.MenuBook),
+    Tab(Routes.US, "ROUTE", BoardIcons.Route),
+)
+
 /** Which tour anchor a tab reports itself as. */
 private fun guideAnchorFor(route: String): String = when (route) {
     Routes.LEARN -> GuideAnchors.TAB_LEARN
@@ -149,7 +160,7 @@ private fun guideAnchorFor(route: String): String = when (route) {
     else -> GuideAnchors.TAB_US
 }
 
-/** The Parallel tab bar: the page colour under a hairline, ink for the tab you are on. */
+/** The tab bar: the page colour under a hairline, and the tab you are on in ink, or in signal yellow on the board. */
 @Composable
 private fun CupertinoTabBar(selectedRoute: String?, onSelect: (String) -> Unit) {
     Column(modifier = Modifier.fillMaxWidth().background(AppTheme.colors.groupedBackground)) {
@@ -159,9 +170,15 @@ private fun CupertinoTabBar(selectedRoute: String?, onSelect: (String) -> Unit) 
             horizontalArrangement = Arrangement.SpaceEvenly,
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            tabs.forEach { tab ->
+            val departures = AppTheme.departures
+            (if (departures) boardTabs else tabs).forEach { tab ->
                 val selected = tab.route == selectedRoute
-                val tint = if (selected) AppTheme.colors.ink else AppTheme.colors.secondaryLabel
+                // The tab you are on is ink in Parallel and the board's signal yellow in Departures.
+                val tint = when {
+                    !selected -> AppTheme.colors.secondaryLabel
+                    departures -> AppTheme.colors.accent
+                    else -> AppTheme.colors.ink
+                }
                 val interaction = remember { MutableInteractionSource() }
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
@@ -175,7 +192,7 @@ private fun CupertinoTabBar(selectedRoute: String?, onSelect: (String) -> Unit) 
                     Icon(tab.icon, contentDescription = null, tint = tint, modifier = Modifier.size(24.dp))
                     Text(
                         tab.label, style = MaterialTheme.typography.labelSmall, color = tint,
-                        fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Medium,
+                        fontWeight = if (selected || departures) FontWeight.SemiBold else FontWeight.Medium,
                         modifier = Modifier.padding(top = 4.dp),
                     )
                 }

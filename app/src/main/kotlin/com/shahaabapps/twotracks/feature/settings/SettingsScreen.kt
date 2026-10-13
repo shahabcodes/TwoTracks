@@ -62,6 +62,7 @@ import com.shahaabapps.core.ui.components.Avatar
 import com.shahaabapps.core.ui.components.CupertinoSwitch
 import com.shahaabapps.core.ui.components.CupertinoTextButton
 import com.shahaabapps.core.ui.components.CupertinoTextField
+import com.shahaabapps.core.ui.theme.AppLook
 import com.shahaabapps.core.ui.theme.AppTheme
 import com.shahaabapps.core.ui.theme.MonoFamily
 import com.shahaabapps.core.ui.theme.Spacing
@@ -118,6 +119,7 @@ data class SettingsView(
     /** Null where the system has no page for it. */
     val fullScreen: Boolean? = null,
     val theme: ThemeMode = ThemeMode.SYSTEM,
+    val look: AppLook = AppLook.PARALLEL,
     val biometricAvailable: Boolean = false,
     val biometricEnabled: Boolean = false,
     val voices: String = "",
@@ -155,6 +157,7 @@ fun SettingsScreen(
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val mode by themeViewModel.themeMode.collectAsStateWithLifecycle()
+    val look by themeViewModel.look.collectAsStateWithLifecycle()
     val snackbar = remember { SnackbarHostState() }
     val clipboard = LocalClipboardManager.current
     var editProfile by remember { mutableStateOf(false) }
@@ -196,7 +199,7 @@ fun SettingsScreen(
         weeklyHours = weeklyHoursText(state.availability.weeklyStudyMinutes),
         startDate = s?.me?.startDateIso?.let { Clock.formatDate(it) },
         fullScreen = if (fullScreenIntent != null) fullScreenAllowed else null,
-        theme = mode, biometricAvailable = state.biometricAvailable, biometricEnabled = state.biometricEnabled,
+        theme = mode, look = look, biometricAvailable = state.biometricAvailable, biometricEnabled = state.biometricEnabled,
         voices = voicesText(), widgets = widgetsText(widgetCount),
         version = com.shahaabapps.twotracks.BuildConfig.VERSION_NAME, seedOutdated = state.seedOutdated, tour = guide != null,
     )
@@ -206,7 +209,7 @@ fun SettingsScreen(
         onCopyInvite = { clipboard.setText(AnnotatedString(view.inviteCode)); viewModel.say("Invite code copied") },
         onOpenAvailability = onOpenAvailability, onEditStartDate = { editStartDate = true },
         onOpenFullScreen = { fullScreenIntent?.let { context.startActivity(it) } },
-        onTheme = themeViewModel::setThemeMode, onBiometric = viewModel::setBiometricLock,
+        onTheme = themeViewModel::setThemeMode, onLook = themeViewModel::setLook, onBiometric = viewModel::setBiometricLock,
         onOpenVoices = onOpenVoices, onOpenWidgets = onOpenWidgets, onOpenChangelog = onOpenChangelog,
         onTour = { guide?.start() }, onReset = { confirmReset = true }, onSignOut = viewModel::signOut,
     )
@@ -324,6 +327,7 @@ fun SettingsContent(
     onEditStartDate: () -> Unit,
     onOpenFullScreen: () -> Unit,
     onTheme: (ThemeMode) -> Unit,
+    onLook: (AppLook) -> Unit,
     onBiometric: (Boolean) -> Unit,
     onOpenVoices: () -> Unit,
     onOpenWidgets: () -> Unit,
@@ -387,7 +391,15 @@ fun SettingsContent(
                 }
                 item {
                     Section("App") {
-                        Line("Appearance", Modifier.guideAnchor(GuideAnchors.SET_APPEARANCE), minHeight = 64.dp) { ThemeChoice(v.theme, onTheme) }
+                        // Which of the two designs the app is drawn in. Departures is
+                        // a board at night and has no light version, so the light and
+                        // dark choice below only applies to Parallel.
+                        Line("Look", detail = if (v.look == AppLook.DEPARTURES) "A departures board, always dark" else "Light and editorial", minHeight = 64.dp) { LookChoice(v.look, onLook) }
+                        if (v.look == AppLook.PARALLEL) {
+                            Line("Appearance", Modifier.guideAnchor(GuideAnchors.SET_APPEARANCE), minHeight = 64.dp) { ThemeChoice(v.theme, onTheme) }
+                        } else {
+                            Line("Appearance", Modifier.guideAnchor(GuideAnchors.SET_APPEARANCE), detail = "The board is always dark") { Value("Dark") }
+                        }
                         Line(
                             "App lock", Modifier.guideAnchor(GuideAnchors.SET_BIOMETRICS),
                             detail = if (v.biometricAvailable) "Fingerprint, face or PIN when the app opens" else "Set up a screen lock on this phone first",
@@ -468,16 +480,26 @@ private fun Value(text: String) {
 }
 
 @Composable
-private fun ThemeChoice(selected: ThemeMode, onSelect: (ThemeMode) -> Unit) {
+private fun LookChoice(selected: AppLook, onSelect: (AppLook) -> Unit) {
+    Segments(listOf(AppLook.PARALLEL to "Parallel", AppLook.DEPARTURES to "Departures"), selected, onSelect)
+}
+
+@Composable
+private fun <T> Segments(options: List<Pair<T, String>>, selected: T, onSelect: (T) -> Unit) {
     val shape = RoundedCornerShape(10.dp)
     Row(modifier = Modifier.clip(shape).border(Spacing.rule, AppTheme.colors.separator, shape)) {
-        listOf(ThemeMode.LIGHT to "Light", ThemeMode.DARK to "Dark", ThemeMode.SYSTEM to "System").forEach { (mode, label) ->
-            val on = selected == mode
+        options.forEach { (value, label) ->
+            val on = selected == value
             Box(
                 contentAlignment = Alignment.Center,
-                modifier = Modifier.height(36.dp).background(if (on) AppTheme.colors.ink else Color.Transparent)
-                    .clickable(role = Role.RadioButton) { onSelect(mode) }.padding(horizontal = 12.dp),
-            ) { Text(label, style = MaterialTheme.typography.labelLarge.copy(fontSize = 13.sp), color = if (on) AppTheme.colors.groupedBackground else AppTheme.colors.ink) }
+                modifier = Modifier.height(36.dp).background(if (on) AppTheme.colors.accent else Color.Transparent)
+                    .clickable(role = Role.RadioButton) { onSelect(value) }.padding(horizontal = 12.dp),
+            ) { Text(label, style = MaterialTheme.typography.labelLarge.copy(fontSize = 13.sp), color = if (on) AppTheme.colors.onSolid else AppTheme.colors.ink) }
         }
     }
+}
+
+@Composable
+private fun ThemeChoice(selected: ThemeMode, onSelect: (ThemeMode) -> Unit) {
+    Segments(listOf(ThemeMode.LIGHT to "Light", ThemeMode.DARK to "Dark", ThemeMode.SYSTEM to "System"), selected, onSelect)
 }

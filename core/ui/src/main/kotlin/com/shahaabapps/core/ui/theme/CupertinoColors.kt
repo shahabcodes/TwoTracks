@@ -43,6 +43,10 @@ data class CupertinoColors(
     val allowed: Color,
     val allowedBackground: Color,
     val warn: Color,
+    /** The darkest surface: the flip tiles behind a time in Departures, the card in Parallel. */
+    val deep: Color = card,
+    /** An outline that has to be seen on its own: an empty stop, an idle control. */
+    val strongBorder: Color = separator,
 ) {
     /** The illustration gradient as a diagonal brush. */
     val heroBrush: Brush
@@ -72,6 +76,30 @@ internal fun parallelColors(dark: Boolean) = CupertinoColors(
     allowed = if (dark) Palette.SuccessDark else Palette.SuccessLight,
     allowedBackground = if (dark) Palette.AllowedBgDark else Palette.AllowedBgLight,
     warn = if (dark) Palette.WarnDark else Palette.WarnLight,
+)
+
+internal fun departuresColors() = CupertinoColors(
+    groupedBackground = DeparturesPalette.Page,
+    card = DeparturesPalette.Card,
+    ink = DeparturesPalette.Label,
+    secondaryLabel = DeparturesPalette.SecondaryLabel,
+    separator = DeparturesPalette.Separator,
+    fill = DeparturesPalette.Fill,
+    accent = DeparturesPalette.Signal,
+    accentText = DeparturesPalette.Signal,
+    onSolid = DeparturesPalette.OnSignal,
+    tech = DeparturesPalette.Signal,
+    teacher = DeparturesPalette.Teacher,
+    gradient = DeparturesPalette.Gradient,
+    destructive = DeparturesPalette.Destructive,
+    success = DeparturesPalette.Success,
+    blocked = DeparturesPalette.Destructive,
+    blockedBackground = DeparturesPalette.DestructiveBg,
+    allowed = DeparturesPalette.Success,
+    allowedBackground = DeparturesPalette.SuccessBg,
+    warn = DeparturesPalette.Warn,
+    deep = DeparturesPalette.Deep,
+    strongBorder = DeparturesPalette.StrongBorder,
 )
 
 val LocalCupertinoColors = staticCompositionLocalOf {

@@ -21,6 +21,7 @@ import androidx.fragment.app.FragmentActivity
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.shahaabapps.core.ui.theme.AppTheme
+import com.shahaabapps.core.ui.theme.isDark
 import com.shahaabapps.twotracks.feature.auth.AuthScreen
 import com.shahaabapps.twotracks.feature.lock.LockScreen
 import com.shahaabapps.twotracks.feature.onboarding.OnboardingScreen
@@ -51,20 +52,18 @@ class MainActivity : FragmentActivity() {
         setContent {
             val themeViewModel: ThemeViewModel = hiltViewModel()
             val themeMode by themeViewModel.themeMode.collectAsStateWithLifecycle()
+            val look by themeViewModel.look.collectAsStateWithLifecycle()
 
-            // Status and navigation bar icons follow the app's own light/dark choice, not the system's.
-            val dark = when (themeMode) {
-                ThemeMode.SYSTEM -> isSystemInDarkTheme()
-                ThemeMode.LIGHT -> false
-                ThemeMode.DARK -> true
-            }
+            // Status and navigation bar icons follow the app's own light/dark
+            // choice, not the system's, and the Departures board is always dark.
+            val dark = isDark(themeMode, look)
             LaunchedEffect(dark) {
                 WindowCompat.getInsetsController(window, window.decorView).apply {
                     isAppearanceLightStatusBars = !dark
                     isAppearanceLightNavigationBars = !dark
                 }
             }
-            AppTheme(themeMode = themeMode) {
+            AppTheme(themeMode = themeMode, look = look) {
                 Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
                     Box(Modifier.fillMaxSize()) {
                         AppRoot(appLock, widgetLaunch)
