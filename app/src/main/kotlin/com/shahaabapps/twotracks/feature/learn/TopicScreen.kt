@@ -1,5 +1,12 @@
 package com.shahaabapps.twotracks.feature.learn
 
+import androidx.compose.ui.unit.em
+import androidx.compose.ui.text.TextStyle
+import com.shahaabapps.core.ui.theme.CondensedFamily
+import com.shahaabapps.twotracks.ui.board.BoardMono
+import com.shahaabapps.twotracks.ui.board.BoardLabel
+import com.shahaabapps.twotracks.ui.board.BoardBack
+import com.shahaabapps.twotracks.ui.board.BoardGutter
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -124,7 +131,7 @@ fun TopicContent(
     val module = state.module
     val course = state.course
     LessonScaffold(
-        label = listOfNotNull(course?.title, module?.let { "Module ${it.number}" }).joinToString(" · "),
+        label = listOfNotNull(course?.title, module?.let { if (AppTheme.departures) "M${it.number}" else "Module ${it.number}" }).joinToString(" · "),
         index = state.index, count = state.count, onBack = onBack,
     ) {
         if (topic == null || module == null || course == null) return@LessonScaffold
@@ -133,7 +140,8 @@ fun TopicContent(
                 item {
                     Text(
                         topic.title,
-                        style = MaterialTheme.typography.headlineLarge.copy(fontSize = 30.sp, lineHeight = 33.sp, letterSpacing = (-0.6).sp),
+                        style = if (AppTheme.departures) TextStyle(fontFamily = CondensedFamily, fontWeight = FontWeight.Bold, fontSize = 36.sp, lineHeight = 37.sp, color = AppTheme.colors.ink)
+                        else MaterialTheme.typography.headlineLarge.copy(fontSize = 30.sp, lineHeight = 33.sp, letterSpacing = (-0.6).sp),
                         modifier = Modifier.padding(top = 4.dp).semantics { heading() },
                     )
                     Text(
@@ -278,12 +286,13 @@ private fun TableBlock(block: Block.Table) {
     // because sharing the width five ways broke "masculine" across two lines.
     val columns = block.headers.size
     val wide = columns > 3
-    BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
+    val board = AppTheme.departures
+    BoxWithConstraints(modifier = Modifier.fillMaxWidth().then(if (board) Modifier.clip(RoundedCornerShape(14.dp)).background(AppTheme.colors.card).padding(horizontal = 14.dp, vertical = 4.dp) else Modifier)) {
         val tableWidth = if (wide) maxOf(maxWidth, 96.dp * columns + 10.dp * (columns - 1)) else maxWidth
         val cell: RowScope.() -> Modifier = { if (wide) Modifier.weight(1f).widthIn(min = 96.dp) else Modifier.weight(1f) }
         Column(modifier = if (wide) Modifier.horizontalScroll(rememberScrollState()) else Modifier) {
             Column(modifier = Modifier.width(tableWidth)) {
-                HorizontalDivider(color = AppTheme.colors.ink, thickness = Spacing.rule)
+                if (!board) HorizontalDivider(color = AppTheme.colors.ink, thickness = Spacing.rule)
                 Row(modifier = Modifier.fillMaxWidth().padding(vertical = 10.dp), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                     block.headers.forEach { h -> Text(h.uppercase(), style = MaterialTheme.typography.labelMedium.copy(fontSize = 10.sp), color = AppTheme.colors.secondaryLabel, modifier = cell()) }
                 }
@@ -381,13 +390,15 @@ private fun CheckBlock(
     val revealed = picked != null && sure != null
     val right = picked in q.correct
 
-    val shape = RoundedCornerShape(18.dp)
+    val board = AppTheme.departures
+    val shape = RoundedCornerShape(if (board) 16.dp else 18.dp)
     Column(
-        modifier = Modifier.fillMaxWidth().clip(shape).border(Spacing.rule, AppTheme.colors.ink, shape).padding(18.dp),
+        modifier = Modifier.fillMaxWidth().clip(shape).border(Spacing.rule, if (board) AppTheme.colors.accent else AppTheme.colors.ink, shape).padding(if (board) 16.dp else 18.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        Text("QUICK CHECK", style = MaterialTheme.typography.labelMedium, color = AppTheme.colors.accentText)
-        Text(q.prompt, style = MaterialTheme.typography.titleMedium.copy(fontSize = 19.sp, lineHeight = 24.sp))
+        if (board) BoardLabel("Gate check", color = AppTheme.colors.accent, size = 14.sp, weight = FontWeight.Bold)
+        else Text("QUICK CHECK", style = MaterialTheme.typography.labelMedium, color = AppTheme.colors.accentText)
+        Text(q.prompt, style = if (board) TextStyle(fontFamily = CondensedFamily, fontWeight = FontWeight.SemiBold, fontSize = 24.sp, lineHeight = 27.sp, color = AppTheme.colors.ink) else MaterialTheme.typography.titleMedium.copy(fontSize = 19.sp, lineHeight = 24.sp))
 
         // Asked before the answer can be seen. A confident wrong answer is the
         // most useful thing a check can find, and afterwards everyone
@@ -401,11 +412,12 @@ private fun CheckBlock(
                         Box(
                             contentAlignment = Alignment.Center,
                             modifier = Modifier.weight(1f).height(44.dp).clip(RoundedCornerShape(10.dp))
-                                .background(if (on) AppTheme.colors.accent else Color.Transparent)
-                                .border(Spacing.rule, if (on) AppTheme.colors.accent else AppTheme.colors.separator, RoundedCornerShape(10.dp))
+                                .background(if (on) AppTheme.colors.accent else if (board) AppTheme.colors.card else Color.Transparent)
+                                .border(if (board && !on) 1.dp else Spacing.rule, if (on) AppTheme.colors.accent else AppTheme.colors.separator, RoundedCornerShape(10.dp))
                                 .selectable(selected = on, role = Role.RadioButton) { sure = value; onConfidence(q, value) },
                         ) {
-                            Text(label, style = MaterialTheme.typography.labelLarge.copy(fontSize = 14.sp), color = if (on) AppTheme.colors.onSolid else AppTheme.colors.ink)
+                            if (board) BoardLabel(label, color = if (on) AppTheme.colors.onSolid else AppTheme.colors.ink, size = 16.sp, weight = FontWeight.Bold, spacing = 0.1.em)
+                            else Text(label, style = MaterialTheme.typography.labelLarge.copy(fontSize = 14.sp), color = if (on) AppTheme.colors.onSolid else AppTheme.colors.ink)
                         }
                     }
                 }
@@ -421,6 +433,10 @@ private fun CheckBlock(
                     else -> null
                 }
                 val (border, fill, tag, tagInk) = when {
+                    board && state == true -> Quad(AppTheme.colors.success, AppTheme.colors.allowedBackground, "CLEARED", AppTheme.colors.success)
+                    board && state == false -> Quad(AppTheme.colors.destructive, AppTheme.colors.blockedBackground, "YOURS", AppTheme.colors.destructive)
+                    board && !revealed && picked == i -> Quad(AppTheme.colors.accent, AppTheme.colors.card, "", AppTheme.colors.secondaryLabel)
+                    board -> Quad(AppTheme.colors.separator, AppTheme.colors.card, "", AppTheme.colors.secondaryLabel)
                     state == true -> Quad(AppTheme.colors.success, AppTheme.colors.success.copy(alpha = 0.08f), "RIGHT", AppTheme.colors.success)
                     state == false -> Quad(AppTheme.colors.destructive, AppTheme.colors.destructive.copy(alpha = 0.08f), "YOURS", AppTheme.colors.destructive)
                     !revealed && picked == i -> Quad(AppTheme.colors.ink, Color.Transparent, "", AppTheme.colors.secondaryLabel)
@@ -440,7 +456,8 @@ private fun CheckBlock(
                         }
                         .padding(horizontal = 14.dp, vertical = 10.dp),
                 ) {
-                    Text(('A' + i).toString(), style = MaterialTheme.typography.bodySmall.copy(fontFamily = MonoFamily, fontSize = 12.sp), color = AppTheme.colors.secondaryLabel, modifier = Modifier.width(14.dp))
+                    if (board) LetterTile(('A' + i).toString(), if (picked == i && !revealed) AppTheme.colors.accent else AppTheme.colors.secondaryLabel)
+                    else Text(('A' + i).toString(), style = MaterialTheme.typography.bodySmall.copy(fontFamily = MonoFamily, fontSize = 12.sp), color = AppTheme.colors.secondaryLabel, modifier = Modifier.width(14.dp))
                     Text(opt, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.weight(1f))
                     if (tag.isNotEmpty()) Text(tag, style = MaterialTheme.typography.labelMedium, color = tagInk)
                 }
@@ -454,13 +471,17 @@ private fun CheckBlock(
             // A confident miss is worth naming. Being sure and wrong is what
             // leaves a belief in place, and it is the one worth going back for.
             val heading = when {
+                board && right -> "CLEARED. ON TO THE NEXT STOP."
+                board && sure == true -> "HELD. YOU WERE SURE, SO THIS COMES BACK FIRST."
+                board -> "HELD. THIS COMES BACK TOMORROW."
                 right && sure == true -> "Right, and you knew it."
                 right -> "Right."
                 sure == true -> "Not quite, and you were sure, which is the kind worth rereading."
                 else -> "Not quite."
             }
             Column(verticalArrangement = Arrangement.spacedBy(6.dp), modifier = Modifier.padding(top = 4.dp)) {
-                Text(heading, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold, color = if (right) AppTheme.colors.success else AppTheme.colors.destructive)
+                if (board) BoardLabel(heading, color = if (right) AppTheme.colors.success else AppTheme.colors.destructive, size = 18.sp, weight = FontWeight.Bold, spacing = 0.06.em)
+                else Text(heading, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold, color = if (right) AppTheme.colors.success else AppTheme.colors.destructive)
                 // Why the option you picked was tempting, before why the right one
                 // is right: the quiz screen has done this since 0.38, and the
                 // in-topic checks were written notes nobody could see.
@@ -486,6 +507,10 @@ private val Panel: Modifier
  */
 @Composable
 private fun LessonScaffold(label: String, index: Int, count: Int, onBack: () -> Unit, content: @Composable () -> Unit) {
+    if (AppTheme.departures) {
+        BoardLessonScaffold(label, index, count, onBack, content)
+        return
+    }
     Scaffold(containerColor = AppTheme.colors.groupedBackground) { inner ->
         Column(modifier = Modifier.fillMaxSize().padding(inner)) {
             Column(modifier = Modifier.padding(start = Spacing.listHorizontal, end = Spacing.listHorizontal, top = 6.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
@@ -668,5 +693,46 @@ private fun ReferencesBlock(refs: List<com.shahaabapps.core.content.Reference>) 
             }
         }
         Text("Official pages open in your browser.", style = MaterialTheme.typography.labelSmall, color = AppTheme.colors.secondaryLabel)
+    }
+}
+
+/**
+ * The lesson's header on the Departures board: IN TRANSIT and where, the stop
+ * you are at out of the module's, and the topics as stops on a line with this
+ * one ringed.
+ */
+@Composable
+private fun BoardLessonScaffold(label: String, index: Int, count: Int, onBack: () -> Unit, content: @Composable () -> Unit) {
+    Scaffold(containerColor = AppTheme.colors.groupedBackground) { inner ->
+        Column(modifier = Modifier.fillMaxSize().padding(inner)) {
+            Column(modifier = Modifier.padding(start = BoardGutter, end = BoardGutter, top = 6.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.height(44.dp)) {
+                    BoardBack(onBack, "Back to the course")
+                    BoardLabel("In transit · $label", size = 13.sp, textAlign = TextAlign.Center, modifier = Modifier.weight(1f))
+                    BoardMono(if (count > 0) "${index + 1}/$count" else "", modifier = Modifier.width(34.dp), textAlign = TextAlign.End, spacing = 0.sp)
+                }
+                if (count > 0) {
+                    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth().semantics { contentDescription = "Stop ${index + 1} of $count" }) {
+                        repeat(count) { i ->
+                            when {
+                                i < index -> Box(Modifier.size(10.dp).clip(CircleShape).background(AppTheme.colors.accent))
+                                i == index -> Box(Modifier.size(14.dp).clip(CircleShape).background(AppTheme.colors.groupedBackground).border(3.dp, AppTheme.colors.accent, CircleShape))
+                                else -> Box(Modifier.size(10.dp).clip(CircleShape).border(2.dp, AppTheme.colors.strongBorder, CircleShape))
+                            }
+                            if (i < count - 1) Box(Modifier.weight(1f).height(2.dp).background(if (i < index) AppTheme.colors.accent else AppTheme.colors.separator))
+                        }
+                    }
+                }
+            }
+            content()
+        }
+    }
+}
+
+/** An option's letter on its own dark tile, as the board prints it. */
+@Composable
+internal fun LetterTile(letter: String, color: Color, size: androidx.compose.ui.unit.Dp = 26.dp) {
+    Box(contentAlignment = Alignment.Center, modifier = Modifier.size(size).clip(RoundedCornerShape(6.dp)).background(AppTheme.colors.deep)) {
+        BoardMono(letter, color = color, size = 13.sp, weight = FontWeight.Bold, spacing = 0.sp)
     }
 }

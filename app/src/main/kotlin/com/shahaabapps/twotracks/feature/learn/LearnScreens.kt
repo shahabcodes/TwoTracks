@@ -95,6 +95,7 @@ fun LearnContent(
     val meIsTech = state.myRole == PersonRole.TECH
     val myColor = AppTheme.colors.track(meIsTech)
     val partnerColor = AppTheme.colors.track(!meIsTech)
+    if (AppTheme.departures) { BoardLearnBody(state, onOpenCourse, onOpenTopic, onOpenDeck, onOpenQuiz); return }
     val mine = state.courses.count { state.myRole in state.owners[it.id].orEmpty() }
     CupertinoScaffold(title = "Learn", eyebrow = coursesLine(state.courses.size, mine)) {
         LazyColumn(contentPadding = PaddingValues(bottom = Spacing.xl)) {
@@ -288,6 +289,7 @@ fun CourseContent(
     val revisits = remember(course, p, today) { if (course == null || p == null) emptyList() else course.revisits(p, today) }
     val nextTopic = course?.let { p?.nextTopic(it) }
     var open by rememberSaveable(courseId) { mutableStateOf(nextTopic?.first?.id ?: course?.modules?.firstOrNull()?.id) }
+    if (AppTheme.departures && course != null) { BoardCourseBody(course, state, today, onBack, onOpenTopic, onOpenQuiz); return }
 
     DetailScaffold(
         title = course?.title ?: "Course",

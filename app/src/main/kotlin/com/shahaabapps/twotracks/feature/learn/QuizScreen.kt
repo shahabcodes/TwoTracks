@@ -1,5 +1,12 @@
 package com.shahaabapps.twotracks.feature.learn
 
+import androidx.compose.ui.unit.em
+import androidx.compose.ui.text.TextStyle
+import com.shahaabapps.core.ui.theme.JetBrainsFamily
+import com.shahaabapps.core.ui.theme.CondensedFamily
+import com.shahaabapps.twotracks.ui.board.FlipTiles
+import com.shahaabapps.twotracks.ui.board.BoardMono
+import com.shahaabapps.twotracks.ui.board.BoardLabel
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
@@ -127,7 +134,7 @@ fun QuizContent(
                 return@Column
             }
             val q = state.question ?: return@Column
-            QuizHeader(state.label(), right = state.clock ?: "${state.index + 1} / ${state.total}", rightWarn = (state.secondsLeft ?: Int.MAX_VALUE) < 300, onClose = onBack)
+            QuizHeader(state.label(), right = state.clock ?: if (AppTheme.departures) "%02d/%02d".format(state.index + 1, state.total) else "${state.index + 1} / ${state.total}", rightWarn = (state.secondsLeft ?: Int.MAX_VALUE) < 300, onClose = onBack)
             Segments(state)
             Column(
                 modifier = Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(start = Spacing.listHorizontal, end = Spacing.listHorizontal, top = 28.dp, bottom = Spacing.md),
@@ -157,7 +164,12 @@ fun QuizContent(
                                 }
                             }
                         }
-                        Text(question.prompt, style = MaterialTheme.typography.headlineLarge.copy(fontSize = 28.sp, lineHeight = 32.sp, letterSpacing = (-0.5).sp), modifier = Modifier.semantics { heading() })
+                        Text(
+                            question.prompt,
+                            style = if (AppTheme.departures) TextStyle(fontFamily = CondensedFamily, fontWeight = FontWeight.SemiBold, fontSize = 34.sp, lineHeight = 36.sp, color = AppTheme.colors.ink)
+                            else MaterialTheme.typography.headlineLarge.copy(fontSize = 28.sp, lineHeight = 32.sp, letterSpacing = (-0.5).sp),
+                            modifier = Modifier.semantics { heading() },
+                        )
                         if (question.multi) Text("Select all that apply.", style = MaterialTheme.typography.bodySmall, color = AppTheme.colors.secondaryLabel)
                         Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                             question.options.forEachIndexed { i, opt ->
@@ -172,9 +184,14 @@ fun QuizContent(
                 AnimatedVisibility(visible = state.revealed && state.instant, enter = expandVertically() + fadeIn()) {
                     val right = state.answers[q.id] == true
                     val tone = if (right) AppTheme.colors.success else AppTheme.colors.destructive
-                    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                        HorizontalDivider(color = tone, thickness = Spacing.rule)
-                        Text(if (right) "Right." else "Not quite.", style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.SemiBold, color = tone, modifier = Modifier.padding(top = 8.dp))
+                    val board = AppTheme.departures
+                    Column(
+                        verticalArrangement = Arrangement.spacedBy(6.dp),
+                        modifier = if (board) Modifier.fillMaxWidth().clip(RoundedCornerShape(14.dp)).background(if (right) AppTheme.colors.allowedBackground else AppTheme.colors.blockedBackground).padding(14.dp) else Modifier,
+                    ) {
+                        if (board) BoardLabel(if (right) "Cleared" else "Held at the gate", color = tone, size = 18.sp, weight = FontWeight.Bold, spacing = 0.08.em)
+                        else HorizontalDivider(color = tone, thickness = Spacing.rule)
+                        if (!board) Text(if (right) "Right." else "Not quite.", style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.SemiBold, color = tone, modifier = Modifier.padding(top = 8.dp))
                         // Why the answer you picked was tempting, before why the right one is right.
                         // Being told about your own mistake teaches more than hearing the model answer again.
                         q.whyWrongFor(state.selected)?.let { why ->
@@ -207,9 +224,10 @@ private fun QuizHeader(label: String, right: String, rightWarn: Boolean = false,
             contentAlignment = Alignment.Center,
             modifier = Modifier.offset(x = (-10).dp).size(44.dp).clip(CircleShape).clickable(role = Role.Button, onClickLabel = "Leave the test", onClick = onClose),
         ) { Icon(Icons.Filled.Close, contentDescription = "Leave the test", tint = AppTheme.colors.ink) }
-        Text(label.uppercase(), style = MaterialTheme.typography.labelMedium, color = AppTheme.colors.secondaryLabel, textAlign = TextAlign.Center, modifier = Modifier.weight(1f))
+        if (AppTheme.departures) BoardLabel("Security · $label", size = 14.sp, weight = FontWeight.Bold, textAlign = TextAlign.Center, modifier = Modifier.weight(1f))
+        else Text(label.uppercase(), style = MaterialTheme.typography.labelMedium, color = AppTheme.colors.secondaryLabel, textAlign = TextAlign.Center, modifier = Modifier.weight(1f))
         Text(
-            right, style = MaterialTheme.typography.bodyMedium.copy(fontFamily = MonoFamily, fontSize = 13.sp), fontWeight = FontWeight.Medium,
+            right, style = MaterialTheme.typography.bodyMedium.copy(fontFamily = if (AppTheme.departures) JetBrainsFamily else MonoFamily, fontSize = 13.sp), fontWeight = if (AppTheme.departures) FontWeight.Bold else FontWeight.Medium,
             color = if (rightWarn) AppTheme.colors.destructive else AppTheme.colors.ink,
             textAlign = TextAlign.End, modifier = Modifier.width(54.dp),
         )
@@ -229,36 +247,44 @@ private fun Segments(state: QuizUiState) {
             val c = when {
                 state.instant && answer == true -> AppTheme.colors.success
                 state.instant && answer == false -> AppTheme.colors.destructive
+                i == state.index && AppTheme.departures -> AppTheme.colors.accent
                 i <= state.index -> AppTheme.colors.ink
                 else -> AppTheme.colors.separator
             }
-            Box(Modifier.weight(1f).height(3.dp).background(c))
+            if (AppTheme.departures) Box(Modifier.weight(1f).height(5.dp).clip(RoundedCornerShape(2.dp)).background(c))
+            else Box(Modifier.weight(1f).height(3.dp).background(c))
         }
     }
 }
 
 @Composable
 private fun OptionRow(text: String, index: Int, selected: Boolean, revealed: Boolean, correct: Boolean, onClick: () -> Unit) {
+    val board = AppTheme.departures
     val (border, fill, tag, tagInk) = when {
+        board && revealed && correct -> listOf(AppTheme.colors.success, AppTheme.colors.allowedBackground, "CLEARED", AppTheme.colors.success)
+        board && revealed && selected -> listOf(AppTheme.colors.destructive, AppTheme.colors.blockedBackground, "YOURS", AppTheme.colors.destructive)
+        board && selected -> listOf(AppTheme.colors.accent, AppTheme.colors.card, "", AppTheme.colors.secondaryLabel)
+        board -> listOf(AppTheme.colors.separator, AppTheme.colors.card, "", AppTheme.colors.secondaryLabel)
         revealed && correct -> listOf(AppTheme.colors.success, AppTheme.colors.success.copy(alpha = 0.08f), "RIGHT", AppTheme.colors.success)
         revealed && selected -> listOf(AppTheme.colors.destructive, AppTheme.colors.destructive.copy(alpha = 0.08f), "YOURS", AppTheme.colors.destructive)
         selected -> listOf(AppTheme.colors.ink, Color.Transparent, "", AppTheme.colors.secondaryLabel)
         else -> listOf(AppTheme.colors.separator, Color.Transparent, "", AppTheme.colors.secondaryLabel)
     }
-    val shape = RoundedCornerShape(14.dp)
+    val shape = RoundedCornerShape(if (board) 12.dp else 14.dp)
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .heightIn(min = 58.dp)
+            .heightIn(min = if (board) 56.dp else 58.dp)
             .clip(shape)
             .background(fill as Color)
-            .border(if (selected || (revealed && correct)) 2.dp else Spacing.rule, border as Color, shape)
+            .border(if (selected || (revealed && correct)) 2.dp else if (board) 1.dp else Spacing.rule, border as Color, shape)
             .clickable(enabled = !revealed, role = Role.Checkbox, onClick = onClick)
-            .padding(horizontal = 16.dp, vertical = 12.dp),
+            .padding(horizontal = if (board) 12.dp else 16.dp, vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(14.dp),
     ) {
-        Text(('A' + index).toString(), style = MaterialTheme.typography.bodySmall.copy(fontFamily = MonoFamily, fontSize = 13.sp), color = AppTheme.colors.secondaryLabel, modifier = Modifier.width(14.dp))
+        if (board) LetterTile(('A' + index).toString(), if (selected && !revealed) AppTheme.colors.accent else AppTheme.colors.secondaryLabel, size = 28.dp)
+        else Text(('A' + index).toString(), style = MaterialTheme.typography.bodySmall.copy(fontFamily = MonoFamily, fontSize = 13.sp), color = AppTheme.colors.secondaryLabel, modifier = Modifier.width(14.dp))
         Text(text, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.weight(1f))
         if ((tag as String).isNotEmpty()) Text(tag, style = MaterialTheme.typography.labelMedium, color = tagInk as Color)
     }
@@ -287,6 +313,15 @@ private fun Results(state: QuizUiState, onRetake: () -> Unit, onOpenTopic: (Stri
             modifier = Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(horizontal = Spacing.listHorizontal).padding(top = 8.dp, bottom = Spacing.lg),
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
+            val board = AppTheme.departures
+            val tone = if (keeping || state.passed) AppTheme.colors.success else AppTheme.colors.warn
+            if (board) {
+                BoardMono(((if (keeping || state.passed) "Arrived · " else "Held · ") + state.label() + if (state.kind == QuizKind.MODULE) " · ${module.title}" else "").uppercase())
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    FlipTiles("%02d".format(state.correctCount), tileWidth = 58.dp, tileHeight = 76.dp, fontSize = 48.sp, color = tone)
+                    Text("/ ${state.total}", color = AppTheme.colors.secondaryLabel, style = TextStyle(fontFamily = CondensedFamily, fontWeight = FontWeight.SemiBold, fontSize = 30.sp), modifier = Modifier.padding(start = 6.dp))
+                }
+            } else {
             Text(
                 (state.label() + if (state.kind == QuizKind.MODULE) " · ${module.title}" else "").uppercase(),
                 style = MaterialTheme.typography.labelMedium.copy(fontSize = 12.sp), color = AppTheme.colors.secondaryLabel,
@@ -295,7 +330,7 @@ private fun Results(state: QuizUiState, onRetake: () -> Unit, onOpenTopic: (Stri
                 Text("${state.correctCount}", style = MaterialTheme.typography.displayLarge.copy(fontSize = 72.sp, lineHeight = 72.sp, letterSpacing = (-2.8).sp), fontWeight = FontWeight.Bold)
                 Text("of ${state.total}", style = MaterialTheme.typography.headlineMedium.copy(fontSize = 24.sp), fontWeight = FontWeight.Medium, color = AppTheme.colors.secondaryLabel, modifier = Modifier.padding(bottom = 10.dp))
             }
-            val tone = if (keeping || state.passed) AppTheme.colors.success else AppTheme.colors.warn
+            }
             val verdict = when {
                 keeping -> "Review done"
                 state.timedOut -> "Time is up · ${state.percent}%"
@@ -303,15 +338,23 @@ private fun Results(state: QuizUiState, onRetake: () -> Unit, onOpenTopic: (Stri
                 else -> "Not yet · ${state.percent}%"
             }
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                val minutes = state.seconds.values.sum() / 60
+                if (board) {
+                    val word = when { keeping -> "Review done"; state.timedOut -> "Time up · ${state.percent}%"; state.passed -> "Cleared · ${state.percent}%"; else -> "Held · ${state.percent}%" }
+                    Box(contentAlignment = Alignment.Center, modifier = Modifier.height(28.dp).clip(RoundedCornerShape(6.dp)).background(tone).padding(horizontal = 10.dp)) {
+                        BoardLabel(word, color = AppTheme.colors.groupedBackground, size = 15.sp, weight = FontWeight.Bold, spacing = 0.1.em)
+                    }
+                    if (!keeping) BoardMono(("${state.quiz?.passPercent ?: 0}% to pass" + if (minutes > 0) " · $minutes min" else "").uppercase())
+                } else {
                 Text(
                     verdict, style = MaterialTheme.typography.labelLarge.copy(fontSize = 13.sp), color = tone,
                     modifier = Modifier.clip(CircleShape).background(tone.copy(alpha = 0.08f)).heightIn(min = 28.dp).padding(horizontal = 10.dp, vertical = 5.dp),
                 )
-                val minutes = state.seconds.values.sum() / 60
                 if (!keeping) Text(
                     "${state.quiz?.passPercent ?: 0}% to pass" + if (minutes > 0) " · $minutes minute${if (minutes == 1) "" else "s"}" else "",
                     style = MaterialTheme.typography.bodySmall, color = AppTheme.colors.secondaryLabel,
                 )
+                }
             }
             Text(
                 when (state.kind) {
@@ -325,8 +368,13 @@ private fun Results(state: QuizUiState, onRetake: () -> Unit, onOpenTopic: (Stri
 
             val missed = state.missedQuestions
             if (missed.isNotEmpty()) {
+                if (board) {
+                    BoardLabel("Held at the gate · ${missed.size}", size = 13.sp, modifier = Modifier.padding(top = 14.dp, bottom = 8.dp).semantics { heading() })
+                    Box(Modifier.fillMaxWidth().height(1.dp).background(AppTheme.colors.separator))
+                } else {
                 HorizontalDivider(color = AppTheme.colors.ink, thickness = Spacing.rule, modifier = Modifier.padding(top = 14.dp))
                 Text("What you missed", style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(top = 6.dp).semantics { heading() })
+                }
                 missed.forEach { q ->
                     val pace = state.pace[q.id]
                     Column(
@@ -342,7 +390,10 @@ private fun Results(state: QuizUiState, onRetake: () -> Unit, onOpenTopic: (Stri
                             }
                         }
                         val yours = state.picked[q.id].orEmpty().map { q.options.getOrNull(it) }.filterNotNull()
-                        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                        Column(
+                            verticalArrangement = Arrangement.spacedBy(4.dp),
+                            modifier = if (board) Modifier.fillMaxWidth().clip(RoundedCornerShape(10.dp)).background(AppTheme.colors.card).padding(horizontal = 10.dp, vertical = 8.dp) else Modifier,
+                        ) {
                             if (yours.isNotEmpty()) Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                                 Text("YOURS", style = MaterialTheme.typography.labelMedium, color = AppTheme.colors.destructive, modifier = Modifier.width(48.dp).padding(top = 2.dp))
                                 Text(yours.joinToString(", "), style = MaterialTheme.typography.bodyMedium, color = AppTheme.colors.secondaryLabel, textDecoration = TextDecoration.LineThrough)
@@ -411,7 +462,7 @@ private fun Results(state: QuizUiState, onRetake: () -> Unit, onOpenTopic: (Stri
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.padding(start = Spacing.listHorizontal, end = Spacing.listHorizontal, top = 12.dp, bottom = 28.dp)) {
                 CupertinoSecondaryButton(text = "Done", onClick = onDone, modifier = Modifier.weight(1f))
                 // A spaced sitting is not retaken: the schedule decides when each question returns.
-                if (!keeping) CupertinoPrimaryButton(text = if (done) "Take it again" else "Try again", onClick = onRetake, modifier = Modifier.weight(1.4f))
+                if (!keeping) CupertinoPrimaryButton(text = if (AppTheme.departures) (if (done) "Board again" else "Re-board") else if (done) "Take it again" else "Try again", onClick = onRetake, modifier = Modifier.weight(1.4f))
             }
         }
     }
