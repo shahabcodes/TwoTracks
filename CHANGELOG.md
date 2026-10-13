@@ -5,6 +5,10 @@ build number is appended by CI (for example `0.1.0 (build 12)`).
 
 ## [Unreleased]
 
+## [0.86.0] - 2026-10-13
+### Changed
+- The tour's card sits beside what it rings, never over it, and points at it.
+
 ## [0.85.1] - 2026-10-13
 ### Changed
 - The board's route link on Today says it opens the level.

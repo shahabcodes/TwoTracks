@@ -401,11 +401,15 @@ fun SettingsContent(
                         // Which of the two designs the app is drawn in. Departures is
                         // a board at night and has no light version, so the light and
                         // dark choice below only applies to Parallel.
-                        Line("Look", detail = (if (v.look == AppLook.DEPARTURES) "A departures board, always dark" else "Light and editorial") + ". The home-screen icon follows once you leave the app.", minHeight = 64.dp) { LookChoice(v.look, onLook) }
-                        if (v.look == AppLook.PARALLEL) {
-                            Line("Appearance", Modifier.guideAnchor(GuideAnchors.SET_APPEARANCE), minHeight = 64.dp) { ThemeChoice(v.theme, onTheme) }
-                        } else {
-                            Line("Appearance", Modifier.guideAnchor(GuideAnchors.SET_APPEARANCE), detail = "The board is always dark") { Value("Dark") }
+                        // The look and the appearance ring together: the step about how the app
+                        // looks covers both.
+                        Column(modifier = Modifier.guideAnchor(GuideAnchors.SET_APPEARANCE)) {
+                            Line("Look", detail = (if (v.look == AppLook.DEPARTURES) "A departures board, always dark" else "Light and editorial") + ". The home-screen icon follows once you leave the app.", minHeight = 64.dp) { LookChoice(v.look, onLook) }
+                            if (v.look == AppLook.PARALLEL) {
+                                Line("Appearance", minHeight = 64.dp) { ThemeChoice(v.theme, onTheme) }
+                            } else {
+                                Line("Appearance", detail = "The board is always dark") { Value("Dark") }
+                            }
                         }
                         Line(
                             "App lock", Modifier.guideAnchor(GuideAnchors.SET_BIOMETRICS),

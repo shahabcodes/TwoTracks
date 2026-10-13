@@ -70,6 +70,7 @@ import java.time.LocalDate
  *
  * Screens: today, week, both, learn, course, topic, quiz, results, deck, levels, level, goal, goaledit, fit, us, partner, countries, country, tests, documents, budget, settings, hours, whatsnew, widgets.
  * Departures only (with --es look departures): signin, signup, reset, role, space, join, lock.
+ * The tour over its screen at a step: guide, with --ei step N.
  * Both launcher icons, as a launcher crops them: icons. --es icon departures (or parallel) runs the real icon switch;
  * --es setlook departures saves the look and closes, for the whole path through the app itself.
  */
@@ -145,6 +146,7 @@ class DesignPreviewActivity : ComponentActivity() {
                         "signin", "signup", "reset", "role", "space", "join", "lock" -> BoardAccountPreview(screen)
                         "brief" -> com.shahaabapps.twotracks.feature.today.DailyBriefSheet(sampleBrief(), AppTheme.colors.tech, onStart = {}, onDismiss = {})
                         "icons" -> IconsPreview()
+                        "guide" -> GuidePreview(intent?.getIntExtra("step", 1) ?: 1)
                         "deck" -> DeckContent(LearnSamples.deck(), speaker = null, onBack = {}, onFlip = {}, onAnswer = {}, onPractiseAnyway = {}, onAgain = {}, onInstallVoice = {})
                         else -> TodayContent(
                             state = Samples.today(), onOpenLevel = {}, onOpenPartner = {}, onOpenGoal = {}, onOpenWeek = {},
