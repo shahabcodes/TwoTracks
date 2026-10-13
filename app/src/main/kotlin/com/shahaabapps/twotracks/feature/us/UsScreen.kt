@@ -86,6 +86,8 @@ data class TogetherPerson(
     val counts: List<GoalBar> = emptyList(),
     /** Missed study days and what they cost, when there are any. */
     val missed: String? = null,
+    /** Every level, for the board's two lines. */
+    val ladder: List<LevelProgress> = emptyList(),
 ) {
     val isTech: Boolean get() = role == PersonRole.TECH
 }
@@ -136,6 +138,7 @@ class UsViewModel @Inject constructor(
                     GoalBar(h.name, "$n/${h.weeklyTarget} wk", (n.toFloat() / (h.weeklyTarget ?: 1)).coerceIn(0f, 1f))
                 },
                 missed = missedLine(report),
+                ladder = person.levels,
             )
         }
         val me = plan.me
@@ -203,6 +206,7 @@ fun UsScreen(onNavigate: (String) -> Unit, onOpenLevel: (String) -> Unit, viewMo
 
 @Composable
 fun UsContent(state: UsUiState, onNavigate: (String) -> Unit, onOpenLevel: (String) -> Unit) {
+    if (AppTheme.departures) { BoardUs(state, onNavigate, onOpenLevel); return }
     CupertinoScaffold(title = "Together", eyebrow = "Two tracks · one move") {
         LazyColumn(contentPadding = PaddingValues(bottom = Spacing.xl)) {
             val me = state.me

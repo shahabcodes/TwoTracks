@@ -33,11 +33,13 @@ internal object TogetherSamples {
         me = TogetherPerson(
             PersonRole.TECH, "Usaid", true, "DOHA · 09:12", levels.me?.levels?.first(),
             listOf(GoalBar("AZ-204", "12/60 h", 0.2f), GoalBar("German A1", "18/100 h", 0.18f)),
+            ladder = levels.me?.levels.orEmpty(),
         ),
         partner = TogetherPerson(
             PersonRole.TEACHER, "Sanya", true, "KARACHI · 11:12", levels.partner?.levels?.first(),
             listOf(GoalBar("IELTS Academic", "34/120 h", 0.28f), GoalBar("German A1", "15/150 h", 0.1f)),
             missed = "1 missed day · lands about 2 days later",
+            ladder = levels.partner?.levels.orEmpty(),
         ),
         streak = 6,
         week = listOf("T", "W", "T", "F", "S", "S", "M").mapIndexed { i, l -> WeekDay(l, true, i < 6, i == 6) },
