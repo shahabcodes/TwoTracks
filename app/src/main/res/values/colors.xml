@@ -2,4 +2,6 @@
 <resources>
     <color name="window_background">#FFFFFF</color>
     <color name="ic_launcher_background">#FFFFFF</color>
+    <!-- The Departures board's page colour. -->
+    <color name="ic_launcher_departures_background">#131417</color>
 </resources>

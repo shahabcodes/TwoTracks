@@ -29,16 +29,44 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.TwoTracks">
 
+        <!--
+            The app itself. It has no launcher entry of its own: the two
+            aliases below are the icons, one for each look, and exactly one of
+            them is enabled at a time (LauncherIcon). The Parallel one keeps
+            the name .MainActivity, which is what the launcher icon has always
+            pointed at, so an icon already on a home screen survives the update.
+        -->
         <activity
-            android:name=".MainActivity"
-            android:exported="true"
+            android:name=".AppActivity"
+            android:exported="false"
             android:launchMode="singleTop"
-            android:theme="@style/Theme.TwoTracks">
+            android:theme="@style/Theme.TwoTracks" />
+
+        <activity-alias
+            android:name=".MainActivity"
+            android:targetActivity=".AppActivity"
+            android:enabled="true"
+            android:exported="true"
+            android:icon="@mipmap/ic_launcher"
+            android:roundIcon="@mipmap/ic_launcher_round">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-        </activity>
+        </activity-alias>
+
+        <activity-alias
+            android:name=".DeparturesLauncher"
+            android:targetActivity=".AppActivity"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@mipmap/ic_launcher_departures"
+            android:roundIcon="@mipmap/ic_launcher_departures_round">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
 
         <!--
             The screen a reminder opens onto. It shows over the lock screen and
