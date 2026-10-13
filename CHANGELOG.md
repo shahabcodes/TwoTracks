@@ -5,6 +5,10 @@ build number is appended by CI (for example `0.1.0 (build 12)`).
 
 ## [Unreleased]
 
+## [0.79.0] - 2026-10-13
+### Changed
+- Signing in and setting up have their Departures screens.
+
 ## [0.78.0] - 2026-10-13
 ### Added
 - A Departures look to choose in Settings, beside Parallel.

@@ -69,6 +69,7 @@ import java.time.LocalDate
  *   adb shell am start -n com.shahaabapps.twotracks/.preview.DesignPreviewActivity --es screen today [--ez dark true] [--es look departures]
  *
  * Screens: today, week, both, learn, course, topic, quiz, results, deck, levels, level, goal, goaledit, fit, us, partner, countries, country, tests, documents, budget, settings, hours, whatsnew, widgets.
+ * Departures only (with --es look departures): signin, signup, reset, role, space, join, lock.
  */
 class DesignPreviewActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -130,6 +131,7 @@ class DesignPreviewActivity : ComponentActivity() {
                             ),
                             emptyMap(), onBack = {}, onChange = {},
                         )
+                        "signin", "signup", "reset", "role", "space", "join", "lock" -> BoardAccountPreview(screen)
                         "deck" -> DeckContent(LearnSamples.deck(), speaker = null, onBack = {}, onFlip = {}, onAnswer = {}, onPractiseAnyway = {}, onAgain = {}, onInstallVoice = {})
                         else -> TodayContent(
                             state = Samples.today(), onOpenLevel = {}, onOpenPartner = {}, onOpenGoal = {}, onOpenWeek = {},

@@ -26,3 +26,14 @@ class PasswordScoreTest {
     @Test
     fun `the score never passes four`() = assertEquals(4, passwordScore("AbcdefghijKLMNOP123!!"))
 }
+
+/** The line the Departures sign-up prints beside the strength meter. */
+class BoardStrengthWordsTest {
+    @Test
+    fun `strength and agreement are said together`() {
+        assertEquals("STRONG · PASSWORDS MATCH", boardStrengthWords(4, confirmed = true, match = true))
+        assertEquals("WEAK · THEY DIFFER", boardStrengthWords(1, confirmed = true, match = false))
+        assertEquals("FAIR", boardStrengthWords(2, confirmed = false, match = false))
+        assertEquals("", boardStrengthWords(0, confirmed = false, match = false))
+    }
+}
