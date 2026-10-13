@@ -56,8 +56,8 @@ fun FitSheet(fit: FitCheck, onChoose: (FitChoice) -> Unit, onDismiss: () -> Unit
     // Open all the way, as the prototype's sheet does: half open, the choice
     // and its button sit below the fold and the sheet reads as a warning only.
     val state = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-    ModalBottomSheet(onDismissRequest = onDismiss, sheetState = state, containerColor = AppTheme.colors.groupedBackground, dragHandle = { SheetGrabber() }) {
-        FitContent(fit, onChoose, onDismiss)
+    ModalBottomSheet(onDismissRequest = onDismiss, sheetState = state, containerColor = if (AppTheme.departures) AppTheme.colors.card else AppTheme.colors.groupedBackground, dragHandle = { SheetGrabber() }) {
+        if (AppTheme.departures) BoardFitContent(fit, onChoose, onDismiss) else FitContent(fit, onChoose, onDismiss)
     }
 }
 

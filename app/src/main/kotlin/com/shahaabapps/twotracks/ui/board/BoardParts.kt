@@ -45,6 +45,7 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -333,9 +334,12 @@ fun Perforation(modifier: Modifier = Modifier) {
     )
 }
 
-/** A segmented choice on a card: the chosen one in the light ink with dark text. */
+/**
+ * A segmented choice on a card: the chosen one in the light ink with dark
+ * text, or in [colorOf] its option, as whose-line tabs take each person's colour.
+ */
 @Composable
-fun <T> BoardSegments(options: List<Pair<T, String>>, selected: T, onSelect: (T) -> Unit, modifier: Modifier = Modifier) {
+fun <T> BoardSegments(options: List<Pair<T, String>>, selected: T, onSelect: (T) -> Unit, modifier: Modifier = Modifier, colorOf: ((T) -> Color)? = null) {
     Row(
         horizontalArrangement = Arrangement.spacedBy(4.dp),
         modifier = modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).background(AppTheme.colors.card).padding(4.dp),
@@ -344,12 +348,21 @@ fun <T> BoardSegments(options: List<Pair<T, String>>, selected: T, onSelect: (T)
             val on = value == selected
             Box(
                 contentAlignment = Alignment.Center,
-                modifier = Modifier.weight(1f).height(44.dp).clip(RoundedCornerShape(9.dp)).background(if (on) AppTheme.colors.ink else Color.Transparent)
-                    .clickable(role = Role.Tab) { onSelect(value) },
+                modifier = Modifier.weight(1f).height(44.dp).clip(RoundedCornerShape(9.dp)).background(if (on) colorOf?.invoke(value) ?: AppTheme.colors.ink else Color.Transparent)
+                    .semantics { this.selected = on }.clickable(role = Role.Tab) { onSelect(value) },
             ) {
                 Text(caps(label), color = if (on) AppTheme.colors.groupedBackground else AppTheme.colors.secondaryLabel, style = TextStyle(fontFamily = CondensedFamily, fontWeight = FontWeight.Bold, fontSize = 16.sp, letterSpacing = 0.08.em))
             }
         }
+    }
+}
+
+/** A figure on a card: the number in condensed bold, what it counts in capitals under it. */
+@Composable
+fun BoardStat(value: String, label: String, modifier: Modifier = Modifier, color: Color = AppTheme.colors.ink, size: TextUnit = 24.sp) {
+    Column(modifier.clip(RoundedCornerShape(12.dp)).background(AppTheme.colors.card).padding(horizontal = 12.dp, vertical = 10.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+        Text(value, color = color, maxLines = 1, style = TextStyle(fontFamily = CondensedFamily, fontWeight = FontWeight.Bold, fontSize = size, lineHeight = size * 1.1f))
+        BoardLabel(label, size = 12.sp, spacing = 0.1.em)
     }
 }
 

@@ -98,6 +98,7 @@ fun LevelsScreen(onBack: () -> Unit, onOpenLevel: (String) -> Unit, viewModel: L
  */
 @Composable
 fun LevelsContent(state: LevelsUiState, onBack: () -> Unit, onOpenLevel: (String) -> Unit, onShowPartner: (Boolean) -> Unit) {
+    if (AppTheme.departures) { BoardLevels(state, onBack, onOpenLevel, onShowPartner); return }
     DetailScaffold(title = "Levels", onBack = onBack, eyebrow = "The roadmap, quarter by quarter") {
         LazyColumn(contentPadding = PaddingValues(bottom = Spacing.xl)) {
             val me = state.me
