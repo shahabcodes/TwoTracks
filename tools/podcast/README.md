@@ -41,3 +41,16 @@ environment are not committed.
 
 Words a synthesiser reads badly ("AZ-204", "RA-GRS", ".NET") are respelt in
 `SAY` in `render.py`, not in the scripts, so the transcript stays English.
+
+## Check before listening
+
+```
+tools/podcast/.venv/Scripts/python tools/podcast/check.py
+```
+
+Lists the lines whose length is far from what their word count predicts:
+too fast usually means skipped words, too slow means the voice ran on,
+mumbled or trailed into silence. Healthy lines sit at about 0.23 to 0.5
+seconds a word. Listen to the flagged lines first; render the episode again
+if one is wrong (a different line elsewhere in the script changes nothing,
+since each line has its own fixed seed).
