@@ -130,11 +130,13 @@ class PodcastService : MediaSessionService() {
     }
 
     private fun buttons(speed: Float): List<CommandButton> = listOf(
+        // Session commands rather than the player's seek commands: only a
+        // session command reaches the system's player as a button of its own.
         CommandButton.Builder(CommandButton.ICON_SKIP_BACK_15)
-            .setPlayerCommand(Player.COMMAND_SEEK_BACK).setDisplayName("Back 15 seconds")
+            .setSessionCommand(SessionCommand(BACK, Bundle.EMPTY)).setDisplayName("Back 15 seconds")
             .setSlots(CommandButton.SLOT_BACK).build(),
         CommandButton.Builder(CommandButton.ICON_SKIP_FORWARD_30)
-            .setPlayerCommand(Player.COMMAND_SEEK_FORWARD).setDisplayName("Forward 30 seconds")
+            .setSessionCommand(SessionCommand(FORWARD, Bundle.EMPTY)).setDisplayName("Forward 30 seconds")
             .setSlots(CommandButton.SLOT_FORWARD).build(),
         CommandButton.Builder(ListenSpeeds.icon(speed))
             .setSessionCommand(SessionCommand(SPEED, Bundle.EMPTY)).setDisplayName("Speed ${ListenSpeeds.label(speed)}")
@@ -147,8 +149,21 @@ class PodcastService : MediaSessionService() {
     private inner class Controls : MediaSession.Callback {
         override fun onConnect(session: MediaSession, controller: MediaSession.ControllerInfo): MediaSession.ConnectionResult =
             MediaSession.ConnectionResult.AcceptedResultBuilder(session)
+                // One episode, so nothing to skip to. With these offered the
+                // system draws previous and next where back 15 and forward 30
+                // belong, which is what it did until they were taken away.
+                .setAvailablePlayerCommands(
+                    MediaSession.ConnectionResult.DEFAULT_PLAYER_COMMANDS.buildUpon()
+                        .removeAll(
+                            Player.COMMAND_SEEK_TO_PREVIOUS, Player.COMMAND_SEEK_TO_PREVIOUS_MEDIA_ITEM,
+                            Player.COMMAND_SEEK_TO_NEXT, Player.COMMAND_SEEK_TO_NEXT_MEDIA_ITEM,
+                        )
+                        .build(),
+                )
                 .setAvailableSessionCommands(
                     MediaSession.ConnectionResult.DEFAULT_SESSION_COMMANDS.buildUpon()
+                        .add(SessionCommand(BACK, Bundle.EMPTY))
+                        .add(SessionCommand(FORWARD, Bundle.EMPTY))
                         .add(SessionCommand(SPEED, Bundle.EMPTY))
                         .add(SessionCommand(STOP, Bundle.EMPTY))
                         .build(),
@@ -158,6 +173,8 @@ class PodcastService : MediaSessionService() {
         override fun onCustomCommand(session: MediaSession, controller: MediaSession.ControllerInfo, customCommand: SessionCommand, args: Bundle): ListenableFuture<SessionResult> {
             val player = session.player
             when (customCommand.customAction) {
+                BACK -> player.seekBack()
+                FORWARD -> player.seekForward()
                 SPEED -> player.setPlaybackSpeed(ListenSpeeds.next(player.playbackParameters.speed))
                 STOP -> {
                     // Stopping keeps your place, as pausing does; it only ends the
@@ -173,6 +190,8 @@ class PodcastService : MediaSessionService() {
     }
 
     companion object {
+        const val BACK = "com.shahaabapps.twotracks.listen.BACK"
+        const val FORWARD = "com.shahaabapps.twotracks.listen.FORWARD"
         const val SPEED = "com.shahaabapps.twotracks.listen.SPEED"
         const val STOP = "com.shahaabapps.twotracks.listen.STOP"
         const val BACK_MS = 15_000L

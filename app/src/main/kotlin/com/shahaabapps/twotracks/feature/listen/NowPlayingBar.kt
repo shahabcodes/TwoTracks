@@ -63,7 +63,7 @@ fun NowPlayingBar(now: NowPlaying, onOpen: () -> Unit, onPlayPause: () -> Unit, 
                 Cover(Modifier.size(40.dp), corner = 6.dp)
                 Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(1.dp)) {
                     BoardLabel("Now playing · ${clock(max(0.0, now.duration - now.position))} left", color = AppTheme.colors.accent, size = 11.sp)
-                    BoardText(now.title, color = AppTheme.colors.ink, size = 15.sp, weight = FontWeight.SemiBold)
+                    BoardText(now.title, color = AppTheme.colors.ink, size = 15.sp, weight = FontWeight.SemiBold, maxLines = 1)
                 }
                 BarKey(if (now.playing) "Pause" else "Play", onPlayPause, solid = true) {
                     Icon(if (now.playing) Icons.Rounded.Pause else Icons.Rounded.PlayArrow, contentDescription = null, tint = AppTheme.colors.onSolid, modifier = Modifier.size(26.dp))

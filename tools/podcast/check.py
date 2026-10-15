@@ -33,7 +33,9 @@ SILENCE_SLACK = 0.9
 
 
 def words(text: str) -> int:
-    return len([w for w in CUE.sub(" ", text).split() if w.strip()])
+    """Words as the voice says them: AcquireTokenSilent is three, as render.py splits it."""
+    spoken = re.sub(r"(?<=[a-z])(?=[A-Z])", " ", CUE.sub(" ", text))
+    return len([w for w in spoken.split() if w.strip()])
 
 
 def pauses(text: str) -> float:

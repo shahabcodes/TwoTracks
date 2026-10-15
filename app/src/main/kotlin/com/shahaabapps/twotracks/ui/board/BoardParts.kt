@@ -122,9 +122,9 @@ fun BoardTitle(text: String, modifier: Modifier = Modifier, size: TextUnit = 44.
 
 /** Barlow prose, in the secondary grey unless told otherwise. */
 @Composable
-fun BoardText(text: String, modifier: Modifier = Modifier, color: Color = AppTheme.colors.secondaryLabel, size: TextUnit = 15.sp, weight: FontWeight = FontWeight.Normal, textAlign: TextAlign? = null) {
+fun BoardText(text: String, modifier: Modifier = Modifier, color: Color = AppTheme.colors.secondaryLabel, size: TextUnit = 15.sp, weight: FontWeight = FontWeight.Normal, textAlign: TextAlign? = null, maxLines: Int = Int.MAX_VALUE) {
     Text(
-        text, modifier = modifier, color = color, textAlign = textAlign,
+        text, modifier = modifier, color = color, textAlign = textAlign, maxLines = maxLines, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
         style = TextStyle(fontFamily = BarlowFamily, fontWeight = weight, fontSize = size, lineHeight = size * 1.45f),
     )
 }

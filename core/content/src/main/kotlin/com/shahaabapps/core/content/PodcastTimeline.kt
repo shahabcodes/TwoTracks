@@ -41,7 +41,7 @@ data class PodcastTimeline(val seconds: Double, val spans: List<Span>) {
     companion object {
         private val number = """-?\d+(?:\.\d+)?"""
         private val total = Regex(""""seconds"\s*:\s*($number)""")
-        private val span = Regex("""\{\s*"line"\s*:\s*(\d+)\s*,\s*"host"\s*:\s*"[a-z]+"\s*,\s*"start"\s*:\s*($number)\s*,\s*"end"\s*:\s*($number)\s*}""")
+        private val span = Regex("""\{\s*"line"\s*:\s*(\d+)\s*,\s*"host"\s*:\s*"[a-z]+"\s*,\s*"start"\s*:\s*($number)\s*,\s*"end"\s*:\s*($number)\s*\}""")
 
         /**
          * Reads the render tool's timing file. Written by hand rather than with a

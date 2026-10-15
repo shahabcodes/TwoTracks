@@ -22,9 +22,7 @@ class EpisodeAssetsTest {
      * later build. Named, so the list can only shrink: a topic here that has
      * its episode fails too, and an empty list is the finished course.
      */
-    private val stillRendering = setOf(
-        "az-msal", "az-graph", "az-appconfig", "az-blob-sdk", "az-cosmos-model", "az-cosmos-sdk",
-    )
+    private val stillRendering = emptySet<String>()
 
     private fun installed(id: String) = File(dir, "$id.ogg").isFile && File(dir, "$id.json").isFile
 
