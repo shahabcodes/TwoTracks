@@ -17,11 +17,17 @@ class PodcastTest {
      * The AZ-204 topics that have an episode. Named, so that the list grows
      * to all 22 on purpose, one episode at a time.
      */
-    private val withEpisodes = listOf("az-app-service", "az-slots-scaling", "az-functions", "az-durable", "az-containers", "az-apim", "az-eventgrid", "az-eventhubs", "az-servicebus", "az-appinsights", "az-availability", "az-redis", "az-cdn", "az-identity", "az-msal", "az-graph", "az-blob-basics", "az-keyvault")
+    private val withEpisodes = listOf("az-app-service", "az-slots-scaling", "az-functions", "az-durable", "az-containers", "az-apim", "az-eventgrid", "az-eventhubs", "az-servicebus", "az-appinsights", "az-availability", "az-redis", "az-cdn", "az-identity", "az-msal", "az-graph", "az-keyvault", "az-appconfig", "az-blob-basics", "az-blob-sdk", "az-cosmos-model", "az-cosmos-sdk")
 
     private val az = Az204.course
 
     private fun topic(id: String): Topic = az.modules.flatMap { it.topics }.first { it.id == id }
+
+    @Test
+    fun `every AZ-204 topic has an episode`() {
+        val topics = az.modules.flatMap { m -> m.topics.map { it.id } }
+        assertEquals("the named list has fallen behind the course", topics.toSet(), withEpisodes.toSet())
+    }
 
     @Test
     fun `every named topic has exactly one episode, and every episode belongs to an AZ-204 topic`() {

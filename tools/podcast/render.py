@@ -103,8 +103,34 @@ SOUND_CUES = {"laugh", "chuckle", "sigh"}
 CUE = re.compile(r"\[([a-z ]+)\]")
 
 
+EXTRA_SAY = [
+    (r"\bPKCE\b", "pixie"),
+    (r"\bMSAL\b", "em-sal"),
+    (r"\bTTL\b", "T T L"),
+    (r"\bKQL\b", "K Q L"),
+    (r"\bSAS\b", "sass"),
+    (r"\bETag\b", "E-tag"),
+    (r"\bOData\b", "O data"),
+    (r"\bSQL\b", "sequel"),
+    (r"\bSDKs?\b", "S D K"),
+    (r"\bCLI\b", "C L I"),
+    (r"\bTLS\b", "T L S"),
+    (r"\bPDF\b", "P D F"),
+    (r"\bAKS\b", "A K S"),
+]
+
+# Identifiers such as AcquireTokenSilent or CreateItemAsync read as one long
+# word; split at the capitals they are read as words. Run after SAY, so its
+# own respellings (Default Azure Credential and the rest) come first.
+CAMEL = re.compile(r"\b[A-Z][a-z]+(?:[A-Z][a-z]+)+\b")
+AFTER_SPLIT = [(r"\bMsal\b", "em-sal"), (r"\bUi\b", "U I"), (r"\bUtc\b", "U T C")]
+
+
 def say(text: str) -> str:
-    for pattern, spoken in SAY:
+    for pattern, spoken in SAY + EXTRA_SAY:
+        text = re.sub(pattern, spoken, text)
+    text = CAMEL.sub(lambda m: re.sub(r"(?<!^)(?=[A-Z])", " ", m.group(0)), text)
+    for pattern, spoken in AFTER_SPLIT:
         text = re.sub(pattern, spoken, text)
     return text
 
