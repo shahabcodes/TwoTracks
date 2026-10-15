@@ -27,6 +27,10 @@ PAUSE = {"pause": 0.55, "long pause": 1.1}
 NORMAL = (0.22, 0.62)
 SHORT_LINE = 6
 
+# Silence inside a line beyond its own written pauses, in seconds, that is
+# still a natural breath rather than a stall.
+SILENCE_SLACK = 0.9
+
 
 def words(text: str) -> int:
     return len([w for w in CUE.sub(" ", text).split() if w.strip()])
@@ -36,9 +40,33 @@ def pauses(text: str) -> float:
     return sum(PAUSE.get(c, 0.0) for c in CUE.findall(text))
 
 
+def longest_silence(audio, rate: int, start: float, end: float) -> float:
+    """The longest stretch inside [start, end] that is quieter than speech, in seconds."""
+    import numpy as np
+    clip = audio[int(start * rate):int(end * rate)]
+    if len(clip) == 0:
+        return 0.0
+    frame = int(rate * 0.05)
+    frames = len(clip) // frame
+    if frames == 0:
+        return 0.0
+    energy = np.sqrt(np.mean(np.square(clip[: frames * frame].reshape(frames, frame)), axis=1))
+    quiet = energy < max(float(np.percentile(energy, 90)) * 0.05, 1e-4)
+    best = run = 0
+    for q in quiet:
+        run = run + 1 if q else 0
+        best = max(best, run)
+    return best * 0.05
+
+
 def check(topic: str, scripts: dict) -> list:
     timing = json.loads((HERE / "out" / f"{topic}.json").read_text(encoding="utf-8"))
     lines = scripts[topic]
+    wav = HERE / "out" / f"{topic}.wav"
+    audio = rate_hz = None
+    if wav.exists():
+        import soundfile as sf
+        audio, rate_hz = sf.read(wav, dtype="float32")
     flagged = []
     for t in timing["lines"]:
         text = lines[t["line"]]["text"]
@@ -52,6 +80,14 @@ def check(topic: str, scripts: dict) -> list:
             how = "too fast: words may be skipped" if rate < low else "too slow: may run on, mumble or trail into silence"
             badness = (low / rate) if rate < low else (rate / high)
             flagged.append((badness, t["line"] + 1, t["start"], rate, how, text))
+        elif audio is not None:
+            # A line of normal length can still hold a dead gap where the voice
+            # stalled. Written pauses are allowed for; anything well past the
+            # longest of them is worth a listen.
+            allowed = max([PAUSE.get(c, 0.0) for c in CUE.findall(text)] + [0.0]) + SILENCE_SLACK
+            gap = longest_silence(audio, rate_hz, t["start"], t["end"])
+            if gap > allowed:
+                flagged.append((gap / allowed, t["line"] + 1, t["start"], rate, f"a {gap:.1f}s silence inside the line", text))
     return sorted(flagged, reverse=True)
 
 
