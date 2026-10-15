@@ -17,7 +17,7 @@ class PodcastTest {
      * The AZ-204 topics that have an episode. Named, so that the list grows
      * to all 22 on purpose, one episode at a time.
      */
-    private val withEpisodes = listOf("az-app-service", "az-slots-scaling", "az-functions", "az-blob-basics", "az-keyvault")
+    private val withEpisodes = listOf("az-app-service", "az-slots-scaling", "az-functions", "az-durable", "az-containers", "az-apim", "az-eventgrid", "az-eventhubs", "az-servicebus", "az-blob-basics", "az-keyvault")
 
     private val az = Az204.course
 
