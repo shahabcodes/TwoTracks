@@ -215,6 +215,8 @@ data class TopicUiState(
     val count: Int = 0,
     val nextTopicId: String? = null,
     val message: String? = null,
+    /** The topic's episode, when it has one in the app. */
+    val listen: com.shahaabapps.twotracks.feature.listen.ListenCardState? = null,
 )
 
 @HiltViewModel
@@ -225,6 +227,9 @@ class TopicViewModel @Inject constructor(
     private val actions: LearningActions,
     val speaker: Speaker,
     val recognizer: Recognizer,
+    private val episodes: com.shahaabapps.twotracks.feature.listen.Episodes,
+    private val place: com.shahaabapps.twotracks.feature.listen.ListenPlace,
+    player: com.shahaabapps.twotracks.feature.listen.ListenPlayer,
 ) : ViewModel() {
     private val courseId: String = savedStateHandle.get<String>("courseId").orEmpty()
     private val topicId: String = savedStateHandle.get<String>("topicId").orEmpty()
@@ -232,7 +237,7 @@ class TopicViewModel @Inject constructor(
     private val message = MutableStateFlow<String?>(null)
     private val openedAt = System.currentTimeMillis()
 
-    val uiState: StateFlow<TopicUiState> = combine(sessionStore.state, dataStore.topicProgress, message) { state, progress, msg ->
+    val uiState: StateFlow<TopicUiState> = combine(sessionStore.state, dataStore.topicProgress, message, player.state) { state, progress, msg, now ->
         val session = (state as? com.shahaabapps.twotracks.session.SessionState.Ready)?.session
         val course = Courses.byId(courseId) ?: return@combine TopicUiState(message = msg)
         val (module, topic) = Courses.topic(courseId, topicId) ?: return@combine TopicUiState(course = course, message = msg)
@@ -243,8 +248,19 @@ class TopicViewModel @Inject constructor(
             index = idx, count = module.topics.size,
             nextTopicId = module.topics.getOrNull(idx + 1)?.id,
             message = msg,
+            listen = listenCard(now),
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), TopicUiState())
+
+    /** The Listen card: how long the episode runs, and how much is left once you have started it. */
+    private fun listenCard(now: com.shahaabapps.twotracks.feature.listen.NowPlaying?): com.shahaabapps.twotracks.feature.listen.ListenCardState? {
+        if (!episodes.has(topicId)) return null
+        val timeline = episodes.timeline(topicId) ?: return null
+        val minutes = kotlin.math.max(1, ((timeline.seconds + 30) / 60).toInt())
+        val here = now?.takeIf { it.topicId == topicId }
+        val at = here?.position ?: place.position(topicId).takeIf { timeline.resumable(it) }
+        return com.shahaabapps.twotracks.feature.listen.ListenCardState(minutes, playing = here?.playing == true, left = at?.let { timeline.seconds - it })
+    }
 
     fun markLearned() = viewModelScope.launch {
         val s = uiState.value

@@ -52,6 +52,8 @@ dependencies {
     implementation(libs.androidx.glance.material3)
     implementation(libs.coil.compose)
     implementation(libs.androidx.biometric)
+    implementation(libs.media3.exoplayer)
+    implementation(libs.media3.session)
 
     testImplementation(libs.junit)
     testImplementation(libs.kotlinx.coroutines.test)

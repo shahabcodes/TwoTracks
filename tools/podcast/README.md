@@ -55,13 +55,20 @@ seconds a word. Listen to the flagged lines first; render the episode again
 if one is wrong (a different line elsewhere in the script changes nothing,
 since each line has its own fixed seed).
 
-## Publish
+## Put them in the app
 
 ```
-tools/podcast/publish.sh
+tools/podcast/install.sh
 ```
 
-Uploads every finished episode's `.ogg` and `.json` to the `podcasts-v1`
-GitHub release, creating it the first time. That release is where the app
-downloads from, and CI's release clean-up leaves `podcasts-*` tags alone.
-Uploading again replaces an episode in place.
+Copies every finished episode's `.ogg` and `.json` into
+`app/src/main/assets/podcasts`. The episodes ship inside the APK, so they
+play offline from the first time and there is nothing hosted anywhere; the
+cost is about 1.4 MB an episode in the APK, and a corrected render reaches
+the phone with the next build. `EpisodeAssetsTest` checks that every
+AZ-204 topic has its episode there and that each timing matches its script
+line for line, so a stale render after a script edit fails the build rather
+than lighting the wrong line in the transcript.
+
+The cover the player, the notification and the lock screen show is drawn by
+`art/cover.py`, into `app/src/main/res/drawable-nodpi/podcast_cover.png`.

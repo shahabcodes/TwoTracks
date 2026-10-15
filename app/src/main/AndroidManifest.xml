@@ -14,6 +14,10 @@
     <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT" />
     <uses-permission android:name="android.permission.VIBRATE" />
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <!-- The podcast player keeps playing with the screen off. -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
     <queries>
         <intent>
             <action android:name="android.speech.RecognitionService" />
@@ -97,6 +101,21 @@
                 <action android:name="android.appwidget.action.APPWIDGET_CONFIGURE" />
             </intent-filter>
         </activity>
+
+        <!--
+            Plays an AZ-204 episode and owns the media session the system
+            draws its player from, in the shade and on the lock screen.
+            Exported, as a media session service has to be, so that the
+            system, a watch or a car can find it and send it play and pause.
+        -->
+        <service
+            android:name=".feature.listen.PodcastService"
+            android:exported="true"
+            android:foregroundServiceType="mediaPlayback">
+            <intent-filter>
+                <action android:name="androidx.media3.session.MediaSessionService" />
+            </intent-filter>
+        </service>
 
         <receiver
             android:name=".reminders.ReminderReceiver"
