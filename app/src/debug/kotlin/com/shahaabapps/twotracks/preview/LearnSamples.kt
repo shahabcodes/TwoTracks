@@ -77,3 +77,51 @@ internal object LearnSamples {
         dueCount = 14, newCount = 4, deckSize = 120, speakerState = Speaker.State.READY, nextIntervalDays = 6,
     )
 }
+
+/**
+ * Key Vault's episode, in the player and on its topic: partway through, so
+ * the transcript has a line lit, the scrubber has a run behind it and the
+ * Listen card says how much is left.
+ */
+internal object ListenSamples {
+    private val az = Courses.byId("az-204")!!
+    const val TOPIC = "az-keyvault"
+    private val module = az.modules.first { m -> m.topics.any { it.id == TOPIC } }
+    private val topic = module.topics.first { it.id == TOPIC }
+    private val podcast = com.shahaabapps.core.content.Podcasts.forTopic(TOPIC)!!
+
+    /**
+     * When each line would be spoken at the hosts' pace, for when the real
+     * timing is not to hand: the tap tests do not read the app's assets.
+     */
+    private fun paced(): com.shahaabapps.core.content.PodcastTimeline {
+        var t = 0.0
+        val spans = podcast.lines.mapIndexed { i, line ->
+            val words = com.shahaabapps.core.content.PodcastCue.strip(line.text).split(Regex("\\s+")).count { it.isNotBlank() }
+            val span = com.shahaabapps.core.content.PodcastTimeline.Span(i, t, t + words * 0.36 + 0.4)
+            t = span.end + 0.32
+            span
+        }
+        return com.shahaabapps.core.content.PodcastTimeline(t, spans)
+    }
+
+    fun listen(timeline: com.shahaabapps.core.content.PodcastTimeline? = null, playing: Boolean = true): com.shahaabapps.twotracks.feature.listen.ListenUiState {
+        val time = timeline ?: paced()
+        return com.shahaabapps.twotracks.feature.listen.ListenUiState(
+            topicId = TOPIC, title = topic.title, module = module.number, lines = podcast.lines, timeline = time,
+            loaded = true, playing = playing, position = time.startOf(6)!! + 2.0, speed = 1.2f,
+        )
+    }
+
+    fun nowPlaying(): com.shahaabapps.twotracks.feature.listen.NowPlaying {
+        val s = listen()
+        return com.shahaabapps.twotracks.feature.listen.NowPlaying(TOPIC, s.title, playing = true, position = s.position, duration = s.duration, speed = s.speed)
+    }
+
+    fun topic() = TopicUiState(
+        course = az, module = module, topic = topic, learned = false,
+        index = module.topics.indexOf(topic), count = module.topics.size,
+        nextTopicId = module.topics.getOrNull(module.topics.indexOf(topic) + 1)?.id,
+        listen = com.shahaabapps.twotracks.feature.listen.ListenCardState(minutes = 5, left = 151.0),
+    )
+}

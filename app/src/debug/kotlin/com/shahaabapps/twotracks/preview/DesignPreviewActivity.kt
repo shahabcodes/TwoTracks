@@ -28,6 +28,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
@@ -71,6 +72,7 @@ import java.time.LocalDate
  * Screens: today, week, both, learn, course, topic, quiz, results, deck, levels, level, goal, goaledit, fit, us, partner, countries, country, tests, documents, budget, settings, hours, whatsnew, widgets.
  * Departures only (with --es look departures): signin, signup, reset, role, space, join, lock.
  * The tour over its screen at a step: guide, with --ei step N.
+ * The podcast: listen (--ez transcript true for Parallel's transcript, --ez paused true), nowplaying (the bar over Learn), aztopic (a topic with its Listen card), live (the real player and its notification; --es topic ID).
  * Both launcher icons, as a launcher crops them: icons. --es icon departures (or parallel) runs the real icon switch;
  * --es setlook departures saves the look and closes, for the whole path through the app itself.
  */
@@ -104,8 +106,38 @@ class DesignPreviewActivity : ComponentActivity() {
                         "course" -> CourseContent(LearnSamples.germanId, LearnSamples.learn(), Samples.today, onBack = {}, onOpenTopic = { _, _ -> }, onOpenQuiz = { _, _ -> })
                         "topic" -> TopicContent(
                             LearnSamples.topic(), speaker = null, voiceMissing = false, recognizer = null, onBack = {}, onOpenTopic = { _, _ -> }, onOpenQuiz = { _, _ -> },
-                            onInstallVoice = {}, onChecked = { _, _, _, _ -> }, onConfidence = { _, _ -> }, onMarkLearned = {}, onUnlearn = {}, onMessageShown = {},
+                            onInstallVoice = {}, onChecked = { _, _, _, _ -> }, onConfidence = { _, _ -> }, onMarkLearned = {}, onUnlearn = {}, onMessageShown = {}, onListen = {},
                         )
+                        "aztopic" -> TopicContent(
+                            ListenSamples.topic(), speaker = null, voiceMissing = false, recognizer = null, onBack = {}, onOpenTopic = { _, _ -> }, onOpenQuiz = { _, _ -> },
+                            onInstallVoice = {}, onChecked = { _, _, _, _ -> }, onConfidence = { _, _ -> }, onMarkLearned = {}, onUnlearn = {}, onMessageShown = {}, onListen = {},
+                        )
+                        // The real timing from the app's assets, so the transcript lights the line actually spoken there.
+                        "listen" -> com.shahaabapps.twotracks.feature.listen.ListenContent(
+                            ListenSamples.listen(com.shahaabapps.twotracks.feature.listen.Episodes(applicationContext).timeline(ListenSamples.TOPIC), playing = intent?.getBooleanExtra("paused", false) != true),
+                            onBack = {}, onPlayPause = {}, onBack15 = {}, onForward30 = {}, onSeek = {}, onSpeed = {}, onStop = {}, onLine = {},
+                            transcriptFirst = intent?.getBooleanExtra("transcript", false) == true,
+                        )
+                        // The real player, not a picture of it: the service, the notification and the
+                        // lock screen, for an episode the app carries. --es topic az-apim picks another.
+                        "live" -> {
+                            val vm = remember {
+                                val episodes = com.shahaabapps.twotracks.feature.listen.Episodes(applicationContext)
+                                val place = com.shahaabapps.twotracks.feature.listen.ListenPlace(applicationContext)
+                                com.shahaabapps.twotracks.feature.listen.ListenViewModel(
+                                    androidx.lifecycle.SavedStateHandle(mapOf("courseId" to "az-204", "topicId" to (intent?.getStringExtra("topic") ?: ListenSamples.TOPIC))),
+                                    episodes, com.shahaabapps.twotracks.feature.listen.ListenPlayer(applicationContext, episodes, place), place,
+                                )
+                            }
+                            com.shahaabapps.twotracks.feature.listen.ListenScreen(onBack = { finish() }, viewModel = vm)
+                        }
+                        "nowplaying" -> androidx.compose.foundation.layout.Box(Modifier.fillMaxSize()) {
+                            LearnContent(LearnSamples.learn(), onOpenCourse = {}, onOpenTopic = { _, _ -> }, onOpenDeck = {}, onOpenQuiz = { _, _ -> })
+                            com.shahaabapps.twotracks.feature.listen.NowPlayingBar(
+                                ListenSamples.nowPlaying(), onOpen = {}, onPlayPause = {}, onForward30 = {},
+                                modifier = Modifier.align(androidx.compose.ui.Alignment.BottomCenter).navigationBarsPadding(),
+                            )
+                        }
                         "quiz" -> QuizContent(LearnSamples.quiz(), speaker = null, onBack = {}, onOpenTopic = { _, _ -> }, onToggle = {}, onCheck = {}, onNext = {}, onRetake = {})
                         "results" -> QuizContent(LearnSamples.results(), speaker = null, onBack = {}, onOpenTopic = { _, _ -> }, onToggle = {}, onCheck = {}, onNext = {}, onRetake = {})
                         "levels" -> LevelsContent(PlanSamples.levels(), onBack = {}, onOpenLevel = {}, onShowPartner = {})

@@ -11,6 +11,12 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import com.shahaabapps.core.content.Courses
+import com.shahaabapps.twotracks.feature.listen.ListenScreen
+import com.shahaabapps.twotracks.feature.listen.NowPlayingBar
+import com.shahaabapps.twotracks.feature.listen.NowPlayingViewModel
 import androidx.compose.foundation.background
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
@@ -95,6 +101,7 @@ object Routes {
     const val TOPIC = "learn/{courseId}/topic/{topicId}"
     const val QUIZ = "learn/{courseId}/quiz/{moduleId}"
     const val DECK = "learn/{courseId}/deck"
+    const val LISTEN = "learn/{courseId}/listen/{topicId}"
     const val LEVEL = "level/{levelId}"
     const val YOUR_WEEK = "yourweek"
     const val PARTNER = "partner"
@@ -119,6 +126,7 @@ object Routes {
     fun topic(courseId: String, topicId: String) = "learn/$courseId/topic/$topicId"
     fun quiz(courseId: String, moduleId: String) = "learn/$courseId/quiz/$moduleId"
     fun deck(courseId: String) = "learn/$courseId/deck"
+    fun listen(courseId: String, topicId: String) = "learn/$courseId/listen/$topicId"
     fun goalDetail(id: String) = "goal/$id"
     fun goalEdit(id: String) = "goal/$id/edit"
     fun newGoal(levelId: String? = null) = if (levelId == null) "goal/new/edit" else "goal/new/edit?levelId=$levelId"
@@ -249,6 +257,8 @@ fun MainNavGraph(session: AppSession, widgetLaunch: WidgetLaunch) {
         }
     }
 
+    val nowPlaying: NowPlayingViewModel = hiltViewModel()
+    val now by nowPlaying.player.state.collectAsStateWithLifecycle()
     val backStack by navController.currentBackStackEntryAsState()
     val currentDestination = backStack?.destination
     val selectedTab = tabs.firstOrNull { tab -> currentDestination?.hierarchy?.any { it.route == tab.route } == true }?.route
@@ -258,6 +268,20 @@ fun MainNavGraph(session: AppSession, widgetLaunch: WidgetLaunch) {
         containerColor = AppTheme.colors.groupedBackground,
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
         bottomBar = {
+            // The episode carries on wherever you go, so its bar does too:
+            // over the tabs, or on its own at the foot of a lesson.
+            now?.takeIf { currentDestination?.route != Routes.LISTEN }?.let { playing ->
+                NowPlayingBar(
+                    playing,
+                    onOpen = {
+                        val courseId = Courses.all.firstOrNull { c -> c.modules.any { m -> m.topics.any { it.id == playing.topicId } } }?.id
+                        if (courseId != null) navController.navigate(Routes.listen(courseId, playing.topicId)) { launchSingleTop = true }
+                    },
+                    onPlayPause = { if (playing.playing) nowPlaying.player.pause() else nowPlaying.player.play(playing.topicId) },
+                    onForward30 = nowPlaying.player::forward,
+                    modifier = if (selectedTab == null) Modifier.navigationBarsPadding() else Modifier,
+                )
+            }
             if (selectedTab != null) {
                 CupertinoTabBar(selectedRoute = selectedTab) { route ->
                     navController.navigate(route) {
@@ -339,7 +363,18 @@ fun MainNavGraph(session: AppSession, widgetLaunch: WidgetLaunch) {
                     onBack = { navController.popBackStack() },
                     onOpenTopic = { c, t -> navController.navigate(Routes.topic(c, t)) { popUpTo(Routes.COURSE) } },
                     onOpenQuiz = { c, m -> navController.navigate(Routes.quiz(c, m)) { popUpTo(Routes.COURSE) } },
+                    onListen = { c, t -> navController.navigate(Routes.listen(c, t)) },
                 )
+            }
+            composable(
+                Routes.LISTEN, arguments = listOf(navArgument("courseId") { type = NavType.StringType }, navArgument("topicId") { type = NavType.StringType }),
+                // Up from below, as a now-playing screen comes, and down again.
+                enterTransition = { slideInVertically(tween(360, easing = FastOutSlowInEasing)) { it } },
+                exitTransition = { fadeOut(tween(200)) },
+                popEnterTransition = { fadeIn(tween(200)) },
+                popExitTransition = { slideOutVertically(tween(320, easing = FastOutSlowInEasing)) { it } },
+            ) {
+                ListenScreen(onBack = { navController.popBackStack() })
             }
             composable(Routes.QUIZ, arguments = listOf(navArgument("courseId") { type = NavType.StringType }, navArgument("moduleId") { type = NavType.StringType })) {
                 QuizScreen(

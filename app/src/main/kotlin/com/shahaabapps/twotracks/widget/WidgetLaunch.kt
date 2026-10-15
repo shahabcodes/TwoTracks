@@ -39,6 +39,8 @@ class WidgetLaunch @Inject constructor() {
             Regex("^learn/[^/]+/topic/[^/]+$"),
             Regex("^learn/[^/]+/quiz/[^/]+$"),
             Regex("^learn/[^/]+/deck$"),
+            // The player, from the notification and the lock screen.
+            Regex("^learn/[^/]+/listen/[^/]+$"),
         )
     }
 }

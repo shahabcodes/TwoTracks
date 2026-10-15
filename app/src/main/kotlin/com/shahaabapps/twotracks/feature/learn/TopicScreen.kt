@@ -91,6 +91,7 @@ fun TopicScreen(
     onBack: () -> Unit,
     onOpenTopic: (String, String) -> Unit,
     onOpenQuiz: (String, String) -> Unit,
+    onListen: (String, String) -> Unit,
     viewModel: TopicViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
@@ -105,6 +106,7 @@ fun TopicScreen(
         onInstallVoice = viewModel.speaker::openInstallPage,
         onChecked = viewModel::checkAnswered, onConfidence = viewModel::checkConfidence,
         onMarkLearned = viewModel::markLearned, onUnlearn = viewModel::unlearn, onMessageShown = viewModel::clearMessage,
+        onListen = { state.course?.id?.let { c -> state.topic?.id?.let { t -> onListen(c, t) } } },
     )
 }
 
@@ -124,6 +126,7 @@ fun TopicContent(
     onMarkLearned: () -> Unit,
     onUnlearn: () -> Unit,
     onMessageShown: () -> Unit,
+    onListen: () -> Unit,
 ) {
     val snackbar = remember { SnackbarHostState() }
     LaunchedEffect(state.message) { state.message?.let { snackbar.showSnackbar(it); onMessageShown() } }
@@ -149,6 +152,7 @@ fun TopicContent(
                         style = MaterialTheme.typography.labelMedium, color = AppTheme.colors.secondaryLabel, modifier = Modifier.padding(top = 8.dp),
                     )
                 }
+                state.listen?.let { listen -> item { com.shahaabapps.twotracks.feature.listen.ListenCard(listen, onListen) } }
                 if (course.speechLanguage != null && voiceMissing) {
                     item {
                         Text(

@@ -81,6 +81,7 @@ object WidgetRoutes {
     const val EXTRA = "tt_widget_route"
     fun topic(courseId: String, topicId: String) = "learn/$courseId/topic/$topicId"
     fun deck(courseId: String) = "learn/$courseId/deck"
+    fun listen(courseId: String, topicId: String) = "learn/$courseId/listen/$topicId"
     fun dailyReview(courseId: String) = "learn/$courseId/quiz/${Courses.DAILY_MODULE_ID}"
 }
 
