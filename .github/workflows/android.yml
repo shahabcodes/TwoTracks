@@ -101,7 +101,8 @@ jobs:
           printf '\nBuild %s from commit %s.\n' "${{ github.run_number }}" "${{ github.sha }}" >> dist/notes.md
 
       # Only the newest APK is kept on GitHub: every earlier release (and its
-      # APK) is deleted before this build's release is created. Git tags of
+      # APK) is deleted before this build's release is created, except the
+      # podcast audio's. Git tags of
       # versioned releases stay so history is still visible.
       #
       # This condition must stay the union of the two publish steps below. It
@@ -119,6 +120,9 @@ jobs:
           set -euo pipefail
           gh release list --repo "${{ github.repository }}" --limit 100 --json tagName -q '.[].tagName' | while read -r tag; do
             [ -z "$tag" ] && continue
+            # The podcast audio lives in its own release, published by
+            # tools/podcast/publish.sh, and is not part of any one build.
+            case "$tag" in podcasts-*) echo "keeping $tag"; continue;; esac
             if [ "$tag" = "latest" ]; then
               gh release delete "$tag" --repo "${{ github.repository }}" --yes --cleanup-tag || true
             else

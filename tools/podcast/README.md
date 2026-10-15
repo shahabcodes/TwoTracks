@@ -54,3 +54,14 @@ mumbled or trailed into silence. Healthy lines sit at about 0.23 to 0.5
 seconds a word. Listen to the flagged lines first; render the episode again
 if one is wrong (a different line elsewhere in the script changes nothing,
 since each line has its own fixed seed).
+
+## Publish
+
+```
+tools/podcast/publish.sh
+```
+
+Uploads every finished episode's `.ogg` and `.json` to the `podcasts-v1`
+GitHub release, creating it the first time. That release is where the app
+downloads from, and CI's release clean-up leaves `podcasts-*` tags alone.
+Uploading again replaces an episode in place.
