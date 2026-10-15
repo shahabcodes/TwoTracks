@@ -31,3 +31,9 @@ ui-debug.log
 
 # The source guide PDF stays local (personal details).
 *.pdf
+
+# The podcast render tool: its environment, model downloads and rendered audio stay local.
+tools/podcast/.venv/
+tools/podcast/out/
+tools/podcast/cache/
+tools/podcast/podcasts.json

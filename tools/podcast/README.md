@@ -1,0 +1,43 @@
+# Podcast render tool
+
+Turns the AZ-204 episode scripts into audio. The scripts are course content
+(`core/content/.../Az204Podcasts.kt`, held to shape by `PodcastTest`); this
+tool only reads them.
+
+Two fictional hosts: **Maya** explains, **Leo** asks. Their voices come from
+short sample clips made once with [Kokoro](https://github.com/hexgrad/kokoro)
+(Apache 2.0), and [Chatterbox Turbo](https://huggingface.co/ResembleAI/chatterbox-turbo)
+reads each line in its host's voice, with the `[laugh]`, `[chuckle]` and
+`[sigh]` cues as real sounds. `[pause]` and `[long pause]` become silence.
+
+## Set up once (Windows)
+
+```
+py install 3.11
+py -3.11 -m venv tools/podcast/.venv
+tools/podcast/.venv/Scripts/python -m pip install torch==2.6.0 torchaudio==2.6.0 --index-url https://download.pytorch.org/whl/cu124
+tools/podcast/.venv/Scripts/python -m pip install -r tools/podcast/requirements.txt
+```
+
+The models download on first run (Chatterbox about 1–2 GB, Kokoro about
+300 MB). A CUDA GPU with 4 GB is enough; without one it runs on the CPU,
+slowly.
+
+## Render
+
+```
+./gradlew :core:content:exportPodcasts
+tools/podcast/.venv/Scripts/python tools/podcast/render.py
+```
+
+`render.py az-keyvault --lines 6` renders the first six lines of one
+episode, for trying a change quickly. `--engine kokoro` renders without
+Chatterbox: steadier, but no laughs.
+
+Each episode lands in `tools/podcast/out/` as a `.wav`, the `.ogg` (Opus)
+the app plays, and a `.json` of when each line starts and ends, which the
+app uses to light up the line being spoken. `out/`, `cache/` and the
+environment are not committed.
+
+Words a synthesiser reads badly ("AZ-204", "RA-GRS", ".NET") are respelt in
+`SAY` in `render.py`, not in the scripts, so the transcript stays English.

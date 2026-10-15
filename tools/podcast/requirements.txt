@@ -1,0 +1,10 @@
+# Install in this order. torch first, from PyTorch's CUDA index, at the version
+# chatterbox-tts pins; installing chatterbox first pulls a CPU-only torch on
+# Windows, and asking pip to solve chatterbox and kokoro together sends its
+# resolver round the same versions for hours.
+#
+#   pip install torch==2.6.0 torchaudio==2.6.0 --index-url https://download.pytorch.org/whl/cu124
+#   pip install -r tools/podcast/requirements.txt
+chatterbox-tts==0.1.7
+kokoro==0.9.4
+soundfile>=0.13
