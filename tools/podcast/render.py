@@ -24,6 +24,7 @@ so the app can light up the line being spoken).
     python render.py az-app-service        one episode
     python render.py az-keyvault --lines 6 the first six lines, to try a change quickly
     python render.py --engine kokoro       without Chatterbox
+    python render.py --half                half precision, for a 4 GB card
 """
 
 import argparse
@@ -170,7 +171,7 @@ class Kokoro:
 
 
 class Chatterbox:
-    def __init__(self, samples: dict, half: bool = True):
+    def __init__(self, samples: dict, half: bool = False):
         import torch
         from chatterbox.tts_turbo import ChatterboxTurboTTS
         self.torch = torch
@@ -178,10 +179,12 @@ class Chatterbox:
         if device == "cpu":
             print("No CUDA device: Chatterbox will run on the CPU, slowly.", file=sys.stderr)
         self.model = ChatterboxTurboTTS.from_pretrained(device=device)
-        # At full precision the language model (1.9 GB) and the decoder (1 GB) fill
-        # a 4 GB card, and Windows spills the overflow into system memory, which
-        # made a line take minutes. Half precision halves the language model and
-        # leaves it room; autocast keeps the arithmetic around it consistent.
+        # Full precision is the default: on an 8 GB card it peaks near 3.6 GB and
+        # renders about 2.7 times faster than real time, a little faster than
+        # half precision there. On a 4 GB card the language model (1.9 GB) and
+        # the decoder (1 GB) fill it, Windows spills the overflow into system
+        # memory, and a line takes minutes; --half halves the language model and
+        # leaves it room, and autocast keeps the arithmetic around it consistent.
         self.half = half and device == "cuda"
         if self.half:
             self.model.t3.half()
@@ -255,7 +258,7 @@ def main():
     ap.add_argument("topics", nargs="*", help="topic ids; every episode when none are given")
     ap.add_argument("--engine", choices=["chatterbox", "kokoro"], default="chatterbox")
     ap.add_argument("--lines", type=int, help="render only the first N lines")
-    ap.add_argument("--full-precision", action="store_true", help="keep Chatterbox at full precision (needs more than 4 GB of GPU memory)")
+    ap.add_argument("--half", action="store_true", help="run Chatterbox's language model in half precision, for a 4 GB card")
     args = ap.parse_args()
 
     if not SCRIPTS.exists():
@@ -268,7 +271,7 @@ def main():
             sys.exit(f"No episode for {', '.join(sorted(missing))}")
 
     kokoro = Kokoro()
-    engine = Chatterbox(host_samples(kokoro), half=not args.full_precision) if args.engine == "chatterbox" else kokoro
+    engine = Chatterbox(host_samples(kokoro), half=args.half) if args.engine == "chatterbox" else kokoro
     OUT.mkdir(exist_ok=True)
     for e in episodes:
         name = e["topicId"] + ("" if not args.lines else f"-first{args.lines}") + ("" if args.engine == "chatterbox" else "-kokoro")
