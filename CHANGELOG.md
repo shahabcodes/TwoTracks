@@ -5,6 +5,10 @@ build number is appended by CI (for example `0.1.0 (build 12)`).
 
 ## [Unreleased]
 
+## [0.87.1] - 2026-10-17
+### Changed
+- AZ-204 podcasts re-rendered at full precision.
+
 ## [0.87.0] - 2026-10-15
 ### Changed
 - AZ-204 podcasts, with a player in the app, the notification and on the lock screen.

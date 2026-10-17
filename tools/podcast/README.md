@@ -19,8 +19,18 @@ tools/podcast/.venv/Scripts/python -m pip install torch==2.6.0 torchaudio==2.6.0
 tools/podcast/.venv/Scripts/python -m pip install -r tools/podcast/requirements.txt
 ```
 
+On an RTX 50-series card (Blackwell, sm_120) torch 2.6.0 has no kernels and
+fails with "no kernel image is available". After the two installs above, put
+the first CUDA 12.8 build in its place; pip warns that chatterbox-tts pins
+2.6.0, and it renders fine:
+
+```
+tools/podcast/.venv/Scripts/python -m pip install torch==2.7.1 torchaudio==2.7.1 --index-url https://download.pytorch.org/whl/cu128
+```
+
 The models download on first run (Chatterbox about 1–2 GB, Kokoro about
-300 MB). A CUDA GPU with 4 GB is enough; without one it runs on the CPU,
+300 MB). Chatterbox runs at full precision, which wants more than 4 GB of GPU
+memory; on a 4 GB card add `--half`. Without a CUDA GPU it runs on the CPU,
 slowly.
 
 ## Render
