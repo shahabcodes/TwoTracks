@@ -114,6 +114,16 @@ internal object ListenSamples {
         )
     }
 
+    /** Any episode at any line, with its real timing, for looking at its board: --es topic ID --ei line N. */
+    fun listenTo(topicId: String, timeline: com.shahaabapps.core.content.PodcastTimeline, line: Int): com.shahaabapps.twotracks.feature.listen.ListenUiState {
+        val (m, t) = az.modules.flatMap { m -> m.topics.map { m to it } }.first { it.second.id == topicId }
+        return com.shahaabapps.twotracks.feature.listen.ListenUiState(
+            topicId = topicId, title = t.title, module = m.number, lines = com.shahaabapps.core.content.Podcasts.forTopic(topicId)!!.lines,
+            timeline = timeline, loaded = true, playing = true, position = (timeline.startOf(line) ?: 0.0) + 2.0, speed = 1f,
+            board = com.shahaabapps.core.content.PodcastBoards.forTopic(topicId),
+        )
+    }
+
     fun nowPlaying(): com.shahaabapps.twotracks.feature.listen.NowPlaying {
         val s = listen()
         return com.shahaabapps.twotracks.feature.listen.NowPlaying(TOPIC, s.title, playing = true, position = s.position, duration = s.duration, speed = s.speed)

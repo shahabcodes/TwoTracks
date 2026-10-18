@@ -72,7 +72,7 @@ import java.time.LocalDate
  * Screens: today, week, both, learn, course, topic, quiz, results, deck, levels, level, goal, goaledit, fit, us, partner, countries, country, tests, documents, budget, settings, hours, whatsnew, widgets.
  * Departures only (with --es look departures): signin, signup, reset, role, space, join, lock.
  * The tour over its screen at a step: guide, with --ei step N.
- * The podcast: listen (--ez transcript true for Parallel's transcript, --ez paused true, --ei line N for the board at that line, --ez cover true for the cover instead), nowplaying (the bar over Learn), aztopic (a topic with its Listen card), live (the real player and its notification; --es topic ID).
+ * The podcast: listen (--ez transcript true for Parallel's transcript, --ez paused true, --ei line N for the board at that line, --es topic ID for another episode's board, --ez cover true for the cover instead), nowplaying (the bar over Learn), aztopic (a topic with its Listen card), live (the real player and its notification; --es topic ID).
  * Both launcher icons, as a launcher crops them: icons. --es icon departures (or parallel) runs the real icon switch;
  * --es setlook departures saves the look and closes, for the whole path through the app itself.
  */
@@ -114,7 +114,9 @@ class DesignPreviewActivity : ComponentActivity() {
                         )
                         // The real timing from the app's assets, so the transcript lights the line actually spoken there.
                         "listen" -> com.shahaabapps.twotracks.feature.listen.ListenContent(
-                            ListenSamples.listen(
+                            intent?.getStringExtra("topic")?.let { id ->
+                                ListenSamples.listenTo(id, com.shahaabapps.twotracks.feature.listen.Episodes(applicationContext).timeline(id)!!, intent?.getIntExtra("line", 6) ?: 6)
+                            } ?: ListenSamples.listen(
                                 com.shahaabapps.twotracks.feature.listen.Episodes(applicationContext).timeline(ListenSamples.TOPIC),
                                 playing = intent?.getBooleanExtra("paused", false) != true,
                                 line = intent?.getIntExtra("line", 6) ?: 6,
