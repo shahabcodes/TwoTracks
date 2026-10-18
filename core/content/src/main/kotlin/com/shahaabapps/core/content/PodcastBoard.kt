@@ -79,7 +79,7 @@ data class BoardFrame(
 
 /** The boards there are. An episode without one shows its cover. */
 object PodcastBoards {
-    val all: List<PodcastBoard> by lazy { listOf(KeyVaultBoard.board) }
+    val all: List<PodcastBoard> by lazy { Az204Boards.all }
 
     fun forTopic(topicId: String): PodcastBoard? = all.firstOrNull { it.topicId == topicId }
 }

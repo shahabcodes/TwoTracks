@@ -39,9 +39,29 @@ class PodcastTest {
     }
 
     @Test
-    fun `an episode runs five to seven minutes`() {
+    fun `an episode runs six to nine minutes`() {
+        // Longer than the first versions: written for a beginner, every term
+        // is explained, with simple-app examples and the exam's take-aways.
         Podcasts.all.forEach { p ->
-            assertTrue("${p.topicId} has ${p.spokenWords} words", p.spokenWords in 700..1_100)
+            assertTrue("${p.topicId} has ${p.spokenWords} words", p.spokenWords in 800..1_400)
+        }
+    }
+
+    @Test
+    fun `an episode shows when to use what with simple apps`() {
+        val example = Regex("""\b(say you're building|imagine you're building|you're building|for example|picture a|say your app|a small app)\b""")
+        Podcasts.all.forEach { p ->
+            val heard = p.lines.joinToString(" ") { PodcastCue.strip(it.text) }.lowercase()
+            val found = example.findAll(heard).count()
+            assertTrue("${p.topicId} has $found simple-app examples", found >= 2)
+        }
+    }
+
+    @Test
+    fun `an episode closes with the exam's take-aways`() {
+        Podcasts.all.forEach { p ->
+            val asked = p.lines.takeLast(8).any { it.host == Host.LEO && "exam" in PodcastCue.strip(it.text).lowercase() }
+            assertTrue("${p.topicId}: Leo never asks what to remember for the exam near the end", asked)
         }
     }
 

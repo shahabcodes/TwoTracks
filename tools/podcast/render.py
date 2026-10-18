@@ -118,6 +118,25 @@ EXTRA_SAY = [
     (r"\bTLS\b", "T L S"),
     (r"\bPDF\b", "P D F"),
     (r"\bAKS\b", "A K S"),
+    # Added with the beginner rewrite, whose explanations name more of them.
+    (r"\bAPIM\b", "A P I M"),
+    (r"\bCDN\b", "C D N"),
+    (r"\bCPU\b", "C P U"),
+    (r"\bHTTP\b", "H T T P"),
+    (r"\bIDs\b", "I Ds"),
+    (r"\bID\b", "I D"),
+    (r"\bIP\b", "I P"),
+    (r"\bLRU\b", "L R U"),
+    (r"\bPNG\b", "P N G"),
+    (r"\bRUs\b", "R Us"),
+    (r"\bRU\b", "R U"),
+    (r"\bDB\b", "D B"),
+    (r"\bTV\b", "T V"),
+    (r"\bUI\b", "U I"),
+    (r"\bC0\b", "C zero"),
+    (r"\bZADD\b", "Z add"),
+    (r"\bZREVRANGE\b", "Z rev range"),
+    (r"\bCRON\b", "cron"),
 ]
 
 # Identifiers such as AcquireTokenSilent or CreateItemAsync read as one long

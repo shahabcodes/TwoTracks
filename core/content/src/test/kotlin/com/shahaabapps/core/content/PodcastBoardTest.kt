@@ -17,6 +17,11 @@ class PodcastBoardTest {
     private val boards = PodcastBoards.all
 
     @Test
+    fun `every episode has a board`() {
+        Podcasts.all.forEach { p -> assertTrue("${p.topicId} has no board", PodcastBoards.forTopic(p.topicId) != null) }
+    }
+
+    @Test
     fun `every board belongs to an episode`() {
         assertTrue("expected at least one board", boards.isNotEmpty())
         boards.forEach { b -> assertTrue("${b.topicId} has a board but no episode", Podcasts.forTopic(b.topicId) != null) }
