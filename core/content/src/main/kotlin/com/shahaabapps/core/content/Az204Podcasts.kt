@@ -5,6 +5,14 @@ package com.shahaabapps.core.content
  * topic does not: the same facts, the same examples, the same mistakes to
  * avoid, ending on the topic's own thing to try today. PodcastTest holds the
  * shape; whether a line is true is checked against the topic it came from.
+ *
+ * They are written for a beginner developer. Every Azure term is said in
+ * plain words the first time it is heard, usually with an everyday picture
+ * (the vault is a safe, a managed identity is a badge); Leo asks what a
+ * beginner would ask; sentences are short, one idea a line; and the exam's
+ * own phrasing is kept but flagged as such ("on the exam, if..."). Where the
+ * five to seven minutes will not hold every detail, a detail goes rather than
+ * the explanation. The Key Vault episode was the first written this way.
  */
 internal object Az204Podcasts {
     private val appService = Podcast(
@@ -94,37 +102,43 @@ internal object Az204Podcasts {
     private val keyVault = Podcast(
         "az-keyvault",
         listOf(
-            maya("Today's question is a good one. An app needs to read a secret from Key Vault. Where does the app keep its own credential?"),
-            leo("In an app setting? [pause] No, wait. That just moves the problem."),
-            maya("[chuckle] It does. The best answer is that it doesn't have one. But let's start with the vault itself. Key Vault holds three kinds of thing."),
+            maya("Hi, and welcome back. Today is about keeping secrets safe, things like passwords, or the connection string your app uses to reach its database. Here's a puzzle to start. Your app needs a password to open a locked box. Where should the app keep that password?"),
+            leo("In a settings file? [pause] Hmm, no. Then the settings file is the thing I have to protect. That just moves the problem."),
+            maya("[chuckle] Exactly. And the surprising answer is, nowhere. The app doesn't keep one at all. We'll get to how. First, the box itself. It's called Azure Key Vault."),
+            leo("What is it, in plain words?"),
+            maya("A safe in the cloud. You put your sensitive things in it, and only the people and apps you allow can take them out. It holds three kinds of thing."),
             leo("Go on."),
-            maya("Secrets, like connection strings and passwords. They're versioned, and you can read the value back. Keys, for encryption and signing, and those never leave the vault, the operations happen inside it. And certificates, which can renew themselves with a supported authority."),
-            leo("A key that never leaves. So I send data in to be encrypted?"),
-            maya("Exactly. The private key stays put. And if a question says the keys must also be hardware protected, that's the Premium tier, which uses HSM-backed keys. Standard uses software-protected keys."),
-            leo("What about permissions on the vault?"),
-            maya("Two models. Azure role-based access control, which is the recommended one, with roles like Key Vault Secrets User. And the older access policies. Give an app the least it needs, so Secrets User if it only reads secrets, not Key Vault Administrator."),
+            maya("First, secrets. A secret is any text you want hidden, like a password or a connection string. You can read a secret back, and the vault keeps the old versions when you change it. Second, keys. A key is for scrambling and unscrambling data, which is called encryption."),
+            leo("Can I read a key back, like a secret?"),
+            maya("No, and that's the important part. A key never leaves the vault. You send your data in, the vault does the scrambling inside, and sends you the result. The key itself stays locked up."),
+            leo("Like a notary who stamps your papers but never lends you the stamp."),
+            maya("[laugh] That's perfect. Third, certificates, the files behind the little padlock in your browser. The vault can even renew some of them for you, with a supported certificate authority."),
+            leo("Are all vaults the same?"),
+            maya("There are two tiers, which is Azure's word for price levels. Standard protects keys in software. Premium keeps them in special tamper-proof hardware, called an HSM. So on the exam, if the keys must be hardware protected, the answer is Premium."),
+            leo("Okay. So who's allowed to open the safe?"),
+            maya("You hand out roles. A role is a named permission, a bit like a job title. The recommended way is role-based access control, RBAC for short. For example, the role Key Vault Secrets User can read secrets and nothing more. Always give the smallest role that does the job, not Key Vault Administrator."),
             leo("And if someone deletes a secret by mistake?"),
-            maya("Soft delete is on by default, so it can be recovered during the retention window. Purge protection goes further and stops even an administrator deleting it permanently in that window. Exam phrase: \"prevent permanent deletion\" means purge protection."),
-            leo("Okay. Now the bit you teased. The app with no credential."),
-            maya("That's a managed identity. It's an Entra identity that Azure creates for your app, and Azure manages it, so there's no password stored anywhere. You grant that identity a role on the vault, and the app reads secrets as itself."),
-            leo("[laugh] Secrets without secrets."),
-            maya("That's literally the topic's title. [pause] There are two kinds. A system-assigned identity belongs to one resource. You switch it on with one toggle, and it's created and deleted with that resource."),
+            maya("There's a safety net. Soft delete is on by default, so a deleted secret goes into a kind of recycle bin for a while, and you can bring it back. Purge protection locks that bin, so nobody, not even an administrator, can empty it early. If the exam says prevent permanent deletion, think purge protection."),
+            leo("Right. Back to the puzzle, then. How does the app open the safe with no password?"),
+            maya("With a managed identity. Think of it as an employee badge that Azure makes for your app. The app shows its badge, and the vault checks whether that badge has a role. There's no password anywhere for you to store, leak or change. Azure looks after it."),
+            leo("[laugh] A badge instead of a password. I like that."),
+            maya("And badges come in two kinds. A system-assigned identity belongs to one app only. You switch it on with one click, and when that app is deleted, the badge goes with it."),
             leo("And the other kind?"),
-            maya("User-assigned. It's a standalone resource with its own lifecycle, so several resources can share it. You can create it first, grant its roles once, and attach it to many apps, functions or virtual machines."),
-            leo("So, three apps that must share one identity, and it has to exist before any of them is deployed..."),
-            maya("User-assigned. A system-assigned one can't be shared, and it doesn't exist until its resource does. And a service principal with a secret just puts back the credential we were trying to get rid of."),
-            leo("How does the code actually pick up the identity?"),
-            maya("With DefaultAzureCredential. It's the nice part. Locally it uses your developer login, after you run az login. In Azure it uses the managed identity. Same code in both places."),
+            maya("A user-assigned identity. That's a badge you create on its own, first, and then hand to as many apps as you like. You give it its role once, and every app wearing it gets in."),
+            leo("So if three apps need the same access, and it has to be ready before any of them exist..."),
+            maya("Then it's user-assigned. A system-assigned badge can't be shared, and it doesn't exist until its app does."),
+            leo("What does the code look like? Is it hard?"),
+            maya("It's short. You use something called DefaultAzureCredential, and it's clever. On your laptop it uses the account you signed in with, by running az login. In Azure it uses the app's managed identity. The same code works in both places."),
             leo("And if I don't want to write any code at all?"),
-            maya("Then use a Key Vault reference. App Service and Functions can resolve an app setting from the vault at start-up. Your app reads an ordinary environment variable, and the platform fetches the secret using the managed identity."),
-            leo("Does that skip the permission step?"),
-            maya("No, and that's a trap. The identity still needs its role on the vault. The reference only saves you the code. [pause] In the topic's example, the API on App Service has a system-assigned identity with Secrets User on the vault, and its connection string is a Key Vault reference. The connection string appears in no file, no pipeline and no portal setting."),
-            leo("[sigh] That's tidier than anything I've ever deployed."),
-            maya("[chuckle] Mistakes, then. Granting Administrator when the app only reads. Pinning a secret version in a reference and wondering why rotation does nothing, leave the version off to get the latest. Turning on the identity and forgetting the role assignment, which gets you a four oh three. And deleting a user-assigned identity that apps still use, they lose access at once."),
-            leo("Three lines?"),
-            maya("Secrets, keys and certificates, keys never leave the vault, Premium for hardware protection. System-assigned for one resource, user-assigned to share or create in advance, with roles granted through RBAC. And DefaultAzureCredential in code, or a Key Vault reference in settings, with no credential in the app."),
-            leo("And today?"),
-            maya("Create a vault that uses RBAC, add a secret, and grant yourself Secrets User. Read the secret back from the command line. Then create a function app, switch on its system identity, add a Key Vault reference setting, and check it resolves with a green tick in the portal."),
+            maya("Then use a Key Vault reference. It's a special value you put in your app's settings that says, fetch this from the vault. When the app starts, Azure fetches the secret for you, and your app just sees a normal setting."),
+            leo("So with a reference I can skip giving out the role?"),
+            maya("No, and that's a common trap. The badge still needs its role on the vault. The reference only saves you the code."),
+            leo("[sigh] Okay. What do people usually get wrong?"),
+            maya("Four things. Giving the app the administrator role when it only reads. Switching on the badge but forgetting the role, which gives you an access denied error, a 403. Pinning a reference to one old version of a secret, so updates never arrive. And deleting a shared badge while apps still use it."),
+            leo("Can you sum it up in three lines?"),
+            maya("One. Key Vault is a safe for secrets, keys and certificates, and keys never leave it. Two. A managed identity is a badge instead of a password, system-assigned for one app, user-assigned to share. Three. Read secrets with DefaultAzureCredential in code, or with a Key Vault reference in settings."),
+            leo("And something to try today?"),
+            maya("Create a vault that uses roles, and add a secret. Give yourself the Secrets User role, and read the secret back from the command line. Then create a function app, switch on its system identity, add a Key Vault reference setting, and look for the green tick in the portal that says it resolves."),
             leo("Green tick. My favourite kind of tick. See you next time."),
         ),
     )

@@ -89,9 +89,10 @@ class PodcastBoardTest {
         assertEquals(setOf("app", "vault"), start.shown)
         assertEquals("app" to "vault", start.pulse)
 
-        val keys = kv.frameAt(5)
+        val keys = kv.frameAt(8)
         assertEquals("What the vault holds", keys.scene.heading)
-        assertTrue(keys.shown.containsAll(setOf("vault", "secrets", "keys", "certs", "data")))
+        assertTrue(keys.shown.containsAll(setOf("vault", "secrets", "keys", "data")))
+        assertTrue("certs" !in keys.shown)
         assertTrue("tier" !in keys.shown)
         assertEquals(setOf("keys", "data"), keys.lit)
         assertEquals("data" to "keys", keys.pulse)
@@ -100,11 +101,11 @@ class PodcastBoardTest {
     @Test
     fun `a pulse runs only on its own line and a card stays until replaced`() {
         val kv = PodcastBoards.forTopic("az-keyvault")!!
-        // Line 3 ("Go on.") has no beat: line 2's state holds, with no pulse.
-        val goOn = kv.frameAt(3)
-        assertNull(goOn.pulse)
-        // Line 13 has no beat: line 12's card is still up.
-        assertEquals("Managed identity", kv.frameAt(13).card?.title)
-        assertNull(kv.frameAt(13).pulse)
+        // Line 9 (the notary) has no beat: line 8's card holds, with no pulse.
+        assertEquals("Keys never leave", kv.frameAt(9).card?.title)
+        assertNull(kv.frameAt(9).pulse)
+        // Line 19 has no beat: line 18's card is still up.
+        assertEquals("Managed identity", kv.frameAt(19).card?.title)
+        assertNull(kv.frameAt(19).pulse)
     }
 }
