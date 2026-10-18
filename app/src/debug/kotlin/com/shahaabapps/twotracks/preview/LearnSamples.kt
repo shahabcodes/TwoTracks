@@ -105,11 +105,12 @@ internal object ListenSamples {
         return com.shahaabapps.core.content.PodcastTimeline(t, spans)
     }
 
-    fun listen(timeline: com.shahaabapps.core.content.PodcastTimeline? = null, playing: Boolean = true): com.shahaabapps.twotracks.feature.listen.ListenUiState {
+    fun listen(timeline: com.shahaabapps.core.content.PodcastTimeline? = null, playing: Boolean = true, line: Int = 6, board: Boolean = true): com.shahaabapps.twotracks.feature.listen.ListenUiState {
         val time = timeline ?: paced()
         return com.shahaabapps.twotracks.feature.listen.ListenUiState(
             topicId = TOPIC, title = topic.title, module = module.number, lines = podcast.lines, timeline = time,
-            loaded = true, playing = playing, position = time.startOf(6)!! + 2.0, speed = 1.2f,
+            loaded = true, playing = playing, position = time.startOf(line)!! + 2.0, speed = 1.2f,
+            board = if (board) com.shahaabapps.core.content.PodcastBoards.forTopic(TOPIC) else null,
         )
     }
 

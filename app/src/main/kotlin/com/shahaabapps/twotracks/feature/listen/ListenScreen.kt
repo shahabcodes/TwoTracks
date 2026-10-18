@@ -76,6 +76,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewModelScope
 import com.shahaabapps.core.content.Courses
+import com.shahaabapps.core.content.PodcastBoard
+import com.shahaabapps.core.content.PodcastBoards
 import com.shahaabapps.core.content.PodcastCue
 import com.shahaabapps.core.content.PodcastLine
 import com.shahaabapps.core.content.PodcastTimeline
@@ -102,6 +104,8 @@ data class ListenUiState(
     /** Seconds in: the player's, or the place you left this episode. */
     val position: Double = 0.0,
     val speed: Float = 1f,
+    /** What to draw in the cover's place while it plays, for an episode that has one. */
+    val board: PodcastBoard? = null,
 ) {
     val duration: Double get() = timeline?.seconds ?: 0.0
     val line: Int? get() = timeline?.lineAt(position)
@@ -131,6 +135,7 @@ class ListenViewModel @Inject constructor(
             lines = episodes.podcast(topicId)?.lines.orEmpty(), timeline = timeline,
             loaded = here != null, playing = here?.playing == true,
             position = here?.position ?: saved, speed = here?.speed ?: place.speed,
+            board = PodcastBoards.forTopic(topicId),
         )
     }
 
@@ -170,7 +175,8 @@ fun ListenScreen(onBack: () -> Unit, viewModel: ListenViewModel = hiltViewModel(
  * pauses, the scrubber, back 15 and forward 30 either side of play, and the
  * speed, the transcript and stop along the foot. The transcript takes the
  * cover's place, follows the voice line by line, and plays from any line you
- * tap.
+ * tap. An episode with a board draws it in place of the cover, building its
+ * diagrams as the hosts talk.
  */
 @Composable
 fun ListenContent(
@@ -216,6 +222,14 @@ fun ListenContent(
                         Column(Modifier.weight(1f)) { Titles(state, size = 16.sp) }
                     }
                     Transcript(state, onLine, Modifier.weight(1f))
+                }
+            } else if (state.board != null) {
+                // An episode with a board shows it where the cover was: the
+                // diagram of what is being said, with the titles under it.
+                Column(verticalArrangement = Arrangement.Center, modifier = Modifier.fillMaxSize()) {
+                    EpisodeBoard(state.board, state.line, state.playing, Modifier.fillMaxWidth().weight(1f, fill = false))
+                    Spacer(Modifier.height(20.dp))
+                    Titles(state, size = 18.sp)
                 }
             } else {
                 Column(verticalArrangement = Arrangement.Center, modifier = Modifier.fillMaxSize()) {

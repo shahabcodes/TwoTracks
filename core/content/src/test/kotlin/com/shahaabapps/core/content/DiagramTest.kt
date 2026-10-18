@@ -23,6 +23,9 @@ class DiagramTest {
         c.allTopics.flatMap { t ->
             t.blocks.filterIsInstance<Block.Diagram>().map { Triple(c.id, t.id, it.spec) }
         }
+    } + PodcastBoards.all.flatMap { b ->
+        // The podcast boards draw the same specs, so they are held to the same geometry.
+        b.scenes.map { s -> Triple("podcast", "${b.topicId} '${s.heading}'", s.diagram) }
     }
 
     @Test
