@@ -64,8 +64,12 @@ data class Beat(
     val card: BoardCard? = null,
 )
 
-/** A term and what it means, or a line of [code], under the diagram. */
-data class BoardCard(val title: String, val body: String, val code: Boolean = false)
+/**
+ * A term and what it means, or a line of [code], under the diagram. A
+ * [phrase] card is a German phrase in [title] with its English in [body], and
+ * is drawn the other way about: the German large, the English small under it.
+ */
+data class BoardCard(val title: String, val body: String, val code: Boolean = false, val phrase: Boolean = false)
 
 /** The board at one moment. */
 data class BoardFrame(
@@ -79,7 +83,7 @@ data class BoardFrame(
 
 /** The boards there are. An episode without one shows its cover. */
 object PodcastBoards {
-    val all: List<PodcastBoard> by lazy { Az204Boards.all }
+    val all: List<PodcastBoard> by lazy { Az204Boards.all + GermanBoards.all }
 
     fun forTopic(topicId: String): PodcastBoard? = all.firstOrNull { it.topicId == topicId }
 }

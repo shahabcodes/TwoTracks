@@ -13,7 +13,7 @@ import androidx.media3.session.SessionCommand
 import androidx.media3.session.SessionToken
 import com.google.common.util.concurrent.ListenableFuture
 import com.shahaabapps.core.content.Courses
-import com.shahaabapps.twotracks.R
+import com.shahaabapps.core.content.PodcastSeries
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -59,7 +59,11 @@ class ListenPlayer @Inject constructor(
     private var connecting: ListenableFuture<MediaController>? = null
     private var ticker: Job? = null
 
-    private val cover: ByteArray by lazy { context.resources.openRawResource(R.drawable.podcast_cover).use { it.readBytes() } }
+    private val covers = java.util.concurrent.ConcurrentHashMap<PodcastSeries, ByteArray>()
+
+    private fun cover(series: PodcastSeries): ByteArray = covers.getOrPut(series) {
+        context.resources.openRawResource(coverOf(series)).use { it.readBytes() }
+    }
 
     private val listener = object : Player.Listener {
         override fun onEvents(player: Player, events: Player.Events) {
@@ -113,7 +117,7 @@ class ListenPlayer @Inject constructor(
     fun stop() = withController { it.sendCustomCommand(SessionCommand(PodcastService.STOP, Bundle.EMPTY), Bundle.EMPTY) }
 
     private fun mediaItem(topicId: String): MediaItem? {
-        episodes.podcast(topicId) ?: return null
+        val podcast = episodes.podcast(topicId) ?: return null
         val (module, topic) = Courses.all.firstNotNullOfOrNull { Courses.topic(it.id, topicId) } ?: return null
         return MediaItem.Builder()
             .setMediaId(topicId)
@@ -121,9 +125,9 @@ class ListenPlayer @Inject constructor(
             .setMediaMetadata(
                 MediaMetadata.Builder()
                     .setTitle(topic.title)
-                    .setArtist(HOSTS)
-                    .setAlbumTitle("AZ-204 · Module ${module.number}")
-                    .setArtworkData(cover, MediaMetadata.PICTURE_TYPE_FRONT_COVER)
+                    .setArtist(podcast.series.hosts)
+                    .setAlbumTitle("${podcast.series.label} · Module ${module.number}")
+                    .setArtworkData(cover(podcast.series), MediaMetadata.PICTURE_TYPE_FRONT_COVER)
                     .setMediaType(MediaMetadata.MEDIA_TYPE_PODCAST_EPISODE)
                     .build(),
             )
@@ -163,9 +167,5 @@ class ListenPlayer @Inject constructor(
             block(c)
             publish()
         }, ContextCompat.getMainExecutor(context))
-    }
-
-    companion object {
-        const val HOSTS = "Maya & Leo"
     }
 }

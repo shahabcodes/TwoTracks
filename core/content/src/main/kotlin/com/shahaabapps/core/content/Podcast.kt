@@ -14,7 +14,7 @@ package com.shahaabapps.core.content
  * written into the text; the render tool keeps its own list, so the
  * transcript reads as English rather than as instructions to a synthesiser.
  */
-data class Podcast(val topicId: String, val lines: List<PodcastLine>) {
+data class Podcast(val topicId: String, val lines: List<PodcastLine>, val series: PodcastSeries = PodcastSeries.AZ204) {
     /** The words as heard, without cues. */
     val spokenWords: Int get() = lines.sumOf { PodcastCue.strip(it.text).split(Regex("\\s+")).count { w -> w.isNotBlank() } }
 
@@ -22,10 +22,21 @@ data class Podcast(val topicId: String, val lines: List<PodcastLine>) {
     val minutes: Int get() = ((spokenWords + 75) / 150).coerceAtLeast(1)
 }
 
-data class PodcastLine(val host: Host, val text: String)
+/** One line of an episode. A German line from [Host.JONAS] carries its English [translation]. */
+data class PodcastLine(val host: Host, val text: String, val translation: String? = null)
 
-/** The two voices. [MAYA] explains; [LEO] asks. */
-enum class Host(val displayName: String) { MAYA("Maya"), LEO("Leo") }
+/**
+ * The voices. [MAYA] explains and [LEO] asks, in English; [JONAS] is the
+ * German episodes' native speaker, and says every German word and sentence,
+ * so the German a learner copies is never said with an English accent.
+ */
+enum class Host(val displayName: String) { MAYA("Maya"), LEO("Leo"), JONAS("Jonas") }
+
+/** Which show an episode belongs to: what the player calls it and who is on it. */
+enum class PodcastSeries(val label: String, val hosts: String) {
+    AZ204("AZ-204", "Maya & Leo"),
+    GERMAN_A1("German A1", "Maya, Leo & Jonas"),
+}
 
 /** The cues a line may carry, and how to take them out for the transcript. */
 object PodcastCue {
@@ -35,23 +46,37 @@ object PodcastCue {
     /** Silences. */
     val PAUSES = setOf("pause", "long pause")
 
-    val ALL = SOUNDS + PAUSES
+    /**
+     * Repeat after me, on a line of Jonas's: he says it slowly, leaves you the
+     * time to say it yourself, then says it at normal speed.
+     */
+    const val REPEAT = "repeat"
+
+    val ALL = SOUNDS + PAUSES + REPEAT
 
     private val cue = Regex("""\[([a-z ]+)]""")
 
     /** Every cue in [text], in order. */
     fun cues(text: String): List<String> = cue.findAll(text).map { it.groupValues[1] }.toList()
 
-    /** [text] with its cues removed and the spaces they leave tidied. */
-    fun strip(text: String): String = text.replace(cue, " ").replace(Regex("\\s+"), " ").replace(Regex(" ([,.!?])"), "$1").trim()
+    /**
+     * A German word or phrase inside Maya's or Leo's English, written «so».
+     * The render tool says it with German sounds in the host's own voice, so
+     * "Guten Abend" is not read as English; the transcript shows it plainly.
+     */
+    val GERMAN = Regex("«([^»]+)»")
+
+    /** [text] with its cues and German marks removed, and the spaces they leave tidied. */
+    fun strip(text: String): String = text.replace(cue, " ").replace(GERMAN, "$1").replace(Regex("\\s+"), " ").replace(Regex(" ([,.!?])"), "$1").trim()
 }
 
 /** The episodes there are. A topic without one simply has no player. */
 object Podcasts {
-    val all: List<Podcast> by lazy { Az204Podcasts.all }
+    val all: List<Podcast> by lazy { Az204Podcasts.all + GermanPodcasts.all }
 
     fun forTopic(topicId: String): Podcast? = all.firstOrNull { it.topicId == topicId }
 }
 
 internal fun maya(text: String) = PodcastLine(Host.MAYA, text.trimIndent().replace("\n", " "))
 internal fun leo(text: String) = PodcastLine(Host.LEO, text.trimIndent().replace("\n", " "))
+internal fun jonas(de: String, en: String) = PodcastLine(Host.JONAS, de.trimIndent().replace("\n", " "), en.trimIndent().replace("\n", " "))

@@ -109,6 +109,12 @@ private fun Card(card: BoardCard) {
         verticalArrangement = Arrangement.spacedBy(4.dp),
         modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(14.dp)).background(Color.White.copy(alpha = 0.1f)).padding(horizontal = 16.dp, vertical = 12.dp),
     ) {
+        if (card.phrase) {
+            // A German phrase: the German is the thing to read and say.
+            Text(card.title, color = Ink, fontSize = 22.sp, lineHeight = 27.sp, fontWeight = FontWeight.SemiBold)
+            Text(card.body, color = Soft, fontSize = 15.sp, lineHeight = 20.sp)
+            return@Column
+        }
         Text(card.title, color = Accent, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
         Text(
             card.body, color = Ink, fontSize = if (card.code) 14.sp else 16.sp, lineHeight = if (card.code) 19.sp else 21.sp,

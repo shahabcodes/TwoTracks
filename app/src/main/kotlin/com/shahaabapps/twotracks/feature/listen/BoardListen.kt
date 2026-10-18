@@ -81,13 +81,13 @@ internal fun BoardListen(
             Column(Modifier.padding(horizontal = BoardGutter), verticalArrangement = Arrangement.spacedBy(14.dp)) {
                 Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = 6.dp).height(44.dp)) {
                     BoardBack(onBack, "Close the player")
-                    BoardLabel("Now playing · AZ-204 podcast", size = 13.sp, textAlign = TextAlign.Center, modifier = Modifier.weight(1f))
+                    BoardLabel("Now playing · ${state.series.label} podcast", size = 13.sp, textAlign = TextAlign.Center, modifier = Modifier.weight(1f))
                     BoardMono(ListenSpeeds.label(state.speed), modifier = Modifier.width(34.dp), textAlign = TextAlign.End, spacing = 0.sp)
                 }
                 Row(horizontalArrangement = Arrangement.spacedBy(14.dp), verticalAlignment = Alignment.CenterVertically) {
-                    Cover(Modifier.size(84.dp), corner = 10.dp)
+                    Cover(Modifier.size(84.dp), corner = 10.dp, series = state.series)
                     Column(verticalArrangement = Arrangement.spacedBy(4.dp), modifier = Modifier.weight(1f)) {
-                        BoardLabel("Module ${state.module} · ${ListenPlayer.HOSTS}", color = AppTheme.colors.accent)
+                        BoardLabel("Module ${state.module} · ${state.series.hosts}", color = AppTheme.colors.accent)
                         BoardTitle(state.title, size = 26.sp)
                         BoardMono("${state.minutes} MIN · ${state.lines.size} LINES")
                     }
@@ -145,6 +145,8 @@ private fun BoardTimetable(state: ListenUiState, onLine: (Int) -> Unit, modifier
                 Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
                     BoardLabel(line.host.displayName, color = if (lit) AppTheme.colors.accent else AppTheme.colors.secondaryLabel, size = 11.sp)
                     BoardText(PodcastCue.strip(line.text), color = if (lit) AppTheme.colors.ink else AppTheme.colors.secondaryLabel, size = 15.sp, weight = if (lit) FontWeight.Medium else FontWeight.Normal)
+                    // Jonas's German, with the English under it.
+                    line.translation?.let { BoardText(it, color = AppTheme.colors.secondaryLabel, size = 13.sp) }
                 }
             }
         }

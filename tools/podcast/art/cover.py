@@ -1,25 +1,39 @@
 """
-Draws the AZ-204 podcast cover: the thumbnail beside the episode in the
+Draws the podcast covers: the thumbnail beside the episode in the
 notification, the picture on the lock screen and the artwork in the player.
 
-    python tools/podcast/art/cover.py
+    python tools/podcast/art/cover.py            the AZ-204 cover
+    python tools/podcast/art/cover.py german     the German A1 cover
 
-writes app/src/main/res/drawable-nodpi/podcast_cover.png. The fonts are the
-app's own, so the cover speaks the same type as the screens around it.
+writes app/src/main/res/drawable-nodpi/podcast_cover.png (or
+podcast_cover_de.png). The fonts are the app's own, so the cover speaks the
+same type as the screens around it.
 """
 import math
+import sys
 from pathlib import Path
 from PIL import Image, ImageDraw, ImageFilter, ImageFont
 
 ROOT = Path(__file__).resolve().parents[3]
 FONTS = ROOT / "core" / "ui" / "src" / "main" / "res" / "font"
-OUT = ROOT / "app" / "src" / "main" / "res" / "drawable-nodpi" / "podcast_cover.png"
+DRAWABLES = ROOT / "app" / "src" / "main" / "res" / "drawable-nodpi"
 SIZE = 1024   # drawn large, saved at 512: enough for a lock screen, small in the APK
 
+SERIES = {
+    # Azure blue, from deep navy at the top left to cyan at the bottom right.
+    "az204": {
+        "out": "podcast_cover.png", "title": "AZ-204", "sub": "P O D C A S T", "hosts": "M L", "credit": "TwoTracks · Maya & Leo",
+        "stops": [(0.0, (8, 30, 82)), (0.55, (0, 103, 192)), (1.0, (58, 196, 240))], "glow": (120, 220, 255, 90), "ink": (8, 30, 82, 255),
+    },
+    # The flag's colours, kept dark enough for white type: charcoal, a deep red, then gold.
+    "german": {
+        "out": "podcast_cover_de.png", "title": "DEUTSCH", "sub": "A 1   P O D C A S T", "hosts": "M L J", "credit": "TwoTracks · Maya, Leo & Jonas",
+        "stops": [(0.0, (24, 24, 28)), (0.55, (150, 22, 24)), (1.0, (214, 160, 0))], "glow": (255, 190, 90, 70), "ink": (24, 24, 28, 255),
+    },
+}
 
-def gradient(size):
-    """Azure blue, from deep navy at the top left to cyan at the bottom right."""
-    stops = [(0.0, (8, 30, 82)), (0.55, (0, 103, 192)), (1.0, (58, 196, 240))]
+
+def gradient(size, stops):
     img = Image.new("RGB", (size, size))
     px = img.load()
     for y in range(size):
@@ -34,11 +48,12 @@ def gradient(size):
 
 
 def main():
-    img = gradient(SIZE).convert("RGBA")
+    s = SERIES[sys.argv[1] if len(sys.argv) > 1 else "az204"]
+    img = gradient(SIZE, s["stops"]).convert("RGBA")
 
     # A soft glow behind the title, so the type sits on light rather than on a flat field.
     glow = Image.new("RGBA", img.size, (0, 0, 0, 0))
-    ImageDraw.Draw(glow).ellipse((180, 260, 980, 900), fill=(120, 220, 255, 90))
+    ImageDraw.Draw(glow).ellipse((180, 260, 980, 900), fill=s["glow"])
     img = Image.alpha_composite(img, glow.filter(ImageFilter.GaussianBlur(120)))
     d = ImageDraw.Draw(img)
 
@@ -46,15 +61,21 @@ def main():
     semibold = ImageFont.truetype(str(FONTS / "barlow_semibold.ttf"), 54)
     mono = ImageFont.truetype(str(FONTS / "ibm_plex_mono_medium.ttf"), 40)
 
-    # The two hosts: two voices, overlapping, top left.
-    for i, (fill, letter) in enumerate([((255, 255, 255, 235), "M"), ((255, 255, 255, 140), "L")]):
+    # The hosts: a voice each, overlapping, top left.
+    letters = s["hosts"].split()
+    for i, letter in enumerate(letters):
         cx = 120 + i * 78
+        fill = (255, 255, 255, 235 - i * 50)
         d.ellipse((cx - 52, 68, cx + 52, 172), fill=fill)
         tw = d.textlength(letter, font=semibold)
-        d.text((cx - tw / 2, 86), letter, font=semibold, fill=(8, 30, 82, 255))
+        d.text((cx - tw / 2, 86), letter, font=semibold, fill=s["ink"])
 
-    d.text((80, 360), "AZ-204", font=condensed, fill=(255, 255, 255, 255))
-    d.text((88, 676), "P O D C A S T", font=mono, fill=(255, 255, 255, 230))
+    # The title as large as fits the width.
+    title_font = condensed
+    while d.textlength(s["title"], font=title_font) > SIZE - 160:
+        title_font = ImageFont.truetype(str(FONTS / "barlow_condensed_bold.ttf"), title_font.size - 10)
+    d.text((80, 360 + (300 - title_font.size) // 2), s["title"], font=title_font, fill=(255, 255, 255, 255))
+    d.text((88, 676), s["sub"], font=mono, fill=(255, 255, 255, 230))
 
     # A waveform along the bottom: the same few bars a player shows when it plays.
     base, w, gap = 900, 22, 14
@@ -63,11 +84,12 @@ def main():
         x = 80 + i * (w + gap)
         d.rounded_rectangle((x, base - h, x + w, base), radius=w // 2, fill=(255, 255, 255, 120 if i % 3 else 200))
 
-    d.text((80, 940), "TwoTracks · Maya & Leo", font=ImageFont.truetype(str(FONTS / "barlow_medium.ttf"), 40), fill=(255, 255, 255, 200))
+    d.text((80, 940), s["credit"], font=ImageFont.truetype(str(FONTS / "barlow_medium.ttf"), 40), fill=(255, 255, 255, 200))
 
-    OUT.parent.mkdir(parents=True, exist_ok=True)
-    img.convert("RGB").resize((512, 512), Image.LANCZOS).save(OUT, optimize=True)
-    print(f"wrote {OUT.relative_to(ROOT)} ({OUT.stat().st_size // 1024} KB)")
+    out = DRAWABLES / s["out"]
+    out.parent.mkdir(parents=True, exist_ok=True)
+    img.convert("RGB").resize((512, 512), Image.LANCZOS).save(out, optimize=True)
+    print(f"wrote {out.relative_to(ROOT)} ({out.stat().st_size // 1024} KB)")
 
 
 if __name__ == "__main__":

@@ -25,6 +25,9 @@ so the app can light up the line being spoken).
     python render.py az-keyvault --lines 6 the first six lines, to try a change quickly
     python render.py --engine kokoro       without Chatterbox
     python render.py --half                half precision, for a 4 GB card
+
+A German episode's Jonas lines are spoken first by render_de.py, in its own
+environment; render.py then puts them in their places.
 """
 
 import argparse
@@ -102,6 +105,8 @@ SAY = [
 
 SOUND_CUES = {"laugh", "chuckle", "sigh"}
 CUE = re.compile(r"\[([a-z ]+)\]")
+# A German word or phrase inside Maya's or Leo's English, written «so».
+GERMAN = re.compile(r"«([^»]+)»")
 
 
 EXTRA_SAY = [
@@ -216,6 +221,18 @@ class Chatterbox:
             self.model.prepare_conditionals(str(path))
             self.voices[host] = self.model.conds
 
+    def speak_de(self, text: str, host: str) -> np.ndarray:
+        """A «German» word inside a host's English, as render_de.py left it in the cache."""
+        from render_de import host_path
+        path = host_path(text, host)
+        if not path.exists():
+            sys.exit(f"{host} has not said \"{text}\" in German yet: run render_de.py first (see README).")
+        audio, sr = sf.read(path, dtype="float32")
+        if sr != RATE:
+            import librosa
+            audio = librosa.resample(audio, orig_sr=sr, target_sr=RATE)
+        return audio
+
     def speak(self, text: str, host: str) -> np.ndarray:
         # A fixed seed per line, so a render is the same every time it is run.
         self.torch.manual_seed(zlib.crc32(f"{host}:{text}".encode()))
@@ -230,6 +247,33 @@ class Chatterbox:
             import librosa
             audio = librosa.resample(audio, orig_sr=self.model.sr, target_sr=RATE)
         return audio
+
+
+class Jonas:
+    """
+    The German episodes' native speaker. His lines are spoken ahead of time by
+    render_de.py (Qwen3-TTS, in its own environment) into cache/de, and read
+    from there. A line marked [repeat] is a drill: slowly first, then room to
+    say it yourself, then at normal speed.
+    """
+
+    SLOW = 0.8          # the first reading, at four fifths of normal speed
+    ROOM = 1.3          # the gap to repeat in, against the length of the phrase
+    ROOM_EXTRA = 0.6    # plus a moment to start
+
+    def speak(self, text: str) -> np.ndarray:
+        import librosa
+        from render_de import key
+        path = CACHE / "de" / f"{key(text)}.wav"
+        if not path.exists():
+            sys.exit(f"Jonas has not said \"{text[:60]}\" yet: run render_de.py first (see README).")
+        audio, sr = sf.read(path, dtype="float32")
+        if sr != RATE:
+            audio = librosa.resample(audio, orig_sr=sr, target_sr=RATE)
+        if "[repeat]" not in text:
+            return audio
+        slow = librosa.effects.time_stretch(audio, rate=self.SLOW)
+        return np.concatenate([slow, silence(len(audio) / RATE * self.ROOM + self.ROOM_EXTRA), audio])
 
 
 def host_samples(kokoro: Kokoro) -> dict:
@@ -254,14 +298,26 @@ def level(audio: np.ndarray, target_rms_db: float = -19.0) -> np.ndarray:
     return audio / peak * 0.97 if peak > 0.97 else audio
 
 
-def render(episode: dict, engine, keep_sounds: bool, limit: int | None):
+def render(episode: dict, engine, keep_sounds: bool, limit: int | None, jonas: Jonas | None = None):
     pieces, timeline, at = [], [], 0.0
     began = time.time()
     lines = episode["lines"][:limit] if limit else episode["lines"]
     for i, line in enumerate(lines):
         host, start = line["host"], at
-        for kind, value in segments(line["text"], keep_sounds):
-            clip = silence(value) if kind == "pause" else engine.speak(say(value), host)
+        if host == "jonas":
+            # German, from the German pass; the English respellings do not apply.
+            clip = jonas.speak(line["text"])
+            pieces.append(clip)
+            at += len(clip) / RATE
+        for kind, value in ([] if host == "jonas" else segments(line["text"], keep_sounds)):
+            if kind == "pause":
+                clip = silence(value)
+            else:
+                # A «German» word inside English is said with German sounds in the
+                # host's own voice; the English around it as always.
+                parts = [engine.speak_de(p, host) if i % 2 else engine.speak(say(p), host)
+                         for i, p in enumerate(GERMAN.split(value)) if p.strip(" ,")]
+                clip = np.concatenate(parts) if parts else silence(0.1)
             pieces.append(clip)
             at += len(clip) / RATE
         timeline.append({"line": i, "host": host, "start": round(start, 2), "end": round(at, 2)})
@@ -295,7 +351,7 @@ def main():
     for e in episodes:
         name = e["topicId"] + ("" if not args.lines else f"-first{args.lines}") + ("" if args.engine == "chatterbox" else "-kokoro")
         print(f"{e['topicId']} with {args.engine}")
-        audio, timeline = render(e, engine, keep_sounds=args.engine == "chatterbox", limit=args.lines)
+        audio, timeline = render(e, engine, keep_sounds=args.engine == "chatterbox", limit=args.lines, jonas=Jonas())
         sf.write(OUT / f"{name}.wav", audio, RATE)
         sf.write(OUT / f"{name}.ogg", audio, RATE, format="OGG", subtype="OPUS")
         (OUT / f"{name}.json").write_text(json.dumps({"topicId": e["topicId"], "seconds": round(len(audio) / RATE, 2), "lines": timeline}, indent=1), encoding="utf-8")
