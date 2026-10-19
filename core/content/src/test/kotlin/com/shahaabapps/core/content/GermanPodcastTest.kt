@@ -11,8 +11,8 @@ import org.junit.Test
  * thing to try today. Whether Jonas's German agrees is GermanGrammarTest's.
  */
 class GermanPodcastTest {
-    /** The German topics that have an episode. Named, so the list grows to all 47 on purpose. */
-    private val withEpisodes = listOf("de1-words")
+    /** Every German topic has an episode: the course's own list, so a new topic needs one too. */
+    private val withEpisodes = GermanA1.course.allTopics.map { it.id }
 
     private val course = GermanA1.course
     private val episodes = Podcasts.all.filter { it.series == PodcastSeries.GERMAN_A1 }
@@ -98,7 +98,15 @@ class GermanPodcastTest {
             val tryIt = topic(p.topicId).blocks.filterIsInstance<Block.TryIt>().single()
             val ending = p.lines.takeLast(4).joinToString(" ") { PodcastCue.strip(it.text) }.lowercase()
             assertTrue("${p.topicId} does not say \"today\" near the end", "today" in ending)
-            val steps = tryIt.checklist.count { step -> step.lowercase().split(" ").filter { it.length > 5 }.any { it in ending } }
+            // A step is named by one of its longer words; a step made only of
+            // short words ("Said who you are") has to be said whole, less its
+            // first word, which the episode says as an instruction ("say who
+            // you are").
+            val steps = tryIt.checklist.count { step ->
+                val words = step.lowercase().split(" ")
+                val long = words.filter { it.length > 5 }
+                if (long.isEmpty()) words.drop(1).joinToString(" ") in ending else long.any { it in ending }
+            }
             assertTrue("${p.topicId} names only $steps of ${tryIt.checklist.size} try-it steps", steps * 2 >= tryIt.checklist.size)
         }
     }
