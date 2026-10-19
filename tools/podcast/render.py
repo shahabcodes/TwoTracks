@@ -47,6 +47,12 @@ OUT = HERE / "out"
 CACHE = HERE / "cache"
 RATE = 24_000
 
+# The episodes ship inside the APK, so the Opus is kept small: libsndfile's
+# 0.95 is about 16 kbps, half its default of 31. A transcription of an episode
+# at 31, 20, 16 and 12.6 kbps changed no more words than its own run-to-run
+# wobble; 16 leaves a margin for what a transcription cannot hear.
+OPUS_LEVEL = 0.95
+
 # The Kokoro voices the hosts' samples are made from.
 KOKORO_VOICE = {"maya": "af_heart", "leo": "am_michael"}
 
@@ -361,7 +367,7 @@ def main():
         print(f"{e['topicId']} with {args.engine}")
         audio, timeline = render(e, engine, keep_sounds=args.engine == "chatterbox", limit=args.lines, jonas=Jonas())
         sf.write(OUT / f"{name}.wav", audio, RATE)
-        sf.write(OUT / f"{name}.ogg", audio, RATE, format="OGG", subtype="OPUS")
+        sf.write(OUT / f"{name}.ogg", audio, RATE, format="OGG", subtype="OPUS", compression_level=OPUS_LEVEL)
         (OUT / f"{name}.json").write_text(json.dumps({"topicId": e["topicId"], "seconds": round(len(audio) / RATE, 2), "lines": timeline}, indent=1), encoding="utf-8")
         print(f"  {len(audio) / RATE / 60:.1f} min -> out/{name}.ogg")
 
