@@ -71,6 +71,11 @@ def check(topic: str, scripts: dict) -> list:
         audio, rate_hz = sf.read(wav, dtype="float32")
     flagged = []
     for t in timing["lines"]:
+        # Jonas's German is paced on purpose (a slow reading, then room to
+        # repeat), so word rates mean nothing there; his lines are checked by
+        # ear, or by a German transcription.
+        if lines[t["line"]]["host"] == "jonas":
+            continue
         text = lines[t["line"]]["text"]
         n = words(text)
         spoken = (t["end"] - t["start"]) - pauses(text)

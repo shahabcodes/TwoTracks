@@ -34,6 +34,7 @@ ui-debug.log
 
 # The podcast render tool: its environment, model downloads and rendered audio stay local.
 tools/podcast/.venv/
+tools/podcast/.venv-de/
 tools/podcast/out/
 tools/podcast/cache/
 tools/podcast/podcasts.json

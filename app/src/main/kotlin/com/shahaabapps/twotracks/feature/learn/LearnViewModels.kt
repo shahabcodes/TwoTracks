@@ -259,7 +259,8 @@ class TopicViewModel @Inject constructor(
         val minutes = kotlin.math.max(1, ((timeline.seconds + 30) / 60).toInt())
         val here = now?.takeIf { it.topicId == topicId }
         val at = here?.position ?: place.position(topicId).takeIf { timeline.resumable(it) }
-        return com.shahaabapps.twotracks.feature.listen.ListenCardState(minutes, playing = here?.playing == true, left = at?.let { timeline.seconds - it })
+        val series = com.shahaabapps.core.content.Podcasts.forTopic(topicId)?.series ?: com.shahaabapps.core.content.PodcastSeries.AZ204
+        return com.shahaabapps.twotracks.feature.listen.ListenCardState(minutes, playing = here?.playing == true, left = at?.let { timeline.seconds - it }, series = series)
     }
 
     fun markLearned() = viewModelScope.launch {

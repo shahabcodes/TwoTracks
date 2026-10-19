@@ -49,24 +49,69 @@ import kotlin.math.sqrt
  */
 @Composable
 fun DiagramView(spec: DiagramSpec, modifier: Modifier = Modifier) {
-    val measurer = rememberTextMeasurer()
-    val accent = AppTheme.colors.accent
-    val card = AppTheme.colors.card
-    val fill = AppTheme.colors.fill
-    val secondary = AppTheme.colors.secondaryLabel
-    val ink = MaterialTheme.colorScheme.onSurface
-    val onSolid = AppTheme.colors.onSolid
-    val labelStyle = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.SemiBold, textAlign = TextAlign.Center)
-    val subStyle = MaterialTheme.typography.labelSmall.copy(textAlign = TextAlign.Center, fontSize = 10.sp)
-    val edgeStyle = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp, color = secondary)
+    val colors = DiagramColors(
+        accent = AppTheme.colors.accent,
+        plate = AppTheme.colors.card,
+        fill = AppTheme.colors.fill,
+        secondary = AppTheme.colors.secondaryLabel,
+        ink = MaterialTheme.colorScheme.onSurface,
+        onSolid = AppTheme.colors.onSolid,
+    )
     Column(
         modifier = modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(16.dp))
-            .background(card)
+            .background(colors.plate)
             .padding(Spacing.sm),
     ) {
-        Canvas(modifier = Modifier.fillMaxWidth().aspectRatio(1f / spec.aspect)) {
+        DiagramCanvas(spec, colors)
+        Text(spec.caption, style = MaterialTheme.typography.bodySmall, color = colors.secondary, modifier = Modifier.padding(top = Spacing.xs, start = Spacing.xs, end = Spacing.xs))
+    }
+}
+
+/**
+ * The colours a diagram is drawn in: the theme's on a learning screen, the
+ * player's own blues on the podcast board. [plate] is the ground the diagram
+ * sits on, which an edge's label is backed with.
+ */
+data class DiagramColors(
+    val accent: Color,
+    val plate: Color,
+    val fill: Color,
+    val secondary: Color,
+    val ink: Color,
+    val onSolid: Color,
+)
+
+/**
+ * The diagram itself, unframed. [reveal] gives each node how far it has
+ * arrived (0 absent, 1 there) and [emphasis] how bright it is (1 lit or
+ * normal, less to dim it); an edge takes the fainter of its two ends. A
+ * [pulse] is a dot run along the edge between two nodes, [pulseAt] of the way
+ * from the first. Left at their defaults it draws exactly as [DiagramView]
+ * always has.
+ */
+@Composable
+fun DiagramCanvas(
+    spec: DiagramSpec,
+    colors: DiagramColors,
+    modifier: Modifier = Modifier,
+    reveal: (String) -> Float = { 1f },
+    emphasis: (String) -> Float = { 1f },
+    pulse: Pair<String, String>? = null,
+    pulseAt: Float = 0f,
+) {
+    val measurer = rememberTextMeasurer()
+    val accent = colors.accent
+    val card = colors.plate
+    val fill = colors.fill
+    val secondary = colors.secondary
+    val ink = colors.ink
+    val onSolid = colors.onSolid
+    val labelStyle = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.SemiBold, textAlign = TextAlign.Center)
+    val subStyle = MaterialTheme.typography.labelSmall.copy(textAlign = TextAlign.Center, fontSize = 10.sp)
+    val edgeStyle = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp, color = secondary)
+    Canvas(modifier = modifier.fillMaxWidth().aspectRatio(1f / spec.aspect)) {
             val byId = spec.nodes.associateBy { it.id }
             fun rectOf(n: DNode): Rect {
                 val w = (n.w * size.width).coerceAtMost(size.width)
@@ -79,28 +124,53 @@ fun DiagramView(spec: DiagramSpec, modifier: Modifier = Modifier) {
                 val top = (n.y * size.height - h / 2f).coerceIn(0f, size.height - h)
                 return Rect(Offset(left, top), Size(w, h))
             }
+            fun alphaOf(id: String) = (reveal(id) * emphasis(id)).coerceIn(0f, 1f)
             // Edges first so nodes sit on top.
             spec.edges.forEach { e ->
                 val a = byId[e.from] ?: return@forEach
                 val b = byId[e.to] ?: return@forEach
-                drawEdge(rectOf(a), rectOf(b), e, secondary, card, measurer, edgeStyle)
+                val alpha = minOf(alphaOf(e.from), alphaOf(e.to))
+                if (alpha <= 0.01f) return@forEach
+                drawEdge(rectOf(a), rectOf(b), e, secondary.copy(alpha = secondary.alpha * alpha), card, measurer, edgeStyle.copy(color = secondary.copy(alpha = secondary.alpha * alpha)))
+            }
+            pulse?.let { (from, to) ->
+                val a = byId[from] ?: return@let
+                val b = byId[to] ?: return@let
+                val start = edgePoint(rectOf(a), rectOf(b).center)
+                val end = edgePoint(rectOf(b), rectOf(a).center)
+                val t = pulseAt.coerceIn(0f, 1f)
+                val at = Offset(start.x + (end.x - start.x) * t, start.y + (end.y - start.y) * t)
+                // A dot with a soft halo, brightest mid-way so it seems to leave
+                // one node and arrive at the other rather than blink in place.
+                val glow = kotlin.math.sin(t * Math.PI).toFloat().coerceAtLeast(0.25f)
+                drawCircle(accent.copy(alpha = 0.28f * glow), 9.dp.toPx(), at)
+                drawCircle(accent.copy(alpha = glow), 4.5.dp.toPx(), at)
             }
             spec.nodes.forEach { n ->
-                val r = rectOf(n)
-                val tone = when (n.tone) { 0 -> accent; 1 -> accent.copy(alpha = 0.12f); else -> secondary.copy(alpha = 0.35f) }
-                val textColor = if (n.tone == 0 && n.kind != NodeKind.NOTE) onSolid else ink
+                val alpha = alphaOf(n.id)
+                if (alpha <= 0.01f) return@forEach
+                // Arriving nodes grow the last few per cent into place.
+                val grow = 0.88f + 0.12f * reveal(n.id).coerceIn(0f, 1f)
+                val full = rectOf(n)
+                val r = Rect(
+                    full.center.x - full.width * grow / 2f, full.center.y - full.height * grow / 2f,
+                    full.center.x + full.width * grow / 2f, full.center.y + full.height * grow / 2f,
+                )
+                fun Color.faded() = copy(alpha = this.alpha * alpha)
+                val tone = when (n.tone) { 0 -> accent; 1 -> accent.copy(alpha = 0.12f); else -> secondary.copy(alpha = 0.35f) }.faded()
+                val textColor = (if (n.tone == 0 && n.kind != NodeKind.NOTE) onSolid else ink).faded()
                 when (n.kind) {
                     NodeKind.BOX -> drawRoundRect(tone, r.topLeft, r.size, CornerRadius(12.dp.toPx()))
                     NodeKind.PILL -> drawRoundRect(tone, r.topLeft, r.size, CornerRadius(r.height / 2f))
                     NodeKind.NOTE -> {
-                        drawRoundRect(fill, r.topLeft, r.size, CornerRadius(8.dp.toPx()))
-                        drawRoundRect(secondary.copy(alpha = 0.5f), r.topLeft, r.size, CornerRadius(8.dp.toPx()), style = Stroke(width = 1.5f, pathEffect = PathEffect.dashPathEffect(floatArrayOf(8f, 6f))))
+                        drawRoundRect(fill.faded(), r.topLeft, r.size, CornerRadius(8.dp.toPx()))
+                        drawRoundRect(secondary.copy(alpha = 0.5f).faded(), r.topLeft, r.size, CornerRadius(8.dp.toPx()), style = Stroke(width = 1.5f, pathEffect = PathEffect.dashPathEffect(floatArrayOf(8f, 6f))))
                     }
                     NodeKind.CYLINDER -> {
                         val ry = r.height * 0.14f
                         drawRoundRect(tone, Offset(r.left, r.top + ry), Size(r.width, r.height - ry * 2), CornerRadius(ry * 2.2f, ry))
                         drawOval(tone, Offset(r.left, r.top), Size(r.width, ry * 2))
-                        drawOval(Color.White.copy(alpha = 0.35f), Offset(r.left, r.top), Size(r.width, ry * 2), style = Stroke(width = 1.5f))
+                        drawOval(Color.White.copy(alpha = 0.35f).faded(), Offset(r.left, r.top), Size(r.width, ry * 2), style = Stroke(width = 1.5f))
                         drawOval(tone, Offset(r.left, r.bottom - ry * 2), Size(r.width, ry * 2))
                     }
                     NodeKind.CLOUD -> {
@@ -127,13 +197,15 @@ fun DiagramView(spec: DiagramSpec, modifier: Modifier = Modifier) {
                     NodeKind.USER -> 1.35f to 0.52f
                     else -> 0.90f to 0.86f
                 }
-                val boxW = r.width * wFrac
+                // Text is laid out on the node's full size, so a node growing
+                // into place does not re-fit its type on every frame.
+                val boxW = full.width * wFrac
                 // A USER's label sits under the figure, so its height is the
                 // room left beneath the shape, not room inside it.
                 val boxH = if (n.kind == NodeKind.USER) {
-                    (size.height - r.bottom - 2f).coerceAtLeast(0f)
+                    (size.height - full.bottom - 2f).coerceAtLeast(0f)
                 } else {
-                    r.height * hFrac
+                    full.height * hFrac
                 }
 
                 // The label gets first call on the height; the sub-label takes
@@ -143,17 +215,15 @@ fun DiagramView(spec: DiagramSpec, modifier: Modifier = Modifier) {
                 val subH = boxH - label.size.height
                 val sub = n.sub
                     ?.takeIf { subH >= 8.sp.toPx() }
-                    ?.let { fitText(measurer, it, subStyle.copy(color = textColor.copy(alpha = 0.85f)), boxW, subH) }
+                    ?.let { fitText(measurer, it, subStyle.copy(color = textColor.copy(alpha = textColor.alpha * 0.85f)), boxW, subH) }
 
                 val totalH = label.size.height + (sub?.size?.height ?: 0)
-                val top = if (n.kind == NodeKind.USER) r.bottom + 2f else r.center.y - totalH / 2f
+                val top = if (n.kind == NodeKind.USER) full.bottom + 2f else full.center.y - totalH / 2f
                 var y = top
-                drawClamped(label, r.center.x, y)
+                drawClamped(label, full.center.x, y)
                 y += label.size.height
-                if (sub != null) drawClamped(sub, r.center.x, y)
+                if (sub != null) drawClamped(sub, full.center.x, y)
             }
-        }
-        Text(spec.caption, style = MaterialTheme.typography.bodySmall, color = secondary, modifier = Modifier.padding(top = Spacing.xs, start = Spacing.xs, end = Spacing.xs))
     }
 }
 

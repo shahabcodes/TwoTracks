@@ -244,6 +244,9 @@ class GermanGrammarTest {
             }
         }
 
+        // What Jonas says in the episodes, which a listener copies word for word.
+        GermanPodcasts.all.forEach { p -> p.lines.filter { it.host == Host.JONAS }.forEach { scan("podcast/${p.topicId}", PodcastCue.strip(it.text)) } }
+
         // Both the module tests and the paper sittings, correct option only.
         (GermanA1.course.modules.mapNotNull { it.quiz } + listOfNotNull(GermanA1.course.mockExam))
             .flatMap { it.questions }

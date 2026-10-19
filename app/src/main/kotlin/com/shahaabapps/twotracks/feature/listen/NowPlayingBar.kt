@@ -38,6 +38,8 @@ import com.shahaabapps.twotracks.ui.board.BoardGutter
 import com.shahaabapps.twotracks.ui.board.BoardLabel
 import com.shahaabapps.twotracks.ui.board.BoardMono
 import com.shahaabapps.twotracks.ui.board.BoardText
+import com.shahaabapps.core.content.PodcastSeries
+import com.shahaabapps.core.content.Podcasts
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlin.math.max
@@ -54,13 +56,14 @@ class NowPlayingViewModel @Inject constructor(val player: ListenPlayer) : ViewMo
 @Composable
 fun NowPlayingBar(now: NowPlaying, onOpen: () -> Unit, onPlayPause: () -> Unit, onForward30: () -> Unit, modifier: Modifier = Modifier) {
     val done = if (now.duration > 0) (now.position / now.duration).toFloat().coerceIn(0f, 1f) else 0f
+    val series = Podcasts.forTopic(now.topicId)?.series ?: PodcastSeries.AZ204
     if (AppTheme.departures) {
         Column(modifier.fillMaxWidth().background(AppTheme.colors.card).clickable(role = Role.Button, onClickLabel = "Open the player", onClick = onOpen)) {
             Row(
                 verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp),
                 modifier = Modifier.padding(horizontal = BoardGutter, vertical = 10.dp),
             ) {
-                Cover(Modifier.size(40.dp), corner = 6.dp)
+                Cover(Modifier.size(40.dp), corner = 6.dp, series = series)
                 Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(1.dp)) {
                     BoardLabel("Now playing · ${clock(max(0.0, now.duration - now.position))} left", color = AppTheme.colors.accent, size = 11.sp)
                     BoardText(now.title, color = AppTheme.colors.ink, size = 15.sp, weight = FontWeight.SemiBold, maxLines = 1)
@@ -83,10 +86,10 @@ fun NowPlayingBar(now: NowPlaying, onOpen: () -> Unit, onPlayPause: () -> Unit, 
                 .clickable(role = Role.Button, onClickLabel = "Open the player", onClick = onOpen),
         ) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.padding(start = 8.dp, end = 4.dp, top = 8.dp, bottom = 6.dp)) {
-                Cover(Modifier.size(42.dp), corner = 7.dp)
+                Cover(Modifier.size(42.dp), corner = 7.dp, series = series)
                 Column(Modifier.weight(1f)) {
                     Text(now.title, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                    Text("${ListenPlayer.HOSTS} · ${clock(max(0.0, now.duration - now.position))} left", style = MaterialTheme.typography.bodySmall, color = AppTheme.colors.secondaryLabel, maxLines = 1)
+                    Text("${series.hosts} · ${clock(max(0.0, now.duration - now.position))} left", style = MaterialTheme.typography.bodySmall, color = AppTheme.colors.secondaryLabel, maxLines = 1)
                 }
                 BarKey(if (now.playing) "Pause" else "Play", onPlayPause, solid = false) {
                     Icon(if (now.playing) Icons.Rounded.Pause else Icons.Rounded.PlayArrow, contentDescription = null, tint = AppTheme.colors.ink, modifier = Modifier.size(30.dp))
@@ -111,7 +114,7 @@ private fun BarKey(label: String, onClick: () -> Unit, solid: Boolean, content: 
 }
 
 /** What the topic's Listen card says: how long the episode is, and whether you are partway through it. */
-data class ListenCardState(val minutes: Int, val playing: Boolean = false, val left: Double? = null)
+data class ListenCardState(val minutes: Int, val playing: Boolean = false, val left: Double? = null, val series: PodcastSeries = PodcastSeries.AZ204)
 
 /**
  * The way into a topic's episode, at the head of the lesson: the cover, Maya
@@ -123,7 +126,7 @@ fun ListenCard(state: ListenCardState, onListen: () -> Unit, modifier: Modifier 
     val line = when {
         state.playing -> "Playing · ${left.orEmpty()}"
         left != null -> "Carry on · $left"
-        else -> "${ListenPlayer.HOSTS} talk it through · ${state.minutes} min"
+        else -> "${state.series.hosts} talk it through · ${state.minutes} min"
     }
     if (AppTheme.departures) {
         val shape = RoundedCornerShape(12.dp)
@@ -132,7 +135,7 @@ fun ListenCard(state: ListenCardState, onListen: () -> Unit, modifier: Modifier 
             modifier = modifier.fillMaxWidth().clip(shape).background(AppTheme.colors.card)
                 .clickable(role = Role.Button, onClickLabel = "Listen to this topic", onClick = onListen).padding(10.dp),
         ) {
-            Cover(Modifier.size(48.dp), corner = 8.dp)
+            Cover(Modifier.size(48.dp), corner = 8.dp, series = state.series)
             Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
                 BoardLabel("Listen · ${state.minutes} min", color = AppTheme.colors.accent)
                 BoardText(line, color = AppTheme.colors.ink, size = 14.sp)
@@ -147,7 +150,7 @@ fun ListenCard(state: ListenCardState, onListen: () -> Unit, modifier: Modifier 
         modifier = modifier.fillMaxWidth().clip(shape).border(Spacing.rule, AppTheme.colors.separator, shape)
             .clickable(role = Role.Button, onClickLabel = "Listen to this topic", onClick = onListen).padding(12.dp),
     ) {
-        Cover(Modifier.size(52.dp), corner = 9.dp)
+        Cover(Modifier.size(52.dp), corner = 9.dp, series = state.series)
         Column(Modifier.weight(1f)) {
             Text("Listen to this topic", style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold)
             Text(line, style = MaterialTheme.typography.bodySmall, color = AppTheme.colors.secondaryLabel)

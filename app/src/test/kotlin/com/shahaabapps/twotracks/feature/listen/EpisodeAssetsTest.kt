@@ -1,6 +1,7 @@
 package com.shahaabapps.twotracks.feature.listen
 
 import com.shahaabapps.core.content.Az204
+import com.shahaabapps.core.content.GermanA1
 import com.shahaabapps.core.content.PodcastTimeline
 import com.shahaabapps.core.content.Podcasts
 import org.junit.Assert.assertEquals
@@ -34,6 +35,12 @@ class EpisodeAssetsTest {
         val done = stillRendering.filter(::installed)
         assertTrue("$done have their episodes now; take them off the list", done.isEmpty())
         assertTrue("$stillRendering are not AZ-204 topics", topics.containsAll(stillRendering))
+    }
+
+    @Test
+    fun `every German A1 topic has its episode in the app`() {
+        val missing = GermanA1.course.allTopics.map { it.id }.filterNot(::installed)
+        assertTrue("no episode in the app for $missing; run render_de.py and render.py, then tools/podcast/install.sh", missing.isEmpty())
     }
 
     @Test

@@ -21,6 +21,9 @@ class PodcastTest {
 
     private val az = Az204.course
 
+    /** This test holds the AZ-204 episodes; GermanPodcastTest holds the German ones. */
+    private val azEpisodes = Podcasts.all.filter { it.series == PodcastSeries.AZ204 }
+
     private fun topic(id: String): Topic = az.modules.flatMap { it.topics }.first { it.id == id }
 
     @Test
@@ -33,21 +36,41 @@ class PodcastTest {
     fun `every named topic has exactly one episode, and every episode belongs to an AZ-204 topic`() {
         withEpisodes.forEach { id -> assertNotNull("no episode for $id", Podcasts.forTopic(id)) }
         val ids = az.modules.flatMap { m -> m.topics.map { it.id } }.toSet()
-        Podcasts.all.forEach { assertTrue("${it.topicId} is not an AZ-204 topic", it.topicId in ids) }
-        assertEquals("an episode is listed twice", Podcasts.all.size, Podcasts.all.map { it.topicId }.toSet().size)
-        assertEquals("an episode exists for a topic not in the named list", withEpisodes.toSet(), Podcasts.all.map { it.topicId }.toSet())
+        azEpisodes.forEach { assertTrue("${it.topicId} is not an AZ-204 topic", it.topicId in ids) }
+        assertEquals("an episode is listed twice", azEpisodes.size, azEpisodes.map { it.topicId }.toSet().size)
+        assertEquals("an episode exists for a topic not in the named list", withEpisodes.toSet(), azEpisodes.map { it.topicId }.toSet())
     }
 
     @Test
-    fun `an episode runs five to seven minutes`() {
-        Podcasts.all.forEach { p ->
-            assertTrue("${p.topicId} has ${p.spokenWords} words", p.spokenWords in 700..1_100)
+    fun `an episode runs six to nine minutes`() {
+        // Longer than the first versions: written for a beginner, every term
+        // is explained, with simple-app examples and the exam's take-aways.
+        azEpisodes.forEach { p ->
+            assertTrue("${p.topicId} has ${p.spokenWords} words", p.spokenWords in 800..1_400)
+        }
+    }
+
+    @Test
+    fun `an episode shows when to use what with simple apps`() {
+        val example = Regex("""\b(say you're building|imagine you're building|you're building|for example|picture a|say your app|a small app)\b""")
+        azEpisodes.forEach { p ->
+            val heard = p.lines.joinToString(" ") { PodcastCue.strip(it.text) }.lowercase()
+            val found = example.findAll(heard).count()
+            assertTrue("${p.topicId} has $found simple-app examples", found >= 2)
+        }
+    }
+
+    @Test
+    fun `an episode closes with the exam's take-aways`() {
+        azEpisodes.forEach { p ->
+            val asked = p.lines.takeLast(8).any { it.host == Host.LEO && "exam" in PodcastCue.strip(it.text).lowercase() }
+            assertTrue("${p.topicId}: Leo never asks what to remember for the exam near the end", asked)
         }
     }
 
     @Test
     fun `Maya opens, the two voices take turns, and no line runs on`() {
-        Podcasts.all.forEach { p ->
+        azEpisodes.forEach { p ->
             assertEquals("${p.topicId} should open with Maya", Host.MAYA, p.lines.first().host)
             p.lines.zipWithNext().forEach { (a, b) -> assertTrue("${p.topicId}: two lines in a row from ${a.host}: \"${b.text.take(40)}\"", a.host != b.host) }
             p.lines.forEach { l ->
@@ -59,7 +82,7 @@ class PodcastTest {
 
     @Test
     fun `cues are ones the render tool knows, and a laugh stays a rarity`() {
-        Podcasts.all.forEach { p ->
+        azEpisodes.forEach { p ->
             val cues = p.lines.flatMap { PodcastCue.cues(it.text) }
             cues.forEach { assertTrue("${p.topicId}: unknown cue [$it]", it in PodcastCue.ALL) }
             val sounds = cues.count { it in PodcastCue.SOUNDS }
@@ -71,14 +94,14 @@ class PodcastTest {
     @Test
     fun `every line is words a voice can say`() {
         val unsayable = Regex("""[_@{}<>`#\\|]|https?:|\.(com|net|io)\b""")
-        Podcasts.all.forEach { p ->
+        azEpisodes.forEach { p ->
             p.lines.forEach { l -> assertTrue("${p.topicId}: \"${l.text.take(60)}\" has something a voice cannot say", !unsayable.containsMatchIn(PodcastCue.strip(l.text))) }
         }
     }
 
     @Test
     fun `an episode uses its topic's own terms`() {
-        Podcasts.all.forEach { p ->
+        azEpisodes.forEach { p ->
             val terms = topic(p.topicId).blocks.filterIsInstance<Block.Glossary>().flatMap { it.terms }.map { it.term }
             val heard = p.lines.joinToString(" ") { PodcastCue.strip(it.text) }.lowercase()
             val used = terms.count { t -> t.split(" / ").any { it.lowercase() in heard } }
@@ -88,7 +111,7 @@ class PodcastTest {
 
     @Test
     fun `an episode ends on the topic's thing to try today`() {
-        Podcasts.all.forEach { p ->
+        azEpisodes.forEach { p ->
             val tryIt = topic(p.topicId).blocks.filterIsInstance<Block.TryIt>().single()
             val ending = p.lines.takeLast(3).joinToString(" ") { PodcastCue.strip(it.text) }.lowercase()
             assertTrue("${p.topicId} does not say \"today\" near the end", "today" in ending)

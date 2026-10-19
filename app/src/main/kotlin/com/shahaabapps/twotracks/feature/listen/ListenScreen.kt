@@ -76,9 +76,13 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewModelScope
 import com.shahaabapps.core.content.Courses
+import com.shahaabapps.core.content.PodcastBoard
+import com.shahaabapps.core.content.PodcastBoards
 import com.shahaabapps.core.content.PodcastCue
 import com.shahaabapps.core.content.PodcastLine
+import com.shahaabapps.core.content.PodcastSeries
 import com.shahaabapps.core.content.PodcastTimeline
+import com.shahaabapps.core.content.Podcasts
 import com.shahaabapps.core.ui.theme.AppTheme
 import com.shahaabapps.twotracks.R
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -102,6 +106,10 @@ data class ListenUiState(
     /** Seconds in: the player's, or the place you left this episode. */
     val position: Double = 0.0,
     val speed: Float = 1f,
+    /** What to draw in the cover's place while it plays, for an episode that has one. */
+    val board: PodcastBoard? = null,
+    /** Which show it is: what the player calls it, who is on it, and its cover. */
+    val series: PodcastSeries = PodcastSeries.AZ204,
 ) {
     val duration: Double get() = timeline?.seconds ?: 0.0
     val line: Int? get() = timeline?.lineAt(position)
@@ -131,6 +139,8 @@ class ListenViewModel @Inject constructor(
             lines = episodes.podcast(topicId)?.lines.orEmpty(), timeline = timeline,
             loaded = here != null, playing = here?.playing == true,
             position = here?.position ?: saved, speed = here?.speed ?: place.speed,
+            board = PodcastBoards.forTopic(topicId),
+            series = Podcasts.forTopic(topicId)?.series ?: PodcastSeries.AZ204,
         )
     }
 
@@ -170,7 +180,8 @@ fun ListenScreen(onBack: () -> Unit, viewModel: ListenViewModel = hiltViewModel(
  * pauses, the scrubber, back 15 and forward 30 either side of play, and the
  * speed, the transcript and stop along the foot. The transcript takes the
  * cover's place, follows the voice line by line, and plays from any line you
- * tap.
+ * tap. An episode with a board draws it in place of the cover, building its
+ * diagrams as the hosts talk.
  */
 @Composable
 fun ListenContent(
@@ -200,7 +211,7 @@ fun ListenContent(
                 Icon(Icons.Rounded.KeyboardArrowDown, contentDescription = null, tint = Ink, modifier = Modifier.size(32.dp))
             }
             Text(
-                "AZ-204 PODCAST", color = Soft, fontSize = 12.sp, fontWeight = FontWeight.SemiBold, letterSpacing = 1.4.sp,
+                "${state.series.label.uppercase()} PODCAST", color = Soft, fontSize = 12.sp, fontWeight = FontWeight.SemiBold, letterSpacing = 1.4.sp,
                 textAlign = TextAlign.Center, modifier = Modifier.weight(1f),
             )
             Spacer(Modifier.width(44.dp))
@@ -212,10 +223,18 @@ fun ListenContent(
             if (showing) {
                 Column {
                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.padding(vertical = 8.dp)) {
-                        Cover(Modifier.size(56.dp), corner = 8.dp)
+                        Cover(Modifier.size(56.dp), corner = 8.dp, series = state.series)
                         Column(Modifier.weight(1f)) { Titles(state, size = 16.sp) }
                     }
                     Transcript(state, onLine, Modifier.weight(1f))
+                }
+            } else if (state.board != null) {
+                // An episode with a board shows it where the cover was: the
+                // diagram of what is being said, with the titles under it.
+                Column(verticalArrangement = Arrangement.Center, modifier = Modifier.fillMaxSize()) {
+                    EpisodeBoard(state.board, state.line, state.playing, Modifier.fillMaxWidth().weight(1f, fill = false))
+                    Spacer(Modifier.height(20.dp))
+                    Titles(state, size = 18.sp)
                 }
             } else {
                 Column(verticalArrangement = Arrangement.Center, modifier = Modifier.fillMaxSize()) {
@@ -225,7 +244,7 @@ fun ListenContent(
                         // screen shrinks the cover rather than the controls.
                         Cover(
                             Modifier.size(min(maxWidth, maxHeight)).graphicsLayer { scaleX = scale; scaleY = scale },
-                            corner = 14.dp, shadow = if (state.playing) 28.dp else 12.dp,
+                            corner = 14.dp, shadow = if (state.playing) 28.dp else 12.dp, series = state.series,
                         )
                     }
                     Spacer(Modifier.height(28.dp))
@@ -267,7 +286,7 @@ fun ListenContent(
 @Composable
 private fun Titles(state: ListenUiState, size: androidx.compose.ui.unit.TextUnit) {
     Text(state.title, color = Ink, fontSize = size, lineHeight = size * 1.2f, fontWeight = FontWeight.SemiBold, maxLines = 2, overflow = TextOverflow.Ellipsis)
-    Text("${ListenPlayer.HOSTS} · Module ${state.module}", color = Soft, fontSize = 15.sp, modifier = Modifier.padding(top = 2.dp))
+    Text("${state.series.hosts} · Module ${state.module}", color = Soft, fontSize = 15.sp, modifier = Modifier.padding(top = 2.dp))
 }
 
 /** The transcript as a podcast app shows one: big type, the line being spoken lit, the rest dimmed. */
@@ -292,6 +311,10 @@ private fun Transcript(state: ListenUiState, onLine: (Int) -> Unit, modifier: Mo
                     // 4.5:1; at 0.6 they measure about 4:1 on the field.
                     color = if (lit) Ink else Ink.copy(alpha = 0.6f),
                 )
+                // Jonas's German, with the English under it.
+                line.translation?.let {
+                    Text(it, fontSize = 16.sp, lineHeight = 21.sp, color = Soft, modifier = Modifier.padding(top = 2.dp))
+                }
             }
         }
     }
@@ -343,12 +366,18 @@ internal fun SkipGlyph(seconds: Int, forward: Boolean, tint: Color, size: Dp) {
 
 /** The episode's cover, the same picture the notification and the lock screen show. */
 @Composable
-internal fun Cover(modifier: Modifier, corner: Dp, shadow: Dp = 0.dp) {
+internal fun Cover(modifier: Modifier, corner: Dp, shadow: Dp = 0.dp, series: PodcastSeries = PodcastSeries.AZ204) {
     val shape = RoundedCornerShape(corner)
     Image(
-        painterResource(R.drawable.podcast_cover), contentDescription = null, contentScale = ContentScale.Crop,
+        painterResource(coverOf(series)), contentDescription = null, contentScale = ContentScale.Crop,
         modifier = modifier.shadow(shadow, shape).clip(shape),
     )
+}
+
+/** Each show's cover, drawn by tools/podcast/art/cover.py. */
+internal fun coverOf(series: PodcastSeries): Int = when (series) {
+    PodcastSeries.AZ204 -> R.drawable.podcast_cover
+    PodcastSeries.GERMAN_A1 -> R.drawable.podcast_cover_de
 }
 
 /** The status bar's icons in white while the player's dark field is behind them. */
