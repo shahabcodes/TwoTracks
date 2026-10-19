@@ -272,18 +272,27 @@ class Jonas:
             audio = librosa.resample(audio, orig_sr=sr, target_sr=RATE)
         if "[repeat]" not in text:
             return audio
-        slow = librosa.effects.time_stretch(audio, rate=self.SLOW)
+        # The phase vocoder directly, as librosa.effects.time_stretch does; the
+        # effects module pulls in scikit-learn, whose unsigned modules Windows'
+        # Smart App Control sometimes refuses to load.
+        spectrum = librosa.stft(audio)
+        slow = librosa.istft(librosa.phase_vocoder(spectrum, rate=self.SLOW), length=int(round(len(audio) / self.SLOW)))
         return np.concatenate([slow, silence(len(audio) / RATE * self.ROOM + self.ROOM_EXTRA), audio])
 
 
-def host_samples(kokoro: Kokoro) -> dict:
-    """The hosts' sample clips, made once with Kokoro and kept."""
+def host_samples(kokoro=None) -> dict:
+    """
+    The hosts' sample clips, made once with Kokoro and kept. Kokoro is only
+    started when a clip is missing: it pulls in spaCy, whose unsigned modules
+    Windows' Smart App Control sometimes refuses to load.
+    """
     folder = CACHE / "voices"
     folder.mkdir(parents=True, exist_ok=True)
     paths = {}
     for host in KOKORO_VOICE:
         path = folder / f"{host}-{KOKORO_VOICE[host]}.wav"
         if not path.exists():
+            kokoro = kokoro or Kokoro()
             sf.write(path, kokoro.speak(SAMPLE_TEXT, host), RATE)
             print(f"Made {host}'s sample clip from Kokoro's {KOKORO_VOICE[host]}")
         paths[host] = path
@@ -345,8 +354,7 @@ def main():
         if missing:
             sys.exit(f"No episode for {', '.join(sorted(missing))}")
 
-    kokoro = Kokoro()
-    engine = Chatterbox(host_samples(kokoro), half=args.half) if args.engine == "chatterbox" else kokoro
+    engine = Chatterbox(host_samples(), half=args.half) if args.engine == "chatterbox" else Kokoro()
     OUT.mkdir(exist_ok=True)
     for e in episodes:
         name = e["topicId"] + ("" if not args.lines else f"-first{args.lines}") + ("" if args.engine == "chatterbox" else "-kokoro")

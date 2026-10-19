@@ -222,7 +222,7 @@ internal object GermanBoards {
                 ),
                 beats = listOf(
                     Beat(9, show = setOf("z", "j"), light = setOf("z", "j")),
-                    Beat(10, card = BoardCard("Zehn. Zeit. Ja. Jahr.", "Ten. Time. Yes. Year.", phrase = true)),
+                    Beat(10, card = BoardCard("Zehn, Zeit. Ja, Jahr.", "Ten. Time. Yes. Year.", phrase = true)),
                     Beat(12, show = setOf("ei", "ie"), light = setOf("ei", "ie"), pulse = "ei" to "ie", card = BoardCard("Say the second letter", "ei sounds like eye, ie like ee: nein is nine, Sie is zee.")),
                     Beat(13, card = BoardCard("Nein. Mein. Sie. Wie.", "No. My. You, polite. How.", phrase = true)),
                 ),

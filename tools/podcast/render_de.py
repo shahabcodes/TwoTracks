@@ -52,6 +52,17 @@ HOST_CLIPS = {"maya": VOICES / "maya-af_heart.wav", "leo": VOICES / "leo-am_mich
 SECONDS_PER_CHAR = 0.16
 SECONDS_EXTRA = 1.2
 
+# Pieces spoken together in one pass on the GPU.
+BATCH = 8
+
+# Qwen3-TTS-12Hz makes twelve audio tokens a second.
+TOKENS_PER_SECOND = 12
+
+
+def tokens_for(seconds: float) -> int:
+    """The most tokens a piece may take: its time limit, and a little over, so the length check still sees a run-on."""
+    return int(seconds * TOKENS_PER_SECOND * 1.25) + 12
+
 
 def spoken(text: str) -> str:
     """The German as said: cues out, spaces tidied."""
@@ -98,21 +109,39 @@ def main():
     for host, clip in HOST_CLIPS.items():
         prompts[host] = model.create_voice_clone_prompt(ref_audio=str(clip), ref_text=HOST_SAMPLE_TEXT, x_vector_only_mode=False)
 
-    ran_on = []
-    for i, (path, voice, text) in enumerate(todo, 1):
-        limit = len(text) * SECONDS_PER_CHAR + SECONDS_EXTRA
-        for attempt in range(3):
-            # A fixed seed per piece, so a render is the same every time it is run.
-            torch.manual_seed(zlib.crc32(f"{voice}:{text}:{attempt}".encode("utf-8")))
-            wavs, sr = model.generate_voice_clone(text=text, language="German", voice_clone_prompt=prompts[voice])
-            seconds = len(wavs[0]) / sr
-            if seconds <= limit:
-                break
-        else:
-            ran_on.append(f"{voice}: \"{text}\" ({seconds:.1f}s, limit {limit:.1f}s)")
-        path.parent.mkdir(parents=True, exist_ok=True)
-        sf.write(path, wavs[0], sr)
-        print(f"  {i:>3}/{len(todo)}  {voice:<5} {seconds:4.1f}s  {text[:60]}", flush=True)
+    def limit(text):
+        return len(text) * SECONDS_PER_CHAR + SECONDS_EXTRA
+
+    ran_on, done = [], 0
+    # Spoken in batches of one voice, which the GPU does several times faster
+    # than one at a time; a piece that runs on is tried again on its own.
+    by_voice = {}
+    for t in todo:
+        by_voice.setdefault(t[1], []).append(t)
+    for voice, items in by_voice.items():
+        for start in range(0, len(items), BATCH):
+            batch = items[start:start + BATCH]
+            texts = [text for _, _, text in batch]
+            torch.manual_seed(zlib.crc32(("|".join(texts)).encode("utf-8")))
+            # A hard stop at the longest piece's limit: one piece running on
+            # would otherwise hold the whole batch, and fill the card, for hours.
+            wavs, sr = model.generate_voice_clone(text=texts, language=["German"] * len(texts), voice_clone_prompt=prompts[voice],
+                                                  max_new_tokens=tokens_for(max(limit(t) for t in texts)))
+            for (path, _, text), wav in zip(batch, wavs):
+                seconds = len(wav) / sr
+                attempt = 0
+                while seconds > limit(text) and attempt < 3:
+                    # A fixed seed per piece and attempt, so a render is the same every time it is run.
+                    torch.manual_seed(zlib.crc32(f"{voice}:{text}:{attempt}".encode("utf-8")))
+                    again, sr = model.generate_voice_clone(text=text, language="German", voice_clone_prompt=prompts[voice],
+                                                           max_new_tokens=tokens_for(limit(text)))
+                    wav, seconds, attempt = again[0], len(again[0]) / sr, attempt + 1
+                if seconds > limit(text):
+                    ran_on.append(f"{voice}: \"{text}\" ({seconds:.1f}s, limit {limit(text):.1f}s)")
+                path.parent.mkdir(parents=True, exist_ok=True)
+                sf.write(path, wav, sr)
+                done += 1
+                print(f"  {done:>4}/{len(todo)}  {voice:<5} {seconds:4.1f}s  {text[:60]}", flush=True)
     if ran_on:
         print("\nStill too long after three tries; listen to these:\n  " + "\n  ".join(ran_on))
 
