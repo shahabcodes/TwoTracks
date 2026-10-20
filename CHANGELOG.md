@@ -5,6 +5,10 @@ build number is appended by CI (for example `0.1.0 (build 12)`).
 
 ## [Unreleased]
 
+## [0.88.1] - 2026-10-20
+### Changed
+- The podcast board in the Departures look.
+
 ## [0.88.0] - 2026-10-19
 ### Changed
 - Podcasts for beginners, with an animated board, and German A1 episodes with Jonas.

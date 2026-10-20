@@ -58,11 +58,32 @@ class ListenTapTest(look: AppLook) : TapTest(look) {
         if (!board) {
             tapAction("Show the transcript")
             expect()
+        } else {
+            // The board's player opens on the episode's board; its transcript is a segment away.
+            tap("Transcript")
+            expect()
         }
         // By its words, since the list keeps itself scrolled to the line being spoken.
         val line = ListenSamples.listen().lines[8]
         tap(PodcastCue.strip(line.text).take(40), substring = true)
         expect("line(8)")
+    }
+
+    @Test
+    fun `the board and the transcript take turns`() {
+        player()
+        if (board) {
+            // Opens on the board; the transcript and back again are both reachable.
+            tap("Transcript")
+            expect()
+            tap("Board")
+            expect()
+        } else {
+            tapAction("Show the transcript")
+            expect()
+            tapAction("Show the cover")
+            expect()
+        }
     }
 
     @Test
