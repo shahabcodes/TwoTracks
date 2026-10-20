@@ -38,18 +38,21 @@ class ContentTest {
 
     @Test
     fun `the mock exam covers every module and points at real topics`() {
-        val mock = Az204.course.mockExam!!
-        val topicIds = Az204.course.allTopics.map { it.id }.toSet()
-        assertTrue("mock has ${mock.questions.size}", mock.questions.size >= 50)
-        assertTrue(mock.timeLimitMinutes != null && !mock.instantFeedback)
-        mock.questions.forEach { q ->
-            assertTrue("${q.id} points at ${q.topicId}", q.topicId in topicIds)
-            assertTrue("${q.id} options", q.options.size >= 3 && q.correct.all { it in q.options.indices } && q.correct.isNotEmpty())
-            assertTrue("${q.id} explanation", q.explanation.length > 20)
-        }
-        Az204.course.modules.forEach { m ->
-            val ids = m.topics.map { it.id }.toSet()
-            assertTrue("mock has no question for ${m.id}", mock.questions.any { it.topicId in ids })
+        listOf(Az204.course, Ai200.course).forEach { course ->
+            val mock = course.mockExam
+            assertTrue("${course.id} has no mock exam", mock != null)
+            val topicIds = course.allTopics.map { it.id }.toSet()
+            assertTrue("${course.id} mock has ${mock!!.questions.size}", mock.questions.size >= 50)
+            assertTrue(mock.timeLimitMinutes != null && !mock.instantFeedback)
+            mock.questions.forEach { q ->
+                assertTrue("${q.id} points at ${q.topicId}", q.topicId in topicIds)
+                assertTrue("${q.id} options", q.options.size >= 3 && q.correct.all { it in q.options.indices } && q.correct.isNotEmpty())
+                assertTrue("${q.id} explanation", q.explanation.length > 20)
+            }
+            course.modules.forEach { m ->
+                val ids = m.topics.map { it.id }.toSet()
+                assertTrue("${course.id} mock has no question for ${m.id}", mock.questions.any { it.topicId in ids })
+            }
         }
     }
 
@@ -113,6 +116,9 @@ class ContentTest {
         // AZ-204 skills seeded in core:seed: compute, storage, security, monitoring, connect, practice.
         val known = setOf("compute", "storage", "security", "monitoring", "connect", "practice")
         Az204.course.modules.forEach { m -> assertTrue(m.componentId, m.componentId in known) }
+        // AI-200: containers, aidata, connect, secure, practice.
+        val ai = setOf("containers", "aidata", "connect", "secure", "practice")
+        Ai200.course.modules.forEach { m -> assertTrue(m.componentId, m.componentId in ai) }
         // IELTS goals are seeded with the four paper components only.
         val ielts = setOf("listening", "reading", "writing", "speaking")
         Ielts.course.modules.forEach { m -> assertTrue(m.componentId, m.componentId in ielts) }
@@ -165,7 +171,7 @@ class ContentTest {
         // nothing can show is how 44 notes sat invisible until 0.43.0. The
         // results page shows the note for the option you picked now, which
         // is the only place a mock can ever show one.
-        listOf(Az204.course, GermanA1.course, Ielts.course).forEach { course ->
+        listOf(Az204.course, GermanA1.course, Ielts.course, Ai200.course).forEach { course ->
             val papers = course.modules.mapNotNull { m -> m.quiz?.let { m.id to it } } +
                 listOfNotNull(course.mockExam).map { "mock" to it }
             papers.forEach { (where, quiz) ->
@@ -186,7 +192,7 @@ class ContentTest {
         // rehearsal of the real sitting, which tells you nothing until the
         // end. The note on the option you picked is how a mock says it
         // afterwards instead.
-        listOf(Az204.course, GermanA1.course, Ielts.course).forEach { course ->
+        listOf(Az204.course, GermanA1.course, Ielts.course, Ai200.course).forEach { course ->
             course.modules.mapNotNull { it.quiz }.forEach { quiz ->
                 assertTrue("${quiz.id} should give instant feedback", quiz.instantFeedback)
             }
@@ -298,7 +304,7 @@ class ContentTest {
         // deliberate act: add it here and the rule starts holding it. All
         // three courses are now in, which means a fourth would have to be
         // written up to the rule rather than quietly skipping it.
-        listOf(Az204.course, GermanA1.course, Ielts.course).forEach { course -> warmupsHold(course) }
+        listOf(Az204.course, GermanA1.course, Ielts.course, Ai200.course).forEach { course -> warmupsHold(course) }
     }
 
     private fun warmupsHold(course: Course) {

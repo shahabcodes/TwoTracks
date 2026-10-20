@@ -129,7 +129,7 @@ class ListenPlayer @Inject constructor(
             .setMediaMetadata(
                 MediaMetadata.Builder()
                     .setTitle(topic.title)
-                    .setArtist(podcast.series.hosts)
+                    .setArtist(podcast.hosts)
                     .setAlbumTitle("${podcast.series.label} · Module ${module.number}$style")
                     .setArtworkData(cover(podcast.series), MediaMetadata.PICTURE_TYPE_FRONT_COVER)
                     .setMediaType(MediaMetadata.MEDIA_TYPE_PODCAST_EPISODE)

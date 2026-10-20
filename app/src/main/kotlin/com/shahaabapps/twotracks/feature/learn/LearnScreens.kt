@@ -168,6 +168,7 @@ fun LearnContent(
 /** The exam a course leads to, short enough for the line above its title. */
 internal fun examName(course: com.shahaabapps.core.content.Course): String = when (course.id) {
     "az-204" -> "Microsoft AZ-204"
+    "ai-200" -> "Microsoft AI-200"
     "de-a1" -> "Goethe-Zertifikat A1"
     "ielts" -> "IELTS Academic and General"
     else -> course.title

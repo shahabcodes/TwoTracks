@@ -20,7 +20,8 @@ from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 CUE = re.compile(r"\[([a-z ]+)\]")
-PAUSE = {"pause": 0.55, "long pause": 1.1}
+# Seconds a cue adds that are not speech: silences, and render.py's kiss.
+PAUSE = {"pause": 0.55, "long pause": 1.1, "kiss": 0.79}
 
 # Seconds per spoken word that count as normal for these voices. Short lines
 # ("Go on.") carry a fixed overhead, so they are judged on a looser band.

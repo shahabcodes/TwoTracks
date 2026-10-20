@@ -53,8 +53,13 @@ RATE = 24_000
 # wobble; 16 leaves a margin for what a transcription cannot hear.
 OPUS_LEVEL = 0.95
 
-# The Kokoro voices the hosts' samples are made from.
-KOKORO_VOICE = {"maya": "af_heart", "leo": "am_michael"}
+# The Kokoro voices the hosts' samples are made from. Nova and Ivy (Late
+# Night) and Rafe (Nova's partner in Couples) were made from a slower, softer
+# passage, read at 0.88 speed (Rafe 0.9) and given to Kokoro as phonemes
+# (late_night_voices.py): Kokoro's English text front end needs spaCy, which
+# Smart App Control refused to load on the PC they were made on. Keep their
+# clips in cache/voices as they are.
+KOKORO_VOICE = {"maya": "af_heart", "leo": "am_michael", "nova": "af_nicole", "ivy": "af_bella", "rafe": "am_onyx"}
 
 # A neutral passage for the sample clips: ten seconds or so of ordinary
 # speech, with no cue sounds, so the clip carries a voice and not a mood.
@@ -167,11 +172,16 @@ def say(text: str) -> str:
 
 
 def segments(text: str, keep_sounds: bool):
-    """A line as speech and silences: ("speak", words) and ("pause", seconds)."""
+    """A line as speech, silences and effects: ("speak", words), ("pause", seconds) and ("effect", name)."""
     out, buf = [], ""
     for part in re.split(r"(\[[a-z ]+\])", text):
         m = CUE.fullmatch(part)
-        if m and m.group(1) in PAUSE:
+        if m and m.group(1) in EFFECTS:
+            if buf.strip():
+                out.append(("speak", buf.strip()))
+            buf = ""
+            out.append(("effect", m.group(1)))
+        elif m and m.group(1) in PAUSE:
             if buf.strip():
                 out.append(("speak", buf.strip()))
             buf = ""
@@ -188,6 +198,29 @@ def segments(text: str, keep_sounds: bool):
 
 def silence(seconds: float) -> np.ndarray:
     return np.zeros(int(RATE * seconds), dtype=np.float32)
+
+
+def kiss() -> np.ndarray:
+    """
+    The Couples style's prize for a right answer: a lip smack, a sharp pop of
+    band-passed noise with a quick wet decay, between short silences. Made
+    here rather than kept as a recording, from a fixed seed, so it is the
+    same in every episode and free to use.
+    """
+    rng = np.random.default_rng(7)
+    n = int(RATE * 0.09)
+    t = np.arange(n) / RATE
+    noise = rng.standard_normal(n).astype(np.float32)
+    band = np.convolve(noise, np.ones(3) / 3, mode="same") - np.convolve(noise, np.ones(14) / 14, mode="same")
+    envelope = np.exp(-t * 55.0) * (1 - np.exp(-t * 900.0))
+    pop = np.sin(2 * np.pi * 2600.0 * t) * np.exp(-t * 140.0) * 0.35
+    smack = (band * 1.4 + pop) * envelope
+    smack = (smack / (np.abs(smack).max() + 1e-9) * 0.55).astype(np.float32)
+    return np.concatenate([silence(0.3), smack, silence(0.4)])
+
+
+# Cues that are sounds put into the audio, not spoken: the name and how to make it.
+EFFECTS = {"kiss": kiss}
 
 
 class Kokoro:
@@ -327,6 +360,8 @@ def render(episode: dict, engine, keep_sounds: bool, limit: int | None, jonas: J
         for kind, value in ([] if host == "jonas" else segments(line["text"], keep_sounds)):
             if kind == "pause":
                 clip = silence(value)
+            elif kind == "effect":
+                clip = EFFECTS[value]()
             else:
                 # A «German» word inside English is said with German sounds in the
                 # host's own voice; the English around it as always.

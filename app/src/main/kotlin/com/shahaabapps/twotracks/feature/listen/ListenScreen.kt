@@ -10,6 +10,7 @@ import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -30,6 +31,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -118,6 +120,8 @@ data class ListenUiState(
     val styles: List<PodcastStyle> = emptyList(),
     val style: PodcastStyle = PodcastStyle.CLASSIC,
 ) {
+    /** Who is on it: the series' hosts, or the telling's own. */
+    val hosts: String get() = style.hosts ?: series.hosts
     val duration: Double get() = timeline?.seconds ?: 0.0
     val line: Int? get() = timeline?.lineAt(position)
     val minutes: Int get() = max(1, ((duration + 30) / 60).toInt())
@@ -314,7 +318,7 @@ fun ListenContent(
 @Composable
 private fun Titles(state: ListenUiState, size: androidx.compose.ui.unit.TextUnit) {
     Text(state.title, color = Ink, fontSize = size, lineHeight = size * 1.2f, fontWeight = FontWeight.SemiBold, maxLines = 2, overflow = TextOverflow.Ellipsis)
-    Text("${state.series.hosts} · Module ${state.module}", color = Soft, fontSize = 15.sp, modifier = Modifier.padding(top = 2.dp))
+    Text("${state.hosts} · Module ${state.module}", color = Soft, fontSize = 15.sp, modifier = Modifier.padding(top = 2.dp))
 }
 
 /** The transcript as a podcast app shows one: big type, the line being spoken lit, the rest dimmed. */
@@ -351,16 +355,20 @@ private fun Transcript(state: ListenUiState, onLine: (Int) -> Unit, modifier: Mo
 /** The tellings of this topic, one chip each; the one showing is filled. */
 @Composable
 private fun StyleChips(state: ListenUiState, onStyle: (PodcastStyle) -> Unit) {
-    Row(horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally), modifier = Modifier.fillMaxWidth().padding(top = 4.dp, bottom = 6.dp)) {
-        state.styles.forEach { style ->
-            val on = style == state.style
-            Box(
-                contentAlignment = Alignment.Center,
-                modifier = Modifier.height(32.dp).clip(CircleShape).background(if (on) Ink else Ink.copy(alpha = 0.14f))
-                    .clickable(role = Role.Tab, onClickLabel = "Listen to the ${style.label} telling") { onStyle(style) }
-                    .padding(horizontal = 14.dp),
-            ) {
-                Text(style.label, color = if (on) Deep else Ink, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
+    // Centred while they fit; four tellings outgrow a narrow phone at large
+    // text, so then the row scrolls, and a chip's label never wraps inside it.
+    Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxWidth().padding(top = 4.dp, bottom = 6.dp)) {
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.horizontalScroll(rememberScrollState())) {
+            state.styles.forEach { style ->
+                val on = style == state.style
+                Box(
+                    contentAlignment = Alignment.Center,
+                    modifier = Modifier.height(32.dp).clip(CircleShape).background(if (on) Ink else Ink.copy(alpha = 0.14f))
+                        .clickable(role = Role.Tab, onClickLabel = "Listen to the ${style.label} telling") { onStyle(style) }
+                        .padding(horizontal = 14.dp),
+                ) {
+                    Text(style.label, color = if (on) Deep else Ink, fontSize = 13.sp, fontWeight = FontWeight.SemiBold, maxLines = 1, softWrap = false)
+                }
             }
         }
     }

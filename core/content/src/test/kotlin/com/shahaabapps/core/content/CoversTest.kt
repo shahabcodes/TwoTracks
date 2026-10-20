@@ -48,6 +48,7 @@ class CoversTest {
         // the Academic paper. All six are recorded by a course.
         listOf(
             "az-204" to "compute",
+            "ai-200" to "containers",
             "de-a1" to "vocabulary",
             "de-a1-teacher" to "vocabulary",
             "ielts-general-tech" to "reading",

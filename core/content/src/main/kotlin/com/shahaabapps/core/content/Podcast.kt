@@ -27,6 +27,9 @@ data class Podcast(
      */
     val episodeId: String get() = if (style == PodcastStyle.CLASSIC) topicId else "$topicId--${style.slug}"
 
+    /** Who is on it: the series' hosts, unless the telling has its own. */
+    val hosts: String get() = style.hosts ?: series.hosts
+
     /** The words as heard, without cues. */
     val spokenWords: Int get() = lines.sumOf { PodcastCue.strip(it.text).split(Regex("\\s+")).count { w -> w.isNotBlank() } }
 
@@ -41,8 +44,10 @@ data class PodcastLine(val host: Host, val text: String, val translation: String
  * The voices. [MAYA] explains and [LEO] asks, in English; [JONAS] is the
  * German episodes' native speaker, and says every German word and sentence,
  * so the German a learner copies is never said with an English accent.
+ * [NOVA] explains and [IVY] asks in the Late Night telling; in Couples,
+ * [NOVA] and [RAFE] quiz each other.
  */
-enum class Host(val displayName: String) { MAYA("Maya"), LEO("Leo"), JONAS("Jonas") }
+enum class Host(val displayName: String) { MAYA("Maya"), LEO("Leo"), JONAS("Jonas"), NOVA("Nova"), IVY("Ivy"), RAFE("Rafe") }
 
 /** Which show an episode belongs to: what the player calls it and who is on it. */
 enum class PodcastSeries(val label: String, val hosts: String) {
@@ -55,7 +60,7 @@ enum class PodcastSeries(val label: String, val hosts: String) {
  * the plain explanation every topic has; the others tell it as a story and
  * are there for some topics, beside it, never instead of it.
  */
-enum class PodcastStyle(val label: String, val slug: String) {
+enum class PodcastStyle(val label: String, val slug: String, val hosts: String? = null) {
     CLASSIC("Classic", ""),
 
     /** A mystery: a broken app, the clues, the wrong suspects, and the service that solves it. */
@@ -63,6 +68,15 @@ enum class PodcastStyle(val label: String, val slug: String) {
 
     /** The office gossip: what a made-up colleague got wrong, and what everyone learnt from it. */
     GOSSIP("Gossip", "gossip"),
+
+    /** Late-night radio: two other hosts, slow and warm, with a little playful banter. */
+    LATE_NIGHT("Late Night", "late-night", "Nova & Ivy"),
+
+    /**
+     * A couple who flirt in double meanings and quiz each other, the exam's way;
+     * a right answer is paid with a [PodcastCue.KISS].
+     */
+    COUPLES("Couples", "couples", "Nova & Rafe"),
 }
 
 /** The cues a line may carry, and how to take them out for the transcript. */
@@ -79,7 +93,10 @@ object PodcastCue {
      */
     const val REPEAT = "repeat"
 
-    val ALL = SOUNDS + PAUSES + REPEAT
+    /** A kiss, the Couples style's prize for a right answer: a sound effect the render tool adds, not a voice. */
+    const val KISS = "kiss"
+
+    val ALL = SOUNDS + PAUSES + REPEAT + KISS
 
     private val cue = Regex("""\[([a-z ]+)]""")
 
@@ -113,4 +130,7 @@ object Podcasts {
 
 internal fun maya(text: String) = PodcastLine(Host.MAYA, text.trimIndent().replace("\n", " "))
 internal fun leo(text: String) = PodcastLine(Host.LEO, text.trimIndent().replace("\n", " "))
+internal fun nova(text: String) = PodcastLine(Host.NOVA, text.trimIndent().replace("\n", " "))
+internal fun ivy(text: String) = PodcastLine(Host.IVY, text.trimIndent().replace("\n", " "))
+internal fun rafe(text: String) = PodcastLine(Host.RAFE, text.trimIndent().replace("\n", " "))
 internal fun jonas(de: String, en: String) = PodcastLine(Host.JONAS, de.trimIndent().replace("\n", " "), en.trimIndent().replace("\n", " "))
