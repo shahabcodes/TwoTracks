@@ -21,8 +21,8 @@ class PodcastTest {
 
     private val az = Az204.course
 
-    /** This test holds the AZ-204 episodes; GermanPodcastTest holds the German ones. */
-    private val azEpisodes = Podcasts.all.filter { it.series == PodcastSeries.AZ204 }
+    /** This test holds the classic AZ-204 episodes; StyledPodcastTest holds the other styles, GermanPodcastTest the German ones. */
+    private val azEpisodes = Podcasts.all.filter { it.series == PodcastSeries.AZ204 && it.style == PodcastStyle.CLASSIC }
 
     private fun topic(id: String): Topic = az.modules.flatMap { it.topics }.first { it.id == id }
 

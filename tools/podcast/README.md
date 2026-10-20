@@ -1,6 +1,7 @@
 # Podcast render tool
 
-Turns the episode scripts into audio: 22 AZ-204 episodes and 47 German A1
+Turns the episode scripts into audio: 22 AZ-204 episodes (and each again as
+Case Files and Gossip) and 47 German A1
 episodes, one a topic. The scripts are course content
 (`core/content/.../Az204Podcasts.kt` and `GermanPodcasts.kt`, held to shape by
 `PodcastTest` and `GermanPodcastTest`); this tool only reads them.

@@ -254,13 +254,17 @@ class TopicViewModel @Inject constructor(
 
     /** The Listen card: how long the episode runs, and how much is left once you have started it. */
     private fun listenCard(now: com.shahaabapps.twotracks.feature.listen.NowPlaying?): com.shahaabapps.twotracks.feature.listen.ListenCardState? {
-        if (!episodes.has(topicId)) return null
-        val timeline = episodes.timeline(topicId) ?: return null
+        // The telling playing now if one of this topic's is, otherwise the one last picked, otherwise classic.
+        val options = episodes.styles(topicId)
+        val chosen = options.firstOrNull { it.episodeId == now?.episodeId } ?: options.firstOrNull { it.style == place.style } ?: options.firstOrNull() ?: return null
+        val timeline = episodes.timeline(chosen.episodeId) ?: return null
         val minutes = kotlin.math.max(1, ((timeline.seconds + 30) / 60).toInt())
-        val here = now?.takeIf { it.topicId == topicId }
-        val at = here?.position ?: place.position(topicId).takeIf { timeline.resumable(it) }
-        val series = com.shahaabapps.core.content.Podcasts.forTopic(topicId)?.series ?: com.shahaabapps.core.content.PodcastSeries.AZ204
-        return com.shahaabapps.twotracks.feature.listen.ListenCardState(minutes, playing = here?.playing == true, left = at?.let { timeline.seconds - it }, series = series)
+        val here = now?.takeIf { it.episodeId == chosen.episodeId }
+        val at = here?.position ?: place.position(chosen.episodeId).takeIf { timeline.resumable(it) }
+        return com.shahaabapps.twotracks.feature.listen.ListenCardState(
+            minutes, playing = here?.playing == true, left = at?.let { timeline.seconds - it }, series = chosen.series,
+            episodeId = chosen.episodeId, style = chosen.style.takeIf { options.size > 1 },
+        )
     }
 
     fun markLearned() = viewModelScope.launch {

@@ -106,7 +106,8 @@ fun TopicScreen(
         onInstallVoice = viewModel.speaker::openInstallPage,
         onChecked = viewModel::checkAnswered, onConfidence = viewModel::checkConfidence,
         onMarkLearned = viewModel::markLearned, onUnlearn = viewModel::unlearn, onMessageShown = viewModel::clearMessage,
-        onListen = { state.course?.id?.let { c -> state.topic?.id?.let { t -> onListen(c, t) } } },
+        // The card opens the telling it shows: the one playing, or the one last picked.
+        onListen = { state.course?.id?.let { c -> state.topic?.id?.let { t -> onListen(c, state.listen?.episodeId?.ifEmpty { null } ?: t) } } },
     )
 }
 

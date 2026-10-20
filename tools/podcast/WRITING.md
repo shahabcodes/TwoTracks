@@ -1,6 +1,6 @@
 # Writing an episode
 
-How the episodes are written, so a new one, or a rewrite, matches the 69
+How the episodes are written, so a new one, or a rewrite, matches the 113
 already in the app. The scripts are content in `core:content`, and the tests
 there hold most of what follows; this is the part a test cannot hold.
 
@@ -8,6 +8,7 @@ there hold most of what follows; this is the part a test cannot hold.
 |---|---|---|---|
 | AZ-204 | `Az204Podcasts.kt` | `Az204Boards.kt` | `PodcastTest`, `PodcastBoardTest`, `DiagramTest` |
 | German A1 | `GermanPodcasts.kt` | `GermanBoards.kt` | `GermanPodcastTest`, `GermanGrammarTest`, `PodcastBoardTest`, `DiagramTest` |
+| AZ-204, other tellings | `Az204Styled*.kt` | the same files | `StyledPodcastTest`, `PodcastBoardTest`, `DiagramTest` |
 
 An episode is one topic, and says nothing its topic does not teach: read the
 whole topic first (its tables, diagrams, checks, mistakes, worked example,
@@ -37,6 +38,40 @@ glossary and try-it) and use its own examples, names and situations.
   acronyms as they are (RBAC, HTTPS); `render.py`'s `SAY` and `EXTRA_SAY`
   respell them for the voice, and a new one goes there, not in the script.
   Numbers can be words or digits.
+
+## AZ-204, told another way: Case Files and Gossip
+
+A topic's classic episode stays as it is; these sit beside it, and the
+listener picks one in the player. Same facts, same take-aways, same try-it;
+another telling.
+
+- **Case Files** opens on "the case": something in a small app has broken.
+  Leo, the junior detective, suspects the wrong causes first, the mistakes
+  the topic lists; Maya walks the clues to the answer, as an exam scenario
+  does. Close with "case closed" and the take-aways.
+- **Gossip** opens on "did you hear what X did": the topic's mistakes as the
+  office's week, one colleague a mistake. Colleagues are always invented
+  (Priya, Tom, Dana, Marcus, the intern), never a real person or company.
+
+Both go past the classic episode in four ways, because a listener's next
+question is usually one of them:
+
+1. **What it really is, under the picture.** After the everyday picture,
+   one plain sentence on the real thing: a managed identity is an account in
+   Entra ID that gets short-lived tokens, not just "a badge".
+2. **How it actually works.** One or two sentences on the mechanism, so it
+   is not magic: Azure started your app, so it answers your app's token
+   request on a private local address nobody outside can reach.
+3. **Where it stops working.** The edge of the idea, and what to use past
+   it: on your laptop it's az login; on GitHub Actions, federation; a phone
+   app never gets a managed identity and never holds a secret, it calls your
+   API, which does. These are the exam's distractors.
+4. **A link to another episode.** Say where the next piece lives: "the MSAL
+   episode covers the phone side". One at least, by its plain name.
+
+The running example is, wherever it fits, **an Android app with a small
+backend on Azure**: the listener builds Android apps. Web shops and recipe
+sites are fine where a phone does not fit.
 
 ## German A1: Jonas
 

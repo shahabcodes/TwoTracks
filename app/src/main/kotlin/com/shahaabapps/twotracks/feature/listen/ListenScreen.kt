@@ -81,12 +81,15 @@ import com.shahaabapps.core.content.PodcastBoards
 import com.shahaabapps.core.content.PodcastCue
 import com.shahaabapps.core.content.PodcastLine
 import com.shahaabapps.core.content.PodcastSeries
+import com.shahaabapps.core.content.PodcastStyle
 import com.shahaabapps.core.content.PodcastTimeline
 import com.shahaabapps.core.content.Podcasts
 import com.shahaabapps.core.ui.theme.AppTheme
 import com.shahaabapps.twotracks.R
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
@@ -95,7 +98,8 @@ import kotlin.math.max
 
 /** One episode in the player: its script, its timing, and where the player is in it. */
 data class ListenUiState(
-    val topicId: String = "",
+    /** The episode's id: its topic's id for a classic episode, "topic--style" for another. */
+    val episodeId: String = "",
     val title: String = "",
     val module: Int = 0,
     val lines: List<PodcastLine> = emptyList(),
@@ -110,6 +114,9 @@ data class ListenUiState(
     val board: PodcastBoard? = null,
     /** Which show it is: what the player calls it, who is on it, and its cover. */
     val series: PodcastSeries = PodcastSeries.AZ204,
+    /** The tellings this topic has in the app; the player offers a choice when there is more than one. */
+    val styles: List<PodcastStyle> = emptyList(),
+    val style: PodcastStyle = PodcastStyle.CLASSIC,
 ) {
     val duration: Double get() = timeline?.seconds ?: 0.0
     val line: Int? get() = timeline?.lineAt(position)
@@ -123,39 +130,57 @@ class ListenViewModel @Inject constructor(
     private val player: ListenPlayer,
     private val place: ListenPlace,
 ) : ViewModel() {
-    private val topicId: String = savedStateHandle.get<String>("topicId").orEmpty()
+    // The route's id is the episode's: a topic's id opens its classic episode.
+    private val episodeId = MutableStateFlow(savedStateHandle.get<String>("topicId").orEmpty())
     private val courseId: String = savedStateHandle.get<String>("courseId").orEmpty()
+    private val id: String get() = episodeId.value
 
-    val uiState: StateFlow<ListenUiState> = player.state.map { now -> state(now) }
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), state(player.state.value))
+    val uiState: StateFlow<ListenUiState> = combine(player.state, episodeId) { now, id -> state(now, id) }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), state(player.state.value, episodeId.value))
 
-    private fun state(now: NowPlaying?): ListenUiState {
-        val (module, topic) = Courses.topic(courseId, topicId) ?: return ListenUiState(topicId = topicId)
-        val timeline = episodes.timeline(topicId)
-        val here = now?.takeIf { it.topicId == topicId }
-        val saved = place.position(topicId).takeIf { timeline?.resumable(it) == true } ?: 0.0
+    private fun state(now: NowPlaying?, id: String): ListenUiState {
+        val podcast = Podcasts.episode(id)
+        val topicId = podcast?.topicId ?: id
+        val (module, topic) = Courses.topic(courseId, topicId) ?: return ListenUiState(episodeId = id)
+        val timeline = episodes.timeline(id)
+        val here = now?.takeIf { it.episodeId == id }
+        val saved = place.position(id).takeIf { timeline?.resumable(it) == true } ?: 0.0
         return ListenUiState(
-            topicId = topicId, title = topic.title, module = module.number,
-            lines = episodes.podcast(topicId)?.lines.orEmpty(), timeline = timeline,
+            episodeId = id, title = topic.title, module = module.number,
+            lines = episodes.podcast(id)?.lines.orEmpty(), timeline = timeline,
             loaded = here != null, playing = here?.playing == true,
             position = here?.position ?: saved, speed = here?.speed ?: place.speed,
-            board = PodcastBoards.forTopic(topicId),
-            series = Podcasts.forTopic(topicId)?.series ?: PodcastSeries.AZ204,
+            board = PodcastBoards.forEpisode(id),
+            series = podcast?.series ?: PodcastSeries.AZ204,
+            styles = episodes.styles(topicId).map { it.style },
+            style = podcast?.style ?: PodcastStyle.CLASSIC,
         )
     }
 
-    fun playPause() = if (uiState.value.playing) player.pause() else player.play(topicId)
+    /**
+     * Another telling of the same topic: the player shows it, at the place you
+     * left it, and remembers the choice for the next topic. What is playing
+     * carries on until you press play on this one.
+     */
+    fun style(style: PodcastStyle) {
+        val topicId = Podcasts.episode(id)?.topicId ?: return
+        val target = episodes.styles(topicId).firstOrNull { it.style == style } ?: return
+        place.style = style
+        episodeId.value = target.episodeId
+    }
 
-    fun back() = if (uiState.value.loaded) player.back() else player.play(topicId, from = max(0.0, uiState.value.position - PodcastService.BACK_MS / 1000.0))
+    fun playPause() = if (uiState.value.playing) player.pause() else player.play(id)
 
-    fun forward() = if (uiState.value.loaded) player.forward() else player.play(topicId, from = uiState.value.position + PodcastService.FORWARD_MS / 1000.0)
+    fun back() = if (uiState.value.loaded) player.back() else player.play(id, from = max(0.0, uiState.value.position - PodcastService.BACK_MS / 1000.0))
 
-    fun seek(seconds: Double) = if (uiState.value.loaded) player.seekTo(seconds) else player.play(topicId, from = seconds)
+    fun forward() = if (uiState.value.loaded) player.forward() else player.play(id, from = uiState.value.position + PodcastService.FORWARD_MS / 1000.0)
+
+    fun seek(seconds: Double) = if (uiState.value.loaded) player.seekTo(seconds) else player.play(id, from = seconds)
 
     /** A line in the transcript was tapped: play from where it starts. */
     fun line(index: Int) {
         val start = uiState.value.timeline?.startOf(index) ?: return
-        player.play(topicId, from = start)
+        player.play(id, from = start)
     }
 
     fun speed(speed: Float) = player.setSpeed(speed)
@@ -169,6 +194,7 @@ fun ListenScreen(onBack: () -> Unit, viewModel: ListenViewModel = hiltViewModel(
     ListenContent(
         state, onBack = onBack, onPlayPause = viewModel::playPause, onBack15 = viewModel::back, onForward30 = viewModel::forward,
         onSeek = viewModel::seek, onSpeed = viewModel::speed, onStop = { viewModel.stop(); onBack() }, onLine = viewModel::line,
+        onStyle = viewModel::style,
     )
 }
 
@@ -195,9 +221,10 @@ fun ListenContent(
     onStop: () -> Unit,
     onLine: (Int) -> Unit,
     transcriptFirst: Boolean = false,
+    onStyle: (PodcastStyle) -> Unit = {},
 ) {
     if (AppTheme.departures) {
-        BoardListen(state, onBack, onPlayPause, onBack15, onForward30, onSeek, onSpeed, onStop, onLine)
+        BoardListen(state, onBack, onPlayPause, onBack15, onForward30, onSeek, onSpeed, onStop, onLine, onStyle)
         return
     }
     LightStatusIcons()
@@ -216,6 +243,7 @@ fun ListenContent(
             )
             Spacer(Modifier.width(44.dp))
         }
+        if (state.styles.size > 1) StyleChips(state, onStyle)
         AnimatedContent(
             targetState = transcript, label = "cover or transcript", modifier = Modifier.weight(1f).fillMaxWidth(),
             transitionSpec = { fadeIn() togetherWith fadeOut() },
@@ -315,6 +343,24 @@ private fun Transcript(state: ListenUiState, onLine: (Int) -> Unit, modifier: Mo
                 line.translation?.let {
                     Text(it, fontSize = 16.sp, lineHeight = 21.sp, color = Soft, modifier = Modifier.padding(top = 2.dp))
                 }
+            }
+        }
+    }
+}
+
+/** The tellings of this topic, one chip each; the one showing is filled. */
+@Composable
+private fun StyleChips(state: ListenUiState, onStyle: (PodcastStyle) -> Unit) {
+    Row(horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally), modifier = Modifier.fillMaxWidth().padding(top = 4.dp, bottom = 6.dp)) {
+        state.styles.forEach { style ->
+            val on = style == state.style
+            Box(
+                contentAlignment = Alignment.Center,
+                modifier = Modifier.height(32.dp).clip(CircleShape).background(if (on) Ink else Ink.copy(alpha = 0.14f))
+                    .clickable(role = Role.Tab, onClickLabel = "Listen to the ${style.label} telling") { onStyle(style) }
+                    .padding(horizontal = 14.dp),
+            ) {
+                Text(style.label, color = if (on) Deep else Ink, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
             }
         }
     }

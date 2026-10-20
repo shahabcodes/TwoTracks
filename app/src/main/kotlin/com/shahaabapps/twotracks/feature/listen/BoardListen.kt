@@ -48,6 +48,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.shahaabapps.core.content.PodcastCue
+import com.shahaabapps.core.content.PodcastStyle
 import com.shahaabapps.core.ui.theme.AppTheme
 import com.shahaabapps.twotracks.feature.learn.DiagramColors
 import com.shahaabapps.twotracks.ui.board.BoardBack
@@ -81,6 +82,7 @@ internal fun BoardListen(
     onSpeed: (Float) -> Unit,
     onStop: () -> Unit,
     onLine: (Int) -> Unit,
+    onStyle: (PodcastStyle) -> Unit = {},
 ) {
     // An episode with a board shows it in the timetable's place first, and the
     // transcript a tap away; one without keeps the timetable alone.
@@ -101,6 +103,10 @@ internal fun BoardListen(
                         BoardTitle(state.title, size = 26.sp)
                         BoardMono("${state.minutes} MIN · ${state.lines.size} LINES")
                     }
+                }
+                // The tellings of this topic, when it has more than one.
+                if (state.styles.size > 1) {
+                    BoardSegments(state.styles.map { it to it.label }, selected = state.style, onSelect = onStyle)
                 }
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     FlipTiles(clock(state.position).padStart(5, '0'), tileWidth = 34.dp, tileHeight = 46.dp, fontSize = 28.sp, gap = 4.dp)

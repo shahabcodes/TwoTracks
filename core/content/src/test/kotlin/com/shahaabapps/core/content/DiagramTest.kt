@@ -25,7 +25,7 @@ class DiagramTest {
         }
     } + PodcastBoards.all.flatMap { b ->
         // The podcast boards draw the same specs, so they are held to the same geometry.
-        b.scenes.map { s -> Triple("podcast", "${b.topicId} '${s.heading}'", s.diagram) }
+        b.scenes.map { s -> Triple("podcast", "${b.episodeId} '${s.heading}'", s.diagram) }
     }
 
     @Test

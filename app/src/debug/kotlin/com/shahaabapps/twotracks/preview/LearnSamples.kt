@@ -105,23 +105,31 @@ internal object ListenSamples {
         return com.shahaabapps.core.content.PodcastTimeline(t, spans)
     }
 
+    /**
+     * The sample player. It offers the three tellings, so the player's choice
+     * is drawn and pressed in the tap tests, whichever of them the app carries.
+     */
     fun listen(timeline: com.shahaabapps.core.content.PodcastTimeline? = null, playing: Boolean = true, line: Int = 6, board: Boolean = true): com.shahaabapps.twotracks.feature.listen.ListenUiState {
         val time = timeline ?: paced()
         return com.shahaabapps.twotracks.feature.listen.ListenUiState(
-            topicId = TOPIC, title = topic.title, module = module.number, lines = podcast.lines, timeline = time,
+            episodeId = TOPIC, title = topic.title, module = module.number, lines = podcast.lines, timeline = time,
             loaded = true, playing = playing, position = time.startOf(line)!! + 2.0, speed = 1.2f,
-            board = if (board) com.shahaabapps.core.content.PodcastBoards.forTopic(TOPIC) else null,
+            board = if (board) com.shahaabapps.core.content.PodcastBoards.forEpisode(TOPIC) else null,
+            styles = com.shahaabapps.core.content.PodcastStyle.entries,
         )
     }
 
-    /** Any episode at any line, with its real timing, for looking at its board: --es topic ID --ei line N. */
-    fun listenTo(topicId: String, timeline: com.shahaabapps.core.content.PodcastTimeline, line: Int): com.shahaabapps.twotracks.feature.listen.ListenUiState {
-        val (m, t) = Courses.all.flatMap { c -> c.modules.flatMap { m -> m.topics.map { m to it } } }.first { it.second.id == topicId }
+    /** Any episode at any line, with its real timing, for looking at its board: --es topic ID (an episode's id) --ei line N. */
+    fun listenTo(episodeId: String, timeline: com.shahaabapps.core.content.PodcastTimeline, line: Int): com.shahaabapps.twotracks.feature.listen.ListenUiState {
+        val episode = com.shahaabapps.core.content.Podcasts.episode(episodeId)!!
+        val (m, t) = Courses.all.flatMap { c -> c.modules.flatMap { m -> m.topics.map { m to it } } }.first { it.second.id == episode.topicId }
         return com.shahaabapps.twotracks.feature.listen.ListenUiState(
-            topicId = topicId, title = t.title, module = m.number, lines = com.shahaabapps.core.content.Podcasts.forTopic(topicId)!!.lines,
+            episodeId = episodeId, title = t.title, module = m.number, lines = episode.lines,
             timeline = timeline, loaded = true, playing = true, position = (timeline.startOf(line) ?: 0.0) + 2.0, speed = 1f,
-            board = com.shahaabapps.core.content.PodcastBoards.forTopic(topicId),
-            series = com.shahaabapps.core.content.Podcasts.forTopic(topicId)!!.series,
+            board = com.shahaabapps.core.content.PodcastBoards.forEpisode(episodeId),
+            series = episode.series,
+            styles = com.shahaabapps.core.content.Podcasts.styles(episode.topicId).map { it.style },
+            style = episode.style,
         )
     }
 

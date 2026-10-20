@@ -18,8 +18,18 @@ class ListenTapTest(look: AppLook) : TapTest(look) {
         ListenContent(
             ListenSamples.listen(playing = playing), onBack = record("close"), onPlayPause = record("playPause"),
             onBack15 = record("back15"), onForward30 = record("forward30"), onSeek = record1("seek"), onSpeed = record1("speed"),
-            onStop = record("stop"), onLine = record1("line"),
+            onStop = record("stop"), onLine = record1("line"), onStyle = record1("style"),
         )
+    }
+
+    @Test
+    fun `the player switches between the tellings`() {
+        player()
+        // Parallel's chips say what they do; the board's segments say the style.
+        if (board) tap("Case Files") else tapAction("Listen to the Case Files telling")
+        expect("style(CASE_FILES)")
+        if (board) tap("Gossip") else tapAction("Listen to the Gossip telling")
+        expect("style(GOSSIP)")
     }
 
     @Test
