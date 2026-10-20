@@ -19,7 +19,7 @@ if [ "$#" -gt 0 ]; then
   topics=("$@")
 else
   # Only finished episodes: not the --lines trials or the kokoro renders.
-  mapfile -t topics < <(cd "$out" && ls az-*.ogg | sed 's/\.ogg$//' | grep -v -- '-first[0-9]*$' | grep -v -- '-kokoro$')
+  mapfile -t topics < <(cd "$out" && ls az-*.ogg ai-*.ogg 2>/dev/null | sed 's/\.ogg$//' | grep -v -- '-first[0-9]*$' | grep -v -- '-kokoro$')
 fi
 
 mkdir -p "$assets"

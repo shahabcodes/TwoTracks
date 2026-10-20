@@ -153,6 +153,26 @@ EXTRA_SAY = [
     (r"\bZADD\b", "Z add"),
     (r"\bZREVRANGE\b", "Z rev range"),
     (r"\bCRON\b", "cron"),
+    # Added with AI-200.
+    (r"\bAI-200\b", "A I two hundred"),
+    (r"\bAI\b", "A I"),
+    (r"\bLLMs?\b", "L L M"),
+    (r"\bGPT\b", "G P T"),
+    (r"\bRAG\b", "rag"),
+    (r"\bKNN\b", "K N N"),
+    (r"\bHNSW\b", "H N S W"),
+    (r"\bIVFFlat\b", "I V F flat"),
+    (r"\bDiskANN\b", "disk A N N"),
+    (r"\bpgvector\b", "P G vector"),
+    (r"\bPgBouncer\b", "P G bouncer"),
+    (r"\bPostgreSQL\b", "Postgres"),
+    (r"\bNoSQL\b", "no sequel"),
+    (r"\bFastAPI\b", "fast A P I"),
+    (r"\bkubectl\b", "cube control"),
+    (r"\bjsonb\b", "jason B"),
+    (r"\bUUIDs?\b", "U U I D"),
+    (r"\bOTel\b", "O tel"),
+    (r"\bVMs?\b", "V M"),
 ]
 
 # Identifiers such as AcquireTokenSilent or CreateItemAsync read as one long
