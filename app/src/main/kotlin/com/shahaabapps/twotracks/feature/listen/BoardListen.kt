@@ -19,6 +19,8 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Pause
@@ -33,6 +35,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -46,6 +49,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.shahaabapps.core.content.PodcastCue
 import com.shahaabapps.core.ui.theme.AppTheme
+import com.shahaabapps.twotracks.feature.learn.DiagramColors
 import com.shahaabapps.twotracks.ui.board.BoardBack
 import com.shahaabapps.twotracks.ui.board.BoardGutter
 import com.shahaabapps.twotracks.ui.board.BoardLabel
@@ -62,7 +66,9 @@ import kotlin.math.max
  * The player as the board prints it: the episode as a departure, the time
  * gone on flip tiles, the speeds as a row of segments, and the transcript as
  * the timetable under it, the line being spoken marked as the board marks
- * the next train. Every line is a stop you can tap to play from.
+ * the next train. Every line is a stop you can tap to play from. An episode
+ * with a board shows it in the timetable's place, in the look's own colours,
+ * with the timetable one segment away.
  */
 @Composable
 internal fun BoardListen(
@@ -76,6 +82,10 @@ internal fun BoardListen(
     onStop: () -> Unit,
     onLine: (Int) -> Unit,
 ) {
+    // An episode with a board shows it in the timetable's place first, and the
+    // transcript a tap away; one without keeps the timetable alone.
+    var showBoard by rememberSaveable { mutableStateOf(true) }
+    val board = state.board?.takeIf { showBoard }
     Scaffold(containerColor = AppTheme.colors.groupedBackground) { inner ->
         Column(Modifier.fillMaxSize().padding(inner)) {
             Column(Modifier.padding(horizontal = BoardGutter), verticalArrangement = Arrangement.spacedBy(14.dp)) {
@@ -116,16 +126,49 @@ internal fun BoardListen(
                     BoardControl("Forward 30 seconds", onForward30, Modifier.weight(1f)) { SkipGlyph(30, forward = true, tint = AppTheme.colors.ink, size = 30.dp) }
                 }
                 BoardSegments(ListenSpeeds.ALL.map { it to ListenSpeeds.label(it) }, selected = ListenSpeeds.nearest(state.speed), onSelect = onSpeed)
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    BoardLabel("Transcript", modifier = Modifier.weight(1f))
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    if (state.board != null) {
+                        BoardSegments(listOf(true to "Board", false to "Transcript"), selected = showBoard, onSelect = { showBoard = it }, modifier = Modifier.weight(1f))
+                    } else {
+                        BoardLabel("Transcript", modifier = Modifier.weight(1f))
+                    }
                     BoardLink("Stop", onStop)
                 }
             }
             HorizontalDivider(color = AppTheme.colors.separator, modifier = Modifier.padding(top = 8.dp))
-            BoardTimetable(state, onLine, Modifier.weight(1f))
+            if (board != null) {
+                // In the timetable's place, scrolling on a short screen rather
+                // than pushing the controls off it.
+                Column(Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(horizontal = BoardGutter, vertical = 12.dp)) {
+                    EpisodeBoard(
+                        board, state.line, state.playing,
+                        palette = boardPalette(),
+                        heading = { BoardLabel(it, color = AppTheme.colors.accent) },
+                    )
+                }
+            } else {
+                BoardTimetable(state, onLine, Modifier.weight(1f))
+            }
         }
     }
 }
+
+/** The board in the Departures look's own colours, the way its other diagrams are drawn. */
+@Composable
+private fun boardPalette() = BoardPalette(
+    ink = AppTheme.colors.ink,
+    soft = AppTheme.colors.secondaryLabel,
+    accent = AppTheme.colors.accent,
+    card = AppTheme.colors.card,
+    diagram = DiagramColors(
+        accent = AppTheme.colors.accent,
+        plate = AppTheme.colors.groupedBackground,
+        fill = AppTheme.colors.fill,
+        secondary = AppTheme.colors.secondaryLabel,
+        ink = AppTheme.colors.ink,
+        onSolid = AppTheme.colors.onSolid,
+    ),
+)
 
 @Composable
 private fun BoardTimetable(state: ListenUiState, onLine: (Int) -> Unit, modifier: Modifier) {

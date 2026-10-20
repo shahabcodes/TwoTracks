@@ -52,7 +52,14 @@ import com.shahaabapps.twotracks.feature.learn.DiagramColors
  * plays. Paused, the pulse rests and the board holds.
  */
 @Composable
-internal fun EpisodeBoard(board: PodcastBoard, line: Int?, playing: Boolean, modifier: Modifier = Modifier) {
+internal fun EpisodeBoard(
+    board: PodcastBoard,
+    line: Int?,
+    playing: Boolean,
+    modifier: Modifier = Modifier,
+    palette: BoardPalette = PlayerPalette,
+    heading: @Composable (String) -> Unit = { Text(it.uppercase(), color = palette.soft, fontSize = 12.sp, fontWeight = FontWeight.SemiBold, letterSpacing = 1.4.sp) },
+) {
     val frame = board.frameAt(line)
     Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(14.dp)) {
         AnimatedContent(
@@ -65,23 +72,21 @@ internal fun EpisodeBoard(board: PodcastBoard, line: Int?, playing: Boolean, mod
             // the state it left with.
             val here = if (index == frame.sceneIndex) frame else board.frameAt(scene.fromLine)
             Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                Text(
-                    scene.heading.uppercase(), color = Soft, fontSize = 12.sp, fontWeight = FontWeight.SemiBold, letterSpacing = 1.4.sp,
-                )
-                SceneDiagram(scene, here.shown, here.lit, here.pulse.takeIf { playing })
+                heading(scene.heading)
+                SceneDiagram(scene, here.shown, here.lit, here.pulse.takeIf { playing }, palette.diagram)
             }
         }
         Box(Modifier.fillMaxWidth().heightIn(min = 76.dp)) {
             AnimatedContent(
                 targetState = frame.card, label = "card",
                 transitionSpec = { (fadeIn(tween(350)) + slideInVertically(tween(350)) { it / 3 }) togetherWith fadeOut(tween(200)) },
-            ) { card -> if (card != null) Card(card) }
+            ) { card -> if (card != null) Card(card, palette) }
         }
     }
 }
 
 @Composable
-private fun SceneDiagram(scene: Scene, shown: Set<String>, lit: Set<String>, pulse: Pair<String, String>?) {
+private fun SceneDiagram(scene: Scene, shown: Set<String>, lit: Set<String>, pulse: Pair<String, String>?, colors: DiagramColors) {
     val ids = scene.diagram.nodes.map { it.id }
     // One animation per node, in the diagram's own order so the calls line up
     // from one frame to the next.
@@ -94,7 +99,7 @@ private fun SceneDiagram(scene: Scene, shown: Set<String>, lit: Set<String>, pul
     val travel = rememberInfiniteTransition(label = "pulse")
     val t by travel.animateFloat(0f, 1f, infiniteRepeatable(tween(1300, easing = LinearEasing), RepeatMode.Restart), label = "pulse at")
     DiagramCanvas(
-        scene.diagram, BoardColors,
+        scene.diagram, colors,
         modifier = Modifier.semantics { contentDescription = scene.diagram.caption },
         reveal = { reveal[it]?.value ?: 1f },
         emphasis = { emphasis[it]?.value ?: 1f },
@@ -104,20 +109,20 @@ private fun SceneDiagram(scene: Scene, shown: Set<String>, lit: Set<String>, pul
 
 /** A term and its meaning, or a line of code set in a monospace face. */
 @Composable
-private fun Card(card: BoardCard) {
+private fun Card(card: BoardCard, palette: BoardPalette) {
     Column(
         verticalArrangement = Arrangement.spacedBy(4.dp),
-        modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(14.dp)).background(Color.White.copy(alpha = 0.1f)).padding(horizontal = 16.dp, vertical = 12.dp),
+        modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(14.dp)).background(palette.card).padding(horizontal = 16.dp, vertical = 12.dp),
     ) {
         if (card.phrase) {
             // A German phrase: the German is the thing to read and say.
-            Text(card.title, color = Ink, fontSize = 22.sp, lineHeight = 27.sp, fontWeight = FontWeight.SemiBold)
-            Text(card.body, color = Soft, fontSize = 15.sp, lineHeight = 20.sp)
+            Text(card.title, color = palette.ink, fontSize = 22.sp, lineHeight = 27.sp, fontWeight = FontWeight.SemiBold)
+            Text(card.body, color = palette.soft, fontSize = 15.sp, lineHeight = 20.sp)
             return@Column
         }
-        Text(card.title, color = Accent, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
+        Text(card.title, color = palette.accent, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
         Text(
-            card.body, color = Ink, fontSize = if (card.code) 14.sp else 16.sp, lineHeight = if (card.code) 19.sp else 21.sp,
+            card.body, color = palette.ink, fontSize = if (card.code) 14.sp else 16.sp, lineHeight = if (card.code) 19.sp else 21.sp,
             fontWeight = if (card.code) FontWeight.Normal else FontWeight.Medium,
             fontFamily = if (card.code) FontFamily.Monospace else FontFamily.Default,
         )
@@ -127,17 +132,29 @@ private fun Card(card: BoardCard) {
 /** How far a node the hosts are not talking about fades back. */
 private const val DIMMED = 0.5f
 
+/**
+ * The colours a board is drawn in: [ink] for what is read, [soft] for what is
+ * under it, [accent] for a card's title, [card] behind a card, and the
+ * diagram's own. The Parallel player has its field of blues; the Departures
+ * player draws the board in the look's own colours.
+ */
+internal data class BoardPalette(val ink: Color, val soft: Color, val accent: Color, val card: Color, val diagram: DiagramColors)
+
 // The player's own field: white ink, and a light blue for the solid shapes so
 // dark text on them is about 9:1. The plate is the field's middle blue, which
 // is what an edge's label sits on.
-private val Ink = Color.White
-private val Soft = Color.White.copy(alpha = 0.72f)
 private val Accent = Color(0xFF8CC8FF)
-private val BoardColors = DiagramColors(
+internal val PlayerPalette = BoardPalette(
+    ink = Color.White,
+    soft = Color.White.copy(alpha = 0.72f),
     accent = Accent,
-    plate = Color(0xFF0A3274),
-    fill = Color.White.copy(alpha = 0.08f),
-    secondary = Color.White.copy(alpha = 0.7f),
-    ink = Ink,
-    onSolid = Color(0xFF081E52),
+    card = Color.White.copy(alpha = 0.1f),
+    diagram = DiagramColors(
+        accent = Accent,
+        plate = Color(0xFF0A3274),
+        fill = Color.White.copy(alpha = 0.08f),
+        secondary = Color.White.copy(alpha = 0.7f),
+        ink = Color.White,
+        onSolid = Color(0xFF081E52),
+    ),
 )
