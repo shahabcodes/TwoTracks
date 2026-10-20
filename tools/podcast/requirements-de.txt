@@ -1,0 +1,14 @@
+# The German environment, tools/podcast/.venv-de: Qwen3-TTS for Jonas and the
+# hosts' German words (render_de.py, design_jonas.py), and Whisper for hear.py.
+# It needs a newer torch than Chatterbox's environment, so it is its own.
+#
+# Install in this order. torch first, from PyTorch's CUDA 12.8 index (the
+# first with kernels for an RTX 50-series card); qwen-tts then pulls a CPU-only
+# torch from PyPI, so put the CUDA one back over it:
+#
+#   pip install torch==2.9.1 torchaudio==2.9.1 --index-url https://download.pytorch.org/whl/cu128
+#   pip install -r tools/podcast/requirements-de.txt
+#   pip install --force-reinstall --no-deps torch==2.9.1 torchaudio==2.9.1 --index-url https://download.pytorch.org/whl/cu128
+qwen-tts==0.1.1
+openai-whisper
+soundfile>=0.13
