@@ -13,7 +13,7 @@ internal object Ai200Containers {
             B.ref("Run multi-step build, test and patch tasks", LEARN + "azure/container-registry/container-registry-tasks-multi-step"),
             B.ref("Registry authentication options", LEARN + "azure/container-registry/container-registry-authentication"),
             B.ref("Geo-replication in Azure Container Registry", LEARN + "azure/container-registry/container-registry-geo-replication"),
-            B.ref("Learn module: Manage container images in Azure Container Registry", LEARN + "training/modules/publish-container-image-to-azure-container-registry/"),
+            B.ref("Learn module: Store and manage containers in Azure Container Registry", LEARN + "training/modules/store-manage-containers-azure-container-registry/"),
         ),
         blocks = listOf(
             B.warmup(
@@ -232,7 +232,7 @@ internal object Ai200Containers {
             B.ref("Configure an App Service app (app settings)", LEARN + "azure/app-service/configure-common"),
             B.ref("Use Key Vault references in App Service", LEARN + "azure/app-service/app-service-key-vault-references"),
             B.ref("Set up staging environments (deployment slots)", LEARN + "azure/app-service/deploy-staging-slots"),
-            B.ref("Learn module: Deploy and run a containerized web app with App Service", LEARN + "training/modules/deploy-run-container-app-service/"),
+            B.ref("Learn module: Deploy containers to Azure App Service", LEARN + "training/modules/deploy-containers-azure-app-service/"),
         ),
         blocks = listOf(
             B.warmup(
@@ -271,7 +271,7 @@ internal object Ai200Containers {
             """),
             B.code("bash", """
                 az webapp create --resource-group tt-rg --plan tt-plan --name tt-coach \
-                  --deployment-container-image-name ttcoach.azurecr.io/coach-api:ca7
+                  --container-image-name ttcoach.azurecr.io/coach-api:ca7
                 az webapp identity assign --resource-group tt-rg --name tt-coach
                 az role assignment create --assignee <principalId> --role AcrPull --scope <registry-id>
                 az resource update --ids <web-config-id> --set properties.acrUseManagedIdentityCreds=True
@@ -359,7 +359,7 @@ internal object Ai200Containers {
             ),
             B.steps("Deploy Coach from ACR to App Service",
                 "az appservice plan create --name tt-plan --resource-group tt-rg --is-linux --sku S1" to "A Linux plan; S1 allows slots.",
-                "az webapp create ... --deployment-container-image-name ttcoach.azurecr.io/coach-api:ca7" to "The app exists and points at the image.",
+                "az webapp create ... --container-image-name ttcoach.azurecr.io/coach-api:ca7" to "The app exists and points at the image.",
                 "az webapp identity assign, then grant AcrPull and set acrUseManagedIdentityCreds" to "Pulls use the identity, no password.",
                 "az webapp config appsettings set --name tt-coach --resource-group tt-rg --settings WEBSITES_PORT=8000" to "Traffic reaches the container.",
                 "az webapp log config --name tt-coach --resource-group tt-rg --docker-container-logging filesystem; az webapp log tail ..." to "Container start-up lines and uvicorn output stream in.",
@@ -438,7 +438,7 @@ internal object Ai200Containers {
             B.ref("Scaling in Azure Container Apps", LEARN + "azure/container-apps/scale-app"),
             B.ref("Manage secrets in Azure Container Apps", LEARN + "azure/container-apps/manage-secrets"),
             B.ref("Jobs in Azure Container Apps", LEARN + "azure/container-apps/jobs"),
-            B.ref("Learn module: Implement Azure Container Apps", LEARN + "training/modules/implement-azure-container-apps/"),
+            B.ref("Learn module: Deploy containers to Azure Container Apps", LEARN + "training/modules/deploy-containers-azure-container-apps/"),
         ),
         blocks = listOf(
             B.warmup(
@@ -565,7 +565,7 @@ internal object Ai200Containers {
                 ),
                 blank = 1,
                 answers = listOf("multiple"),
-                note = "Traffic splitting and labels need multiple revision mode; single mode always moves everything to the newest ready revision.",
+                note = "Traffic splitting needs multiple revision mode (a separate labels mode is still in preview); single mode always moves everything to the newest ready revision.",
             ),
             B.steps("Run Coach on Container Apps",
                 "az extension add --name containerapp --upgrade" to "The CLI commands for Container Apps.",

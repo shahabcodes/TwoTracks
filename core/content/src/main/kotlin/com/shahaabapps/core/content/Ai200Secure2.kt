@@ -11,7 +11,7 @@ internal object Ai200Secure2 {
             B.ref("Azure Monitor OpenTelemetry Distro client library for Python", LEARN + "python/api/overview/azure/monitor-opentelemetry-readme"),
             B.ref("Add and modify OpenTelemetry in Application Insights", LEARN + "azure/azure-monitor/app/opentelemetry-add-modify"),
             B.ref("Configure Azure Monitor OpenTelemetry (cloud role name, sampling)", LEARN + "azure/azure-monitor/app/opentelemetry-configuration"),
-            B.ref("Distributed tracing and telemetry correlation", LEARN + "azure/azure-monitor/app/distributed-trace-data"),
+            B.ref("Application Insights telemetry data model", LEARN + "azure/azure-monitor/app/data-model-complete"),
             B.ref("Use OpenTelemetry with Azure Functions", LEARN + "azure/azure-functions/opentelemetry-howto"),
             B.ref("Application Map: triage distributed applications", LEARN + "azure/azure-monitor/app/app-map"),
         ),
@@ -116,7 +116,7 @@ internal object Ai200Secure2 {
                 "Cloud role name: set OTEL_SERVICE_NAME (coach-api, summarize). It is the node name on the application map.",
                 "Sampling: recent versions default to a rate-limited sampler of about five traces a second; sampling_ratio=0.1 keeps a fixed 10 percent and traces_per_second sets your own limit. Whole traces are kept or dropped together.",
             ),
-            B.tip("\"One line to send traces, metrics and logs from Python to Application Insights\" points to configure_azure_monitor. Microsoft has also released a newer Microsoft OpenTelemetry Distro (microsoft-opentelemetry); existing Azure Monitor distro apps need no change."),
+            B.tip("\"One line to send traces, metrics and logs from Python to Application Insights\" points to configure_azure_monitor. Microsoft has also released a newer Microsoft OpenTelemetry Distro (microsoft-opentelemetry), which Learn now suggests for new apps; existing Azure Monitor distro apps need no change, and the two should not be initialised together."),
             B.check(
                 "ai-opentelemetry-k2", "ai-opentelemetry",
                 "Two containers send telemetry to the same Application Insights resource and appear as one blob on the application map. What fixes it?",
@@ -231,7 +231,7 @@ internal object Ai200Secure2 {
         references = listOf(
             B.ref("Log queries in Azure Monitor", LEARN + "azure/azure-monitor/logs/log-query-overview"),
             B.ref("Get started with log queries in Azure Monitor", LEARN + "azure/azure-monitor/logs/get-started-queries"),
-            B.ref("Workspace-based Application Insights resources and table names", LEARN + "azure/azure-monitor/app/convert-classic-resource"),
+            B.ref("Create and configure Application Insights resources", LEARN + "azure/azure-monitor/app/create-workspace-resource"),
             B.ref("Monitor logs in Azure Container Apps with Log Analytics", LEARN + "azure/container-apps/log-monitoring"),
             B.ref("summarize operator", LEARN + "kusto/query/summarize-operator"),
             B.ref("Create a log search alert rule", LEARN + "azure/azure-monitor/alerts/alerts-create-log-alert-rule"),

@@ -15,7 +15,7 @@ internal object Ai200Secure {
             B.ref("Azure Key Vault soft-delete overview", LEARN + "azure/key-vault/general/soft-delete-overview"),
             B.ref("Use Key Vault references as app settings", LEARN + "azure/app-service/app-service-key-vault-references"),
             B.ref("Manage secrets in Azure Container Apps", LEARN + "azure/container-apps/manage-secrets"),
-            B.ref("Learn module: Implement Azure Key Vault", LEARN + "training/modules/implement-azure-key-vault/"),
+            B.ref("Learn module: Manage application secrets with Azure Key Vault", LEARN + "training/modules/manage-app-secrets-key-vault/"),
         ),
         blocks = listOf(
             B.warmup(
@@ -279,7 +279,7 @@ internal object Ai200Secure {
             B.ref("Snapshots in App Configuration", LEARN + "azure/azure-app-configuration/concept-snapshots"),
             B.ref("Feature management overview", LEARN + "azure/azure-app-configuration/concept-feature-management"),
             B.ref("Authorize access with Microsoft Entra ID", LEARN + "azure/azure-app-configuration/concept-enable-rbac"),
-            B.ref("Learn module: Implement Azure App Configuration", LEARN + "training/modules/implement-azure-app-configuration/"),
+            B.ref("Learn module: Manage application settings with Azure App Configuration", LEARN + "training/modules/manage-app-settings-app-config/"),
         ),
         blocks = listOf(
             B.warmup(

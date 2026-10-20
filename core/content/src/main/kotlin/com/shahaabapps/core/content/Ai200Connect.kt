@@ -13,7 +13,7 @@ internal object Ai200Connect {
             B.ref("Overview of Service Bus dead-letter queues", LEARN + "azure/service-bus-messaging/service-bus-dead-letter-queues"),
             B.ref("Send and receive messages from Service Bus queues (Python)", LEARN + "azure/service-bus-messaging/service-bus-python-how-to-use-queues"),
             B.ref("Topic filters and actions", LEARN + "azure/service-bus-messaging/topic-filters"),
-            B.ref("Learn module: Discover Azure message queues", LEARN + "training/modules/discover-azure-message-queue/"),
+            B.ref("Learn module: Queue and process AI operations with Azure Service Bus", LEARN + "training/modules/queue-process-operations-service-bus/"),
         ),
         blocks = listOf(
             B.warmup(
@@ -246,9 +246,9 @@ internal object Ai200Connect {
             B.ref("CloudEvents v1.0 schema with Event Grid", LEARN + "azure/event-grid/cloud-event-schema"),
             B.ref("Understand event filtering for Event Grid subscriptions", LEARN + "azure/event-grid/event-filtering"),
             B.ref("Event Grid message delivery and retry", LEARN + "azure/event-grid/delivery-and-retry"),
-            B.ref("Webhook event delivery and endpoint validation", LEARN + "azure/event-grid/webhook-event-delivery"),
+            B.ref("Endpoint validation with the CloudEvents v1.0 schema", LEARN + "azure/event-grid/end-point-validation-cloud-events-schema"),
             B.ref("Route custom events to a web endpoint with the Azure CLI", LEARN + "azure/event-grid/custom-event-quickstart"),
-            B.ref("Learn module: Explore Azure Event Grid", LEARN + "training/modules/azure-event-grid/"),
+            B.ref("Learn module: Develop event-driven AI workflows with Azure Event Grid", LEARN + "training/modules/event-driven-workflows-event-grid/"),
         ),
         blocks = listOf(
             B.warmup(
@@ -394,8 +394,8 @@ internal object Ai200Connect {
             B.steps("Create a topic and a filtered subscription",
                 "az eventgrid topic create --name tt-coach-events --resource-group tt-rg --location westeurope --input-schema cloudeventschemav1_0" to "A custom topic that accepts CloudEvents.",
                 "az role assignment create --assignee <principalId> --role \"EventGrid Data Sender\" --scope <topic-id>" to "The API may publish with its identity.",
-                "az eventgrid event-subscription create --name reembed --source-resource-id <topic-id> --endpoint-type azurefunction --endpoint <function-resource-id> --event-delivery-schema cloudeventschemav1_0 --included-event-types TwoTracks.Coach.NoteUpdated --advanced-filter data.wordCount NumberGreaterThan 20" to "Only long NoteUpdated notes reach the function.",
-                "az eventgrid event-subscription update --name reembed --source-resource-id <topic-id> --max-delivery-attempts 10 --event-ttl 120 --deadletter-endpoint <storage-id>/blobServices/default/containers/eg-deadletter" to "Custom retry policy and a dead-letter container.",
+                "az eventgrid event-subscription create --name reembed --source-resource-id <topic-id> --endpoint-type azurefunction --endpoint <function-resource-id> --event-delivery-schema cloudeventschemav1_0 --included-event-types TwoTracks.Coach.NoteUpdated --advanced-filter data.wordCount NumberGreaterThan 20 --max-delivery-attempts 10 --event-ttl 120" to "Only long NoteUpdated notes reach the function, with a custom retry policy (set at creation).",
+                "az eventgrid event-subscription update --name reembed --source-resource-id <topic-id> --deadletter-endpoint <storage-id>/blobServices/default/containers/eg-deadletter" to "A dead-letter container for events that still fail.",
                 "Run the Python publisher and open the function's logs" to "One invocation per matching event.",
             ),
             B.mistakes(
@@ -458,7 +458,7 @@ internal object Ai200Connect {
             B.ref("Azure Functions Flex Consumption plan hosting", LEARN + "azure/azure-functions/flex-consumption-plan"),
             B.ref("Develop Azure Functions locally using Core Tools", LEARN + "azure/azure-functions/functions-run-local"),
             B.ref("Azure Service Bus trigger for Azure Functions", LEARN + "azure/azure-functions/functions-bindings-service-bus-trigger"),
-            B.ref("Learn module: Explore Azure Functions", LEARN + "training/modules/explore-azure-functions/"),
+            B.ref("Learn module: Build serverless AI backends with Azure Functions", LEARN + "training/modules/build-backends-azure-functions/"),
         ),
         blocks = listOf(
             B.warmup(

@@ -8,13 +8,13 @@ internal object Ai200Containers2 {
         id = "ai-aks", title = "Azure Kubernetes Service: deploy with manifest files", minutes = 28,
         references = listOf(
             B.ref("What is Azure Kubernetes Service (AKS)?", LEARN + "azure/aks/what-is-aks"),
-            B.ref("Core Kubernetes concepts for AKS", LEARN + "azure/aks/concepts-clusters-workloads"),
+            B.ref("Core Kubernetes concepts for AKS", LEARN + "azure/aks/core-aks-concepts"),
             B.ref("Tutorial: Deploy an application to AKS", LEARN + "azure/aks/tutorial-kubernetes-deploy-application"),
-            B.ref("Tutorial: Update an application in AKS", LEARN + "azure/aks/tutorial-kubernetes-app-update"),
+            B.ref("Services in AKS", LEARN + "azure/aks/concepts-network-services"),
             B.ref("Integrate Azure Container Registry with AKS", LEARN + "azure/aks/cluster-container-registry-integration"),
             B.ref("Use Microsoft Entra Workload ID on AKS", LEARN + "azure/aks/workload-identity-overview"),
             B.ref("Comparing Container Apps with other Azure container options", LEARN + "azure/container-apps/compare-options"),
-            B.ref("Learn module: Introduction to Azure Kubernetes Service", LEARN + "training/modules/intro-to-azure-kubernetes-service/"),
+            B.ref("Learn module: Deploy applications to Azure Kubernetes Service", LEARN + "training/modules/deploy-apps-azure-kubernetes-service/"),
         ),
         blocks = listOf(
             B.warmup(

@@ -300,7 +300,7 @@ internal object Ai200Data3 {
                 listOf("Built on", "Redis Enterprise, Redis 7.4", "Community Redis (Basic, Standard, Premium)"),
                 listOf("Tiers", "Memory Optimized, Balanced, Compute Optimized, Flash Optimized", "Basic, Standard, Premium (Enterprise tiers too)"),
                 listOf("TLS port", "10000", "6380"),
-                listOf("Modules", "RediSearch, RedisJSON, Bloom, TimeSeries (not on Flash)", "None on Basic, Standard, Premium"),
+                listOf("Modules", "RediSearch, Bloom, TimeSeries (not on Flash Optimized); RedisJSON on all tiers", "None on Basic, Standard, Premium"),
                 listOf("CLI", "az redisenterprise", "az redis"),
             ),
             B.p("""

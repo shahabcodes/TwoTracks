@@ -531,6 +531,7 @@ internal object Ai200Data {
                 token = get_bearer_token_provider(DefaultAzureCredential(), "https://cognitiveservices.azure.com/.default")
                 aoai = AzureOpenAI(azure_endpoint="https://tt-openai.openai.azure.com/",
                                    azure_ad_token_provider=token, api_version="2024-10-21")
+                # 2024-10-21 is a GA version; newer samples use OpenAI(base_url=".../openai/v1/") with no version
 
                 def embed(text):
                     return aoai.embeddings.create(model="text-embedding-3-small", input=text).data[0].embedding
