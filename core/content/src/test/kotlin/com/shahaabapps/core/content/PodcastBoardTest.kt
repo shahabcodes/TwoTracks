@@ -18,36 +18,36 @@ class PodcastBoardTest {
 
     @Test
     fun `every episode has a board`() {
-        Podcasts.all.forEach { p -> assertTrue("${p.topicId} has no board", PodcastBoards.forTopic(p.topicId) != null) }
+        Podcasts.all.forEach { p -> assertTrue("${p.episodeId} has no board", PodcastBoards.forEpisode(p.episodeId) != null) }
     }
 
     @Test
     fun `every board belongs to an episode`() {
         assertTrue("expected at least one board", boards.isNotEmpty())
-        boards.forEach { b -> assertTrue("${b.topicId} has a board but no episode", Podcasts.forTopic(b.topicId) != null) }
-        assertEquals("a topic has two boards", boards.size, boards.map { it.topicId }.toSet().size)
+        boards.forEach { b -> assertTrue("${b.episodeId} has a board but no episode", Podcasts.episode(b.episodeId) != null) }
+        assertEquals("an episode has two boards", boards.size, boards.map { it.episodeId }.toSet().size)
     }
 
     @Test
     fun `scenes start at the first line and run in order inside the episode`() {
         boards.forEach { b ->
-            val lines = Podcasts.forTopic(b.topicId)!!.lines.size
-            assertEquals("${b.topicId}: the first scene must start at line 0", 0, b.scenes.first().fromLine)
-            b.scenes.zipWithNext().forEach { (x, y) -> assertTrue("${b.topicId}: scene at ${y.fromLine} is not after ${x.fromLine}", y.fromLine > x.fromLine) }
-            b.scenes.forEach { s -> assertTrue("${b.topicId}: scene at ${s.fromLine} is past the last line", s.fromLine < lines) }
+            val lines = Podcasts.episode(b.episodeId)!!.lines.size
+            assertEquals("${b.episodeId}: the first scene must start at line 0", 0, b.scenes.first().fromLine)
+            b.scenes.zipWithNext().forEach { (x, y) -> assertTrue("${b.episodeId}: scene at ${y.fromLine} is not after ${x.fromLine}", y.fromLine > x.fromLine) }
+            b.scenes.forEach { s -> assertTrue("${b.episodeId}: scene at ${s.fromLine} is past the last line", s.fromLine < lines) }
         }
     }
 
     @Test
     fun `every beat falls inside its scene, one a line, in order`() {
         boards.forEach { b ->
-            val lines = Podcasts.forTopic(b.topicId)!!.lines.size
+            val lines = Podcasts.episode(b.episodeId)!!.lines.size
             b.scenes.forEachIndexed { i, s ->
                 val end = b.scenes.getOrNull(i + 1)?.fromLine ?: lines
                 s.beats.forEach { beat ->
-                    assertTrue("${b.topicId} '${s.heading}': beat at line ${beat.atLine} is outside ${s.fromLine}..${end - 1}", beat.atLine in s.fromLine until end)
+                    assertTrue("${b.episodeId} '${s.heading}': beat at line ${beat.atLine} is outside ${s.fromLine}..${end - 1}", beat.atLine in s.fromLine until end)
                 }
-                s.beats.zipWithNext().forEach { (x, y) -> assertTrue("${b.topicId} '${s.heading}': beats at ${x.atLine} and ${y.atLine} out of order", y.atLine > x.atLine) }
+                s.beats.zipWithNext().forEach { (x, y) -> assertTrue("${b.episodeId} '${s.heading}': beats at ${x.atLine} and ${y.atLine} out of order", y.atLine > x.atLine) }
             }
         }
     }
@@ -58,7 +58,7 @@ class PodcastBoardTest {
             b.scenes.forEach { s ->
                 val ids = s.diagram.nodes.map { it.id }.toSet()
                 s.beats.forEach { beat ->
-                    val where = "${b.topicId} '${s.heading}' line ${beat.atLine}"
+                    val where = "${b.episodeId} '${s.heading}' line ${beat.atLine}"
                     (beat.show + beat.light).forEach { assertTrue("$where: no node '$it'", it in ids) }
                     val shown = b.frameAt(beat.atLine).shown
                     beat.light.forEach { assertTrue("$where: lights '$it' before it is shown", it in shown) }
@@ -77,10 +77,10 @@ class PodcastBoardTest {
     fun `words fit the board`() {
         boards.forEach { b ->
             b.scenes.forEach { s ->
-                assertTrue("${b.topicId}: heading too long for one line: '${s.heading}'", s.heading.length <= 32)
+                assertTrue("${b.episodeId}: heading too long for one line: '${s.heading}'", s.heading.length <= 32)
                 s.beats.mapNotNull { it.card }.forEach { c ->
-                    assertTrue("${b.topicId}: card title too long: '${c.title}'", c.title.isNotBlank() && c.title.length <= 36)
-                    assertTrue("${b.topicId}: card body too long for two lines: '${c.body}'", c.body.isNotBlank() && c.body.length <= 90)
+                    assertTrue("${b.episodeId}: card title too long: '${c.title}'", c.title.isNotBlank() && c.title.length <= 36)
+                    assertTrue("${b.episodeId}: card body too long for two lines: '${c.body}'", c.body.isNotBlank() && c.body.length <= 90)
                 }
             }
         }
@@ -88,7 +88,7 @@ class PodcastBoardTest {
 
     @Test
     fun `a frame shows what has been said so far`() {
-        val kv = PodcastBoards.forTopic("az-keyvault")!!
+        val kv = PodcastBoards.forEpisode("az-keyvault")!!
         val start = kv.frameAt(null)
         assertEquals("The question", start.scene.heading)
         assertEquals(setOf("app", "vault"), start.shown)
@@ -105,7 +105,7 @@ class PodcastBoardTest {
 
     @Test
     fun `a pulse runs only on its own line and a card stays until replaced`() {
-        val kv = PodcastBoards.forTopic("az-keyvault")!!
+        val kv = PodcastBoards.forEpisode("az-keyvault")!!
         // Line 9 (the notary) has no beat: line 8's card holds, with no pulse.
         assertEquals("Keys never leave", kv.frameAt(9).card?.title)
         assertNull(kv.frameAt(9).pulse)

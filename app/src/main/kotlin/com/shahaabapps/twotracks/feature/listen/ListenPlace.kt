@@ -2,6 +2,7 @@ package com.shahaabapps.twotracks.feature.listen
 
 import android.content.Context
 import androidx.media3.session.CommandButton
+import com.shahaabapps.core.content.PodcastStyle
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -31,6 +32,11 @@ class ListenPlace @Inject constructor(@ApplicationContext context: Context) {
     var speed: Float
         get() = ListenSpeeds.nearest(prefs.getFloat("speed", 1f))
         set(value) { prefs.edit().putFloat("speed", value).apply() }
+
+    /** The telling last picked, offered first on a topic that has it. */
+    var style: PodcastStyle
+        get() = PodcastStyle.entries.firstOrNull { it.name == prefs.getString("style", null) } ?: PodcastStyle.CLASSIC
+        set(value) { prefs.edit().putString("style", value.name).apply() }
 }
 
 /**

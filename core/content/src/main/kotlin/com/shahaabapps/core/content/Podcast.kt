@@ -14,7 +14,19 @@ package com.shahaabapps.core.content
  * written into the text; the render tool keeps its own list, so the
  * transcript reads as English rather than as instructions to a synthesiser.
  */
-data class Podcast(val topicId: String, val lines: List<PodcastLine>, val series: PodcastSeries = PodcastSeries.AZ204) {
+data class Podcast(
+    val topicId: String,
+    val lines: List<PodcastLine>,
+    val series: PodcastSeries = PodcastSeries.AZ204,
+    val style: PodcastStyle = PodcastStyle.CLASSIC,
+) {
+    /**
+     * What the episode is known by: its audio and timing files, the player's
+     * media id, the place you left it. A classic episode is its topic's id, as
+     * every episode was before there were styles, so nothing saved changes.
+     */
+    val episodeId: String get() = if (style == PodcastStyle.CLASSIC) topicId else "$topicId--${style.slug}"
+
     /** The words as heard, without cues. */
     val spokenWords: Int get() = lines.sumOf { PodcastCue.strip(it.text).split(Regex("\\s+")).count { w -> w.isNotBlank() } }
 
@@ -36,6 +48,21 @@ enum class Host(val displayName: String) { MAYA("Maya"), LEO("Leo"), JONAS("Jona
 enum class PodcastSeries(val label: String, val hosts: String) {
     AZ204("AZ-204", "Maya & Leo"),
     GERMAN_A1("German A1", "Maya, Leo & Jonas"),
+}
+
+/**
+ * The same topic told another way, for a listener to pick from. [CLASSIC] is
+ * the plain explanation every topic has; the others tell it as a story and
+ * are there for some topics, beside it, never instead of it.
+ */
+enum class PodcastStyle(val label: String, val slug: String) {
+    CLASSIC("Classic", ""),
+
+    /** A mystery: a broken app, the clues, the wrong suspects, and the service that solves it. */
+    CASE_FILES("Case Files", "case-files"),
+
+    /** The office gossip: what a made-up colleague got wrong, and what everyone learnt from it. */
+    GOSSIP("Gossip", "gossip"),
 }
 
 /** The cues a line may carry, and how to take them out for the transcript. */
@@ -72,9 +99,16 @@ object PodcastCue {
 
 /** The episodes there are. A topic without one simply has no player. */
 object Podcasts {
-    val all: List<Podcast> by lazy { Az204Podcasts.all + GermanPodcasts.all }
+    val all: List<Podcast> by lazy { Az204Podcasts.all + Az204StyledPodcasts.all + GermanPodcasts.all }
 
-    fun forTopic(topicId: String): Podcast? = all.firstOrNull { it.topicId == topicId }
+    /** A topic's classic episode, the one every topic with episodes has. */
+    fun forTopic(topicId: String): Podcast? = all.firstOrNull { it.topicId == topicId && it.style == PodcastStyle.CLASSIC }
+
+    /** Every telling of a topic, classic first, in the order the styles are listed. */
+    fun styles(topicId: String): List<Podcast> = all.filter { it.topicId == topicId }.sortedBy { it.style.ordinal }
+
+    /** The episode by its id: a topic's id for its classic episode, "topic--style" for another. */
+    fun episode(episodeId: String): Podcast? = all.firstOrNull { it.episodeId == episodeId }
 }
 
 internal fun maya(text: String) = PodcastLine(Host.MAYA, text.trimIndent().replace("\n", " "))

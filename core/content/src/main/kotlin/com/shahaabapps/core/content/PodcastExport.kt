@@ -10,7 +10,8 @@ import java.io.File
 fun podcastsJson(podcasts: List<Podcast> = Podcasts.all): String = buildString {
     append("[\n")
     podcasts.forEachIndexed { i, p ->
-        append("  {\"topicId\": ").append(quote(p.topicId)).append(", \"lines\": [\n")
+        // The render tool names its files by "topicId": the episode's id, which is the topic's own for a classic episode.
+        append("  {\"topicId\": ").append(quote(p.episodeId)).append(", \"topic\": ").append(quote(p.topicId)).append(", \"lines\": [\n")
         p.lines.forEachIndexed { j, l ->
             append("    {\"host\": ").append(quote(l.host.name.lowercase())).append(", \"text\": ").append(quote(l.text)).append("}")
             append(if (j < p.lines.lastIndex) ",\n" else "\n")

@@ -23,8 +23,11 @@ import javax.inject.Singleton
 class Episodes @Inject constructor(@ApplicationContext private val context: Context) {
     private val timelines = ConcurrentHashMap<String, Result<PodcastTimeline?>>()
 
-    /** The script, if this topic has an episode in the app. */
-    fun podcast(topicId: String): Podcast? = Podcasts.forTopic(topicId)?.takeIf { timeline(topicId) != null }
+    /** The script, if this episode is in the app. A classic episode's id is its topic's. */
+    fun podcast(episodeId: String): Podcast? = Podcasts.episode(episodeId)?.takeIf { timeline(episodeId) != null }
+
+    /** Every telling of a topic the app carries, classic first. */
+    fun styles(topicId: String): List<Podcast> = Podcasts.styles(topicId).filter { has(it.episodeId) }
 
     /** When each line is spoken, read once from the asset beside the audio. */
     fun timeline(topicId: String): PodcastTimeline? = timelines.getOrPut(topicId) {
@@ -41,6 +44,12 @@ class Episodes @Inject constructor(@ApplicationContext private val context: Cont
 
     companion object {
         const val DIR = "podcasts"
+
+        /** The course an episode's topic is in, for opening its player. */
+        fun courseOf(episodeId: String): String? {
+            val topicId = Podcasts.episode(episodeId)?.topicId ?: episodeId
+            return com.shahaabapps.core.content.Courses.all.firstOrNull { c -> c.modules.any { m -> m.topics.any { it.id == topicId } } }?.id
+        }
         fun uri(topicId: String): Uri = Uri.parse("asset:///$DIR/$topicId.ogg")
     }
 }

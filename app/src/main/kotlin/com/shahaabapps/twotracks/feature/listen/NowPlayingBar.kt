@@ -39,6 +39,7 @@ import com.shahaabapps.twotracks.ui.board.BoardLabel
 import com.shahaabapps.twotracks.ui.board.BoardMono
 import com.shahaabapps.twotracks.ui.board.BoardText
 import com.shahaabapps.core.content.PodcastSeries
+import com.shahaabapps.core.content.PodcastStyle
 import com.shahaabapps.core.content.Podcasts
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
@@ -56,7 +57,7 @@ class NowPlayingViewModel @Inject constructor(val player: ListenPlayer) : ViewMo
 @Composable
 fun NowPlayingBar(now: NowPlaying, onOpen: () -> Unit, onPlayPause: () -> Unit, onForward30: () -> Unit, modifier: Modifier = Modifier) {
     val done = if (now.duration > 0) (now.position / now.duration).toFloat().coerceIn(0f, 1f) else 0f
-    val series = Podcasts.forTopic(now.topicId)?.series ?: PodcastSeries.AZ204
+    val series = Podcasts.episode(now.episodeId)?.series ?: PodcastSeries.AZ204
     if (AppTheme.departures) {
         Column(modifier.fillMaxWidth().background(AppTheme.colors.card).clickable(role = Role.Button, onClickLabel = "Open the player", onClick = onOpen)) {
             Row(
@@ -114,7 +115,16 @@ private fun BarKey(label: String, onClick: () -> Unit, solid: Boolean, content: 
 }
 
 /** What the topic's Listen card says: how long the episode is, and whether you are partway through it. */
-data class ListenCardState(val minutes: Int, val playing: Boolean = false, val left: Double? = null, val series: PodcastSeries = PodcastSeries.AZ204)
+data class ListenCardState(
+    val minutes: Int,
+    val playing: Boolean = false,
+    val left: Double? = null,
+    val series: PodcastSeries = PodcastSeries.AZ204,
+    /** The episode the card opens: the telling playing, or the one last picked. */
+    val episodeId: String = "",
+    /** Which telling, when the topic has more than one to choose from. */
+    val style: PodcastStyle? = null,
+)
 
 /**
  * The way into a topic's episode, at the head of the lesson: the cover, Maya
@@ -127,7 +137,7 @@ fun ListenCard(state: ListenCardState, onListen: () -> Unit, modifier: Modifier 
         state.playing -> "Playing · ${left.orEmpty()}"
         left != null -> "Carry on · $left"
         else -> "${state.series.hosts} talk it through · ${state.minutes} min"
-    }
+    }.let { line -> state.style?.let { "${it.label} · $line" } ?: line }
     if (AppTheme.departures) {
         val shape = RoundedCornerShape(12.dp)
         Row(

@@ -3,6 +3,7 @@ package com.shahaabapps.twotracks.feature.listen
 import com.shahaabapps.core.content.Az204
 import com.shahaabapps.core.content.GermanA1
 import com.shahaabapps.core.content.PodcastTimeline
+import com.shahaabapps.core.content.PodcastStyle
 import com.shahaabapps.core.content.Podcasts
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
@@ -44,12 +45,20 @@ class EpisodeAssetsTest {
     }
 
     @Test
+    fun `every styled episode is in the app`() {
+        // A style is only written once it is rendered too: a script without its
+        // audio would be a choice in the player that plays nothing.
+        val missing = Podcasts.all.filter { it.style != PodcastStyle.CLASSIC }.map { it.episodeId }.filterNot(::installed)
+        assertTrue("no audio in the app for $missing; render them and run tools/podcast/install.sh", missing.isEmpty())
+    }
+
+    @Test
     fun `each episode's timing matches its script line for line`() {
         val timings = dir.listFiles { f -> f.extension == "json" }.orEmpty()
         assertTrue("no episodes found in $dir", timings.isNotEmpty())
         for (file in timings) {
             val id = file.nameWithoutExtension
-            val podcast = Podcasts.forTopic(id)
+            val podcast = Podcasts.episode(id)
             assertNotNull("$id has audio in the app but no script", podcast)
             val text = file.readText()
             assertTrue("$id: the timing names another topic", text.contains("\"topicId\": \"$id\"") || text.contains("\"topicId\":\"$id\""))

@@ -132,10 +132,10 @@ class DesignPreviewActivity : ComponentActivity() {
                                 val episodes = com.shahaabapps.twotracks.feature.listen.Episodes(applicationContext)
                                 val place = com.shahaabapps.twotracks.feature.listen.ListenPlace(applicationContext)
                                 com.shahaabapps.twotracks.feature.listen.ListenViewModel(
-                                    (intent?.getStringExtra("topic") ?: ListenSamples.TOPIC).let { topic ->
-                                        // The course the topic is in, so a German episode plays as one.
-                                        val course = com.shahaabapps.core.content.Courses.all.first { c -> c.allTopics.any { it.id == topic } }.id
-                                        androidx.lifecycle.SavedStateHandle(mapOf("courseId" to course, "topicId" to topic))
+                                    (intent?.getStringExtra("topic") ?: ListenSamples.TOPIC).let { episode ->
+                                        // The course the episode's topic is in, so a German episode plays as one.
+                                        val course = com.shahaabapps.twotracks.feature.listen.Episodes.courseOf(episode)!!
+                                        androidx.lifecycle.SavedStateHandle(mapOf("courseId" to course, "topicId" to episode))
                                     },
                                     episodes, com.shahaabapps.twotracks.feature.listen.ListenPlayer(applicationContext, episodes, place), place,
                                 )

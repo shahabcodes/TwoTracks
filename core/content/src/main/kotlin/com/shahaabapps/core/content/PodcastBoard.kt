@@ -16,7 +16,7 @@ package com.shahaabapps.core.content
  * them, run a pulse along an edge, or put up a card with a term or a line of
  * code. PodcastBoardTest holds every id, line and order to the script.
  */
-data class PodcastBoard(val topicId: String, val scenes: List<Scene>) {
+data class PodcastBoard(val episodeId: String, val scenes: List<Scene>) {
 
     /** What to draw while [line] is being spoken, or before the first line when null. */
     fun frameAt(line: Int?): BoardFrame {
@@ -83,7 +83,8 @@ data class BoardFrame(
 
 /** The boards there are. An episode without one shows its cover. */
 object PodcastBoards {
-    val all: List<PodcastBoard> by lazy { Az204Boards.all + GermanBoards.all }
+    val all: List<PodcastBoard> by lazy { Az204Boards.all + Az204StyledBoards.all + GermanBoards.all }
 
-    fun forTopic(topicId: String): PodcastBoard? = all.firstOrNull { it.topicId == topicId }
+    /** The board for an episode, by its id (a topic's id for its classic episode). */
+    fun forEpisode(episodeId: String): PodcastBoard? = all.firstOrNull { it.episodeId == episodeId }
 }

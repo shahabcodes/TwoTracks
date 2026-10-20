@@ -14,6 +14,7 @@ import androidx.media3.session.SessionToken
 import com.google.common.util.concurrent.ListenableFuture
 import com.shahaabapps.core.content.Courses
 import com.shahaabapps.core.content.PodcastSeries
+import com.shahaabapps.core.content.PodcastStyle
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -30,7 +31,8 @@ import javax.inject.Singleton
 
 /** The episode in the player, as the screens draw it. */
 data class NowPlaying(
-    val topicId: String,
+    /** The episode's id: its topic's id for a classic episode, "topic--style" for another. */
+    val episodeId: String,
     val title: String,
     /** Whether it is meant to be playing: true while it buffers, false once paused. */
     val playing: Boolean,
@@ -79,9 +81,9 @@ class ListenPlayer @Inject constructor(
         }
     }
 
-    /** Plays [topicId]: carries on if it is the one loaded, otherwise loads it at the place you left it. */
-    fun play(topicId: String, from: Double? = null) = withController { c ->
-        val loaded = c.currentMediaItem?.mediaId == topicId && c.playbackState != Player.STATE_IDLE
+    /** Plays [episodeId]: carries on if it is the one loaded, otherwise loads it at the place you left it. */
+    fun play(episodeId: String, from: Double? = null) = withController { c ->
+        val loaded = c.currentMediaItem?.mediaId == episodeId && c.playbackState != Player.STATE_IDLE
         if (loaded && from == null) {
             if (c.playbackState == Player.STATE_ENDED) c.seekTo(0)
             c.play()
@@ -92,8 +94,8 @@ class ListenPlayer @Inject constructor(
             c.play()
             return@withController
         }
-        val item = mediaItem(topicId) ?: return@withController
-        val start = from ?: place.position(topicId).takeIf { episodes.timeline(topicId)?.resumable(it) == true } ?: 0.0
+        val item = mediaItem(episodeId) ?: return@withController
+        val start = from ?: place.position(episodeId).takeIf { episodes.timeline(episodeId)?.resumable(it) == true } ?: 0.0
         c.setMediaItem(item, (start * 1000).toLong())
         c.setPlaybackSpeed(place.speed)
         c.prepare()
@@ -116,17 +118,19 @@ class ListenPlayer @Inject constructor(
     /** Ends the session, keeping your place: the same as the notification's stop. */
     fun stop() = withController { it.sendCustomCommand(SessionCommand(PodcastService.STOP, Bundle.EMPTY), Bundle.EMPTY) }
 
-    private fun mediaItem(topicId: String): MediaItem? {
-        val podcast = episodes.podcast(topicId) ?: return null
-        val (module, topic) = Courses.all.firstNotNullOfOrNull { Courses.topic(it.id, topicId) } ?: return null
+    private fun mediaItem(episodeId: String): MediaItem? {
+        val podcast = episodes.podcast(episodeId) ?: return null
+        val (module, topic) = Courses.all.firstNotNullOfOrNull { Courses.topic(it.id, podcast.topicId) } ?: return null
+        // A styled episode says which telling it is, in the shade and on the lock screen too.
+        val style = if (podcast.style == PodcastStyle.CLASSIC) "" else " · ${podcast.style.label}"
         return MediaItem.Builder()
-            .setMediaId(topicId)
-            .setUri(Episodes.uri(topicId))
+            .setMediaId(episodeId)
+            .setUri(Episodes.uri(episodeId))
             .setMediaMetadata(
                 MediaMetadata.Builder()
                     .setTitle(topic.title)
                     .setArtist(podcast.series.hosts)
-                    .setAlbumTitle("${podcast.series.label} · Module ${module.number}")
+                    .setAlbumTitle("${podcast.series.label} · Module ${module.number}$style")
                     .setArtworkData(cover(podcast.series), MediaMetadata.PICTURE_TYPE_FRONT_COVER)
                     .setMediaType(MediaMetadata.MEDIA_TYPE_PODCAST_EPISODE)
                     .build(),
@@ -143,7 +147,7 @@ class ListenPlayer @Inject constructor(
         }
         val known = episodes.timeline(item.mediaId)?.seconds ?: 0.0
         _state.value = NowPlaying(
-            topicId = item.mediaId,
+            episodeId = item.mediaId,
             title = item.mediaMetadata.title?.toString().orEmpty(),
             playing = c.playWhenReady && c.playbackState != Player.STATE_ENDED,
             position = c.currentPosition / 1000.0,

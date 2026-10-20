@@ -5,6 +5,10 @@ build number is appended by CI (for example `0.1.0 (build 12)`).
 
 ## [Unreleased]
 
+## [0.89.0] - 2026-10-20
+### Added
+- Every AZ-204 episode in two more tellings, Case Files and Gossip, chosen in the player.
+
 ## [0.88.1] - 2026-10-20
 ### Changed
 - The podcast board in the Departures look.

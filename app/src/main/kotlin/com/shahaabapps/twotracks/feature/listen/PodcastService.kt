@@ -121,11 +121,11 @@ class PodcastService : MediaSessionService() {
     }
 
     /** Tapping the player in the shade or on the lock screen opens this episode's player in the app. */
-    private fun openPlayer(topicId: String): PendingIntent {
-        val courseId = Courses.all.firstOrNull { c -> c.modules.any { m -> m.topics.any { it.id == topicId } } }?.id.orEmpty()
+    private fun openPlayer(episodeId: String): PendingIntent {
+        val courseId = Episodes.courseOf(episodeId).orEmpty()
         val intent = Intent(this, AppActivity::class.java)
             .addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP)
-            .putExtra(WidgetRoutes.EXTRA, WidgetRoutes.listen(courseId, topicId))
+            .putExtra(WidgetRoutes.EXTRA, WidgetRoutes.listen(courseId, episodeId))
         return PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
     }
 

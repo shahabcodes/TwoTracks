@@ -274,10 +274,10 @@ fun MainNavGraph(session: AppSession, widgetLaunch: WidgetLaunch) {
                 NowPlayingBar(
                     playing,
                     onOpen = {
-                        val courseId = Courses.all.firstOrNull { c -> c.modules.any { m -> m.topics.any { it.id == playing.topicId } } }?.id
-                        if (courseId != null) navController.navigate(Routes.listen(courseId, playing.topicId)) { launchSingleTop = true }
+                        val courseId = com.shahaabapps.twotracks.feature.listen.Episodes.courseOf(playing.episodeId)
+                        if (courseId != null) navController.navigate(Routes.listen(courseId, playing.episodeId)) { launchSingleTop = true }
                     },
-                    onPlayPause = { if (playing.playing) nowPlaying.player.pause() else nowPlaying.player.play(playing.topicId) },
+                    onPlayPause = { if (playing.playing) nowPlaying.player.pause() else nowPlaying.player.play(playing.episodeId) },
                     onForward30 = nowPlaying.player::forward,
                     modifier = if (selectedTab == null) Modifier.navigationBarsPadding() else Modifier,
                 )
