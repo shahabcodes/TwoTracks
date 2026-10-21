@@ -13,7 +13,7 @@ import org.junit.Test
  * mention, and a line that stacks new words on top of each other.
  */
 class PlainWordsTest {
-    private val checked = setOf(PodcastSeries.AI200)
+    private val checked = setOf(PodcastSeries.AI200, PodcastSeries.AZ305)
     private val episodes = Podcasts.all.filter { it.series in checked }
 
     /** Hard words, by the name the failure reports. */
