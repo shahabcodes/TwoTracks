@@ -36,7 +36,7 @@ internal object Az305Infra2 {
                     DNode("migrate", "Azure Migrate", 0.5f, 0.2f, w = 0.3f, h = 0.2f, tone = 1, sub = "discover and assess"),
                     DNode("decide", "Pick a strategy per app", 0.85f, 0.2f, w = 0.26f, h = 0.2f, kind = NodeKind.NOTE),
                     DNode("iaas", "Azure VMs", 0.15f, 0.75f, w = 0.26f, h = 0.2f, sub = "rehost"),
-                    DNode("paas", "App Service, Azure SQL", 0.5f, 0.75f, w = 0.4f, h = 0.2f, sub = "refactor"),
+                    DNode("paas", "App Service, Azure SQL", 0.5f, 0.75f, w = 0.4f, h = 0.2f, sub = "replatform"),
                     DNode("files", "Blobs and Azure Files", 0.85f, 0.75f, w = 0.26f, h = 0.2f, kind = NodeKind.CYLINDER),
                 ),
                 edges = listOf(
@@ -50,40 +50,41 @@ internal object Az305Infra2 {
             B.p("""
                 The Cloud Adoption Framework (CAF) is Microsoft's free guidebook for moving a whole company to Azure.
                 It runs in phases, like chapters: Strategy (why are we moving?), Plan (which apps, in what order?),
-                Ready (build the landing zone), and Adopt (migrate or build). Govern, Secure and Manage then run
-                alongside for as long as you use Azure.
+                Ready (prepare the ground), and Adopt (move or build). Govern, Secure and Manage then run alongside
+                for as long as you use Azure.
             """),
             B.p("""
-                A landing zone is the prepared ground in Azure: subscriptions, networks, policies and identity set up
+                A landing zone is that prepared ground in Azure: subscriptions, networks, rules and sign-in set up
                 before anything moves in, like fitting the locks and wiring before the furniture arrives.
             """),
-            B.h("The five Rs: what each app becomes"),
+            B.h("The Rs: what each app becomes"),
             B.table(
                 listOf("Strategy", "What changes", "Pick it when you hear"),
                 listOf("Rehost", "Nothing; the server moves to an Azure VM as it is", "Fast, no code changes, datacenter lease ending"),
-                listOf("Refactor", "Small changes so it runs on PaaS", "Less server patching, minimal code changes"),
-                listOf("Rearchitect", "The design changes, for example into smaller services", "Parts must scale separately, cloud-native features"),
+                listOf("Replatform", "Small changes so it runs on a platform service (PaaS)", "Less server patching, minimal code changes"),
+                listOf("Refactor", "The code is tidied up for the cloud, with no new features", "Old shortcuts in the code must be cleaned up"),
+                listOf("Rearchitect", "The design changes, for example into smaller services", "Parts must scale separately"),
                 listOf("Rebuild", "Written again from scratch for the cloud", "The old code is too outdated to keep"),
-                listOf("Replace", "Swapped for a bought SaaS product", "A ready-made product does the job, little customising"),
+                listOf("Replace", "Swapped for a bought online product (SaaS)", "A ready-made product does the job"),
             ),
             B.remember("""
-                The current CAF names a few more Rs: retire (switch it off), retain (leave it where it is) and
-                replatform, which is its name for the small move to PaaS that older material calls refactor. On
-                the exam, "minimal code changes onto PaaS" is the refactor or replatform answer either way.
+                The CAF lists eight Rs: these six plus retire (switch it off) and retain (leave it where it is).
+                Older material used "refactor" for the small move onto PaaS that the CAF now calls replatform, so
+                read the requirement words: "minimal code changes onto PaaS" is that move, whatever the label.
             """),
             B.compare("Landing on IaaS or PaaS?",
                 B.card("IaaS: Azure virtual machines", "Speed matters most, or the app needs full control of the operating system.",
-                    "IaaS, infrastructure as a service: you rent the machine and still patch it",
+                    "You rent the machine and still patch it",
                     "Fewest changes, fastest move", "You keep the operating system work"),
                 B.card("PaaS: App Service, Azure SQL", "You want Azure to run the servers and can accept small changes.",
-                    "PaaS, platform as a service: Azure runs and patches the machine for you",
+                    "Azure runs and patches the machine for you",
                     "Built-in scaling, backups and high availability", "Some code or configuration changes first"),
             ),
             B.check(
                 "sa-migrations-k1", "sa-migrations",
                 "A web app must move to Azure so the team stops patching servers, with only minimal code changes. Which strategy?",
-                listOf("Refactor onto App Service", "Rehost on an Azure VM", "Rebuild as microservices"), 0,
-                "Small changes that let the app run on a platform service remove the server work. That is refactor, which the CAF also calls replatform.",
+                listOf("Replatform onto App Service", "Rehost on an Azure VM", "Rebuild as microservices"), 0,
+                "Small changes that let the app run on a platform service remove the server work. The CAF calls that replatform; older material says refactor.",
                 whyWrong = mapOf(
                     1 to "A VM still has an operating system someone must patch, which is the work they want to stop.",
                     2 to "Rebuilding is a full rewrite, far more than minimal code changes.",
@@ -96,18 +97,18 @@ internal object Az305Infra2 {
                 acts like a stocktaker: it watches your servers and reports their size and load to Azure.
             """),
             B.bullets(
-                "Discovers servers on VMware, Hyper-V or physical hardware, plus SQL Server instances and web apps.",
-                "Assessment: is each server ready for Azure, what size should it be, and what will it cost per month.",
-                "Dependency analysis: which servers talk to which, so you move partners together.",
-                "Business case: compares running costs on-premises with Azure.",
-                "Migration and modernization: copies servers into Azure VMs with little downtime.",
+                "It finds servers, SQL Server databases and web apps.",
+                "An assessment says whether each server is ready for Azure, what size it needs, and what it will cost a month.",
+                "Dependency analysis shows which servers talk to which, so partners move together.",
+                "A business case compares today's running costs with Azure's.",
+                "Then it copies servers into Azure VMs with little downtime.",
             ),
             B.h("Databases: online or offline"),
             B.p("""
-                Azure Database Migration Service (DMS) moves SQL Server databases into Azure. Offline means the old
-                database stops taking writes for the whole copy, so downtime lasts the whole migration. Online means
-                the old database keeps working while changes keep flowing to Azure, and downtime is only the short
-                cutover, the moment you switch the app over.
+                Azure Database Migration Service (DMS) moves SQL Server databases into Azure. Offline is like moving
+                house with the shop shut: the old database takes no writes for the whole copy. Online keeps the shop
+                open while changes keep flowing to Azure. Downtime is then only the cutover, the short moment you
+                switch the app across.
             """),
             B.table(
                 listOf("Target", "In DMS", "Pick it when"),
@@ -117,9 +118,9 @@ internal object Az305Infra2 {
             ),
             B.tip("""
                 "Minimal downtime" means an online migration, so the target is SQL Managed Instance or SQL Server on
-                a VM. The Azure SQL migration extension was the guided wizard for assessing and running DMS; it
-                retired with Azure Data Studio on 28 February 2026, and the same work now runs from DMS in the portal,
-                PowerShell or the CLI, or the SQL Server migration pages in Azure Arc.
+                a VM. Older guides show a wizard inside Azure Data Studio; that tool retired on 28 February 2026, and
+                the same work now runs from DMS in the portal, PowerShell or the CLI, with assessment through Azure
+                Arc.
             """),
             B.check(
                 "sa-migrations-k2", "sa-migrations",
@@ -137,8 +138,8 @@ internal object Az305Infra2 {
                     "A free command-line tool that copies files into Blob storage or Azure Files",
                     "Scriptable, and sync copies only what changed"),
                 B.card("Azure Data Box", "Tens of terabytes and a slow or busy network.",
-                    "Microsoft posts you a rugged storage device; you fill it and ship it back",
-                    "Offline: the data travels by courier, not over your line"),
+                    "Microsoft posts you a rugged storage box (the newest hold 120 TB or 525 TB); you fill it and ship it back",
+                    "Offline: the data travels by courier, like a removal van instead of the post"),
                 B.card("Azure Storage Mover", "Many file shares to move and track, or catching up after a Data Box.",
                     "A managed service with an agent near your shares",
                     "Sends only new and changed files, with progress per share"),
@@ -159,14 +160,12 @@ internal object Az305Infra2 {
                 ),
             ),
             B.worked("""
-                Worked example. Requirements: the office timetable app (.NET on Windows), its 200 GB SQL Server
-                database with SQL Agent jobs, and 60 TB of lesson recordings must move within a month; database
-                downtime under 30 minutes; a small team that hates patching; a 100 Mbps line. Options and choice:
-                Azure Migrate discovers all three and the assessment says the app is ready for App Service, so
-                refactor it there. The database goes to SQL Managed Instance with an online DMS migration, so
-                downtime is only the cutover. The recordings would take about eight weeks over the line, so a Data
-                Box carries the bulk and Storage Mover copies the files changed since. Why: each piece takes the
-                least work that meets its requirement.
+                Worked example. Requirements: the office timetable app, its SQL Server database with SQL Agent jobs
+                (scheduled tasks), and 60 TB of recordings must move within a month; database downtime under 30
+                minutes; a team that hates patching; a 100 Mbps line. Choice: Azure Migrate assesses the app as
+                ready for App Service, so replatform it there. The database moves online to SQL Managed Instance.
+                The recordings would take about eight weeks over the line, so a Data Box carries the bulk and Storage
+                Mover sends the changes. Why: each piece gets the least work that meets its requirement.
             """),
             B.faded(
                 "sa-migrations-f1",
@@ -195,14 +194,14 @@ internal object Az305Infra2 {
             ),
             B.example("""
                 Two Tracks goes global: Azure Migrate found 14 office servers. Two old report servers are retired,
-                the booking app is refactored onto App Service, its database moves online to SQL Managed Instance, the
+                the booking app is replatformed onto App Service, its database moves online to SQL Managed Instance, the
                 build server is rehosted on a VM, and the recordings arrive on a Data Box.
             """),
             B.h("Check yourself"),
             B.match(
                 "sa-x-migr-match", "Pair each migration strategy with what it does.",
                 "Rehost" to "Moves the server to an Azure VM unchanged",
-                "Refactor" to "Small changes so the app runs on PaaS",
+                "Replatform" to "Small changes so the app runs on PaaS",
                 "Rearchitect" to "Changes the design so parts scale separately",
                 "Replace" to "Swaps the app for a bought SaaS product",
             ),
@@ -219,9 +218,9 @@ internal object Az305Infra2 {
             B.explain(
                 "sa-migrations-x1",
                 "Explain how you would plan a move of an office app, its SQL Server database and a large file share to Azure.",
-                "First run Azure Migrate with its appliance to discover the servers and assess readiness, size and cost, and use dependency analysis to move partners together. Then choose a strategy per app: rehost onto a VM when speed matters, or refactor onto App Service when the team wants no patching. Move the database with Database Migration Service, online for minimal downtime to SQL Managed Instance. Move the files with AzCopy on a fast line, or a Data Box when the line is too slow, then Storage Mover for the catch-up.",
+                "First run Azure Migrate with its appliance to discover the servers and assess readiness, size and cost, and use dependency analysis to move partners together. Then choose a strategy per app: rehost onto a VM when speed matters, or replatform onto App Service when the team wants no patching. Move the database with Database Migration Service, online for minimal downtime to SQL Managed Instance. Move the files with AzCopy on a fast line, or a Data Box when the line is too slow, then Storage Mover for the catch-up.",
                 "Discover and assess with Azure Migrate" to listOf("azure migrate", "appliance", "assessment", "assess"),
-                "Pick a strategy such as rehost or refactor" to listOf("rehost", "refactor", "rearchitect", "replatform"),
+                "Pick a strategy such as rehost or replatform" to listOf("rehost", "refactor", "rearchitect", "replatform"),
                 "DMS online for the database" to listOf("database migration service", "dms", "online migration", "managed instance"),
                 "AzCopy or Data Box for the files" to listOf("azcopy", "data box", "storage mover"),
             ),
@@ -235,7 +234,7 @@ internal object Az305Infra2 {
                 "Azure Storage Mover" to "A managed service that migrates file shares and sends only changes.",
             ),
             B.recap(
-                "CAF guides the move; a landing zone comes first; each app gets an R: rehost, refactor, rearchitect, rebuild or replace.",
+                "CAF guides the move; a landing zone comes first; each app gets an R, such as rehost, replatform, rearchitect, rebuild, replace or retire.",
                 "Azure Migrate discovers and assesses; DMS moves SQL Server, online when downtime must be minimal.",
                 "Files: AzCopy on a good line, Data Box when the line is too slow, Storage Mover to catch up.",
             ),
@@ -291,8 +290,9 @@ internal object Az305Infra2 {
             B.h("Virtual networks and the way out"),
             B.p("""
                 A virtual network (VNet) has an address space, a block of private addresses such as 10.1.0.0/16,
-                split into subnets. Plan the blocks so they never overlap with the office or other VNets, because
-                networks with clashing addresses cannot be joined later.
+                like the range of flat numbers in a building. You split it into subnets. Plan the blocks so they
+                never overlap with the office or other VNets: two buildings with the same flat numbers cannot share
+                one post room later.
             """),
             B.table(
                 listOf("Outbound option", "What it is", "Pick it when"),
@@ -302,25 +302,28 @@ internal object Az305Infra2 {
                 listOf("Azure Firewall via a route", "All traffic is sent through a firewall in the hub", "Outbound traffic must be inspected and filtered"),
             ),
             B.tip("""
-                Azure is retiring the old hidden "default outbound access". Since March 2026, new virtual networks get
-                private subnets by default, so VMs there cannot reach the internet until you add an explicit way out.
-                The recommended one for most cases is a NAT gateway.
+                Azure used to give VMs a hidden way out to the internet, called default outbound access, and is
+                phasing it out. New virtual networks created with API versions after 31 March 2026 get private
+                subnets by default (the portal already did this), so their VMs cannot reach the internet until you
+                add a way out. Existing networks are unchanged. For most cases the recommended way out is a NAT gateway.
             """),
             B.h("Joining networks: peering, hub and spoke, Virtual WAN"),
             B.p("""
-                VNet peering joins two virtual networks over Microsoft's own backbone, so traffic never touches the
-                internet; global peering does the same across regions. Peering is not transitive: if A is peered to B
-                and B to C, A still cannot reach C. That is why big estates use a hub and spoke.
+                VNet peering joins two virtual networks over Microsoft's own cables, so traffic never touches the
+                internet; global peering does the same across regions. Peering is not transitive, which means it
+                does not pass traffic along: if A is peered to B and B to C, A still cannot reach C. That is why big
+                estates use a hub and spoke, like a bicycle wheel: shared things sit in the middle and each spoke
+                connects only to the hub.
             """),
             B.compare("Hub and spoke or Virtual WAN?",
                 B.card("Hub and spoke you build", "A few regions and full control of every part.",
-                    "Shared things (gateway, firewall, DNS) live in a hub VNet you run",
+                    "Shared things such as the office gateway and firewall live in a hub VNet you run",
                     "Workloads live in spokes peered to the hub",
                     "Gateway transit lets spokes use the hub's gateway"),
                 B.card("Azure Virtual WAN", "Many branches and regions that must all reach each other.",
                     "Microsoft runs the hubs for you",
                     "Any site, spoke and region can reach any other through the hubs",
-                    "VPN, ExpressRoute and point-to-site in one place"),
+                    "All the office connections below in one place"),
             ),
             B.check(
                 "sa-network-connectivity-k1", "sa-network-connectivity",
@@ -335,21 +338,20 @@ internal object Az305Infra2 {
             B.h("Reaching the office: VPN or ExpressRoute"),
             B.compare("Hybrid connections",
                 B.card("Site-to-site VPN", "A whole office must connect cheaply and quickly.",
-                    "An encrypted tunnel over the internet between the office router and a VPN gateway",
+                    "A VPN is a sealed tunnel through the public internet, like a locked van driving on public roads",
+                    "It joins the office router to a VPN gateway in Azure",
                     "Ready in hours; speed and delay depend on the internet"),
                 B.card("Point-to-site VPN", "Single laptops, such as people working from home.",
                     "Each device builds its own tunnel to the VPN gateway",
                     "No office router needed; can sign in with Entra ID"),
                 B.card("ExpressRoute", "Steady high bandwidth, predictable delay, or traffic must avoid the internet.",
-                    "A private line from your network to Microsoft through a connectivity provider",
-                    "Up to 10 Gbps per circuit, more with ExpressRoute Direct",
+                    "A private line, like your own private road, from your network to Microsoft through a telecoms provider",
+                    "Fast and steady, because nobody else shares the road",
                     "Takes weeks to order; private but not encrypted by default"),
             ),
             B.remember("""
                 For the best of both, run ExpressRoute with a site-to-site VPN as failover: both gateways sit in the
-                same VNet, Azure prefers the ExpressRoute path, and the VPN carries traffic if the circuit fails.
-                ExpressRoute Premium reaches regions on other continents, and Global Reach links your own offices
-                through Microsoft's network.
+                same VNet, Azure prefers the ExpressRoute path, and the VPN carries traffic if the private line fails.
             """),
             B.check(
                 "sa-network-connectivity-k2", "sa-network-connectivity",
@@ -363,20 +365,19 @@ internal object Az305Infra2 {
             ),
             B.h("Names: DNS and Private DNS zones"),
             B.p("""
-                DNS is the internet's phone book: it turns a name like api.twotracks.app into an address. Azure DNS
-                hosts your public names. A Private DNS zone is a phone book only the VNets linked to it can read, for
-                names that must stay inside. Azure DNS Private Resolver lets office machines look up those private
-                names too.
+                DNS is the internet's phone book: it turns a name like api.twotracks.app into an address. A Private
+                DNS zone is a phone book only the VNets linked to it can read, for names that must stay inside.
+                Azure DNS Private Resolver lets office machines look up those private names too.
             """),
             B.h("Reaching PaaS privately"),
             B.compare("Private endpoint or service endpoint?",
                 B.card("Private endpoint", "Traffic must stay private, from the office too, to one exact resource.",
-                    "Gives one storage account or database a private address inside your subnet",
+                    "Gives one storage account or database a private address inside your subnet, like an extension line on your own switchboard",
                     "Reachable over peering, VPN and ExpressRoute",
-                    "Needs a Private DNS zone such as privatelink.blob.core.windows.net",
+                    "Needs a Private DNS zone so the name finds the private address",
                     "Costs a little per hour and per GB"),
                 B.card("Service endpoint", "A free way to let one subnet in and keep others out.",
-                    "The subnet reaches the service over the backbone; the service keeps its public address",
+                    "The subnet reaches the service over Microsoft's cables; the service keeps its public address",
                     "The service's firewall then allows that subnet",
                     "Not usable from the office, and covers the service type, not one resource"),
             ),
@@ -397,13 +398,12 @@ internal object Az305Infra2 {
                 ),
             ),
             B.worked("""
-                Worked example. Requirements: the office reaches the migrated SQL Managed Instance privately at a steady
-                1 Gbps and must survive a line failure; the API in West Europe and Australia East calls a payment
-                partner that allow-lists IPs; no database may be reachable from the internet. Options and choice: a
-                hub and spoke in each region, the hubs peered to each other. ExpressRoute into the Europe hub, with a
-                site-to-site VPN as failover. A NAT gateway on each API subnet gives fixed outbound addresses. Private
-                endpoints and Private DNS zones for the databases, with public access off. Why: each requirement word
-                points at one feature.
+                Worked example. Requirements: the office reaches the database privately at a steady 1 Gbps and must
+                survive a line failure; the API calls a payment partner that only accepts known addresses; no
+                database may be reachable from the internet. Choice: a hub and spoke in each region, hubs peered.
+                ExpressRoute into the Europe hub with a site-to-site VPN as failover. A NAT gateway on each API subnet
+                for fixed outbound addresses. Private endpoints with Private DNS zones for the databases, public
+                access off. Why: each requirement word points at one feature.
             """),
             B.faded(
                 "sa-network-connectivity-f1",

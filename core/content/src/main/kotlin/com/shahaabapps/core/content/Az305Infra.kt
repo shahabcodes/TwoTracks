@@ -25,10 +25,9 @@ internal object Az305Infra {
             ),
             B.plain("""
                 Compute means the place your code runs. Azure offers a ladder of choices. At the bottom you rent a
-                whole virtual machine and look after everything on it, like renting an empty flat. At the top you
-                hand Azure a small function and it runs it when something happens, like ordering a meal and never
-                seeing the kitchen. The higher you climb, the less you manage and the less you control. The exam
-                asks you to pick the lowest-effort rung that still meets every requirement.
+                whole virtual machine and look after it, like an empty flat. At the top you hand Azure a small
+                function and it runs it when something happens, like ordering a meal. The higher you climb, the less
+                you manage and control. The exam wants the lowest-effort rung that meets every requirement.
             """),
             B.diagram(
                 caption = "Start from the workload, ask what it needs, and the answer points to a family of services. Most designs end up with two or three of them.",
@@ -52,44 +51,39 @@ internal object Az305Infra {
             ),
             B.h("The ladder: IaaS, PaaS and serverless"),
             B.p("""
-                Three short names describe the rungs. IaaS, infrastructure as a service, gives you virtual machines:
-                you patch the operating system and install everything. PaaS, platform as a service, gives you a
-                place to put your app, such as App Service or Container Apps, and Azure patches the machines
-                underneath. Serverless, also called FaaS (functions as a service), runs your code only when an event
-                arrives and bills you for that time. Requirement words tell you the rung.
+                Three short names describe the rungs. IaaS, infrastructure as a service, is the empty flat: you get
+                virtual machines and patch the operating system yourself. PaaS, platform as a service, is a serviced
+                flat: you bring your app, and Azure looks after the machines underneath. Serverless is the meal you
+                order: your code runs only when an event arrives, and you pay only for that time. Requirement words
+                tell you the rung.
             """),
             B.table(
                 listOf("Requirement words", "Points to", "Why"),
-                listOf("Custom software on the OS, admin rights, lift and shift an old server", "Virtual Machines", "Only IaaS gives full control of the machine"),
-                listOf("Many identical VMs that grow and shrink with load", "VM Scale Sets", "Autoscale a group of VMs from one image"),
-                listOf("Web site or REST API, least management", "App Service", "Managed web hosting with slots and autoscale"),
-                listOf("Microservices in containers, scale to zero, no cluster to run", "Container Apps", "Serverless containers built on Kubernetes"),
-                listOf("Full Kubernetes API, custom operators, deep control", "AKS", "Managed Kubernetes, you run the cluster"),
-                listOf("Run one container quickly, a short task, no orchestration", "Container Instances", "Fastest, simplest container start"),
-                listOf("Small code triggered by a queue, timer or HTTP call", "Functions", "Event-driven, pay per run"),
-                listOf("Connect SaaS systems in a workflow, little or no code", "Logic Apps", "Designer with ready-made connectors"),
-                listOf("Thousands of independent tasks, rendering, simulation", "Batch", "Schedules jobs across a pool of VMs"),
-                listOf("Windows desktops for staff, from any device", "Azure Virtual Desktop", "Desktops and apps streamed from Azure"),
+                listOf("Custom software on the OS, admin rights, move an old server unchanged", "Virtual Machines", "Only IaaS gives full control of the machine"),
+                listOf("Many identical VMs that grow and shrink with load", "VM Scale Sets", "A group of VMs from one image"),
+                listOf("Web site or web API, least management", "App Service", "Managed web hosting"),
+                listOf("Small code started by a queue, timer or web call", "Functions", "Runs on events, pay per run"),
+                listOf("Thousands of independent tasks, rendering, simulation", "Batch", "Schedules tasks across many VMs"),
             ),
             B.h("Virtual machines: sizes, scale sets and desktops"),
             B.p("""
-                A VM size is the shape of the machine: how many CPUs, how much memory, and any extras. Sizes come in
-                families named by letters. You choose the family from the workload, then the size from the load.
+                A VM size is the shape of the machine: how many processors and how much memory. Sizes come in
+                families named by letters, like clothing cut for different body types: pick the family from the kind
+                of work, then the size from the load.
             """),
             B.table(
                 listOf("Family", "Series", "Good for"),
-                listOf("General purpose", "B, D", "Web servers, small databases, test machines; B is burstable and cheap"),
-                listOf("Compute optimised", "F", "Busy app servers, batch work with high CPU"),
+                listOf("General purpose", "A, B, D", "Web servers, small databases; B saves up spare power for bursts"),
+                listOf("Compute optimised", "F", "Busy app servers, processor-heavy batch work"),
                 listOf("Memory optimised", "E, M", "Large databases, in-memory analytics"),
-                listOf("Storage optimised", "L", "Big data stores that need fast local disks"),
-                listOf("GPU", "N", "AI training, graphics and video"),
-                listOf("High performance compute", "H", "Simulations that need very fast networking"),
+                listOf("Storage optimised", "L", "Big data stores on fast local disks"),
+                listOf("GPU accelerated", "N", "AI training, graphics and video"),
+                listOf("High performance compute", "H", "Simulations on very fast networks"),
             ),
             B.p("""
-                A Virtual Machine Scale Set is a group of identical VMs that Azure adds to or removes from on a rule,
-                for example when average CPU passes 70 percent. Pair it with a load balancer and spread it over
-                availability zones for higher uptime. Azure Virtual Desktop is different: it streams Windows desktops
-                and apps from VMs in Azure to staff laptops and tablets, and several users can share one VM.
+                A Virtual Machine Scale Set is a group of identical VMs that Azure grows or shrinks on a rule, for
+                example when average processor use passes 70 percent. Azure Virtual Desktop streams Windows desktops
+                from VMs in Azure to staff laptops, like watching a film instead of owning the disc.
             """),
             B.check(
                 "sa-compute-k1", "sa-compute",
@@ -105,22 +99,25 @@ internal object Az305Infra {
             B.p("""
                 A container is an app packed with everything it needs, like a ready meal in a sealed box: it runs
                 the same anywhere. Kubernetes is the open-source system that runs many containers across many
-                machines. Four Azure services can run containers, and the exam loves to compare them.
+                machines, like a kitchen manager deciding which oven heats which box. Microservices are an app split
+                into small services that each do one job. Four Azure services can run containers, and the exam
+                loves to compare them.
             """),
             B.compare("Which container host?",
-                B.card("Container Apps", "Microservices or jobs without running a cluster.", "Built on Kubernetes, but hides it", "Scales on HTTP, queues and events, down to zero", "Revisions for traffic splitting"),
-                B.card("AKS", "You need the Kubernetes API itself.", "Azure Kubernetes Service, managed control plane", "You manage node pools and upgrades", "Most control, most effort"),
-                B.card("Container Instances", "One container, started fast, for a short task.", "ACI: no cluster, no orchestration", "Billed per second while it runs", "No built-in autoscale"),
-                B.card("App Service", "A web app or API, shipped as code or a container.", "Deployment slots and autoscale built in", "Web hosting only", "Simplest for websites"),
+                B.card("Container Apps", "Microservices without running Kubernetes yourself.", "Built on Kubernetes, but hides it", "Grows with demand, down to zero"),
+                B.card("AKS", "You need Kubernetes itself, with all its controls.", "Azure Kubernetes Service: Azure runs the manager, you run the machines", "Most control, most effort"),
+                B.card("Container Instances", "One container, started fast, for a short task.", "ACI: no cluster, billed per second", "Does not grow by itself"),
+                B.card("App Service", "A web app or API, as code or a container.", "Staging slots and autoscale built in", "Simplest for websites"),
             ),
             B.tip("\"Without managing Kubernetes\" or \"scale to zero\" points to Container Apps. \"Access to the Kubernetes API\" points to AKS. \"Simplest way to run a single container\" points to Container Instances."),
             B.h("Serverless: Functions and Logic Apps"),
             B.p("""
-                A trigger is the event that starts a function, such as a new queue message, a timer or an HTTP call.
-                Azure Functions is for developers writing small pieces of code. Logic Apps is for workflows drawn in
-                a designer, joining services through connectors, which are ready-made links to products like Outlook
-                or Salesforce. On the Flex Consumption plan Functions scales to zero and bills per run; the Premium
-                plan keeps instances warm, so there is no cold start, the delay while a sleeping app wakes up.
+                Azure Functions runs small pieces of code. A trigger is the event that starts one, such as a queue
+                message or a timer, like a doorbell that wakes the cook. Logic Apps is for workflows drawn in a
+                designer, joined to products like Outlook through ready-made connectors. The hosting plan decides how
+                a function app runs and is billed. Flex Consumption, the serverless plan for new apps, scales to zero
+                and bills per run; the older Consumption plan is legacy. Premium keeps instances warm, so there is no
+                cold start, the pause while a sleeping app wakes.
             """),
             B.h("Batch, and paying less"),
             B.diagram(
@@ -138,17 +135,15 @@ internal object Az305Infra {
                 aspect = 0.5f,
             ),
             B.p("""
-                Azure Batch runs large parallel work. You give it a pool, a set of VMs it creates and scales; a job;
-                and tasks, the small pieces of work. Batch installs your app on the nodes and schedules the tasks.
-                It costs nothing itself; you pay for the VMs. Work like rendering, risk simulations or video
-                transcoding, where each piece runs alone, is called intrinsically parallel and suits Batch well.
+                Azure Batch runs huge piles of work that split into pieces, like a print shop sharing one big order
+                across many printers. You give it a pool, a set of VMs it creates and grows. A job is the whole
+                order, and tasks are the single pages. Batch costs nothing itself; you pay for the VMs. Rendering,
+                risk simulations and video conversion, where each piece runs on its own, suit it best.
             """),
             B.bullets(
-                "Spot VMs use spare Azure capacity at a large discount, but Azure can take them back with 30 seconds' notice and they have no SLA. Use them for work that can restart, such as Batch tasks and test machines.",
-                "Reservations commit you to a VM size in a region for one or three years in return for a big discount. Use them for steady machines that run all the time.",
-                "A savings plan commits to an hourly spend on compute instead of a size, so it is more flexible.",
+                "Spot VMs are Azure's spare machines at a big discount, like standby airline seats. Azure can take them back with 30 seconds' notice, and they have no SLA, so use them only for work that can restart.",
+                "A reservation commits you to a VM size in a region for one or three years, for a big discount. Use it for machines that run all the time.",
                 "Azure Hybrid Benefit lets you bring Windows Server and SQL Server licences you already own.",
-                "Autoscale and scale to zero cut the bill for traffic that comes and goes.",
             ),
             B.check(
                 "sa-compute-k2", "sa-compute",
@@ -171,12 +166,11 @@ internal object Az305Infra {
                 ),
             ),
             B.worked("""
-                Worked example. Requirements: the Two Tracks public API is three container microservices; traffic
-                is high in Europe's evening and almost nothing at 4 a.m.; the team is small and has no Kubernetes
-                expert. Options: AKS, Container Apps, App Service. AKS gives most control but needs cluster skills
-                and always-on nodes. App Service suits one web app, not several services that talk to each other.
-                Choice: Container Apps, with HTTP scale rules and a minimum of zero replicas. Why: least operations,
-                pays nothing when idle, and still runs standard containers if they later move to AKS.
+                Worked example. Requirements: the Two Tracks API is three container microservices, busy in Europe's
+                evening and idle at 4 a.m., and nobody on the small team knows Kubernetes. Options: AKS, Container
+                Apps, App Service. AKS needs cluster skills and always-on machines; App Service suits one web app.
+                Choice: Container Apps, scaling down to zero copies. Why: least work, nothing to pay when idle, and
+                standard containers can still move to AKS later.
             """),
             B.faded(
                 "sa-compute-f1",
@@ -231,7 +225,7 @@ internal object Az305Infra {
             B.explain(
                 "sa-compute-x1",
                 "Explain how you would choose compute for the Two Tracks API, a nightly photo job and an old reporting server.",
-                "The API is a set of containers with quiet nights and no Kubernetes experts, so Container Apps fits: it hides Kubernetes and can scale to zero. The nightly photo job is many independent tasks, so Azure Batch runs them on a pool, using spot nodes to cut cost because evicted tasks can be retried. The reporting server needs software on the operating system and no code changes, so it moves to a virtual machine, with a reservation because it runs all the time.",
+                "The containerised API has quiet nights and no Kubernetes experts, so Container Apps fits: it hides Kubernetes and can scale to zero. The nightly photo job is many independent tasks, so Azure Batch runs them on spot nodes, since evicted tasks just retry. The reporting server needs software on the operating system, so it moves to a virtual machine with a reservation.",
                 "Container Apps for the containerised API" to listOf("container apps", "containerapp", "scale to zero"),
                 "Batch for many independent tasks" to listOf("azure batch", "batch pool", "batch job", "batch"),
                 "Spot or reservations to cut cost" to listOf("spot", "reservation", "reserved"),
@@ -305,25 +299,25 @@ internal object Az305Infra {
             ),
             B.h("Messages or events?"),
             B.p("""
-                A message is data someone expects to be handled, like a parcel with a delivery note: the sender
-                cares what happens to it. An event is a short notice that something happened, like a doorbell: the
-                sender does not care who hears it. A stream is a long run of events in time order, like a till roll.
-                Azure has one main service for each, plus a very simple queue.
+                A message is a parcel with a delivery note: the sender cares that it is handled. An event is a
+                doorbell: a short notice that something happened, whoever hears it. A stream is a long run of events
+                in time order, like a till roll. Azure has one service for each, plus a very simple queue.
             """),
             B.table(
                 listOf("Service", "Carries", "Strengths", "Pick it when you hear"),
-                listOf("Service Bus", "Messages", "Queues and topics, FIFO with sessions, transactions, duplicate detection, dead-lettering", "Orders, payments, in order, exactly once, enterprise"),
-                listOf("Event Grid", "Discrete events", "Pushes to subscribers, filters, retries; Azure services publish to it", "React when a blob is created or a resource changes, serverless"),
-                listOf("Event Hubs", "Event streams", "Millions of events per second, partitions, replay, Capture to storage, Kafka endpoint", "Telemetry, clickstream, IoT, real-time analytics"),
-                listOf("Storage queues", "Simple messages", "Cheap, very large backlogs, messages up to 64 KB", "Simple work queue, huge backlog, lowest cost"),
+                listOf("Service Bus", "Messages", "Keeps order, drops duplicates, parks failing messages", "Orders, payments, in order, exactly once"),
+                listOf("Event Grid", "Single events", "Pushes each event to whoever subscribed, with filters", "React when a file arrives or a resource changes"),
+                listOf("Event Hubs", "Event streams", "Millions of events a second, kept so they can be read again", "Telemetry, clicks, sensors, live analytics"),
+                listOf("Storage queues", "Simple messages", "Cheap; millions of messages up to 64 KB each", "Simple work queue, huge backlog, lowest cost"),
             ),
             B.p("""
-                A few terms in that table. FIFO means first in, first out: the order is kept. Dead-lettering moves a
-                message that keeps failing to a side queue for a person to inspect, instead of losing it. A topic is
-                a queue with several subscriptions, so one message reaches several readers, which is called publish
-                and subscribe. A partition is one lane of an event hub; order is only kept inside a lane.
+                A few ideas behind that table. FIFO, first in, first out, is a queue at the post office: served in
+                the order you arrived. Dead-lettering moves a message that keeps failing to a side shelf, like the
+                lost-property office, so a person can look at it. A topic is a queue with several subscribers, so one
+                message reaches several readers. A partition is one lane of an event hub; order is kept only inside
+                a lane.
             """),
-            B.tip("\"Ordered\", \"transaction\" or \"duplicate detection\" points to Service Bus. \"React to a change in an Azure resource\" points to Event Grid. \"Millions of telemetry events\" points to Event Hubs. \"Over 80 GB of messages, simplest and cheapest\" points to Storage queues."),
+            B.tip("\"Ordered\", \"transaction\" or \"duplicate detection\" points to Service Bus. \"React to a change in an Azure resource\" points to Event Grid. \"Millions of telemetry events\" points to Event Hubs. \"Huge backlog, simplest and cheapest\" points to Storage queues."),
             B.check(
                 "sa-app-architecture-k1", "sa-app-architecture",
                 "Every phone sends heart-rate readings each second; analysts need to replay the last day of data. Which service ingests it?",
@@ -337,30 +331,28 @@ internal object Az305Infra {
             B.h("Event-driven designs"),
             B.p("""
                 In an event-driven design, parts react to events instead of being called. When a user uploads a
-                track to Blob Storage, Storage publishes a BlobCreated event to Event Grid, which pushes it to a
-                function that makes a preview. Nobody polls, which means asking again and again whether anything is
-                new. The upload code does not even know the preview exists, so either side can change alone.
+                track, Blob Storage tells Event Grid, which pushes the news to a function that makes a preview.
+                Nobody polls, asking again and again whether anything is new, like a child on a car trip.
             """),
             B.h("API integration: API Management"),
             B.p("""
-                API Management, often called APIM, is a gateway: one front door in front of all your APIs. Callers
-                hit the gateway, and policies, which are rules you set without code, run on every call. A developer
-                portal lets partners read docs and get subscription keys.
+                API Management, often called APIM, is a gateway: one reception desk in front of all your APIs. Every
+                caller checks in there first. Policies are the desk's rules, set without code, and they run on every
+                call. A developer portal is the brochure rack, where partners read the docs and get their keys.
             """),
             B.bullets(
-                "Rate limits and quotas stop one caller using everything.",
-                "Validate tokens from Microsoft Entra ID before a request reaches the backend.",
-                "Transform requests and responses, for example XML to JSON, and cache responses.",
-                "Hide where backends live, so you can move or version them without breaking callers.",
-                "Tiers: Consumption is serverless and pay per call; Developer is for testing with no SLA; Premium adds multi-region and full network isolation; the v2 tiers deploy faster.",
+                "Rate limits stop one caller using everything, like a limit of two cakes per customer.",
+                "It can check each caller's sign-in token from Microsoft Entra ID before the request goes further.",
+                "Callers only know the desk, so the APIs behind it can move or change without breaking them.",
+                "Tiers: Consumption is serverless and billed per call; Developer is for testing, with no SLA; Basic and Standard, and their newer v2 versions, serve production; classic Premium is the one that spans several regions.",
             ),
             B.h("Caching with Redis"),
             B.p("""
-                A cache is a small, very fast memory that keeps answers you will need again, like keeping today's
-                timetable on the fridge instead of phoning the station. Redis is an in-memory data store. Azure
-                Managed Redis is the current Redis service; the older Azure Cache for Redis is being retired, so new
-                designs use Managed Redis. The usual pattern is cache-aside: look in the cache first; on a miss, read
-                the database, then store the result with an expiry time.
+                A cache is a small, very fast memory for answers you will need again, like today's timetable on the
+                fridge instead of phoning the station. Redis is a popular store that keeps data in memory. Azure
+                Managed Redis is Azure's current Redis service; the older Azure Cache for Redis is being retired, so
+                new designs use Managed Redis. The usual pattern is cache-aside: look on the fridge first; on a miss,
+                phone the station, then pin the answer up with an expiry time.
             """),
             B.check(
                 "sa-app-architecture-k2", "sa-app-architecture",
@@ -375,16 +367,15 @@ internal object Az305Infra {
             B.h("Configuration: App Configuration and Key Vault"),
             B.compare("Where does a setting live?",
                 B.card("App Configuration", "Ordinary settings and feature flags for many apps.", "Key-values with labels such as dev and prod", "Feature flags turn features on without a deploy", "Can hold a pointer to a Key Vault secret"),
-                B.card("Key Vault", "Anything secret: keys, passwords, certificates.", "Access by managed identity and RBAC", "Versions, expiry and soft delete", "Never store a secret's value in App Configuration"),
+                B.card("Key Vault", "Anything secret: keys, passwords, certificates.", "A safe that apps open with their own identity", "Versions, expiry and soft delete", "Never store a secret's value in App Configuration"),
             ),
             B.h("Automated deployment"),
             B.p("""
-                Infrastructure as code means the Azure resources are described in files kept with the app, so every
-                environment is built the same way. ARM templates are the JSON format Azure understands; Bicep is a
-                shorter language that compiles to ARM. A pipeline is the automatic line that tests and deploys each
-                change. GitHub Actions runs pipelines from a GitHub repository; Azure Pipelines, part of Azure DevOps,
-                does the same for teams already on Azure DevOps. Both can sign in to Azure with workload identity
-                federation, so no secret is stored in the pipeline.
+                Infrastructure as code means your Azure resources are written down in files kept with the app, like a
+                recipe card, so every environment is cooked the same way. Bicep is the short language for those
+                files; Azure turns it into ARM templates, its own JSON format. A pipeline is the automatic line that
+                tests and deploys each change. GitHub Actions runs pipelines from a GitHub repository, and Azure
+                Pipelines does the same for teams on Azure DevOps.
             """),
             B.code("bicep", """
                 resource plan 'Microsoft.Web/serverfarms@2023-12-01' = {
@@ -408,9 +399,9 @@ internal object Az305Infra {
                 aspect = 0.5f,
             ),
             B.p("""
-                Blue-green deployment keeps two copies: the live one and the new one. You test the new copy, then
-                move traffic to it, and can move back in seconds. In App Service, deployment slots do this on the
-                Standard tier and above. In Container Apps, revisions with traffic splitting do the same.
+                Blue-green deployment keeps two copies, like two stages in a theatre: the live show and the next one.
+                You test the new copy, swap the audience over, and can swap back in seconds. In App Service,
+                deployment slots do this on the Standard tier and above; in Container Apps, revisions do it.
             """),
             B.check(
                 "sa-app-architecture-k3", "sa-app-architecture",
@@ -423,13 +414,12 @@ internal object Az305Infra {
                 ),
             ),
             B.worked("""
-                Worked example. Requirement: when a user's subscription is paid, the billing service must create
-                an invoice exactly once, in order per user, and nothing may be lost if billing is down for an hour.
-                Options: Event Grid, Event Hubs, Service Bus, Storage queues. Event Grid pushes notices but has no
-                ordering or duplicate detection. Event Hubs is for streams. Storage queues have no sessions or
-                duplicate detection. Choice: a Service Bus queue with sessions keyed on the user and duplicate
-                detection on, read by a Functions worker. Why: messages wait safely while billing is down,
-                sessions keep each user's order, and failed messages go to the dead-letter queue.
+                Worked example. Requirement: each paid subscription must create one invoice, in order per user, and
+                nothing may be lost if billing is down for an hour. Options: Event Grid, Event Hubs, Service Bus,
+                Storage queues. Event Grid and Storage queues neither keep order nor drop duplicates; Event Hubs is
+                for streams. Choice: a Service Bus queue with sessions, groups that keep one user's messages in
+                order, and duplicate detection on. Why: messages wait safely, order holds, and failures go to the
+                dead-letter queue.
             """),
             B.faded(
                 "sa-app-architecture-f1",

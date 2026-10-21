@@ -32,12 +32,11 @@ internal object Az305Infra3 {
             B.plain("""
                 Picture a busy restaurant. A host at the door sends each guest to a free table: that is load
                 balancing, spreading requests over several servers so none is swamped. A bouncer checks who may
-                come in at all: that is network security. And the map of corridors decides which way each tray
-                travels: that is routing. This topic is about choosing the right host, the right bouncers and
-                the right map for an Azure app.
+                come in at all: that is network security. The map of corridors decides which way each tray
+                travels: that is routing.
             """),
             B.diagram(
-                caption = "Ask two questions: is it web traffic, and does it span regions? The answers point to one of four load balancers.",
+                caption = "Ask two questions: is it web traffic, and does it span regions? The answers point to one of four load balancers, a short form of the Architecture Center's decision tree.",
                 nodes = listOf(
                     DNode("web", "Web traffic (HTTP/S)?", 0.5f, 0.1f, w = 0.5f, h = 0.12f, tone = 1),
                     DNode("gy", "Global, many regions?", 0.27f, 0.38f, w = 0.44f, h = 0.12f, tone = 2),
@@ -67,16 +66,17 @@ internal object Az305Infra3 {
             """),
             B.table(
                 listOf("Service", "Layer and reach", "Listen for"),
-                listOf("Azure Load Balancer", "Layer 4, regional (a cross-region tier exists)", "TCP or UDP, any protocol, very low latency, VMs in one region"),
-                listOf("Application Gateway", "Layer 7, regional", "URL path routing, TLS offload, WAF, one region"),
-                listOf("Azure Front Door", "Layer 7, global, with CDN caching", "Users worldwide, fast failover, caching, WAF at the edge"),
-                listOf("Traffic Manager", "DNS, global", "Any protocol across regions, or on-premises endpoints too"),
+                listOf("Azure Load Balancer", "Layer 4, regional; a cross-region version spans regions", "TCP or UDP, any protocol, very low delay, VMs in one region"),
+                listOf("Application Gateway", "Layer 7, regional", "Routing by URL path, decrypting HTTPS, a WAF, one region"),
+                listOf("Azure Front Door", "Layer 7, global, with caching near users", "Users worldwide, fast failover, caching, a WAF at the edge"),
+                listOf("Traffic Manager", "DNS, global", "Any protocol across regions, or office endpoints too"),
             ),
             B.p("""
                 Traffic Manager never touches your traffic: it only answers the DNS question, the phone book
-                lookup that turns a name into an address. Because devices cache those answers, failover is
-                slower than with Front Door. TLS offload means the balancer decrypts HTTPS so your servers do not
-                have to.
+                lookup that turns a name into an address. Devices remember those answers for a while, so failover
+                is slower than with Front Door. Decrypting HTTPS at the balancer, called TLS offload, saves your
+                servers that work. A WAF, web application firewall, is a guard that reads each web request and
+                stops known attacks.
             """),
             B.tip("\"Global HTTP with caching or acceleration\" points to Front Door. \"Path-based routing inside one region\" points to Application Gateway. \"Non-HTTP across regions\" points to Traffic Manager. \"TCP or UDP in one region\" points to Load Balancer."),
             B.check(
@@ -91,20 +91,23 @@ internal object Az305Infra3 {
             ),
             B.h("Security: who may pass"),
             B.p("""
-                A network security group, NSG, is a list of allow and deny rules on a subnet or a network card.
-                Each rule names a source, a destination, a port and a protocol, and the lowest priority number
-                wins. An application security group, ASG, is a name tag for a set of VMs, such as "api-servers",
-                so a rule can say "web servers may reach api-servers on 443" without listing IP addresses.
+                A network security group, NSG, is a guest list of allow and deny rules on a subnet or a network card.
+                Each rule names who is calling, who is called, a port (the door number on a machine) and a protocol.
+                Rules are checked in order, lowest number first. An application security group, ASG, is a name tag
+                for a set of VMs, such as "api-servers", so a rule can say "web servers may reach api-servers on
+                443" without listing addresses.
             """),
             B.compare("NSG, Azure Firewall or WAF?",
-                B.card("NSG", "Free, basic port and IP filtering on every subnet.", "Layers 3 and 4: IPs, ports, protocols", "Attached to subnets or network cards", "No inspection of content, no central logging hub"),
-                B.card("Azure Firewall", "Central, inspected control of traffic between networks and the internet.", "Managed, stateful firewall in a hub", "Filters by domain name (FQDN) and threat intelligence", "Premium adds TLS inspection and intrusion detection"),
-                B.card("WAF", "A public web app must be shielded from attacks such as SQL injection.", "Reads HTTP requests at layer 7", "Runs on Application Gateway or Front Door", "Managed rule sets for common web attacks"),
+                B.card("NSG", "Free, basic filtering by address and port on every subnet.", "Sees only addresses, ports and protocols", "Attached to subnets or network cards", "Never reads what is inside the traffic"),
+                B.card("Azure Firewall", "One central checkpoint for traffic between networks and the internet.", "A managed firewall in the hub", "Can allow or block by domain name, such as *.twotracks.app", "Premium can also look inside encrypted traffic"),
+                B.card("WAF", "A public web app must be shielded from attacks such as SQL injection.", "Reads each web request at layer 7", "Runs on Application Gateway or Front Door", "Ready-made rules for common web attacks"),
             ),
             B.bullets(
-                "DDoS Protection: a DDoS attack floods you with fake traffic. Basic infrastructure protection is free and always on; DDoS Network Protection covers a whole virtual network and adds rapid-response help and cost protection; DDoS IP Protection is priced per public IP.",
-                "Azure Bastion: a managed jump box. Admins open RDP or SSH in the browser over TLS, so VMs need no public IP and port 3389 or 22 is never open to the internet.",
-                "Private endpoint: gives a PaaS service, such as a storage account or SQL database, a private IP inside your virtual network, so you can switch its public access off.",
+                "A DDoS attack floods you with fake traffic, like a crowd blocking a shop door. Azure's basic infrastructure protection is free and always on.",
+                "DDoS Network Protection covers the public addresses in a virtual network, priced per 100 addresses, and adds expert help during an attack and cost protection.",
+                "DDoS IP Protection covers single public addresses, priced per address, without those extras.",
+                "Azure Bastion is a managed jump box, a guarded side door for admins. They open RDP or SSH, the remote-control screens for Windows and Linux, in the browser, so VMs need no public address.",
+                "A private endpoint gives a PaaS service, such as a storage account, a private address inside your virtual network, so you can switch its public access off.",
             ),
             B.check(
                 "$T-k2", T,
@@ -118,9 +121,9 @@ internal object Az305Infra3 {
             ),
             B.h("Performance"),
             B.bullets(
-                "Accelerated networking lets a VM's network card skip the host's software switch, which lowers latency and jitter and frees CPU. It is a free setting on supported VM sizes.",
-                "A proximity placement group keeps VMs physically close in one datacenter, for chatty tiers that need the lowest latency between them.",
-                "Front Door's edge locations and caching bring content closer to users far from your region.",
+                "Accelerated networking lets a VM's network card skip the host's software switch, like an express lane past the checkout. It lowers delay and its wobble (jitter) and frees processor time, on supported VM sizes.",
+                "A proximity placement group keeps VMs physically close in one datacenter, like seating a chatty team at one desk, for the lowest delay between them.",
+                "Front Door's caching keeps copies of content in places near users far from your region.",
             ),
             B.h("Routing: user-defined routes and forced tunnelling"),
             B.diagram(
@@ -142,11 +145,11 @@ internal object Az305Infra3 {
                 aspect = 0.7f,
             ),
             B.p("""
-                Azure routes traffic for you with system routes. A user-defined route, UDR, overrides them: you
-                put routes in a route table and attach it to a subnet. The common one sends 0.0.0.0/0, meaning
-                "everything else", to the firewall's private IP with the next hop type Virtual appliance. Forced
-                tunnelling goes further and sends internet-bound traffic back to on-premises, so the company's
-                own firewall can inspect it before it leaves.
+                Azure routes traffic for you with system routes, like the default signposts in a building. A
+                user-defined route, UDR, is your own signpost that overrides them: you put routes in a route table
+                and attach it to a subnet. The common one sends 0.0.0.0/0, meaning "everything else", to the
+                firewall's private address, with the next hop type Virtual appliance. Forced tunnelling goes further:
+                internet-bound traffic goes back to the office first, so the company's own firewall checks it.
             """),
             B.check(
                 "$T-k3", T,
@@ -161,9 +164,9 @@ internal object Az305Infra3 {
             B.worked("""
                 Worked example. Requirement: the Two Tracks web API runs on VMs in two regions, users are in
                 Europe and Australia, and they want caching and a WAF. Step 1: it is HTTPS, so layer 7. Step 2:
-                it spans regions, so global. Step 3: caching points to a CDN. Choice: Front Door with a WAF
-                policy in front of each region. Inside each region the VMs sit behind a Load Balancer, because
-                the decision tree pairs Front Door with Load Balancer for VMs.
+                it spans regions, so global. Step 3: caching points to Front Door. Choice: Front Door with a WAF
+                policy. Inside each region the VMs sit behind a Load Balancer, the pairing the Architecture Center's
+                decision tree gives for VMs.
             """),
             B.faded(
                 "$T-f1",
@@ -175,7 +178,7 @@ internal object Az305Infra3 {
                 ),
                 blank = 2,
                 answers = listOf("load balancer", "loadbalancer", "azure load balancer"),
-                note = "Non-web and one region is the Load Balancer branch; Application Gateway and Front Door only speak web protocols.",
+                note = "Non-web and one region is the Load Balancer branch; Front Door only speaks web protocols, and Application Gateway has no UDP.",
             ),
             B.steps("Do it for real",
                 "az network asg create -g tt-rg -n tt-api-asg" to "An application security group to tag the API VMs.",
@@ -448,7 +451,7 @@ internal object Az305Infra3 {
                     listOf("Azure Load Balancer", "Application Gateway", "Azure Front Door"), setOf(0),
                     "Non-web traffic in one region is the Load Balancer branch of the decision tree: layer 4 and very low latency.",
                     whyWrong = mapOf(
-                        1 to "Application Gateway is built for HTTP(S); a custom game protocol needs plain layer 4.",
+                        1 to "Application Gateway is built for web traffic; its TCP proxy ends and reopens every connection, while Load Balancer passes packets straight through.",
                         2 to "Front Door handles only web traffic and is global, not regional.",
                     ),
                 ),

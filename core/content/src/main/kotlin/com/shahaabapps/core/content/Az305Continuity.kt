@@ -27,7 +27,8 @@ internal object Az305Continuity {
                 Backup is a copy you keep so you can go back after a mistake, like a photo of your notes each night.
                 Disaster recovery, DR for short, is the plan for carrying on when a whole site is gone, like a spare
                 office you can move into. Two numbers set the design. RPO, the recovery point objective, is how much
-                recent data you can afford to lose. RTO, the recovery time objective, is how long you can be down.
+                recent work you can afford to lose: if the last photo is from last night, you lose today. RTO, the
+                recovery time objective, is how long the shop may stay shut before it opens again.
             """),
             B.diagram(
                 caption = "RPO looks back from the disaster to the last good copy; RTO looks forward to the moment the app runs again.",
@@ -47,30 +48,31 @@ internal object Az305Continuity {
             B.h("Reading the requirement"),
             B.table(
                 listOf("The question says", "It is about", "It points to"),
-                listOf("Restore yesterday's file, a deleted row", "Mistakes and corruption", "Backup with point-in-time restore"),
-                listOf("Keep monthly copies for seven years", "Compliance retention", "Long-term retention in a backup policy"),
-                listOf("Survive a region outage, RPO in minutes", "Disaster recovery", "Replication: Site Recovery, geo-replication"),
-                listOf("Survive a region outage, hours are fine", "Cheap disaster recovery", "Geo-redundant backup and restore elsewhere"),
+                listOf("Restore yesterday's file, a deleted row", "Mistakes and corruption", "A backup you can rewind to any moment"),
+                listOf("Keep monthly copies for seven years", "Compliance retention", "Long-term copies kept by a backup rule"),
+                listOf("Survive a region outage, RPO in minutes", "Disaster recovery", "A live copy in another region"),
+                listOf("Survive a region outage, hours are fine", "Cheap disaster recovery", "Backups copied to another region"),
             ),
-            B.tip("Replication copies mistakes too: a deleted table is deleted in the replica seconds later. A design that needs both \"survive a region\" and \"undo a mistake\" needs replication and backup."),
+            B.tip("Replication means keeping a live copy that follows every change, like a mirror. A mirror copies mistakes too: a deleted table is gone from the copy seconds later. So \"survive a region\" plus \"undo a mistake\" needs both replication and backup."),
             B.h("Azure Backup and its two vaults"),
             B.p("""
                 Azure Backup is the managed backup service: you choose what to protect and a policy, and it takes the
-                copies. Copies live in a vault, a locked store for backups that sits apart from your own resources.
-                A backup policy is the rule for the vault: how often to copy, and how long to keep each copy (daily,
-                weekly, monthly and yearly points).
+                copies. Copies live in a vault, a locked store for backups that sits apart from your own resources,
+                like a safe-deposit box at the bank. A backup policy is the vault's rule: how often to copy, and how
+                long to keep each copy.
             """),
             B.compare("Which vault?",
-                B.card("Recovery Services vault", "VMs, Azure Files, SQL or SAP HANA inside a VM, on-premises servers, Site Recovery.", "The older, broad vault", "Holds the MARS agent backups of office machines", "Site Recovery is managed from here too"),
-                B.card("Backup vault", "Blobs, managed disks, PostgreSQL, AKS and newer workloads.", "The newer vault for newer workloads", "Blob vaulted backup lives here", "Same idea: policies, RBAC, redundancy"),
+                B.card("Recovery Services vault", "VMs, Azure Files, SQL Server inside a VM, and office servers.", "The older, broad vault", "Takes backups of office machines through the MARS agent", "Site Recovery is managed from here too"),
+                B.card("Backup vault", "Blobs, managed disks (a VM's hard drives), PostgreSQL and Kubernetes clusters.", "The newer vault for newer workloads", "Blob vaulted backup lives here", "Same ideas: policies and redundancy"),
             ),
             B.bullets(
-                "VM backup takes a snapshot of the disks, keeps it for fast restore, then copies it to the vault.",
-                "Azure Files backup uses share snapshots, and can also copy them to the vault.",
-                "Blob backup has two kinds: operational (continuous, kept in the storage account, for quick undo) and vaulted (copies in the vault, safe even if the account is deleted).",
-                "On-premises: the MARS agent backs up files and folders straight to Azure, which is the hybrid answer.",
-                "Choose the vault's storage redundancy (LRS, ZRS or GRS); GRS with Cross Region Restore lets you restore in the paired region.",
-                "Soft delete keeps deleted backups for 14 days, so an attacker cannot wipe them at once.",
+                "VM backup first takes a snapshot, a point-in-time photo of the disks, keeps it for a fast restore, then copies it to the vault.",
+                "Azure Files backup keeps share snapshots in the storage account; its vaulted tier also copies them into the vault, so they survive if the account is lost.",
+                "Blob backup comes in two kinds. Operational backup stays in the storage account, for a quick undo.",
+                "Vaulted blob backup copies the blobs into a Backup vault, so they survive even if the storage account is deleted.",
+                "For office servers, the MARS agent (Microsoft Azure Recovery Services agent), a small program on each Windows server, sends files and folders straight to the vault.",
+                "A geo-redundant vault also copies backups to the paired region; Cross Region Restore lets you restore there whenever you choose.",
+                "Soft delete keeps deleted backups for 14 days, like a recycle bin, so an attacker cannot wipe them at once.",
             ),
             B.check(
                 "sa-backup-dr-k1", "sa-backup-dr",
@@ -84,20 +86,21 @@ internal object Az305Continuity {
             ),
             B.h("Databases: built-in backups"),
             B.p("""
-                Azure SQL Database backs itself up with no set-up: full, differential and transaction log backups,
-                the log every 5 to 10 minutes. PITR, point-in-time restore, rebuilds the database as it was at any
-                moment in the retention window, 1 to 35 days (7 by default). It always restores as a new database.
-                Long-term retention (LTR) keeps weekly, monthly or yearly full backups for up to 10 years. Geo-restore
-                builds a new database in any region from geo-redundant backups; it is cheap, but data loss and
-                downtime run to minutes or hours.
+                Azure SQL Database backs itself up with no set-up, saving its log of changes about every 10 minutes.
+                PITR, point-in-time restore, is a rewind button: it rebuilds the database as it was at any moment in
+                the last 1 to 35 days (7 by default), always as a new database. LTR, long-term retention, is the
+                archive box in the loft: weekly, monthly or yearly copies kept for up to 10 years. Geo-restore builds
+                a new database in another region from backups copied there. It is cheap, but you lose and wait
+                minutes to hours.
             """),
             B.h("Site Recovery: a spare site for whole machines"),
             B.p("""
-                Azure Site Recovery keeps a running copy of your machines somewhere else by replicating their disks all
-                the time. It covers Azure VMs between regions, and on-premises VMware, Hyper-V and physical servers to
-                Azure. When disaster strikes you fail over: Azure builds the VMs from the copy. Later you fail back.
-                A test failover builds the copies in an isolated network while replication carries on, so you can
-                prove your RTO without touching production. A recovery plan sets the order: database first, then the API.
+                Azure Site Recovery keeps a copy of your machines somewhere else by copying every change to their
+                disks as it happens. It covers Azure VMs between regions, and office VMs and physical servers into
+                Azure. When disaster strikes you fail over: Azure builds the VMs from the copy, like moving into the
+                spare office. Later you fail back home. A test failover is a fire drill: it builds the copies in a
+                sealed-off network while the real ones carry on. A recovery plan sets the order, such as the database
+                first, then the API.
             """),
             B.diagram(
                 caption = "Site Recovery replicates machines to a second site and is managed from a Recovery Services vault; blobs and disks back up to a Backup vault.",
@@ -132,7 +135,7 @@ internal object Az305Continuity {
                 listOf("Backup, restore in place", "Hours (since last backup)", "Hours", "Low"),
                 listOf("Geo-restore of SQL", "Minutes to hours", "Minutes to hours", "Lowest"),
                 listOf("Site Recovery for VMs", "Seconds to minutes", "Minutes", "Medium"),
-                listOf("SQL failover group", "Seconds", "Under a minute or so", "Higher: a second database"),
+                listOf("SQL failover group (a standby database in another region)", "Seconds: changes not yet copied", "Typically under 60 seconds", "Higher: a second database"),
             ),
             B.check(
                 "sa-backup-dr-k3", "sa-backup-dr",
@@ -236,7 +239,7 @@ internal object Az305Continuity {
             B.ref("Failover groups overview for Azure SQL Database", LEARN + "azure/azure-sql/database/failover-group-sql-db"),
             B.ref("Consistency levels in Azure Cosmos DB", LEARN + "azure/cosmos-db/consistency-levels"),
             B.ref("Azure Storage redundancy", LEARN + "azure/storage/common/storage-redundancy"),
-            B.ref("Learn module: Design for high availability", LEARN + "training/modules/design-solution-for-high-availability/"),
+            B.ref("Learn module: Describe high availability and disaster recovery strategies", LEARN + "training/modules/describe-high-availability-disaster-recovery-strategies/"),
         ),
         blocks = listOf(
             B.warmup(
@@ -278,18 +281,20 @@ internal object Az305Continuity {
                 listOf("Two regions", "Different parts of the world", "A whole region going down", "Your own design"),
             ),
             B.bullets(
-                "An availability set spreads VMs over fault domains (racks with their own power and network) and update domains (groups patched one at a time).",
-                "An availability zone is one or more datacenters with their own power, cooling and network; a zone region has at least three.",
-                "Microsoft now recommends zones over availability sets wherever the region has them.",
-                "A region pair is two regions Azure links for geo-redundant storage and staggered updates; some newer regions have no pair.",
-                "A single VM on Premium SSD has a 99.9% SLA: no redundancy at all, so a tempting trap.",
+                "An availability set spreads VMs over fault domains, racks with their own power and network switch.",
+                "It also spreads them over update domains, groups that Azure patches one at a time.",
+                "An availability zone is one or more datacenters with their own power, cooling and network; a zone region has three.",
+                "Microsoft recommends zones over availability sets wherever the region has them.",
+                "A region pair is two regions Azure links, for example for geo-redundant storage; some newer regions have no pair.",
+                "A single VM on Premium SSD has a 99.9% SLA, with no second copy at all: a tempting trap.",
             ),
             B.h("SLAs and the composite SLA"),
             B.p("""
-                An SLA, service level agreement, is Microsoft's uptime promise for one service, such as 99.99%. When a
-                request passes through several services in a row, all must be up, so you multiply. App Service at
-                99.95% in front of SQL Database at 99.99% gives 0.9995 x 0.9999, about 99.94%, lower than either.
-                Running two copies side by side does the opposite: both must fail together, which lifts the figure.
+                An SLA, service level agreement, is Microsoft's uptime promise for one service, like a train company
+                promising 9,999 trains in 10,000 run. When a request passes through several services in a row, all
+                must be up, so you multiply. App Service at 99.95% in front of SQL Database at 99.99% gives 0.9995 x
+                0.9999, about 99.94%, lower than either. Two copies side by side do the opposite: both must fail
+                together, which lifts the figure.
             """),
             B.check(
                 "sa-high-availability-k1", "sa-high-availability",
@@ -303,21 +308,22 @@ internal object Az305Continuity {
             ),
             B.h("Compute that survives a zone"),
             B.p("""
-                A virtual machine scale set runs many identical VMs as one group and can add or remove them as load
-                changes. Spread it over zones 1, 2 and 3 and put a zone-redundant Standard Load Balancer or
-                Application Gateway v2 in front: if a zone dies, the others carry on. For two regions, Azure Front Door
-                (web traffic) or Traffic Manager (DNS) sends users to the region that is healthy. App Service, Container
-                Apps and AKS can be zone-redundant too.
+                A virtual machine scale set runs many identical VMs as one group, adding or removing them as load
+                changes. Spread it over zones 1, 2 and 3. In front, put a zone-redundant load balancer, a traffic
+                spreader that itself lives in all three zones: if a zone dies, the others carry on. For two regions,
+                a global entry point such as Azure Front Door sends users to the healthy region; the networks topic
+                compares these. Platform services such as App Service have a zone-redundant switch too.
             """),
             B.h("Relational data"),
             B.p("""
-                Azure SQL Database already keeps spare copies inside a region. Turn on zone redundancy and the copies
-                sit in different zones; for Business Critical and Premium the SLA rises to 99.995%, and Business
-                Critical also gives a free readable replica. For a region failing, you add a copy in another region.
+                Azure SQL Database already keeps spare copies inside one datacenter. Turn on zone redundancy and the
+                copies sit in different zones. On Business Critical, the fastest tier, that lifts the SLA to 99.995%,
+                and one copy can also serve reports for free. For a whole region failing, you add a copy in another
+                region, in one of two ways.
             """),
             B.compare("Region copies for Azure SQL",
-                B.card("Active geo-replication", "One database, extra readable copies, you fail over by hand.", "Up to four secondaries, even in the same region", "Connection string changes after failover", "SQL Database only"),
-                B.card("Failover group", "Several databases fail over together and the app keeps one connection string.", "Read-write and read-only listener names stay the same", "One secondary server in another region", "Also works for SQL Managed Instance"),
+                B.card("Active geo-replication", "One database, extra readable copies, you fail over by hand.", "Up to four secondaries, even in the same region", "The app must switch to a new server name after failover", "SQL Database only"),
+                B.card("Failover group", "Several databases fail over together and the app keeps one connection string.", "A listener is a fixed name, like a forwarding phone number, that always points at the live copy", "The secondary server is in another region", "Also works for SQL Managed Instance"),
             ),
             B.check(
                 "sa-high-availability-k2", "sa-high-availability",
@@ -331,9 +337,10 @@ internal object Az305Continuity {
             ),
             B.h("Semi-structured and unstructured data"),
             B.p("""
-                Azure Cosmos DB can copy data to as many regions as you add. With multi-region writes every region
-                accepts writes and the SLA reaches 99.999%. The price is consistency, how fresh a read is promised to
-                be. Strong means every read sees the latest write, but it cannot be used with multi-region writes.
+                Azure Cosmos DB can copy data to as many regions as you add, like a notice board copied to several
+                offices. With multi-region writes every office may pin up notes, and the SLA reaches 99.999%. The
+                price is consistency, how fresh a read is promised to be. Strong means every read sees the latest
+                write; it cannot be used with multi-region writes, because every region would have to agree first.
                 Session, the default, means a user always sees their own writes. Eventual is fastest and loosest.
             """),
             B.table(

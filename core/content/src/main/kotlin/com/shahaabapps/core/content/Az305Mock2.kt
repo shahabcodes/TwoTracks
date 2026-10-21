@@ -125,7 +125,7 @@ internal object Az305Mock2 {
             ),
         ),
         // Business continuity
-        B.q("sa-mk66", "sa-backup-dr", "Five related Azure SQL databases must fail over to another region together, and the app's connection string must not change after a failover. What do you recommend?", listOf("A failover group containing the five databases", "Active geo-replication set up separately on each database", "Long-term retention backups", "Zone redundancy on each database"), setOf(0), "A failover group fails a set of databases over to a secondary region together. It gives you listener endpoints whose names stay the same, so the app keeps its connection string after a failover.",
+        B.q("sa-mk66", "sa-high-availability", "Five related Azure SQL databases must fail over to another region together, and the app's connection string must not change after a failover. What do you recommend?", listOf("A failover group containing the five databases", "Active geo-replication set up separately on each database", "Long-term retention backups", "Zone redundancy on each database"), setOf(0), "A failover group fails a set of databases over to a secondary region together. It gives you listener endpoints whose names stay the same, so the app keeps its connection string after a failover.",
             scenario = "Driftmoor Logistics' routing app uses five databases that must always be in the same region. After a regional outage last year, staff spent hours editing connection strings.",
             whyWrong = mapOf(
                 1 to "Separate geo-replicas fail over one by one, and the app must switch to new server names.",
