@@ -28,7 +28,7 @@ class EpisodeAssetsTest {
     @Test
     fun `no audio ships in the app`() {
         val audio = dir.listFiles { f -> f.extension.lowercase() in setOf("ogg", "opus", "mp3", "m4a", "wav") }.orEmpty().map { it.name }
-        assertTrue("audio would be public in the APK: $audio; it belongs in Firebase Storage (tools/podcast/upload.sh)", audio.isEmpty())
+        assertTrue("audio would be public in the APK: $audio; it belongs in Firebase Storage (tools/podcast/upload.ps1)", audio.isEmpty())
     }
 
     @Test

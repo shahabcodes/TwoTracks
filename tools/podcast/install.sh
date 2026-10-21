@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Puts rendered episodes into the app. The app ships each episode's timing
 # (its transcript and board work offline from the start) but never its audio:
-# the sound is staged in upload/ for upload.sh, which puts it in the couple
+# the sound is staged in upload/ for upload.ps1, which puts it in the couple
 # space's folder in Firebase Storage, readable only by that space's members.
 #
 # Run check.py first and listen to anything it flags; EpisodeAssetsTest holds
@@ -32,4 +32,4 @@ for t in "${topics[@]}"; do
   cp "$out/$t.json" "$assets/$t.json"
   cp "$out/$t.ogg" "$upload/$t.ogg"
 done
-echo "Installed ${#topics[@]} episode(s): timings in the app ($(ls "$assets"/*.json | wc -l) in all), audio staged in upload/ ($(du -sh "$upload" | cut -f1)). Run upload.sh next."
+echo "Installed ${#topics[@]} episode(s): timings in the app ($(ls "$assets"/*.json | wc -l) in all), audio staged in upload/ ($(du -sh "$upload" | cut -f1)). Run upload.ps1 next."

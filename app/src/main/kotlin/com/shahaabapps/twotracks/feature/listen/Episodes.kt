@@ -18,7 +18,7 @@ import javax.inject.Singleton
  * Storage on the first play.
  *
  * tools/podcast/install.sh puts a render's timing here and stages its audio
- * for tools/podcast/upload.sh.
+ * for tools/podcast/upload.ps1.
  */
 @Singleton
 class Episodes @Inject constructor(@ApplicationContext private val context: Context) {

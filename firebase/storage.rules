@@ -2,7 +2,7 @@ rules_version = '2';
 
 // The podcast audio is not public: it lives in each couple space's own folder,
 // and only that space's members may read it. Nobody writes from the app; the
-// render tool uploads with the owner's own Google sign-in (tools/podcast/upload.sh).
+// render tool uploads with the owner's own Google sign-in (tools/podcast/upload.ps1).
 service firebase.storage {
   match /b/{bucket}/o {
     match /couples/{coupleId}/podcasts/{file} {
