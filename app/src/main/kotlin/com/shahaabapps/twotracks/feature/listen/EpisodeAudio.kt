@@ -8,6 +8,7 @@ import com.shahaabapps.twotracks.session.SessionStore
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -57,7 +58,11 @@ class EpisodeAudio @Inject constructor(
      */
     suspend fun fetch(episodeId: String): Boolean = locks.getOrPut(episodeId) { Mutex() }.withLock {
         if (ready(episodeId)) return@withLock true
+        // Just after the app opens the session may still be loading; wait a little rather than say "sign in".
         val coupleId = sessions.current()?.coupleId
+            ?: kotlinx.coroutines.withTimeoutOrNull(15_000) {
+                sessions.state.first { it !is com.shahaabapps.twotracks.session.SessionState.Loading }
+            }.let { (it as? com.shahaabapps.twotracks.session.SessionState.Ready)?.session?.coupleId }
         if (coupleId == null) {
             fail(episodeId, "Sign in to download this episode.")
             return@withLock false
