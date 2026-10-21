@@ -53,6 +53,7 @@ class PodcastService : MediaSessionService() {
 
     override fun onCreate() {
         super.onCreate()
+        running = true
         place = ListenPlace(this)
         val player = ExoPlayer.Builder(this)
             // Speech, and audio focus handled: a call or a navigation prompt
@@ -103,6 +104,7 @@ class PodcastService : MediaSessionService() {
     }
 
     override fun onDestroy() {
+        running = false
         main.removeCallbacks(keepPlace)
         session?.run {
             savePlace()
@@ -197,5 +199,9 @@ class PodcastService : MediaSessionService() {
         const val BACK_MS = 15_000L
         const val FORWARD_MS = 30_000L
         private const val SAVE_EVERY_MS = 5_000L
+
+        /** A session is live in this process: an episode is loaded, playing or paused. */
+        @Volatile var running = false
+            private set
     }
 }

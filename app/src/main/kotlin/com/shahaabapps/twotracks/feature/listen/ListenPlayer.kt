@@ -115,6 +115,15 @@ class ListenPlayer @Inject constructor(
         c.play()
     }
 
+    /**
+     * Picks up a session already under way, so the bar shows an episode the
+     * app did not start this time round: one resumed from the lock screen or
+     * a headset after the app's screens had gone.
+     */
+    fun attach() {
+        if (controller == null && PodcastService.running) withController { }
+    }
+
     fun pause() = withController { it.pause() }
 
     fun back() = withController { it.seekBack() }

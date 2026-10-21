@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -23,6 +24,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Download
 import androidx.compose.material.icons.rounded.Pause
 import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -107,7 +109,7 @@ internal fun BoardListen(
                 }
                 // The tellings of this topic, when it has more than one.
                 if (state.styles.size > 1) {
-                    BoardSegments(state.styles.map { it to it.label }, selected = state.style, onSelect = onStyle)
+                    BoardSegments(state.styles.map { it to it.label }, selected = state.style, onSelect = onStyle, scroll = true)
                 }
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     FlipTiles(clock(state.position).padStart(5, '0'), tileWidth = 34.dp, tileHeight = 46.dp, fontSize = 28.sp, gap = 4.dp)
@@ -120,14 +122,23 @@ internal fun BoardListen(
                 BoardScrubber(state, onSeek)
                 Row(horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Min)) {
                     BoardControl("Back 15 seconds", onBack15, Modifier.weight(1f)) { SkipGlyph(15, forward = false, tint = AppTheme.colors.ink, size = 30.dp) }
+                    val downloading = state.downloading
                     Box(
                         contentAlignment = Alignment.Center,
-                        modifier = Modifier.weight(1.6f).height(60.dp).clip(RoundedCornerShape(12.dp)).background(AppTheme.colors.accent)
-                            .clickable(role = Role.Button, onClickLabel = if (state.playing) "Pause" else "Play", onClick = onPlayPause),
+                        modifier = Modifier.weight(1.6f).height(60.dp).clip(RoundedCornerShape(12.dp))
+                            .background(if (downloading != null) AppTheme.colors.accent.copy(alpha = 0.35f) else AppTheme.colors.accent)
+                            .clickable(role = Role.Button, onClickLabel = if (downloading != null) "Downloading" else if (state.playing) "Pause" else "Play", onClick = onPlayPause),
                     ) {
+                        // Pressed play, and the sound is still on its way: the key fills from the left as it comes.
+                        if (downloading != null) Box(Modifier.align(Alignment.CenterStart).fillMaxHeight().fillMaxWidth(downloading).background(AppTheme.colors.accent))
                         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                            Icon(if (state.playing) Icons.Rounded.Pause else Icons.Rounded.PlayArrow, contentDescription = null, tint = AppTheme.colors.onSolid, modifier = Modifier.size(30.dp))
-                            BoardLabel(if (state.playing) "Pause" else "Play", color = AppTheme.colors.onSolid, size = 18.sp, weight = FontWeight.Bold)
+                            if (downloading != null) {
+                                Icon(Icons.Rounded.Download, contentDescription = null, tint = AppTheme.colors.onSolid, modifier = Modifier.size(26.dp))
+                                BoardLabel("${(downloading * 100).toInt()}%", color = AppTheme.colors.onSolid, size = 18.sp, weight = FontWeight.Bold)
+                            } else {
+                                Icon(if (state.playing) Icons.Rounded.Pause else Icons.Rounded.PlayArrow, contentDescription = null, tint = AppTheme.colors.onSolid, modifier = Modifier.size(30.dp))
+                                BoardLabel(if (state.playing) "Pause" else "Play", color = AppTheme.colors.onSolid, size = 18.sp, weight = FontWeight.Bold)
+                            }
                         }
                     }
                     BoardControl("Forward 30 seconds", onForward30, Modifier.weight(1f)) { SkipGlyph(30, forward = true, tint = AppTheme.colors.ink, size = 30.dp) }
@@ -144,6 +155,7 @@ internal fun BoardListen(
             }
             HorizontalDivider(color = AppTheme.colors.separator, modifier = Modifier.padding(top = 8.dp))
             if (board != null) {
+                BoardCaptions(state)
                 // In the timetable's place, scrolling on a short screen rather
                 // than pushing the controls off it.
                 Column(Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(horizontal = BoardGutter, vertical = 12.dp)) {
@@ -156,6 +168,22 @@ internal fun BoardListen(
             } else {
                 BoardTimetable(state, onLine, Modifier.weight(1f))
             }
+        }
+    }
+}
+
+/** Subtitles above the board: who is talking, and what they are saying now, in a strip that keeps its height. */
+@Composable
+private fun BoardCaptions(state: ListenUiState) {
+    val subtitle = state.subtitle
+    Column(
+        verticalArrangement = Arrangement.spacedBy(2.dp),
+        modifier = Modifier.fillMaxWidth().heightIn(min = 84.dp).background(AppTheme.colors.card).padding(horizontal = BoardGutter, vertical = 10.dp),
+    ) {
+        if (subtitle != null) {
+            BoardLabel(subtitle.host.displayName, color = AppTheme.colors.accent, size = 12.sp)
+            BoardText(subtitle.text, color = AppTheme.colors.ink, size = 17.sp, weight = FontWeight.Medium, maxLines = 3)
+            subtitle.translation?.let { BoardText(it, color = AppTheme.colors.secondaryLabel, size = 14.sp, maxLines = 2) }
         }
     }
 }

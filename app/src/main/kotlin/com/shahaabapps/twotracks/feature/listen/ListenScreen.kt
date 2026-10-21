@@ -22,6 +22,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
@@ -41,6 +42,7 @@ import androidx.compose.material.icons.rounded.Pause
 import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material.icons.rounded.Replay
 import androidx.compose.material.icons.rounded.Stop
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Slider
@@ -122,12 +124,14 @@ data class ListenUiState(
     /** The sound on its way from the couple's storage, or why it could not come; null once it is on the phone. */
     val fetch: EpisodeAudio.Fetch? = null,
 ) {
-    /** One line for the player while the sound is fetched, or why it is not here. */
-    val fetchLine: String? get() = when (val f = fetch) {
-        is EpisodeAudio.Fetch.Downloading -> "Downloading… ${(f.fraction * 100).toInt()}%"
-        is EpisodeAudio.Fetch.Failed -> "${f.message} Press play to try again."
-        null -> null
-    }
+    /** Why the sound could not come; while it is coming, the play button shows how far it has got. */
+    val fetchLine: String? get() = (fetch as? EpisodeAudio.Fetch.Failed)?.let { "${it.message} Press play to try again." }
+
+    /** How much of the sound has arrived (0 to 1) while it downloads after play; null otherwise. */
+    val downloading: Float? get() = (fetch as? EpisodeAudio.Fetch.Downloading)?.fraction
+
+    /** The words being said now, a piece of the line at a time. */
+    val subtitle: Subtitle? get() = Subtitles.at(lines, timeline, position)
 
     /** Who is on it: the series' hosts, or the telling's own. */
     val hosts: String get() = style.hosts ?: series.hosts
@@ -274,8 +278,9 @@ fun ListenContent(
                 // An episode with a board shows it where the cover was: the
                 // diagram of what is being said, with the titles under it.
                 Column(verticalArrangement = Arrangement.Center, modifier = Modifier.fillMaxSize()) {
-                    EpisodeBoard(state.board, state.line, state.playing, Modifier.fillMaxWidth().weight(1f, fill = false))
-                    Spacer(Modifier.height(20.dp))
+                    EpisodeBoard(state.board, state.line, state.playing, Modifier.fillMaxWidth().weight(1f, fill = false), fit = true)
+                    Spacer(Modifier.height(16.dp))
+                    Captions(state)
                     Titles(state, size = 18.sp)
                 }
             } else {
@@ -289,7 +294,8 @@ fun ListenContent(
                             corner = 14.dp, shadow = if (state.playing) 28.dp else 12.dp, series = state.series,
                         )
                     }
-                    Spacer(Modifier.height(28.dp))
+                    Spacer(Modifier.height(20.dp))
+                    Captions(state)
                     Titles(state, size = 21.sp)
                 }
             }
@@ -301,8 +307,19 @@ fun ListenContent(
             modifier = Modifier.fillMaxWidth().padding(top = 10.dp),
         ) {
             RoundControl("Back 15 seconds", onBack15, size = 64.dp) { SkipGlyph(15, forward = false, tint = Ink, size = 40.dp) }
-            RoundControl(if (state.playing) "Pause" else "Play", onPlayPause, size = 84.dp) {
-                Icon(if (state.playing) Icons.Rounded.Pause else Icons.Rounded.PlayArrow, contentDescription = null, tint = Ink, modifier = Modifier.size(64.dp))
+            val downloading = state.downloading
+            RoundControl(if (downloading != null) "Downloading" else if (state.playing) "Pause" else "Play", onPlayPause, size = 84.dp) {
+                if (downloading != null) {
+                    // Pressed play, and the sound is still on its way: a ring that fills as it comes.
+                    if (downloading > 0f) {
+                        CircularProgressIndicator(progress = { downloading }, color = Ink, trackColor = Ink.copy(alpha = 0.2f), strokeWidth = 4.dp, modifier = Modifier.size(72.dp))
+                    } else {
+                        CircularProgressIndicator(color = Ink, trackColor = Ink.copy(alpha = 0.2f), strokeWidth = 4.dp, modifier = Modifier.size(72.dp))
+                    }
+                    Text("${(downloading * 100).toInt()}%", color = Ink, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
+                } else {
+                    Icon(if (state.playing) Icons.Rounded.Pause else Icons.Rounded.PlayArrow, contentDescription = null, tint = Ink, modifier = Modifier.size(64.dp))
+                }
             }
             RoundControl("Forward 30 seconds", onForward30, size = 64.dp) { SkipGlyph(30, forward = true, tint = Ink, size = 40.dp) }
         }
@@ -330,6 +347,28 @@ private fun Titles(state: ListenUiState, size: androidx.compose.ui.unit.TextUnit
     Text(state.title, color = Ink, fontSize = size, lineHeight = size * 1.2f, fontWeight = FontWeight.SemiBold, maxLines = 2, overflow = TextOverflow.Ellipsis)
     Text("${state.hosts} · Module ${state.module}", color = Soft, fontSize = 15.sp, modifier = Modifier.padding(top = 2.dp))
     state.fetchLine?.let { Text(it, color = Soft, fontSize = 13.sp, modifier = Modifier.padding(top = 4.dp)) }
+}
+
+/**
+ * Subtitles over the board or the cover: who is talking, and what they are
+ * saying now. The space is held while nothing is said, so the titles under it
+ * do not jump as lines come and go.
+ */
+@Composable
+private fun Captions(state: ListenUiState) {
+    val subtitle = state.subtitle
+    Box(Modifier.fillMaxWidth().heightIn(min = 76.dp).padding(bottom = 12.dp)) {
+        AnimatedContent(
+            targetState = subtitle, label = "subtitle", contentKey = { it?.text },
+            transitionSpec = { fadeIn() togetherWith fadeOut() },
+        ) { s ->
+            if (s != null) Column {
+                Text(s.host.displayName.uppercase(), color = Soft, fontSize = 11.sp, fontWeight = FontWeight.SemiBold, letterSpacing = 1.2.sp)
+                Text(s.text, color = Ink, fontSize = 17.sp, lineHeight = 23.sp, fontWeight = FontWeight.Medium, maxLines = 3, overflow = TextOverflow.Ellipsis)
+                s.translation?.let { Text(it, color = Soft, fontSize = 14.sp, lineHeight = 18.sp, maxLines = 2, overflow = TextOverflow.Ellipsis) }
+            }
+        }
+    }
 }
 
 /** The transcript as a podcast app shows one: big type, the line being spoken lit, the rest dimmed. */

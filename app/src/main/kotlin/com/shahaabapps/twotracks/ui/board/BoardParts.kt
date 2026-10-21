@@ -1,6 +1,8 @@
 package com.shahaabapps.twotracks.ui.board
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -339,19 +341,28 @@ fun Perforation(modifier: Modifier = Modifier) {
  * text, or in [colorOf] its option, as whose-line tabs take each person's colour.
  */
 @Composable
-fun <T> BoardSegments(options: List<Pair<T, String>>, selected: T, onSelect: (T) -> Unit, modifier: Modifier = Modifier, colorOf: ((T) -> Color)? = null) {
+fun <T> BoardSegments(
+    options: List<Pair<T, String>>, selected: T, onSelect: (T) -> Unit, modifier: Modifier = Modifier, colorOf: ((T) -> Color)? = null,
+    /** Each segment as wide as its label, the row scrolling when they outgrow it, so a two-word label never wraps. */
+    scroll: Boolean = false,
+) {
     Row(
         horizontalArrangement = Arrangement.spacedBy(4.dp),
-        modifier = modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).background(AppTheme.colors.card).padding(4.dp),
+        modifier = modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).background(AppTheme.colors.card)
+            .then(if (scroll) Modifier.horizontalScroll(rememberScrollState()) else Modifier).padding(4.dp),
     ) {
         options.forEach { (value, label) ->
             val on = value == selected
             Box(
                 contentAlignment = Alignment.Center,
-                modifier = Modifier.weight(1f).height(44.dp).clip(RoundedCornerShape(9.dp)).background(if (on) colorOf?.invoke(value) ?: AppTheme.colors.ink else Color.Transparent)
+                modifier = (if (scroll) Modifier else Modifier.weight(1f)).height(44.dp).clip(RoundedCornerShape(9.dp)).background(if (on) colorOf?.invoke(value) ?: AppTheme.colors.ink else Color.Transparent)
                     .semantics { this.selected = on }.clickable(role = Role.Tab) { onSelect(value) },
             ) {
-                Text(caps(label), color = if (on) AppTheme.colors.groupedBackground else AppTheme.colors.secondaryLabel, style = TextStyle(fontFamily = CondensedFamily, fontWeight = FontWeight.Bold, fontSize = 16.sp, letterSpacing = 0.08.em))
+                Text(
+                    caps(label), color = if (on) AppTheme.colors.groupedBackground else AppTheme.colors.secondaryLabel, maxLines = 1, softWrap = false,
+                    style = TextStyle(fontFamily = CondensedFamily, fontWeight = FontWeight.Bold, fontSize = 16.sp, letterSpacing = 0.08.em),
+                    modifier = if (scroll) Modifier.padding(horizontal = 14.dp) else Modifier,
+                )
             }
         }
     }

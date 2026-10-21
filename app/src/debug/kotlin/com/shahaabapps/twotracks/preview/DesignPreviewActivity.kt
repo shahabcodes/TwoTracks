@@ -125,7 +125,11 @@ class DesignPreviewActivity : ComponentActivity() {
                                 playing = intent?.getBooleanExtra("paused", false) != true,
                                 line = intent?.getIntExtra("line", 6) ?: 6,
                                 board = intent?.getBooleanExtra("cover", false) != true,
-                            ),
+                            ).let { state ->
+                                // --ef fetch 0.4 draws the play button partway through a download.
+                                val f = intent?.getFloatExtra("fetch", -1f) ?: -1f
+                                if (f < 0f) state else state.copy(fetch = com.shahaabapps.twotracks.feature.listen.EpisodeAudio.Fetch.Downloading(f), playing = false)
+                            },
                             onBack = {}, onPlayPause = {}, onBack15 = {}, onForward30 = {}, onSeek = {}, onSpeed = {}, onStop = {}, onLine = {},
                             transcriptFirst = intent?.getBooleanExtra("transcript", false) == true,
                         )
