@@ -189,7 +189,7 @@ class LearnViewModel @Inject constructor(
     dataStore: CoupleDataStore,
     private val favorites: CourseFavorites,
 ) : ViewModel() {
-    fun toggleFavorite(courseId: String) = favorites.toggle(courseId)
+    fun toggleFavorite(courseId: String) = favorites.toggle(courseId, uiState.value.myRole)
 
     private val base: kotlinx.coroutines.flow.Flow<LearnUiState> = combine(sessionStore.state, dataStore.topicProgress, dataStore.quizAttempts, dataStore.flashcards, dataStore.goals) { state, progress, attempts, cards, goals ->
         val session = (state as? com.shahaabapps.twotracks.session.SessionState.Ready)?.session ?: return@combine LearnUiState()
@@ -210,8 +210,9 @@ class LearnViewModel @Inject constructor(
         )
     }
 
-    val uiState: StateFlow<LearnUiState> = combine(base, favorites.ids) { s, starred ->
-        s.copy(courses = CourseFavorites.sorted(s.courses, starred), favorites = starred)
+    val uiState: StateFlow<LearnUiState> = combine(base, favorites.chosen) { s, chosen ->
+        val starred = chosen ?: CourseFavorites.starting(s.myRole)
+        s.copy(courses = CourseFavorites.sorted(s.courses, starred, s.myRole), favorites = starred)
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), LearnUiState())
 }
 
