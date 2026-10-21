@@ -5,6 +5,10 @@ build number is appended by CI (for example `0.1.0 (build 12)`).
 
 ## [Unreleased]
 
+## [0.90.3] - 2026-10-21
+### Added
+- All 95 AI-200 podcast episodes, and the first 17 AZ-305 ones (identity, authorization, monitoring, governance).
+
 ## [0.90.2] - 2026-10-21
 ### Changed
 - Each person starts with their own starred courses: the teacher's are IELTS, then German A1.
