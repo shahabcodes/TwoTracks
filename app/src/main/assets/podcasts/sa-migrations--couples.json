@@ -1,0 +1,228 @@
+{
+ "topicId": "sa-migrations--couples",
+ "seconds": 399.11,
+ "lines": [
+  {
+   "line": 0,
+   "host": "nova",
+   "start": 0.0,
+   "end": 8.96
+  },
+  {
+   "line": 1,
+   "host": "rafe",
+   "start": 9.28,
+   "end": 12.9
+  },
+  {
+   "line": 2,
+   "host": "nova",
+   "start": 13.22,
+   "end": 30.5
+  },
+  {
+   "line": 3,
+   "host": "rafe",
+   "start": 30.82,
+   "end": 48.8
+  },
+  {
+   "line": 4,
+   "host": "nova",
+   "start": 49.12,
+   "end": 62.24
+  },
+  {
+   "line": 5,
+   "host": "rafe",
+   "start": 62.56,
+   "end": 72.54
+  },
+  {
+   "line": 6,
+   "host": "nova",
+   "start": 72.86,
+   "end": 76.25
+  },
+  {
+   "line": 7,
+   "host": "rafe",
+   "start": 76.57,
+   "end": 79.87
+  },
+  {
+   "line": 8,
+   "host": "nova",
+   "start": 80.19,
+   "end": 87.39
+  },
+  {
+   "line": 9,
+   "host": "rafe",
+   "start": 87.71,
+   "end": 102.25
+  },
+  {
+   "line": 10,
+   "host": "nova",
+   "start": 102.57,
+   "end": 120.05
+  },
+  {
+   "line": 11,
+   "host": "rafe",
+   "start": 120.37,
+   "end": 123.99
+  },
+  {
+   "line": 12,
+   "host": "nova",
+   "start": 124.31,
+   "end": 148.47
+  },
+  {
+   "line": 13,
+   "host": "rafe",
+   "start": 148.79,
+   "end": 151.69
+  },
+  {
+   "line": 14,
+   "host": "nova",
+   "start": 152.01,
+   "end": 171.37
+  },
+  {
+   "line": 15,
+   "host": "rafe",
+   "start": 171.69,
+   "end": 177.71
+  },
+  {
+   "line": 16,
+   "host": "nova",
+   "start": 178.03,
+   "end": 198.79
+  },
+  {
+   "line": 17,
+   "host": "rafe",
+   "start": 199.11,
+   "end": 202.36
+  },
+  {
+   "line": 18,
+   "host": "nova",
+   "start": 202.68,
+   "end": 223.0
+  },
+  {
+   "line": 19,
+   "host": "rafe",
+   "start": 223.32,
+   "end": 239.14
+  },
+  {
+   "line": 20,
+   "host": "nova",
+   "start": 239.46,
+   "end": 244.13
+  },
+  {
+   "line": 21,
+   "host": "rafe",
+   "start": 244.45,
+   "end": 245.91
+  },
+  {
+   "line": 22,
+   "host": "nova",
+   "start": 246.23,
+   "end": 263.47
+  },
+  {
+   "line": 23,
+   "host": "rafe",
+   "start": 263.79,
+   "end": 271.97
+  },
+  {
+   "line": 24,
+   "host": "nova",
+   "start": 272.29,
+   "end": 279.77
+  },
+  {
+   "line": 25,
+   "host": "rafe",
+   "start": 280.09,
+   "end": 297.55
+  },
+  {
+   "line": 26,
+   "host": "nova",
+   "start": 297.87,
+   "end": 300.83
+  },
+  {
+   "line": 27,
+   "host": "rafe",
+   "start": 301.15,
+   "end": 317.01
+  },
+  {
+   "line": 28,
+   "host": "nova",
+   "start": 317.33,
+   "end": 327.29
+  },
+  {
+   "line": 29,
+   "host": "rafe",
+   "start": 327.61,
+   "end": 336.03
+  },
+  {
+   "line": 30,
+   "host": "nova",
+   "start": 336.35,
+   "end": 340.5
+  },
+  {
+   "line": 31,
+   "host": "rafe",
+   "start": 340.82,
+   "end": 344.2
+  },
+  {
+   "line": 32,
+   "host": "nova",
+   "start": 344.52,
+   "end": 368.88
+  },
+  {
+   "line": 33,
+   "host": "rafe",
+   "start": 369.2,
+   "end": 373.05
+  },
+  {
+   "line": 34,
+   "host": "nova",
+   "start": 373.37,
+   "end": 376.61
+  },
+  {
+   "line": 35,
+   "host": "rafe",
+   "start": 376.93,
+   "end": 393.99
+  },
+  {
+   "line": 36,
+   "host": "nova",
+   "start": 394.31,
+   "end": 399.11
+  }
+ ]
+}

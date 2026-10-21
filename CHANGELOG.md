@@ -5,6 +5,10 @@ build number is appended by CI (for example `0.1.0 (build 12)`).
 
 ## [Unreleased]
 
+## [0.90.5] - 2026-10-21
+### Added
+- The rest of AZ-305: all 70 podcast episodes, 14 topics in five tellings.
+
 ## [0.90.4] - 2026-10-21
 ### Added
 - Subtitles in the podcast player: who is talking and what they are saying now, above the board.

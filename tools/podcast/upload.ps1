@@ -7,6 +7,8 @@
 #   tools/podcast/upload.ps1 -CoupleId <space id> ai-redis sa-hub  some episodes
 #
 # The space id is the couple document's id in Firestore (couples/<id>).
+# Named parameters only: positionally, the first episode would bind to -Bucket.
+[CmdletBinding(PositionalBinding = $false)]
 param(
     [Parameter(Mandatory = $true)][string]$CoupleId,
     [Parameter(ValueFromRemainingArguments = $true)][string[]]$Episodes,
@@ -18,9 +20,6 @@ $gcloud = (Get-Command gcloud -ErrorAction SilentlyContinue).Source
 if (-not $gcloud) { $gcloud = Join-Path $env:LOCALAPPDATA "Google\Cloud SDK\google-cloud-sdk\bin\gcloud.cmd" }
 
 $files = if ($Episodes) { $Episodes | ForEach-Object { Join-Path $upload "$_.ogg" } } else { (Get-ChildItem $upload -Filter *.ogg).FullName }
-# One call per file: a single call with dozens of files has failed part way.
-foreach ($f in $files) {
-    & $gcloud storage cp --content-type=audio/ogg $f "$Bucket/couples/$CoupleId/podcasts/"
-    if ($LASTEXITCODE -ne 0) { throw "upload failed: $f" }
-}
+& $gcloud storage cp --content-type=audio/ogg @files "$Bucket/couples/$CoupleId/podcasts/"
+if ($LASTEXITCODE -ne 0) { throw "upload failed" }
 "Uploaded $($files.Count) episode(s) to $Bucket/couples/$CoupleId/podcasts/."

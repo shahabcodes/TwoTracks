@@ -1,0 +1,264 @@
+{
+ "topicId": "sa-governance--couples",
+ "seconds": 429.88,
+ "lines": [
+  {
+   "line": 0,
+   "host": "nova",
+   "start": 0.0,
+   "end": 8.72
+  },
+  {
+   "line": 1,
+   "host": "rafe",
+   "start": 9.04,
+   "end": 11.42
+  },
+  {
+   "line": 2,
+   "host": "nova",
+   "start": 11.74,
+   "end": 30.3
+  },
+  {
+   "line": 3,
+   "host": "rafe",
+   "start": 30.62,
+   "end": 31.96
+  },
+  {
+   "line": 4,
+   "host": "nova",
+   "start": 32.28,
+   "end": 54.84
+  },
+  {
+   "line": 5,
+   "host": "rafe",
+   "start": 55.16,
+   "end": 56.78
+  },
+  {
+   "line": 6,
+   "host": "nova",
+   "start": 57.1,
+   "end": 68.62
+  },
+  {
+   "line": 7,
+   "host": "rafe",
+   "start": 68.94,
+   "end": 78.12
+  },
+  {
+   "line": 8,
+   "host": "nova",
+   "start": 78.44,
+   "end": 91.0
+  },
+  {
+   "line": 9,
+   "host": "rafe",
+   "start": 91.32,
+   "end": 96.01
+  },
+  {
+   "line": 10,
+   "host": "nova",
+   "start": 96.33,
+   "end": 112.13
+  },
+  {
+   "line": 11,
+   "host": "rafe",
+   "start": 112.45,
+   "end": 115.59
+  },
+  {
+   "line": 12,
+   "host": "nova",
+   "start": 115.91,
+   "end": 136.03
+  },
+  {
+   "line": 13,
+   "host": "rafe",
+   "start": 136.35,
+   "end": 139.17
+  },
+  {
+   "line": 14,
+   "host": "nova",
+   "start": 139.49,
+   "end": 160.45
+  },
+  {
+   "line": 15,
+   "host": "rafe",
+   "start": 160.77,
+   "end": 172.51
+  },
+  {
+   "line": 16,
+   "host": "nova",
+   "start": 172.83,
+   "end": 175.47
+  },
+  {
+   "line": 17,
+   "host": "rafe",
+   "start": 175.79,
+   "end": 190.21
+  },
+  {
+   "line": 18,
+   "host": "nova",
+   "start": 190.53,
+   "end": 203.33
+  },
+  {
+   "line": 19,
+   "host": "rafe",
+   "start": 203.65,
+   "end": 205.39
+  },
+  {
+   "line": 20,
+   "host": "nova",
+   "start": 205.71,
+   "end": 218.03
+  },
+  {
+   "line": 21,
+   "host": "rafe",
+   "start": 218.35,
+   "end": 220.33
+  },
+  {
+   "line": 22,
+   "host": "nova",
+   "start": 220.65,
+   "end": 228.65
+  },
+  {
+   "line": 23,
+   "host": "rafe",
+   "start": 228.97,
+   "end": 235.63
+  },
+  {
+   "line": 24,
+   "host": "nova",
+   "start": 235.95,
+   "end": 240.46
+  },
+  {
+   "line": 25,
+   "host": "rafe",
+   "start": 240.78,
+   "end": 241.6
+  },
+  {
+   "line": 26,
+   "host": "nova",
+   "start": 241.92,
+   "end": 267.16
+  },
+  {
+   "line": 27,
+   "host": "rafe",
+   "start": 267.48,
+   "end": 272.54
+  },
+  {
+   "line": 28,
+   "host": "nova",
+   "start": 272.86,
+   "end": 282.82
+  },
+  {
+   "line": 29,
+   "host": "rafe",
+   "start": 283.14,
+   "end": 286.71
+  },
+  {
+   "line": 30,
+   "host": "nova",
+   "start": 287.03,
+   "end": 313.43
+  },
+  {
+   "line": 31,
+   "host": "rafe",
+   "start": 313.75,
+   "end": 320.41
+  },
+  {
+   "line": 32,
+   "host": "nova",
+   "start": 320.73,
+   "end": 336.57
+  },
+  {
+   "line": 33,
+   "host": "rafe",
+   "start": 336.89,
+   "end": 340.7
+  },
+  {
+   "line": 34,
+   "host": "nova",
+   "start": 341.02,
+   "end": 349.5
+  },
+  {
+   "line": 35,
+   "host": "rafe",
+   "start": 349.82,
+   "end": 359.72
+  },
+  {
+   "line": 36,
+   "host": "nova",
+   "start": 360.04,
+   "end": 364.35
+  },
+  {
+   "line": 37,
+   "host": "rafe",
+   "start": 364.67,
+   "end": 368.05
+  },
+  {
+   "line": 38,
+   "host": "nova",
+   "start": 368.37,
+   "end": 400.13
+  },
+  {
+   "line": 39,
+   "host": "rafe",
+   "start": 400.45,
+   "end": 403.94
+  },
+  {
+   "line": 40,
+   "host": "nova",
+   "start": 404.26,
+   "end": 407.5
+  },
+  {
+   "line": 41,
+   "host": "rafe",
+   "start": 407.82,
+   "end": 424.0
+  },
+  {
+   "line": 42,
+   "host": "nova",
+   "start": 424.32,
+   "end": 429.88
+  }
+ ]
+}
