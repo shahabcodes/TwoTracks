@@ -7,10 +7,10 @@ internal object Az305Identity {
     private val monitoring = Topic(
         id = "sa-monitoring", title = "Logging and monitoring: where logs go and who watches", minutes = 30,
         references = listOf(
-            B.ref("Azure Monitor overview", LEARN + "azure/azure-monitor/overview"),
-            B.ref("Diagnostic settings in Azure Monitor", LEARN + "azure/azure-monitor/essentials/diagnostic-settings"),
+            B.ref("Azure Monitor overview", LEARN + "azure/azure-monitor/fundamentals/overview"),
+            B.ref("Diagnostic settings in Azure Monitor", LEARN + "azure/azure-monitor/data-collection/diagnostic-settings"),
             B.ref("Design a Log Analytics workspace architecture", LEARN + "azure/azure-monitor/logs/workspace-design"),
-            B.ref("Azure Monitor activity log", LEARN + "azure/azure-monitor/essentials/activity-log"),
+            B.ref("Azure Monitor activity log", LEARN + "azure/azure-monitor/fundamentals/activity-log"),
             B.ref("What are Azure Monitor alerts?", LEARN + "azure/azure-monitor/alerts/alerts-overview"),
             B.ref("Application Insights overview", LEARN + "azure/azure-monitor/app/app-insights-overview"),
             B.ref("What is Microsoft Sentinel?", LEARN + "azure/sentinel/overview"),
@@ -57,24 +57,26 @@ internal object Az305Identity {
                 listOf("Metrics", "Numbers over time, like CPU percent or requests per second", "Automatically, kept 93 days"),
                 listOf("Activity log", "Who created, changed or deleted a resource: the management record", "Automatically, kept 90 days"),
                 listOf("Resource logs", "What happened inside a resource, like each secret read", "Only once you add a diagnostic setting"),
-                listOf("App telemetry", "Requests, errors and slow calls from your own code", "Through Application Insights"),
+                listOf("App telemetry", "Requests, errors and slow calls from your own code", "Through Application Insights, a watcher you add to your app"),
             ),
             B.p("""
-                Logs from inside a virtual machine, such as Windows events or Linux syslog, are different again:
-                you install the Azure Monitor Agent on the machine and write a data collection rule, a small
-                recipe saying which logs to pick up and where to send them.
+                Logs from inside a virtual machine, such as the Windows event log or Linux system logs, are
+                different again. You install the Azure Monitor Agent, a small program, on the machine. Then you
+                write a data collection rule: a short recipe saying which logs to pick up and where to send them.
             """),
             B.h("Routing logs: diagnostic settings"),
             B.p("""
                 A diagnostic setting is a forwarding rule you add to a resource, like a post office redirect: it
-                says which log categories to send and to which destinations. One resource can have up to five,
-                so audit logs can go one way and noisy logs another. The subscription's Activity log is routed the
-                same way. There are three main destinations, and the requirement words point to one.
+                says which kinds of log to send and where to. One resource can have up to five, so audit logs can
+                go one way and noisy logs another. The subscription's Activity log is routed the same way. There
+                are three main destinations. A Log Analytics workspace is a searchable library of logs. You ask it
+                questions in KQL, the Kusto Query Language, a short query language that reads a bit like SQL.
+                Event Hubs is a fast pipe that hands logs on to another tool as they arrive.
             """),
             B.compare("Where should the logs go?",
-                B.card("Log Analytics workspace", "The logs must be searched, charted or alerted on.", "A database for logs, queried with KQL, the Kusto Query Language", "Alerts, workbooks and Sentinel all read from it", "You pay mostly per GB taken in"),
+                B.card("Log Analytics workspace", "The logs must be searched, charted or alerted on.", "A library of logs you search with KQL", "Alerts and reports all read from it", "You pay mostly per GB taken in"),
                 B.card("Storage account", "Keep logs for years at the lowest cost, rarely read.", "Cheapest place to park large volumes", "Fits audit and compliance archives", "Hard to search; it is a filing cabinet"),
-                B.card("Event Hubs", "Stream logs to another tool, such as an outside SIEM.", "A pipe, not a store", "Near real time", "Another system does the reading"),
+                B.card("Event Hubs", "Stream logs to another tool, such as an outside security tool.", "A pipe, not a store", "Near real time, within seconds", "Another system does the reading"),
             ),
             B.check(
                 "sa-monitoring-k1", "sa-monitoring",
@@ -89,10 +91,11 @@ internal object Az305Identity {
             B.h("How many workspaces?"),
             B.p("""
                 Microsoft's advice is to start with one workspace and add another only when a requirement forces
-                it. One workspace is simpler to query, and more data in one place can reach a commitment tier,
-                a discount for promising a daily volume. Access can still be split inside one workspace: by
-                default people see the logs of resources they already have rights to, called resource-context
-                access, and table-level access can hide whole tables.
+                it. One workspace is simpler to query. More data in one place can also reach a commitment tier, a
+                discount for promising a daily volume. The usual reason for a second workspace is data residency:
+                a rule that data must stay inside one country or region. Access can still be split inside one
+                workspace. By default people see only the logs of resources they already have rights to; this is
+                called resource-context access. Table-level access can hide whole tables.
             """),
             B.table(
                 listOf("Requirement", "Design"),
@@ -104,11 +107,11 @@ internal object Az305Identity {
             B.tip("\"Minimise administrative effort\" or \"single pane\" points to fewer workspaces. Only data residency, separate tenants, split billing or different retention for the same table justify more."),
             B.h("Watching: alerts, action groups, workbooks"),
             B.bullets(
-                "Application Insights is application performance monitoring: it records requests, failures and dependency calls from your code, and its availability tests ping your site from around the world. New resources are workspace-based, storing data in Log Analytics.",
-                "An alert rule watches a condition: a metric over a threshold, a log query that returns rows, or an Activity log event such as a resource being deleted.",
-                "An action group is the phone list: email, SMS, push or voice, plus automatic actions like a webhook, a function or a Logic App. Many alert rules share one.",
+                "Application Insights watches your own app from the inside: each request, each failure, and each call your code makes to a database or another service. Its availability tests visit your site from around the world, like a mystery shopper. New Application Insights resources keep their data in a Log Analytics workspace.",
+                "An alert rule is a tripwire: a metric over a limit, a log query that finds rows, or an Activity log event such as a resource being deleted.",
+                "An action group is the phone list: email, text message, app push or voice call. It can also run something, such as calling a web address (a webhook) or starting a small workflow. Many alert rules share one.",
                 "A workbook is an interactive report mixing text, queries and charts, for people to explore.",
-                "Microsoft Sentinel is a SIEM, a security information and event management service: it sits on a workspace, hunts for attacks across security logs and can respond automatically.",
+                "Microsoft Sentinel is a SIEM, short for security information and event management: a security guard that reads the logs in a workspace, hunts for signs of attack and can respond automatically.",
             ),
             B.check(
                 "sa-monitoring-k2", "sa-monitoring",
@@ -122,10 +125,11 @@ internal object Az305Identity {
             ),
             B.h("Retention and cost"),
             B.p("""
-                A workspace keeps data for about a month by default; you can extend the searchable period, and
-                long-term retention keeps it for up to 12 years at a lower price. Cost comes mainly from the GB you
-                take in, so send only the categories you need, use cheaper table plans for noisy logs you rarely
-                search, and archive old audit logs to storage.
+                A workspace keeps most data for 30 days by default; a few tables, such as the Activity log's, keep
+                90. You can keep data searchable for up to two years. Long-term retention, a cheaper back room,
+                keeps it for up to 12 years in all. Cost comes mainly from the GB you take in. So send only the
+                kinds of log you need, put noisy logs you rarely search on a cheaper table plan, and archive old
+                audit logs to storage.
             """),
             B.code("bash", """
                 az monitor log-analytics workspace create --resource-group tt-rg --workspace-name tt-logs-eu --location westeurope
@@ -231,7 +235,7 @@ internal object Az305Identity {
             B.ref("Choose the right authentication method for your hybrid identity solution", LEARN + "entra/identity/hybrid/connect/choose-ad-authn"),
             B.ref("What is Microsoft Entra Cloud Sync?", LEARN + "entra/identity/hybrid/cloud-sync/what-is-cloud-sync"),
             B.ref("What is Conditional Access?", LEARN + "entra/identity/conditional-access/overview"),
-            B.ref("Passwordless authentication options for Microsoft Entra ID", LEARN + "entra/identity/authentication/concept-authentication-passwordless"),
+            B.ref("Get started with a phishing-resistant passwordless authentication deployment", LEARN + "entra/identity/authentication/how-to-plan-prerequisites-phishing-resistant-passwordless-authentication"),
             B.ref("B2B collaboration overview", LEARN + "entra/external-id/what-is-b2b"),
             B.ref("External ID overview", LEARN + "entra/external-id/external-identities-overview"),
             B.ref("What are managed identities for Azure resources?", LEARN + "entra/identity/managed-identities-azure-resources/overview"),
@@ -246,8 +250,9 @@ internal object Az305Identity {
             ),
             B.plain("""
                 Microsoft Entra ID is the company's ID-card office in the cloud: it holds every person and app,
-                checks who they are when they sign in, and hands out a token, a short-lived pass that apps and
-                Azure accept. One identity means one sign-in for email, internal apps and the Azure portal.
+                checks who they are when they sign in, and hands out a token: a short-lived signed pass, like a
+                festival wristband, that apps and Azure accept. One identity means one sign-in for email, internal
+                apps and the Azure portal.
                 Your design decides where identities come from, how strongly sign-in is checked, how outsiders
                 get in, and how apps sign in without passwords.
             """),
@@ -282,9 +287,13 @@ internal object Az305Identity {
             B.p("""
                 MFA, multifactor authentication, asks for a second proof, such as an app prompt on your phone,
                 so a stolen password alone is not enough. Conditional Access decides when to ask: it is a set of
-                if-then rules. If the user is an admin, or signs in from an unknown country, then require MFA, a
-                managed device, or block. It needs an Entra ID P1 licence; risk-based rules use ID Protection,
-                which needs P2.
+                if-then rules, like a doorman with a checklist. If the user is an admin, or signs in from an unknown
+                country, then require MFA, require a company-managed device, or block. Conditional Access needs the
+                paid Entra ID P1 licence. ID Protection is Entra's risk spotter: it flags odd sign-ins, such as a
+                login from two continents an hour apart. Rules based on its risk score need the P2 licence.
+                Security defaults are the free option: one switch that turns on basic protection, MFA included,
+                for everyone. Passwordless sign-in drops the password altogether: a face, a fingerprint or a phone
+                prompt proves it is you. A passkey is a secret key kept on your own device.
             """),
             B.table(
                 listOf("Requirement", "Recommend"),
@@ -306,16 +315,20 @@ internal object Az305Identity {
             ),
             B.h("Hybrid identity: one password for office and cloud"),
             B.p("""
-                Hybrid identity means the same people exist on-premises and in the cloud. A sync tool copies users
-                and groups from Active Directory into Entra ID: Entra Connect Sync, a server you install, or Cloud
-                Sync, lightweight agents with the settings kept in the cloud. Cloud Sync is the simpler choice for
-                new set-ups and handles several disconnected forests, such as after a takeover. Then you choose
-                where the password is checked.
+                Active Directory is the directory Windows offices have used for decades to sign staff in on
+                their own servers, on-premises. Hybrid identity means the same people exist there and in the
+                cloud. A sync tool copies users and groups from Active Directory into Entra ID, like a clerk
+                copying the staff list every few minutes. Entra Connect Sync is a full server you install and
+                look after. Cloud Sync uses small agents, little programs that only call out, with its settings
+                kept in the cloud, so there is less to run. Cloud Sync also handles several separate Active
+                Directory setups, called forests, such as after a takeover. Then you choose where the password is
+                checked. Most options use a hash: a fingerprint of the password. The same password always gives
+                the same fingerprint, but the fingerprint cannot be turned back into the password.
             """),
             B.compare("How is the password checked?",
-                B.card("Password hash sync", "The default: least to run, works even if the office is down.", "A hash of the hash is copied to the cloud", "Entra ID checks the password itself", "Enables leaked-credential detection"),
+                B.card("Password hash sync", "The default: least to run, works even if the office is down.", "A fingerprint of the fingerprint is copied to the cloud", "Entra ID checks the password itself", "Lets Entra spot leaked passwords"),
                 B.card("Pass-through authentication", "On-premises rules like sign-in hours or lockout must apply at once.", "Agents in the office check with AD", "No password data in the cloud", "Run three agents for availability"),
-                B.card("Federation (AD FS)", "Only when Entra cannot do it: third-party MFA, smart card systems you already run.", "Sign-in handed to your own servers", "Server farm and perimeter proxies", "Most effort and most to fail"),
+                B.card("Federation (AD FS)", "Only when Entra cannot do it: third-party MFA, smart card systems you already run.", "Sign-in handed to your own servers, AD FS (Active Directory Federation Services)", "A server farm, plus proxies facing the internet", "Most effort and most to fail"),
             ),
             B.tip("Microsoft recommends turning on password hash sync whatever you choose: it is the backup if the office servers fail, and ID Protection needs it to spot leaked passwords."),
             B.check(
@@ -338,13 +351,14 @@ internal object Az305Identity {
                 B2B means business to business: the guest signs in with their own company's account, so you never
                 manage their password, and you can still apply Conditional Access to them. External ID is for the
                 public: your app's own sign-up page, branded, built to hold millions of customers apart from staff.
-                Azure AD B2C is the older product for this; new designs use External ID.
+                Azure AD B2C is the older product for this. It has not been sold to new customers since 1 May
+                2025, so new designs use External ID.
             """),
             B.h("Apps signing in: managed identities and service principals"),
             B.bullets(
-                "A service principal is an app's identity in a tenant. Signing in as it needs a secret or certificate that someone must store and renew.",
-                "A managed identity is a service principal that Azure looks after: no secret exists, so none can leak. System-assigned lives and dies with one resource; user-assigned is its own resource, shareable.",
-                "A pipeline outside Azure, such as GitHub Actions, can use workload identity federation: it trusts the pipeline's own token, so again no stored secret.",
+                "A service principal is an app's own account in a tenant. Signing in as it needs a secret or a certificate, a password-like file, that someone must store and renew.",
+                "A managed identity is an employee badge that Azure issues and renews for a resource: no secret exists, so none can leak. A system-assigned one lives and dies with one resource; a user-assigned one is its own resource that several can share.",
+                "A deployment pipeline outside Azure, such as GitHub Actions, can use workload identity federation: Entra trusts the token GitHub gives the pipeline, so again no secret is stored.",
             ),
             B.code("bash", """
                 az webapp identity assign --name tt-api --resource-group tt-rg

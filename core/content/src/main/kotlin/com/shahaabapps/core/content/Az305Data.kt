@@ -25,10 +25,11 @@ internal object Az305Data {
                 "Look for the option that keeps almost all of SQL Server, yet still has Azure do the patching.",
             ),
             B.plain("""
-                Relational data lives in tables of rows and columns that point at each other through keys, like a
-                tidy spreadsheet with strict rules. Azure offers three homes for the SQL Server engine, from fully
-                managed to fully yours, plus managed PostgreSQL and MySQL. The exam gives you requirement words; your
-                job is to hear which home, which tier and which protection they point to.
+                Relational data lives in tables of rows and columns that point at each other through IDs, like a
+                tidy spreadsheet with strict rules. SQL Server is Microsoft's own database engine for such tables.
+                Azure offers three homes for it, from fully managed to fully yours. It also runs PostgreSQL and
+                MySQL, two popular free database engines, as managed services. The exam gives you requirement
+                words; your job is to hear which home, which tier and which protection they point to.
             """),
             B.diagram(
                 caption = "The same API could talk to any of the three homes; moving right buys control and costs you more work.",
@@ -50,19 +51,23 @@ internal object Az305Data {
             B.p("""
                 PaaS, platform as a service, means Azure runs the server and you only run the database: patches,
                 backups and high availability are done for you. IaaS, infrastructure as a service, means you rent a
-                virtual machine and look after everything on it yourself.
+                virtual machine and look after everything on it yourself. Older office databases often lean on
+                SQL Server extras: SQL Agent, a built-in timer that runs jobs at night; cross-database queries,
+                which join tables from two databases; and CLR, small .NET programs running inside the database.
+                Lift and shift means moving an app as it is, with few changes.
             """),
             B.table(
                 listOf("Option", "What you manage", "Pick when you hear"),
                 listOf("Azure SQL Database", "Only the database", "New cloud app, one database per app or tenant, least admin"),
                 listOf("SQL Managed Instance", "Databases on a managed instance in your virtual network", "Lift and shift with SQL Agent, cross-database queries, CLR, near 100% compatible"),
-                listOf("SQL Server on a VM", "The OS, SQL Server, patches", "OS access, a feature PaaS lacks (such as Reporting Services), a pinned SQL version"),
+                listOf("SQL Server on a VM", "The OS, SQL Server, patches", "OS access, a feature PaaS lacks (such as the Reporting Services report server), a pinned SQL version"),
                 listOf("Azure Database for PostgreSQL or MySQL", "Only the database", "The app already speaks PostgreSQL or MySQL"),
             ),
             B.p("""
                 PostgreSQL and MySQL come as flexible server: a managed server with Burstable, General Purpose and
-                Memory Optimized tiers, and read replicas. Burstable is like a phone plan that saves up unused minutes:
-                cheap for a quiet database that needs a short burst now and then.
+                Memory Optimized tiers. It can add read replicas, read-only copies that take reading work off the
+                main server. Burstable is like a phone plan that saves up unused minutes: cheap for a quiet database
+                that needs a short burst now and then.
             """),
             B.check(
                 "sa-relational-k1", "sa-relational",
@@ -81,17 +86,20 @@ internal object Az305Data {
                 Standard and Premium sizes. A vCore, a virtual processor core, lets you pick processors and storage
                 separately, like ordering à la carte. vCore is the one the exam favours: it has the three modern tiers,
                 serverless, and Azure Hybrid Benefit, which lets you reuse SQL Server licences you already own.
+                Three words help compare the tiers. Latency is the wait for each answer. A replica is a live copy of
+                the database. Failover is switching to that copy when the main one breaks.
             """),
             B.compare("Which vCore service tier?",
-                B.card("General Purpose", "Most business apps on a budget.", "Remote premium storage", "Up to 4 TB", "One replica, no readable copy"),
-                B.card("Business Critical", "Lowest latency and fastest failover.", "Local SSD storage", "Built-in readable secondary", "In-memory tables"),
-                B.card("Hyperscale", "Big or fast-growing databases and heavy reads.", "Storage grows to 128 TB", "Snapshot backups, fast restores", "Up to 30 named replicas"),
+                B.card("General Purpose", "Most business apps on a budget.", "Data on fast network storage", "Up to 4 TB", "No readable copy included"),
+                B.card("Business Critical", "Lowest latency and fastest failover.", "Data on SSDs inside the server", "A readable replica included", "Tables kept in memory for speed"),
+                B.card("Hyperscale", "Big or fast-growing databases and heavy reads.", "Storage grows to 128 TB", "Snapshot backups, quick restores", "Up to 30 named read replicas"),
             ),
             B.p("""
                 Two more choices sit beside the tier. Serverless is a compute tier for single databases in General
-                Purpose or Hyperscale: it scales itself, bills per second, and can pause when idle so you pay only for
-                storage. An elastic pool is a shared budget of compute for many databases whose busy hours differ, like
-                a family data plan where each phone uses the allowance at a different time.
+                Purpose or Hyperscale: it grows and shrinks itself and bills per second. In General Purpose it can
+                also pause when idle, so you pay only for storage; pausing on Hyperscale is still in preview. An
+                elastic pool is a shared budget of compute for many databases whose busy hours differ, like a family
+                data plan where each phone uses the allowance at a different time.
             """),
             B.tip("\"Unpredictable use, idle at night, lowest cost\" points to serverless. \"Hundreds of small tenant databases with different peaks\" points to an elastic pool. \"Low latency, in-memory, readable replica included\" points to Business Critical."),
             B.check(
@@ -115,8 +123,8 @@ internal object Az305Data {
             B.h("Protecting the data"),
             B.table(
                 listOf("Feature", "What it does", "Requirement words"),
-                listOf("Transparent data encryption (TDE)", "Encrypts the files on disk; on by default", "Encrypt data at rest"),
-                listOf("Always Encrypted", "The client encrypts columns; the server and its admins never see plain text", "Even DBAs must not read card or health data"),
+                listOf("Transparent data encryption (TDE)", "Scrambles the files on disk, so a stolen disk is useless; on by default", "Encrypt data at rest, meaning while stored"),
+                listOf("Always Encrypted", "The app encrypts chosen columns before sending them; the server and its admins never see plain text", "Even database admins (DBAs) must not read card or health data"),
                 listOf("Dynamic data masking", "Shows XXXX instead of the value to users without rights", "Support staff see only the last four digits"),
                 listOf("Auditing", "Records who did what, to storage or Log Analytics", "Track access for compliance"),
                 listOf("Private endpoint", "Gives the server a private address inside your network", "No traffic over the public internet"),
@@ -229,8 +237,8 @@ internal object Az305Data {
                 "Think about what the cheapest place to keep a file costs you when you finally want it back.",
             ),
             B.plain("""
-                Semi-structured data is data with a loose shape, such as JSON documents where each item may carry
-                different fields. Unstructured data has no shape the database understands: photos, videos, PDFs, logs.
+                Semi-structured data is data with a loose shape, such as JSON documents: text records of names and
+                values, where each item may carry different fields. Unstructured data has no shape the database understands: photos, videos, PDFs, logs.
                 Cosmos DB is Azure's home for the first, and a storage account holds the second. The design work is
                 trading features, speed and price, then keeping the data safe.
             """),
@@ -260,15 +268,17 @@ internal object Az305Data {
                 listOf("API", "Pick when"),
                 listOf("NoSQL", "New app storing JSON documents; the richest features"),
                 listOf("MongoDB", "The app or team already uses MongoDB drivers and tools"),
-                listOf("Apache Cassandra", "Existing Cassandra workload with wide rows and CQL queries"),
-                listOf("Apache Gremlin", "Graph data: people, friends, follows, recommendations"),
+                listOf("Apache Cassandra", "An existing Cassandra app and its query language, CQL"),
+                listOf("Apache Gremlin", "Graph data, dots joined by lines: people, friends, follows, recommendations"),
                 listOf("Table", "Key-value data from Azure Table storage that now needs global reach"),
             ),
             B.p("""
-                Azure Table storage, inside a storage account, is the cheap key-value option: one region and a simple
-                lookup by keys. Move to Cosmos DB for Table when you need low latency worldwide, more regions or
-                indexes on every property. Consistency, meaning how fresh a read is after a write in another region,
-                runs from strong to eventual; session, the default, means each user always sees their own writes.
+                A storage account is Azure's general-purpose store for files and simple data. Inside it, Azure Table
+                storage is the cheap key-value option: you look each item up by its key, like a cloakroom ticket,
+                in one region. Move to Cosmos DB for Table when you need quick answers worldwide, more regions or an
+                index on every property. Consistency means how fresh a read is after a write in another region.
+                Strong means every read sees the newest write, at the cost of waiting. Eventual means copies catch
+                up a little later. Session, the default, sits between: each user always sees their own writes.
             """),
             B.check(
                 "sa-nonrelational-k1", "sa-nonrelational",
@@ -284,30 +294,37 @@ internal object Az305Data {
             B.compare("Which kind of unstructured storage?",
                 B.card("Blob Storage", "Files reached over HTTP by apps.", "Images, video, backups", "Access tiers and lifecycle rules", "Cheapest at scale"),
                 B.card("Data Lake Storage Gen2", "Analytics over big files in folders.", "Blob with hierarchical namespace", "Real folders, fast renames", "Folder and file permissions"),
-                B.card("Azure Files", "A shared drive that servers mount.", "SMB or NFS file shares", "Lift and shift without code changes", "File Sync caches it in the office"),
+                B.card("Azure Files", "A shared network drive that servers connect to.", "Speaks SMB (Windows) and NFS (Linux) file sharing", "Lift and shift without code changes", "File Sync keeps a local copy in the office"),
             ),
             B.p("""
                 A hierarchical namespace is a switch on the account that makes folders real, like a filing cabinet
                 rather than one huge drawer of labelled papers. Renaming a folder becomes one quick step, and you can
-                set POSIX-style permissions on folders and files, which analytics tools need.
+                set Linux-style read and write permissions on each folder and file, which analytics tools need.
+                Azure File Sync is the branch-library trick for Azure Files: a Windows server in the office keeps
+                the busiest files close by, while the full set lives in Azure.
             """),
             B.h("Balancing features, performance and cost"),
             B.bullets(
                 "Hot: highest storage price, cheapest reads. For data in daily use.",
                 "Cool (30 days minimum) and cold (90 days minimum): cheaper to keep, dearer to read, still instant.",
-                "Archive (180 days minimum): cheapest of all, offline; a read needs rehydration of up to 15 hours.",
+                "Archive (180 days minimum): cheapest of all, but offline, like a box in a warehouse. Before a read, the blob must be rehydrated, copied back to an online tier, which can take up to 15 hours.",
                 "Leave a cooler tier early and you pay an early deletion charge for the remaining days.",
                 "Lifecycle management rules move or delete blobs by age, so nobody has to remember.",
-                "Premium accounts use SSDs for low latency, at a higher price per gigabyte.",
+                "Premium accounts use SSDs, fast flash disks, for quicker answers at a higher price per gigabyte.",
             ),
             B.h("Durability: how many copies, and where"),
+            B.p("""
+                Azure always keeps at least three copies of your data; the redundancy option decides where they live. An availability
+                zone is a separate datacenter in the same region, with its own power and cooling. A paired region
+                is a second region far away, such as North Europe for West Europe.
+            """),
             B.table(
                 listOf("Redundancy", "Copies", "Survives"),
-                listOf("LRS", "Three in one datacenter", "A failed disk or rack"),
-                listOf("ZRS", "Three across availability zones", "A whole datacenter going down"),
-                listOf("GRS", "LRS here plus LRS in the paired region", "A regional disaster"),
-                listOf("GZRS", "ZRS here plus LRS in the paired region", "A zone and a region"),
-                listOf("RA-GRS, RA-GZRS", "As above", "Plus you can read the secondary at any time"),
+                listOf("LRS, locally redundant", "Three in one datacenter", "A failed disk or rack"),
+                listOf("ZRS, zone-redundant", "Three across availability zones", "A whole datacenter going down"),
+                listOf("GRS, geo-redundant", "LRS here plus LRS in the paired region", "A regional disaster"),
+                listOf("GZRS, geo-zone-redundant", "ZRS here plus LRS in the paired region", "A zone and a region"),
+                listOf("RA-GRS, RA-GZRS (read access)", "As above", "Plus you can read the second region's copy at any time"),
             ),
             B.tip("Archive works only with LRS, GRS or RA-GRS, not with ZRS or GZRS. \"Read from the second region even before failover\" points to the RA- versions."),
             B.check(
@@ -324,8 +341,8 @@ internal object Az305Data {
             B.bullets(
                 "Soft delete for blobs and containers: a recycle bin, kept 1 to 365 days.",
                 "Versioning keeps every earlier version when a blob is overwritten.",
-                "Point-in-time restore rolls block blobs back to an earlier moment.",
-                "Immutable storage, WORM (write once, read many): a time-based retention policy or a legal hold blocks change and deletion, even by admins.",
+                "Point-in-time restore rolls a container's blobs back to an earlier moment, like rewinding a tape.",
+                "Immutable storage is WORM, write once, read many: like a sealed evidence bag. A time-based retention policy seals data for a set period; a legal hold seals it until someone lifts the hold. Either blocks change and deletion, even by admins.",
                 "A delete lock on the account stops someone removing the whole account.",
             ),
             B.check(
@@ -471,22 +488,25 @@ internal object Az305Data {
             B.h("Azure Data Factory: the mover"),
             B.p("""
                 Data Factory is a managed service for ETL, extract, transform and load: take data out of a source,
-                reshape it, and put it somewhere useful, like a removal company with a timetable. A pipeline is the
-                job list; each activity is one step, such as a copy. A linked service holds the connection to a store,
-                and a trigger starts the pipeline on a schedule or when a file arrives. Mapping data flows let you
-                design transforms visually, and Data Factory runs them on Spark for you.
+                reshape it, and put it somewhere useful, like a removal company with a timetable. The destination is
+                often a data lake: a big, cheap store for raw files of every kind. A pipeline is the job list; each
+                activity is one step, such as a copy. A linked service holds the connection details for one store.
+                A trigger starts the pipeline on a schedule or when a file arrives. Mapping data flows let you design
+                the reshaping by drawing boxes instead of writing code. An integration runtime is the worker that
+                does the lifting, and where it sits matters.
             """),
             B.h("Integration runtimes: where the work runs"),
             B.table(
                 listOf("Integration runtime", "Runs where", "Pick when"),
                 listOf("Azure", "Managed compute in Azure", "Cloud to cloud copies and data flows"),
                 listOf("Self-hosted", "Software you install on a Windows machine in your network", "Sources behind a firewall or in a private network; it only connects outbound"),
-                listOf("Azure-SSIS", "Managed cluster of VMs", "Lift and shift existing SSIS packages"),
+                listOf("Azure-SSIS", "Managed group of VMs that runs SSIS, SQL Server's older ETL tool", "Lift and shift existing SSIS packages"),
             ),
             B.p("""
-                SSIS, SQL Server Integration Services, is the older on-premises tool for the same job. If a company
-                already has hundreds of SSIS packages, the Azure-SSIS runtime runs them with little change. For high
-                availability, register the self-hosted runtime on up to several machines in the office.
+                SSIS, SQL Server Integration Services,
+                is the older on-premises tool for the same job, and a package is one saved SSIS job. If a company
+                already has hundreds of packages, the Azure-SSIS runtime runs them with little change. Register the
+                self-hosted runtime on more than one office machine, so the copy still runs if one machine fails.
             """),
             B.check(
                 "sa-data-integration-k1", "sa-data-integration",
@@ -499,19 +519,21 @@ internal object Az305Data {
                 ),
             ),
             B.h("Analysis: Fabric, Synapse or Databricks"),
-            B.compare("Where do you analyse?",
-                B.card("Microsoft Fabric", "One SaaS platform for the whole analytics team.", "Data Factory, Spark, warehouse, real-time and Power BI together", "OneLake: one lake for the organisation", "Pay for a shared capacity"),
-                B.card("Azure Synapse Analytics", "A PaaS warehouse with SQL and Spark in one workspace.", "Dedicated SQL pools for a data warehouse", "Serverless SQL to query files in the lake", "Built-in pipelines"),
-                B.card("Azure Databricks", "Spark-heavy data engineering and machine learning.", "Notebooks shared by data teams", "Delta Lake tables on your lake", "Strong for Python and ML"),
-            ),
             B.p("""
                 Spark is an engine that splits a big job across many machines, like a hundred people each counting one
                 box of votes. A data warehouse is a database shaped for big read-only questions rather than many small
-                writes. Microsoft's docs point new analytics projects towards Fabric, which is SaaS, software as a
-                service: nothing to deploy. Synapse stays supported for existing warehouses. At this exam's depth,
-                listen for the team: SQL analysts and a warehouse suggest Synapse or Fabric; data scientists in Python
-                notebooks suggest Databricks.
+                writes. A notebook is a page that mixes code, results and notes, used by data scientists. Microsoft
+                Fabric is SaaS, software as a service: you sign in and use it, with nothing to deploy. Microsoft now
+                publishes guides for moving Synapse workloads to Fabric, so Fabric is the natural pick for a new
+                project, while Synapse stays supported for existing warehouses. At this exam's depth, listen for the
+                team: SQL analysts and a warehouse suggest Fabric or Synapse; data scientists in Python notebooks
+                suggest Databricks.
             """),
+            B.compare("Where do you analyse?",
+                B.card("Microsoft Fabric", "One SaaS platform for the whole analytics team.", "Data movement, Spark, warehouse, real-time and Power BI reports together", "OneLake: one lake for the organisation", "Pay for a shared capacity"),
+                B.card("Azure Synapse Analytics", "A warehouse with SQL and Spark in one workspace, which you set up and run.", "Dedicated SQL pools: a warehouse you keep running", "Serverless SQL: query lake files, pay per query", "Built-in pipelines"),
+                B.card("Azure Databricks", "Spark-heavy data engineering and machine learning.", "Notebooks shared by data teams", "Delta Lake: lake files that behave like tables", "Strong for Python and ML"),
+            ),
             B.check(
                 "sa-data-integration-k2", "sa-data-integration",
                 "Analysts want to run occasional T-SQL queries straight over Parquet files in the data lake, without loading them anywhere or keeping servers running. Which fits?",
@@ -524,10 +546,11 @@ internal object Az305Data {
             ),
             B.h("Real time: Stream Analytics"),
             B.p("""
-                Stream Analytics runs a SQL-like query over events as they arrive, from Event Hubs or IoT Hub, and
-                writes results every few seconds to Power BI, SQL, Cosmos DB or storage. Event Hubs is a front door
-                that can take in millions of events a second. Windowing groups events into slices of time, such as
-                every five minutes, like counting cars per minute at a junction.
+                An event is a small message saying something happened, such as "lesson finished". Event Hubs is a
+                front door that can take in millions of events a second; IoT Hub is the same idea for devices and
+                sensors. Stream Analytics runs a SQL-like query over events as they arrive, and writes results every
+                few seconds to Power BI reports, a database or storage. Windowing groups events into slices of time,
+                such as every five minutes, like counting cars per minute at a junction.
             """),
             B.tip("\"Nightly\", \"copy\", \"on-premises source\" point to Data Factory. \"Within seconds\", \"live dashboard\", \"every five minutes\" point to Stream Analytics. \"Data scientists, notebooks, Spark\" point to Databricks."),
             B.check(

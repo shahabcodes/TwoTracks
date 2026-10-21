@@ -46,9 +46,10 @@ internal object Az305Identity2 {
                 A security principal is anyone or anything that can be given access: a user, a group, an app's own
                 identity (a service principal) or a managed identity, which is an identity Azure runs for a resource.
                 A role definition is a named list of allowed actions, like a job description. A scope is where it
-                applies: a management group (a folder of subscriptions), a subscription, a resource group or one
-                resource. Access granted at a scope flows down to everything inside it, the way a floor key opens
-                every room on that floor.
+                applies. From biggest to smallest: a management group, which is a folder of subscriptions; a
+                subscription, which is one Azure account with its own bill; a resource group, which is a box of
+                related resources; or one single resource. Access granted at a scope flows down to everything
+                inside it, the way a floor key opens every room on that floor.
             """),
             B.table(
                 listOf("Built-in role", "What it allows", "Pick it when"),
@@ -61,8 +62,8 @@ internal object Az305Identity2 {
             B.bullets(
                 "Least privilege: the smallest role at the narrowest scope that still does the job.",
                 "Assign roles to groups, not people, so joiners and leavers change one membership instead of many assignments.",
-                "A custom role is your own list of actions, written as JSON, for when no built-in role fits; it names the scopes where it may be assigned.",
-                "Actions cover managing a resource (the control plane); data actions cover the data inside it, like reading a blob or a secret (the data plane).",
+                "A custom role is your own list of actions, for when no built-in role fits. It is a short text file that also names the scopes where it may be assigned.",
+                "Actions cover managing a resource, like building or knocking down a shed: the control plane. Data actions cover what is inside it, like reading a file or a secret: the data plane.",
             ),
             B.compare("Two kinds of role, two different jobs",
                 B.card("Microsoft Entra roles", "The job is about the directory itself: users, groups, licences, app registrations.", "Manage the directory, not Azure resources", "Examples: Global Administrator, User Administrator", "Assigned in the Entra admin center"),
@@ -86,7 +87,7 @@ internal object Az305Identity2 {
                 reception and signing it back. A person is made eligible for a role rather than active. When they need
                 it they activate it for a few hours, giving a reason, passing multifactor sign-in and, if set, waiting
                 for an approver. Every activation is logged. PIM works for Entra roles, Azure roles and group
-                membership, and needs Microsoft Entra ID P2 or Entra ID Governance licences.
+                membership. It needs a paid licence: Microsoft Entra ID P2 or Microsoft Entra ID Governance.
             """),
             B.check(
                 "sa-authorization-k2", "sa-authorization",
@@ -101,13 +102,14 @@ internal object Az305Identity2 {
             B.h("Reaching apps still on-premises"),
             B.p("""
                 Many companies still run web apps in their own building, on-premises. Users first need one identity
-                for both worlds: Microsoft Entra Connect copies the office directory (Active Directory) into Entra ID,
-                so the same account signs in to both. To let remote users reach an internal web app without a VPN,
-                which is a private tunnel into the office network, use Microsoft Entra application proxy. A small
-                agent, the private network connector, sits inside the office and only calls out to the cloud, so no
-                door is opened inwards. Entra checks the user first, with multifactor sign-in and Conditional Access
-                (sign-in rules such as "only from a managed device"), and the connector then signs the user in to
-                the app, even one that uses Windows sign-in (Kerberos).
+                for both worlds. A sync tool, Entra Connect Sync or Cloud Sync, copies the office directory, Active
+                Directory, into Entra ID, so the same account signs in to both. Remote users often reach office apps
+                through a VPN, a private tunnel into the office network. Microsoft Entra application proxy removes
+                the need for one. A small program, the private network connector, sits inside the office. It only
+                calls out to the cloud, like a receptionist who phones out but never unlocks the front door. Entra
+                checks the user first, with multifactor sign-in and Conditional Access, its if-then sign-in rules.
+                Then the connector signs the user in to the app. That works even for apps using Kerberos, the
+                built-in Windows sign-in.
             """),
             B.diagram(
                 caption = "The user signs in to Entra first; the connector inside the office only calls outwards, so no inbound port is opened.",
@@ -130,6 +132,10 @@ internal object Az305Identity2 {
                 A secret is a password or connection string; a key is used to encrypt or sign; a certificate proves a
                 website's identity. Azure Key Vault is the safe for all three. A hardware security module, HSM, is a
                 tamper-proof box that keeps a key inside and does the maths there, so the key itself never leaves.
+                FIPS 140-3 Level 3 is a US government test for such boxes; Level 3 means the box resists tampering
+                and shows it if someone tries. Single-tenant means the HSMs serve only you, not other customers. The
+                security domain is the master backup of an HSM's keys. Whoever holds it holds the only spare key to
+                the safe.
             """),
             B.table(
                 listOf("Option", "What protects the keys", "Holds", "Pick it when"),
@@ -139,9 +145,9 @@ internal object Az305Identity2 {
             ),
             B.bullets(
                 "Use Azure RBAC on the vault: Key Vault Secrets User to read secrets, Key Vault Crypto User to use keys, Key Vault Administrator for the team that runs it.",
-                "One vault per app, per environment, per region keeps the blast radius small.",
-                "Soft delete keeps deleted items for a while; purge protection stops anyone, admins included, destroying them early.",
-                "Rotation: keys can rotate on a policy, certificates renew automatically with partner authorities, and a near-expiry event can trigger a function that rotates a secret.",
+                "One vault per app, per environment, per region, so one leaked vault exposes as little as possible.",
+                "Soft delete is a recycle bin for deleted items; purge protection stops anyone, admins included, emptying it early.",
+                "Rotation means swapping in a fresh key or secret on a schedule. Keys can rotate on a policy, and certificates can renew themselves with the companies that issue them. A secret about to expire can trigger a small function that replaces it.",
                 "Apps read the vault with a managed identity, so no password is needed to fetch the passwords.",
             ),
             B.tip("\"FIPS 140-3 Level 3\" plus \"cheapest\" means Key Vault Premium. \"Single-tenant\" or \"we must hold the security domain\" means Managed HSM. Needing secrets or certificates too rules Managed HSM out."),
@@ -294,7 +300,7 @@ internal object Az305Identity2 {
             ),
             B.bullets(
                 "Every directory has one root management group, the Tenant root group; new subscriptions land there unless moved.",
-                "Management groups nest up to six levels below the root, and each subscription has exactly one parent. Keep it shallow, three or four levels.",
+                "Management groups nest up to six levels deep, not counting the root or the subscriptions, and each subscription has exactly one parent. Keep it shallow, three or four levels.",
                 "Separate production and non-production subscriptions so a test cannot eat production's limits or break its rules.",
             ),
             B.p("""
@@ -310,7 +316,8 @@ internal object Az305Identity2 {
                 A tag is a name and value label stuck on a resource, like costCentre = mobile. Tags let you split the
                 bill, find an owner at 3 a.m. or spot which data is sensitive. Agree a short list up front: cost
                 centre, owner, environment, application and data classification. Tags are not inherited from the
-                resource group by default, so use Azure Policy to require them or copy them down.
+                resource group by default. Azure Policy, Azure's rule checker described next, can require them or
+                copy them down.
             """),
             B.check(
                 "sa-governance-k1", "sa-governance",
@@ -326,16 +333,18 @@ internal object Az305Identity2 {
             B.p("""
                 Azure Policy checks resources against rules, whoever creates them. A policy definition is one rule,
                 such as "only these regions". An initiative is a bundle of definitions, such as everything a standard
-                asks for. An assignment applies either to a scope, with exclusions for anything left out. Policy checks
-                new and changed resources as they are deployed, and scans existing ones to report compliance.
+                asks for. An assignment attaches a definition or an initiative to a scope, with exclusions for
+                anything left out. Policy checks new and changed resources as they are deployed, like a building
+                inspector at the door. It also scans existing ones and reports which follow the rules, called
+                compliance. The effect is what a rule does when something breaks it.
             """),
             B.table(
                 listOf("Effect", "What it does", "Requirement words"),
                 listOf("deny", "Blocks the create or change", "must not, prevent, only allow"),
                 listOf("audit", "Allows it, marks it non-compliant", "report, find out, without blocking"),
                 listOf("modify", "Adds or changes tags and some properties", "add the tag, inherit, fix automatically"),
-                listOf("deployIfNotExists", "Deploys a missing companion resource", "ensure diagnostics or an agent is always deployed"),
-                listOf("auditIfNotExists", "Reports a missing companion resource", "report VMs without an extension"),
+                listOf("deployIfNotExists", "Deploys a missing companion, a resource that should sit beside it, such as a diagnostic setting", "ensure diagnostics or an agent is always deployed"),
+                listOf("auditIfNotExists", "Reports a missing companion resource", "report VMs without an add-on installed"),
                 listOf("disabled", "Turns the rule off for this assignment", "pause a rule, test"),
             ),
             B.remember("modify and deployIfNotExists act on new resources at once, but existing ones are fixed only by a remediation task, which runs as the assignment's managed identity."),
@@ -355,11 +364,15 @@ internal object Az305Identity2 {
             ),
             B.h("Compliance and protection"),
             B.p("""
-                Microsoft Defender for Cloud, Azure's security posture service, has a regulatory compliance dashboard.
-                It starts with the Microsoft cloud security benchmark and lets you add standards such as GDPR,
-                ISO 27001 or PCI DSS; a paid Defender plan is needed for most of them. Each standard maps its controls
-                to policies, so you see which controls pass. Azure Blueprints is being retired, by January 2027;
-                deployment stacks and template specs replace it for stamping out governed environments.
+                Microsoft Defender for Cloud is Azure's security check-up: it scores how safe your setup is. Its
+                regulatory compliance dashboard is a report card against a standard, a published list of rules. It
+                starts with the Microsoft cloud security benchmark, Microsoft's own baseline list of checks. You
+                can add others, such as GDPR (the EU privacy law), ISO 27001 (an international security standard)
+                or PCI DSS (the card-payment rules). Adding standards beyond the default needs at least one paid
+                Defender plan. Each standard maps its controls, the individual rules, to policies, so you see which
+                pass. Older designs used Azure Blueprints to stamp out governed subscriptions. Blueprints is being
+                retired: a phased shutdown began on 31 July 2026 and it ends on 31 January 2027. Microsoft points to
+                deployment stacks instead, which deploy a set of resources as one unit and guard it.
             """),
             B.p("""
                 A resource lock is a guard against mistakes. CanNotDelete lets people change a resource but not delete
@@ -374,7 +387,7 @@ internal object Az305Identity2 {
                 listOf("Lifecycle workflows", "Automatic tasks when people join, move or leave", "first day, leaver, disable account on last day"),
                 listOf("Privileged Identity Management", "Admin roles made eligible and switched on for a short time", "just in time, approval for admin rights"),
             ),
-            B.tip("These need Microsoft Entra ID P2 or Entra ID Governance licences. Guests from a partner company who ask for a set of resources with approval and expiry point to entitlement management access packages."),
+            B.tip("These are paid features: access reviews, entitlement management and PIM come with Microsoft Entra ID P2, and lifecycle workflows need Microsoft Entra ID Governance. Guests from a partner company who ask for a set of resources with approval and expiry point to entitlement management access packages."),
             B.check(
                 "sa-governance-k3", "sa-governance",
                 "Managers must confirm every quarter that guest users still need their group memberships. What do you use?",
