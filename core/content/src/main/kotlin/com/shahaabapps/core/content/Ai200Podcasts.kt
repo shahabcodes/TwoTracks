@@ -7,5 +7,22 @@ package com.shahaabapps.core.content
  * in a file of their own, Ai200Podcasts<Module>.kt, gathered here.
  */
 internal object Ai200Podcasts {
-    val all: List<Podcast> by lazy { Ai200EpisodesCosmosVector.podcasts }
+    val all: List<Podcast> by lazy {
+        Ai200EpisodesAcr.podcasts +
+            Ai200EpisodesAppServiceContainers.podcasts +
+            Ai200EpisodesContainerApps.podcasts +
+            Ai200EpisodesAks.podcasts +
+            Ai200EpisodesContainerTroubleshoot.podcasts +
+            Ai200EpisodesCosmosSdk.podcasts +
+            Ai200EpisodesCosmosPerf.podcasts +
+            Ai200EpisodesCosmosVector.podcasts +
+            Ai200EpisodesCosmosChangeFeed.podcasts +
+            Ai200EpisodesPostgres.podcasts +
+            Ai200EpisodesEventGrid.podcasts +
+            Ai200EpisodesFunctions.podcasts +
+            Ai200EpisodesKeyVault.podcasts +
+            Ai200EpisodesAppConfig.podcasts +
+            Ai200EpisodesOpenTelemetry.podcasts +
+            Ai200EpisodesKql.podcasts
+    }
 }
