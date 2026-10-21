@@ -179,14 +179,19 @@ data class LearnUiState(
     /** Whose goals each course serves, by course id: the reader, the partner, or both. */
     val owners: Map<String, Set<PersonRole>> = emptyMap(),
     val myRole: PersonRole = PersonRole.TECH,
+    /** The courses starred on this phone; [courses] lists them first. */
+    val favorites: Set<String> = emptySet(),
 )
 
 @HiltViewModel
 class LearnViewModel @Inject constructor(
     sessionStore: SessionStore,
     dataStore: CoupleDataStore,
+    private val favorites: CourseFavorites,
 ) : ViewModel() {
-    val uiState: StateFlow<LearnUiState> = combine(sessionStore.state, dataStore.topicProgress, dataStore.quizAttempts, dataStore.flashcards, dataStore.goals) { state, progress, attempts, cards, goals ->
+    fun toggleFavorite(courseId: String) = favorites.toggle(courseId)
+
+    private val base: kotlinx.coroutines.flow.Flow<LearnUiState> = combine(sessionStore.state, dataStore.topicProgress, dataStore.quizAttempts, dataStore.flashcards, dataStore.goals) { state, progress, attempts, cards, goals ->
         val session = (state as? com.shahaabapps.twotracks.session.SessionState.Ready)?.session ?: return@combine LearnUiState()
         val partnerRole = if (session.myRole == PersonRole.TECH) PersonRole.TEACHER else PersonRole.TECH
         val today = Clock.today(session.me)
@@ -203,6 +208,10 @@ class LearnViewModel @Inject constructor(
                 c.id to DeckInfo(WordDeck.dueCount(session.myRole, c, cards, today), WordDeck.newCount(session.myRole, c, cards, progress), cards.count { it.owner == session.myRole && it.courseId == c.id })
             },
         )
+    }
+
+    val uiState: StateFlow<LearnUiState> = combine(base, favorites.ids) { s, starred ->
+        s.copy(courses = CourseFavorites.sorted(s.courses, starred), favorites = starred)
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), LearnUiState())
 }
 

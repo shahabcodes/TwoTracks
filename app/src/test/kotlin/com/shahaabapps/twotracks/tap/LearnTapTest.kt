@@ -17,6 +17,17 @@ class LearnTapTest(look: AppLook) : TapTest(look) {
     private val de = GermanA1.course
 
     @Test
+    fun `a course's star turns it into a favourite, or back`() {
+        val state = LearnSamples.learn()
+        show { LearnContent(state, onOpenCourse = record1("course"), onOpenTopic = record2("topic"), onOpenDeck = record1("deck"), onOpenQuiz = record2("quiz"), onToggleFavorite = record1("star")) }
+        // AZ-204 is not starred by default; AI-200 is.
+        tapAction("Star ${Courses.byId("az-204")!!.title}")
+        expect("star(az-204)")
+        tapAction("Unstar ${Courses.byId("ai-200")!!.title}")
+        expect("star(ai-200)")
+    }
+
+    @Test
     fun `learn opens a course, the daily review and the deck`() {
         val state = LearnSamples.learn()
         show { LearnContent(state, onOpenCourse = record1("course"), onOpenTopic = record2("topic"), onOpenDeck = record1("deck"), onOpenQuiz = record2("quiz")) }

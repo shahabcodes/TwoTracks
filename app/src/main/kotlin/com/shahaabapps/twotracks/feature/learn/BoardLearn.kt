@@ -111,6 +111,7 @@ internal fun BoardLearnBody(
     onOpenTopic: (String, String) -> Unit,
     onOpenDeck: (String) -> Unit,
     onOpenQuiz: (String, String) -> Unit,
+    onToggleFavorite: (String) -> Unit = {},
 ) {
     val meIsTech = state.myRole == PersonRole.TECH
     val myColor = AppTheme.colors.track(meIsTech)
@@ -176,6 +177,7 @@ internal fun BoardLearnBody(
                                 BoardText(serviceLine(course, if (forMe || !forPartner) null else state.partnerName), size = 12.sp)
                             }
                             BoardMono("${(lead * 100 / course.topicCount.coerceAtLeast(1))}%", color = AppTheme.colors.ink, size = 14.sp, weight = FontWeight.Bold, spacing = 0.sp, modifier = Modifier.width(60.dp), textAlign = TextAlign.End)
+                            FavoriteStar(course, course.id in state.favorites, { onToggleFavorite(course.id) }, AppTheme.colors.accent, AppTheme.colors.secondaryLabel)
                         }
                         if (forMe || !forPartner) Bar("You", learned(p, course), course.topicCount, myColor)
                         if (forPartner) Bar(state.partnerName, learned(partner, course), course.topicCount, partnerColor)
