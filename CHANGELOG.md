@@ -5,6 +5,12 @@ build number is appended by CI (for example `0.1.0 (build 12)`).
 
 ## [Unreleased]
 
+## [0.90.0] - 2026-10-21
+### Added
+- AI-200 and AZ-305 courses, each with module tests, a mock exam and podcasts in five tellings (more episodes arrive as they render).
+### Changed
+- Podcast audio is no longer in the app: it downloads from your space's private storage on first play, and the app is a third of the size.
+
 ## [0.89.0] - 2026-10-20
 ### Added
 - Every AZ-204 episode in two more tellings, Case Files and Gossip, chosen in the player.

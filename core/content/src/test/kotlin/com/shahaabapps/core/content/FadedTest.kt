@@ -26,6 +26,8 @@ class FadedTest {
      */
     private val mustFade: List<Pair<Course, Topic>> =
         Az204.course.allTopics.map { Az204.course to it } +
+            Ai200.course.allTopics.map { Ai200.course to it } +
+            Az305.course.allTopics.map { Az305.course to it } +
             GermanA1.course.allTopics
                 .filter { it.id.endsWith("-practice") || it.id == "de11-forms" || it.id == "de11-messages" }
                 .map { GermanA1.course to it } +
@@ -38,6 +40,8 @@ class FadedTest {
         // The counts are asserted so that a filter that silently stops
         // matching cannot turn this test into a no-op.
         assertEquals("az-204 topics", 22, mustFade.count { it.first.id == Az204.course.id })
+        assertEquals("ai-200 topics", 19, mustFade.count { it.first.id == Ai200.course.id })
+        assertEquals("az-305 topics", 14, mustFade.count { it.first.id == Az305.course.id })
         assertEquals("German writing topics", 12, mustFade.count { it.first.id == GermanA1.course.id })
         assertEquals("IELTS writing and speaking topics", 13, mustFade.count { it.first.id == Ielts.course.id })
         mustFade.forEach { (c, t) ->

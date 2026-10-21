@@ -87,6 +87,32 @@ object SeedGoals {
             ),
         ),
         StudyGoal(
+            id = "ai-200", owner = PersonRole.TECH, kind = GoalKind.CERTIFICATION, title = "AI-200 Azure AI Cloud Developer Associate",
+            subtitle = "Tier 1. AZ-204's successor. Fee about USD 165",
+            why = "AZ-204 retired on 31 July 2026; this is the developer exam that replaced it, with AI data services and Python.",
+            priority = 19, targetDateIso = "2027-04-30", tier = CertTier.TIER_1, feeUsd = 165,
+            components = listOf(
+                GoalComponent("containers", "Develop containerized solutions on Azure (20-25%)", 12.0),
+                GoalComponent("aidata", "Develop AI solutions by using Azure data management services (30-35%)", 16.0),
+                GoalComponent("connect", "Connect to and consume Azure services (20-25%)", 10.0),
+                GoalComponent("secure", "Secure, monitor and troubleshoot Azure solutions (20-25%)", 10.0),
+                GoalComponent("practice", "Practice exams", 8.0),
+            ),
+        ),
+        StudyGoal(
+            id = "az-305", owner = PersonRole.TECH, kind = GoalKind.CERTIFICATION, title = "AZ-305 Azure Solutions Architect Expert",
+            subtitle = "Tier 2. Needs AZ-104 too for the certificate. Fee about USD 165",
+            why = "The architect exam: designing whole Azure solutions, a step up from building parts of them.",
+            priority = 22, targetDateIso = "2027-07-31", tier = CertTier.TIER_2, feeUsd = 165,
+            components = listOf(
+                GoalComponent("identity", "Design identity, governance and monitoring solutions (25-30%)", 14.0),
+                GoalComponent("data", "Design data storage solutions (20-25%)", 11.0),
+                GoalComponent("continuity", "Design business continuity solutions (15-20%)", 9.0),
+                GoalComponent("infrastructure", "Design infrastructure solutions (30-35%)", 17.0),
+                GoalComponent("practice", "Practice exams", 8.0),
+            ),
+        ),
+        StudyGoal(
             id = "psm-1", owner = PersonRole.TECH, kind = GoalKind.CERTIFICATION, title = "PSM I Professional Scrum Master",
             subtitle = "Tier 1. Fee about USD 200, no renewal",
             why = "Scrum appears in most German and Irish developer ads; two weeks of evenings.",

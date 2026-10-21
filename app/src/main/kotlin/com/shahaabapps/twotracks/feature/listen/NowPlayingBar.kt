@@ -57,7 +57,9 @@ class NowPlayingViewModel @Inject constructor(val player: ListenPlayer) : ViewMo
 @Composable
 fun NowPlayingBar(now: NowPlaying, onOpen: () -> Unit, onPlayPause: () -> Unit, onForward30: () -> Unit, modifier: Modifier = Modifier) {
     val done = if (now.duration > 0) (now.position / now.duration).toFloat().coerceIn(0f, 1f) else 0f
-    val series = Podcasts.episode(now.episodeId)?.series ?: PodcastSeries.AZ204
+    val episode = Podcasts.episode(now.episodeId)
+    val series = episode?.series ?: PodcastSeries.AZ204
+    val hosts = episode?.hosts ?: series.hosts
     if (AppTheme.departures) {
         Column(modifier.fillMaxWidth().background(AppTheme.colors.card).clickable(role = Role.Button, onClickLabel = "Open the player", onClick = onOpen)) {
             Row(
@@ -90,7 +92,7 @@ fun NowPlayingBar(now: NowPlaying, onOpen: () -> Unit, onPlayPause: () -> Unit, 
                 Cover(Modifier.size(42.dp), corner = 7.dp, series = series)
                 Column(Modifier.weight(1f)) {
                     Text(now.title, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                    Text("${series.hosts} · ${clock(max(0.0, now.duration - now.position))} left", style = MaterialTheme.typography.bodySmall, color = AppTheme.colors.secondaryLabel, maxLines = 1)
+                    Text("$hosts · ${clock(max(0.0, now.duration - now.position))} left", style = MaterialTheme.typography.bodySmall, color = AppTheme.colors.secondaryLabel, maxLines = 1)
                 }
                 BarKey(if (now.playing) "Pause" else "Play", onPlayPause, solid = false) {
                     Icon(if (now.playing) Icons.Rounded.Pause else Icons.Rounded.PlayArrow, contentDescription = null, tint = AppTheme.colors.ink, modifier = Modifier.size(30.dp))
@@ -136,7 +138,7 @@ fun ListenCard(state: ListenCardState, onListen: () -> Unit, modifier: Modifier 
     val line = when {
         state.playing -> "Playing · ${left.orEmpty()}"
         left != null -> "Carry on · $left"
-        else -> "${state.series.hosts} talk it through · ${state.minutes} min"
+        else -> "${state.style?.hosts ?: state.series.hosts} talk it through · ${state.minutes} min"
     }.let { line -> state.style?.let { "${it.label} · $line" } ?: line }
     if (AppTheme.departures) {
         val shape = RoundedCornerShape(12.dp)

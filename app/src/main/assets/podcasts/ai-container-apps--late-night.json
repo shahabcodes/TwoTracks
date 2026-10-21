@@ -1,0 +1,270 @@
+{
+ "topicId": "ai-container-apps--late-night",
+ "seconds": 482.37,
+ "lines": [
+  {
+   "line": 0,
+   "host": "nova",
+   "start": 0.0,
+   "end": 14.71
+  },
+  {
+   "line": 1,
+   "host": "ivy",
+   "start": 15.03,
+   "end": 18.39
+  },
+  {
+   "line": 2,
+   "host": "nova",
+   "start": 18.71,
+   "end": 40.1
+  },
+  {
+   "line": 3,
+   "host": "ivy",
+   "start": 40.42,
+   "end": 43.7
+  },
+  {
+   "line": 4,
+   "host": "nova",
+   "start": 44.02,
+   "end": 62.38
+  },
+  {
+   "line": 5,
+   "host": "ivy",
+   "start": 62.7,
+   "end": 66.34
+  },
+  {
+   "line": 6,
+   "host": "nova",
+   "start": 66.66,
+   "end": 88.26
+  },
+  {
+   "line": 7,
+   "host": "ivy",
+   "start": 88.58,
+   "end": 90.98
+  },
+  {
+   "line": 8,
+   "host": "nova",
+   "start": 91.3,
+   "end": 114.41
+  },
+  {
+   "line": 9,
+   "host": "ivy",
+   "start": 114.73,
+   "end": 117.65
+  },
+  {
+   "line": 10,
+   "host": "nova",
+   "start": 117.97,
+   "end": 129.73
+  },
+  {
+   "line": 11,
+   "host": "ivy",
+   "start": 130.05,
+   "end": 132.69
+  },
+  {
+   "line": 12,
+   "host": "nova",
+   "start": 133.01,
+   "end": 147.25
+  },
+  {
+   "line": 13,
+   "host": "ivy",
+   "start": 147.57,
+   "end": 149.93
+  },
+  {
+   "line": 14,
+   "host": "nova",
+   "start": 150.25,
+   "end": 161.56
+  },
+  {
+   "line": 15,
+   "host": "ivy",
+   "start": 161.88,
+   "end": 165.04
+  },
+  {
+   "line": 16,
+   "host": "nova",
+   "start": 165.36,
+   "end": 175.47
+  },
+  {
+   "line": 17,
+   "host": "ivy",
+   "start": 175.79,
+   "end": 177.87
+  },
+  {
+   "line": 18,
+   "host": "nova",
+   "start": 178.19,
+   "end": 200.67
+  },
+  {
+   "line": 19,
+   "host": "ivy",
+   "start": 200.99,
+   "end": 203.67
+  },
+  {
+   "line": 20,
+   "host": "nova",
+   "start": 203.99,
+   "end": 221.9
+  },
+  {
+   "line": 21,
+   "host": "ivy",
+   "start": 222.22,
+   "end": 224.18
+  },
+  {
+   "line": 22,
+   "host": "nova",
+   "start": 224.5,
+   "end": 241.46
+  },
+  {
+   "line": 23,
+   "host": "ivy",
+   "start": 241.78,
+   "end": 244.98
+  },
+  {
+   "line": 24,
+   "host": "nova",
+   "start": 245.3,
+   "end": 256.57
+  },
+  {
+   "line": 25,
+   "host": "ivy",
+   "start": 256.89,
+   "end": 259.81
+  },
+  {
+   "line": 26,
+   "host": "nova",
+   "start": 260.13,
+   "end": 276.13
+  },
+  {
+   "line": 27,
+   "host": "ivy",
+   "start": 276.45,
+   "end": 278.45
+  },
+  {
+   "line": 28,
+   "host": "nova",
+   "start": 278.77,
+   "end": 297.69
+  },
+  {
+   "line": 29,
+   "host": "ivy",
+   "start": 298.01,
+   "end": 300.53
+  },
+  {
+   "line": 30,
+   "host": "nova",
+   "start": 300.85,
+   "end": 321.92
+  },
+  {
+   "line": 31,
+   "host": "ivy",
+   "start": 322.24,
+   "end": 327.12
+  },
+  {
+   "line": 32,
+   "host": "nova",
+   "start": 327.44,
+   "end": 348.88
+  },
+  {
+   "line": 33,
+   "host": "ivy",
+   "start": 349.2,
+   "end": 354.2
+  },
+  {
+   "line": 34,
+   "host": "nova",
+   "start": 354.52,
+   "end": 372.91
+  },
+  {
+   "line": 35,
+   "host": "ivy",
+   "start": 373.23,
+   "end": 376.39
+  },
+  {
+   "line": 36,
+   "host": "nova",
+   "start": 376.71,
+   "end": 399.7
+  },
+  {
+   "line": 37,
+   "host": "ivy",
+   "start": 400.02,
+   "end": 401.7
+  },
+  {
+   "line": 38,
+   "host": "nova",
+   "start": 402.02,
+   "end": 422.74
+  },
+  {
+   "line": 39,
+   "host": "ivy",
+   "start": 423.06,
+   "end": 428.22
+  },
+  {
+   "line": 40,
+   "host": "nova",
+   "start": 428.54,
+   "end": 453.58
+  },
+  {
+   "line": 41,
+   "host": "ivy",
+   "start": 453.9,
+   "end": 456.46
+  },
+  {
+   "line": 42,
+   "host": "nova",
+   "start": 456.78,
+   "end": 477.97
+  },
+  {
+   "line": 43,
+   "host": "ivy",
+   "start": 478.29,
+   "end": 482.37
+  }
+ ]
+}

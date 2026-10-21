@@ -4,6 +4,7 @@ notification, the picture on the lock screen and the artwork in the player.
 
     python tools/podcast/art/cover.py            the AZ-204 cover
     python tools/podcast/art/cover.py german     the German A1 cover
+    python tools/podcast/art/cover.py ai200      the AI-200 cover
 
 writes app/src/main/res/drawable-nodpi/podcast_cover.png (or
 podcast_cover_de.png). The fonts are the app's own, so the cover speaks the
@@ -24,6 +25,16 @@ SERIES = {
     "az204": {
         "out": "podcast_cover.png", "title": "AZ-204", "sub": "P O D C A S T", "hosts": "M L", "credit": "TwoTracks · Maya & Leo",
         "stops": [(0.0, (8, 30, 82)), (0.55, (0, 103, 192)), (1.0, (58, 196, 240))], "glow": (120, 220, 255, 90), "ink": (8, 30, 82, 255),
+    },
+    # AZ-204's successor: the same Azure family, turned towards AI's violet, from deep indigo to teal.
+    "ai200": {
+        "out": "podcast_cover_ai.png", "title": "AI-200", "sub": "P O D C A S T", "hosts": "M L", "credit": "TwoTracks · Maya & Leo",
+        "stops": [(0.0, (26, 16, 72)), (0.55, (92, 52, 200)), (1.0, (40, 200, 200))], "glow": (190, 160, 255, 90), "ink": (26, 16, 72, 255),
+    },
+    # The architect's exam: dusk over a city plan, from deep slate to amber.
+    "az305": {
+        "out": "podcast_cover_sa.png", "title": "AZ-305", "sub": "P O D C A S T", "hosts": "M L", "credit": "TwoTracks · Maya & Leo",
+        "stops": [(0.0, (18, 26, 44)), (0.55, (120, 60, 30)), (1.0, (240, 170, 50))], "glow": (255, 200, 120, 80), "ink": (18, 26, 44, 255),
     },
     # The flag's colours, kept dark enough for white type: charcoal, a deep red, then gold.
     "german": {

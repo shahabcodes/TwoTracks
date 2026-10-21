@@ -2,8 +2,9 @@ package com.shahaabapps.twotracks.feature.listen
 
 import com.shahaabapps.core.content.Az204
 import com.shahaabapps.core.content.GermanA1
-import com.shahaabapps.core.content.PodcastTimeline
+import com.shahaabapps.core.content.PodcastSeries
 import com.shahaabapps.core.content.PodcastStyle
+import com.shahaabapps.core.content.PodcastTimeline
 import com.shahaabapps.core.content.Podcasts
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
@@ -12,30 +13,28 @@ import org.junit.Test
 import java.io.File
 
 /**
- * The episodes the APK carries. A script edited after its render would
- * leave the transcript lighting the wrong line for the rest of the episode,
- * and nothing on a screen would say so; here it fails the build.
+ * The episodes the APK knows. It carries each one's timing, never its audio:
+ * the sound is in the couple space's Firebase Storage, readable only by its
+ * members (EpisodeAudio, firebase/storage.rules), so it is not public with the
+ * code or the APK. A script edited after its render would leave the
+ * transcript lighting the wrong line for the rest of the episode, and nothing
+ * on a screen would say so; here it fails the build.
  */
 class EpisodeAssetsTest {
     private val dir = File("src/main/assets/${Episodes.DIR}")
 
-    /**
-     * Rendered on a laptop GPU a few minutes an episode, so these follow in a
-     * later build. Named, so the list can only shrink: a topic here that has
-     * its episode fails too, and an empty list is the finished course.
-     */
-    private val stillRendering = emptySet<String>()
-
-    private fun installed(id: String) = File(dir, "$id.ogg").isFile && File(dir, "$id.json").isFile
+    private fun installed(id: String) = File(dir, "$id.json").isFile
 
     @Test
-    fun `every AZ-204 topic has its episode in the app, or is named as still rendering`() {
-        val topics = Az204.course.modules.flatMap { it.topics }.map { it.id }
-        val missing = topics.filterNot(::installed).filterNot { it in stillRendering }
+    fun `no audio ships in the app`() {
+        val audio = dir.listFiles { f -> f.extension.lowercase() in setOf("ogg", "opus", "mp3", "m4a", "wav") }.orEmpty().map { it.name }
+        assertTrue("audio would be public in the APK: $audio; it belongs in Firebase Storage (tools/podcast/upload.ps1)", audio.isEmpty())
+    }
+
+    @Test
+    fun `every AZ-204 topic has its episode in the app`() {
+        val missing = Az204.course.modules.flatMap { it.topics }.map { it.id }.filterNot(::installed)
         assertTrue("no episode in the app for $missing; render it and run tools/podcast/install.sh", missing.isEmpty())
-        val done = stillRendering.filter(::installed)
-        assertTrue("$done have their episodes now; take them off the list", done.isEmpty())
-        assertTrue("$stillRendering are not AZ-204 topics", topics.containsAll(stillRendering))
     }
 
     @Test
@@ -45,11 +44,12 @@ class EpisodeAssetsTest {
     }
 
     @Test
-    fun `every styled episode is in the app`() {
-        // A style is only written once it is rendered too: a script without its
-        // audio would be a choice in the player that plays nothing.
-        val missing = Podcasts.all.filter { it.style != PodcastStyle.CLASSIC }.map { it.episodeId }.filterNot(::installed)
-        assertTrue("no audio in the app for $missing; render them and run tools/podcast/install.sh", missing.isEmpty())
+    fun `every AZ-204 telling is in the app`() {
+        // AI-200's and AZ-305's episodes arrive as they render; the player only
+        // offers the tellings whose timing is here, so a partly rendered course
+        // shows fewer choices rather than a choice that plays nothing.
+        val missing = Podcasts.all.filter { it.series == PodcastSeries.AZ204 && it.style != PodcastStyle.CLASSIC }.map { it.episodeId }.filterNot(::installed)
+        assertTrue("no episode in the app for $missing; render them and run tools/podcast/install.sh", missing.isEmpty())
     }
 
     @Test
@@ -59,7 +59,7 @@ class EpisodeAssetsTest {
         for (file in timings) {
             val id = file.nameWithoutExtension
             val podcast = Podcasts.episode(id)
-            assertNotNull("$id has audio in the app but no script", podcast)
+            assertNotNull("$id has a timing in the app but no script", podcast)
             val text = file.readText()
             assertTrue("$id: the timing names another topic", text.contains("\"topicId\": \"$id\"") || text.contains("\"topicId\":\"$id\""))
             val timeline = PodcastTimeline.parse(text)
@@ -68,16 +68,6 @@ class EpisodeAssetsTest {
                 "$id: the script has ${podcast!!.lines.size} lines and the render ${timeline!!.spans.size}; render it again",
                 podcast.lines.indices.toList(), timeline.spans.map { it.line },
             )
-        }
-    }
-
-    @Test
-    fun `each episode's audio is Opus, as the player expects`() {
-        for (file in dir.listFiles { f -> f.extension == "ogg" }.orEmpty()) {
-            val head = file.inputStream().use { it.readNBytes(64) }
-            assertEquals("${file.name} is not an Ogg file", "OggS", String(head, 0, 4, Charsets.US_ASCII))
-            assertTrue("${file.name} is Ogg but not Opus", String(head, Charsets.ISO_8859_1).contains("OpusHead"))
-            assertTrue("${file.name} has a timing beside it", File(dir, "${file.nameWithoutExtension}.json").isFile)
         }
     }
 

@@ -10,6 +10,7 @@ import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -30,6 +31,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -117,7 +119,18 @@ data class ListenUiState(
     /** The tellings this topic has in the app; the player offers a choice when there is more than one. */
     val styles: List<PodcastStyle> = emptyList(),
     val style: PodcastStyle = PodcastStyle.CLASSIC,
+    /** The sound on its way from the couple's storage, or why it could not come; null once it is on the phone. */
+    val fetch: EpisodeAudio.Fetch? = null,
 ) {
+    /** One line for the player while the sound is fetched, or why it is not here. */
+    val fetchLine: String? get() = when (val f = fetch) {
+        is EpisodeAudio.Fetch.Downloading -> "Downloading… ${(f.fraction * 100).toInt()}%"
+        is EpisodeAudio.Fetch.Failed -> "${f.message} Press play to try again."
+        null -> null
+    }
+
+    /** Who is on it: the series' hosts, or the telling's own. */
+    val hosts: String get() = style.hosts ?: series.hosts
     val duration: Double get() = timeline?.seconds ?: 0.0
     val line: Int? get() = timeline?.lineAt(position)
     val minutes: Int get() = max(1, ((duration + 30) / 60).toInt())
@@ -129,13 +142,14 @@ class ListenViewModel @Inject constructor(
     private val episodes: Episodes,
     private val player: ListenPlayer,
     private val place: ListenPlace,
+    private val audio: EpisodeAudio,
 ) : ViewModel() {
     // The route's id is the episode's: a topic's id opens its classic episode.
     private val episodeId = MutableStateFlow(savedStateHandle.get<String>("topicId").orEmpty())
     private val courseId: String = savedStateHandle.get<String>("courseId").orEmpty()
     private val id: String get() = episodeId.value
 
-    val uiState: StateFlow<ListenUiState> = combine(player.state, episodeId) { now, id -> state(now, id) }
+    val uiState: StateFlow<ListenUiState> = combine(player.state, episodeId, audio.fetching) { now, id, fetching -> state(now, id).copy(fetch = fetching[id]) }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), state(player.state.value, episodeId.value))
 
     private fun state(now: NowPlaying?, id: String): ListenUiState {
@@ -314,7 +328,8 @@ fun ListenContent(
 @Composable
 private fun Titles(state: ListenUiState, size: androidx.compose.ui.unit.TextUnit) {
     Text(state.title, color = Ink, fontSize = size, lineHeight = size * 1.2f, fontWeight = FontWeight.SemiBold, maxLines = 2, overflow = TextOverflow.Ellipsis)
-    Text("${state.series.hosts} · Module ${state.module}", color = Soft, fontSize = 15.sp, modifier = Modifier.padding(top = 2.dp))
+    Text("${state.hosts} · Module ${state.module}", color = Soft, fontSize = 15.sp, modifier = Modifier.padding(top = 2.dp))
+    state.fetchLine?.let { Text(it, color = Soft, fontSize = 13.sp, modifier = Modifier.padding(top = 4.dp)) }
 }
 
 /** The transcript as a podcast app shows one: big type, the line being spoken lit, the rest dimmed. */
@@ -351,16 +366,20 @@ private fun Transcript(state: ListenUiState, onLine: (Int) -> Unit, modifier: Mo
 /** The tellings of this topic, one chip each; the one showing is filled. */
 @Composable
 private fun StyleChips(state: ListenUiState, onStyle: (PodcastStyle) -> Unit) {
-    Row(horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally), modifier = Modifier.fillMaxWidth().padding(top = 4.dp, bottom = 6.dp)) {
-        state.styles.forEach { style ->
-            val on = style == state.style
-            Box(
-                contentAlignment = Alignment.Center,
-                modifier = Modifier.height(32.dp).clip(CircleShape).background(if (on) Ink else Ink.copy(alpha = 0.14f))
-                    .clickable(role = Role.Tab, onClickLabel = "Listen to the ${style.label} telling") { onStyle(style) }
-                    .padding(horizontal = 14.dp),
-            ) {
-                Text(style.label, color = if (on) Deep else Ink, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
+    // Centred while they fit; four tellings outgrow a narrow phone at large
+    // text, so then the row scrolls, and a chip's label never wraps inside it.
+    Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxWidth().padding(top = 4.dp, bottom = 6.dp)) {
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.horizontalScroll(rememberScrollState())) {
+            state.styles.forEach { style ->
+                val on = style == state.style
+                Box(
+                    contentAlignment = Alignment.Center,
+                    modifier = Modifier.height(32.dp).clip(CircleShape).background(if (on) Ink else Ink.copy(alpha = 0.14f))
+                        .clickable(role = Role.Tab, onClickLabel = "Listen to the ${style.label} telling") { onStyle(style) }
+                        .padding(horizontal = 14.dp),
+                ) {
+                    Text(style.label, color = if (on) Deep else Ink, fontSize = 13.sp, fontWeight = FontWeight.SemiBold, maxLines = 1, softWrap = false)
+                }
             }
         }
     }
@@ -424,6 +443,8 @@ internal fun Cover(modifier: Modifier, corner: Dp, shadow: Dp = 0.dp, series: Po
 internal fun coverOf(series: PodcastSeries): Int = when (series) {
     PodcastSeries.AZ204 -> R.drawable.podcast_cover
     PodcastSeries.GERMAN_A1 -> R.drawable.podcast_cover_de
+    PodcastSeries.AI200 -> R.drawable.podcast_cover_ai
+    PodcastSeries.AZ305 -> R.drawable.podcast_cover_sa
 }
 
 /** The status bar's icons in white while the player's dark field is behind them. */

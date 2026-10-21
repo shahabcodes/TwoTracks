@@ -22,7 +22,7 @@ import com.shahaabapps.twotracks.feature.learn.TopicUiState
 internal object LearnSamples {
     private val az = Courses.byId("az-204")!!
     private val de = Courses.byId("de-a1")!!
-    private val ielts = Courses.all.first { it.id != az.id && it.id != de.id }
+    private val ielts = Courses.byId("ielts")!!
     private val m4 = de.modules.first { it.id == "de-m4" }
 
     private fun first(course: com.shahaabapps.core.content.Course, n: Int) = course.modules.flatMap { it.topics }.take(n).map { it.id }.toSet()

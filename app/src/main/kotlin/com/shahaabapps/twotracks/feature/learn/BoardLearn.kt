@@ -69,7 +69,9 @@ import java.util.Locale
 
 /** The two letters a course runs under on the board: AZ, DE, IE. */
 internal fun lineCode(course: Course): String = when {
+    course.id == "az-305" -> "SA"
     course.id.startsWith("az") -> "AZ"
+    course.id.startsWith("ai") -> "AI"
     course.id.startsWith("de") -> "DE"
     course.id.startsWith("ielts") -> "IE"
     else -> course.title.take(2).uppercase(Locale.ROOT)
@@ -78,6 +80,8 @@ internal fun lineCode(course: Course): String = when {
 /** The exam a course leads to, as short as the board's header prints it. */
 internal fun boardExam(course: Course): String = when (course.id) {
     "az-204" -> "AZ-204"
+    "ai-200" -> "AI-200"
+    "az-305" -> "AZ-305"
     "de-a1" -> "Goethe A1"
     "ielts" -> "IELTS"
     else -> course.title

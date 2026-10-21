@@ -99,9 +99,10 @@ internal fun BoardListen(
                 Row(horizontalArrangement = Arrangement.spacedBy(14.dp), verticalAlignment = Alignment.CenterVertically) {
                     Cover(Modifier.size(84.dp), corner = 10.dp, series = state.series)
                     Column(verticalArrangement = Arrangement.spacedBy(4.dp), modifier = Modifier.weight(1f)) {
-                        BoardLabel("Module ${state.module} · ${state.series.hosts}", color = AppTheme.colors.accent)
+                        BoardLabel("Module ${state.module} · ${state.hosts}", color = AppTheme.colors.accent)
                         BoardTitle(state.title, size = 26.sp)
                         BoardMono("${state.minutes} MIN · ${state.lines.size} LINES")
+                        state.fetchLine?.let { BoardMono(it.uppercase()) }
                     }
                 }
                 // The tellings of this topic, when it has more than one.
