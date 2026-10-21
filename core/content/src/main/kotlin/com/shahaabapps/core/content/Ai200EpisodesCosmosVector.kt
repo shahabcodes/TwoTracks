@@ -5,49 +5,51 @@ internal object Ai200EpisodesCosmosVector {
     private val classic = Podcast(
         "ai-cosmos-vector",
         listOf(
-            maya("Hi, and welcome back. Today is about finding things by meaning. A learner types into their study app, how do I stop throttling? Throttling is a server telling your app, too many requests, slow down. And the best note they ever wrote says, handle 429 with autoscale. Hardly a word in common. So how could a database find it?"),
-            leo("Hang on. 429 and autoscale. What are those?"),
-            maya("429 is the error number for that. Autoscale lets the database add capacity by itself when it's busy, like a shop opening more tills. So the note does answer the question, in other words."),
-            leo("So a search on the word throttling? [pause] No, that word isn't even in the note. I'd find nothing."),
-            maya("Exactly. Matching words fails here. What we want is to compare what the two texts mean. And the trick is to turn meaning into numbers. That's called an embedding."),
-            leo("What is an embedding, in plain words?"),
-            maya("A list of numbers that an AI model makes from a piece of text. Often 1,536 of them. Think of each list as an arrow pointing somewhere in a huge space, like map coordinates with far more than two numbers. Texts with similar meaning get arrows pointing in similar directions."),
-            leo("So the database compares arrows instead of words."),
-            maya("That's vector search. A vector is just that list of numbers. You store each note's embedding next to the note, in Azure Cosmos DB, Microsoft's cloud database, which keeps each note as a small document. When a question comes in, you turn it into an embedding too, and ask for the notes whose vectors are closest."),
-            leo("Where do the numbers come from? Do I make them up?"),
-            maya("[chuckle] No. An embedding model makes them, an AI whose only job is turning text into those numbers. Say you're building the Two Tracks Coach, a study assistant in an Android app, with a Python backend, the server code behind the app, on Azure. The model comes from Azure OpenAI, Microsoft's home for OpenAI's models."),
-            leo("And I send it a note, and it sends back 1,536 numbers?"),
-            maya("Right. And here's the rule people trip on. Use the same model for the stored notes and for the question. Each model places meaning in its own space, often with a different number of dimensions, meaning how many numbers are in each list. Mix two models, and the results are nonsense."),
-            leo("Like reading a map of London to find your way round Paris. Same paper, wrong city."),
-            maya("Lovely. Now, Cosmos DB doesn't do this out of the box. First you enable vector search on your account, the top-level home for your databases. It's a feature switch you flip once, and it can take about fifteen minutes to come on."),
-            leo("And then every container can do it? A container being, what, a table?"),
-            maya("Pretty much, a box of documents. And here's the next trap. Vector settings go on a new container, when you create it. You can't switch them on for an existing one. And it isn't supported on shared throughput, where several containers share one pot of capacity."),
-            leo("What settings, exactly?"),
-            maya("Two. First, the vector embedding policy: a short description of your vectors. For each path, meaning the field in the note where the numbers live, it says three things. The kind of number. How many numbers, which must match the model, so 1,536 for the Coach's model. And the distance function."),
+            maya("Hi, and welcome back. Today is about finding things by meaning. Say you're building the Two Tracks Coach, a study assistant in an Android app. A learner asks, why is my app being told to slow down? And their best note says, when the database gets busy, let it grow by itself. Hardly a word in common."),
+            leo("So a search on their words finds nothing. [pause] How could anything find it?"),
+            maya("By turning meaning into numbers. Let me give you one picture to keep all episode: a map. Stand in the middle of a town map and walk 3 steps east and 4 steps north. Your spot is two numbers, 3 and 4. A list of numbers like that is called a vector: a spot on the map."),
+            leo("So my spot is the vector 3, 4. And a dimension?"),
+            maya("A dimension means one number in the list. A map spot has two. The lists we'll use have 1,536, so 1,536 dimensions. Nobody can picture that, and you don't need to: the maths works just as it does on paper."),
+            leo("And who writes 1,536 numbers? Not me, I hope."),
+            maya("[chuckle] No. An embedding model, an AI whose only job is this. The list it writes for a piece of text is called an embedding: that text's spot on a huge map. Texts that mean similar things get nearby spots, so the question and that note land close together."),
+            leo("Where does the Coach get that model?"),
+            maya("From Azure OpenAI, Microsoft's home for OpenAI's models, called by the Coach's Python backend, the server code behind the app. And one rule people trip on: use the same model for the stored notes and for the question. Each model draws its own map. Mix two, and the results are nonsense."),
+            leo("Like using a map of London to get round Paris. Same paper, wrong city."),
+            maya("Lovely. Finding notes by their nearby spots is called vector search, and we'll do it in Azure Cosmos DB, Microsoft's cloud database. First you enable vector search on the account, the top-level home for your databases. One switch, and it can take about fifteen minutes."),
+            leo("Then I store notes in a container. Which is, what, a table?"),
+            maya("Pretty much, a box of documents. And the trap: vector settings go on a new container, when you create it. You can't add them to an existing one. The first setting is the vector embedding policy. For the field holding the numbers, it gives the kind of number, how many, 1,536 to match the model, and the distance function."),
             leo("Distance function. That sounds like maths homework."),
-            maya("It's just how closeness is measured. Cosine is the default. It looks at the angle between two arrows, from minus one to plus one, and higher means more similar. Dot product multiplies the two lists number by number and adds it all up; higher is more similar too. Euclidean is a ruler distance, from zero up, so lower means closer."),
-            leo("Higher is closer, except when lower is closer. Got it. [sigh] Mostly. What's the second setting?"),
-            maya("The indexing policy. An index is like the index at the back of a book: the database jumps straight to the right page. The indexing policy is the container's list of what goes into that index."),
-            leo("And what should go in it?"),
-            maya("Two rules. Leave the vector path out of the normal index, or every new note pays extra to index 1,536 numbers one by one. And add a vector index, a special index built for finding near neighbours. There are three kinds."),
-            leo("Of course there are three. Go on."),
-            maya("Flat checks the question against every single vector, one by one. That's called brute force. So it's exact: it never misses the best match. But it only takes lists of up to 505 numbers, 505 dimensions."),
-            leo("And the second?"),
-            maya("QuantizedFlat. Quantized means the numbers are rounded and squeezed to save space, like a compressed photo. It still checks every vector, and loses only a little accuracy. It suits up to about 50,000 vectors in scope. In scope means the vectors one search actually looks at, often after a filter has cut the pile down."),
-            leo("And the third?"),
-            maya("DiskANN. ANN stands for approximate nearest neighbour. It links each vector to a few of its near neighbours, like a web of friends of friends, and a search hops along those links toward the question. Approximate means very close, not guaranteed perfect. It's for more than about 50,000 vectors in scope, and at that size it's the fastest and cheapest."),
-            leo("So with 1,536 dimensions, flat is out straight away."),
-            maya("Straight away. For example, the Coach holds 300,000 notes. But every search is filtered to one learner, so only a few hundred vectors are in scope each time. That's well under 50,000, so the team picks quantizedFlat. Picture a library of two million public cards, searched with no filter. That's diskANN."),
-            leo("Okay. The container's ready. How do I actually search?"),
-            maya("With a query in SQL, the language for asking a database questions. It uses a function called VectorDistance, which gives each note a closeness score against the question. You sort by that score, which SQL calls ORDER BY. And you ask for only the best five, which SQL calls TOP 5."),
-            leo("And how do I keep it to my notes, not everyone's?"),
-            maya("Add a WHERE, SQL's filter, on the learner's id. The Coach stores notes in drawers by learner, and each drawer is called a partition. So the search opens just one drawer, which is cheap."),
-            leo("Why TOP 5? Why not just give me everything, ranked?"),
-            maya("Because without TOP N, meaning the top few, the engine works out a score for far more items than you need. Cosmos DB bills in RUs, request units: a price tag on every call. Score too much, and the RU charge climbs. Good matches but too many RUs is a classic exam question, and TOP N is the answer."),
-            leo("And then the Coach shows the learner five notes?"),
-            maya("Usually it goes further. That's RAG, retrieval augmented generation. Retrieve the closest notes with vector search. Add their text to the prompt, the message you send a chat model, an AI that writes replies. It then generates an answer only from them, and the app can show which notes it used."),
-            leo("So the chat model isn't making things up. It's reading my own notes back to me, nicely."),
-            maya("[laugh] Nicely put. And the usual mistakes? An old container, the vector path left in the normal index, flat for long lists, no TOP N, and two different models."),
+            maya("It's just the rule for how close two spots are. There are three, and we'll take them one at a time. The default is cosine. Picture an arrow from the middle of the map out to each spot."),
+            leo("Two arrows. Then what?"),
+            maya("Cosine asks: do they point the same way, whatever their length? Same way scores 1, a right angle 0, opposite ways minus 1. So higher means more similar. Arrows to 3, 4 and to 6, 8 point the same way, so they score 1, though one is twice as long."),
+            leo("Got it. The second?"),
+            maya("Dot product. In plain words: multiply the matching numbers, then add them up. Take 2, 3 and 4, 1. Two times four is eight, three times one is three, and eight plus three is eleven. A bigger answer means the lists agree more, so higher is closer again."),
+            leo("Multiply and add. Even I can do that. And the third?"),
+            maya("Euclidean. Picture a ruler laid between two pins on the map. From the middle to the spot 3, 4, the ruler reads 5. It's a real distance, so this time lower means closer."),
+            leo("Higher is closer, except when lower is closer. [sigh] Mostly got it. What's the second setting?"),
+            maya("The indexing policy. An index is like the one at the back of a book: the database jumps to the right page instead of reading everything. Two rules. Leave the vector field out of the normal index, or every new note pays to index 1,536 numbers. And add a vector index, built for finding the nearest spots."),
+            leo("Let me guess. There are three kinds."),
+            maya("Three, one at a time. The first is called flat. Picture measuring the distance to every single café in the city, then picking the closest. Flat compares the question with every stored note. It never misses, but with many notes it's slow and costly, and it only takes lists of up to 505 numbers."),
+            leo("And ours have 1,536. So flat is out straight away."),
+            maya("Straight away. The second is quantizedFlat. Quantized means each list is squeezed smaller first, like a compressed photo. It still compares with every note, losing only a little accuracy. It suits up to about 50,000 notes in scope, meaning the ones a search actually looks at, often after a filter."),
+            leo("And the Coach?"),
+            maya("300,000 notes, but every search is filtered to one learner, so only a few hundred are in scope. QuantizedFlat. For example, two million public study cards searched with no filter would need the third kind: diskANN."),
+            leo("DiskANN. What's that, in plain words?"),
+            maya("It links the notes into a web. Each node, meaning one stored note, is joined to a few of its near neighbours. Picture dots on a map joined by lines, like a chart of who knows whom. That web is called a graph."),
+            leo("And a search walks the web?"),
+            maya("It hops. Start at a dot, look at its neighbours, jump to whichever is closer to the question, and repeat. Like finding someone through friends of friends, instead of knocking on every door. Its answer is the nearest neighbour, the stored note closest to the question."),
+            leo("Guaranteed the very closest?"),
+            maya("Not quite. ANN stands for approximate nearest neighbour: very close, not guaranteed perfect. That's the trade for speed. Past about 50,000 notes in scope, it's the fastest and cheapest of the three."),
+            leo("Okay, container ready. How do I search?"),
+            maya("With a query in SQL, the language for asking a database questions. A function called VectorDistance gives each note a closeness score against the question. You sort by it, which SQL calls ORDER BY, and keep the best five, TOP 5. And a WHERE, SQL's filter, on the learner's id."),
+            leo("Why filter by learner?"),
+            maya("The Coach keeps notes in drawers by learner, and each drawer is called a partition. So the search opens just one drawer. Cheap."),
+            leo("And why TOP 5? Why not everything, ranked?"),
+            maya("Cosmos DB bills in RUs, request units: the price tag on every call. Without TOP N, meaning the top few, the engine scores far more notes than you need, and the RU charge climbs. Good matches but too many RUs is a classic exam question. TOP N is the answer."),
+            leo("And then the learner sees five notes?"),
+            maya("Usually it goes further, with RAG, short for retrieval augmented generation. Retrieve the closest notes, add their text to the prompt, the message sent to a chat model, an AI that writes replies. It answers only from them, and the app can show which notes it used."),
+            leo("So the chat model isn't making things up. It reads my own notes back to me, nicely."),
+            maya("[laugh] Nicely put. The usual mistakes? An old container, the vector field left in the normal index, flat for long lists, no TOP N, and two different models."),
             leo("So what do I remember for the exam?"),
             maya("Five things. If the question says 1,536 dimensions and a flat index, that's the trap: flat stops at 505. If far more than 50,000 vectors are in scope, the answer is diskANN. If a filter leaves a small set, quantizedFlat. If a vector query costs too many RUs, add TOP N. And if the results are nonsense, use the same embedding model for both."),
             leo("And anything to try today?"),
@@ -60,46 +62,48 @@ internal object Ai200EpisodesCosmosVector {
     private val caseFiles = Podcast(
         "ai-cosmos-vector",
         listOf(
-            maya("Welcome to Case Files. Today's case: The Answer About Pancakes. A small Android app called Pocket Tutor helps students revise. Its new feature: ask a question, and it finds your own notes that answer it. On launch day, a student asks, how do I stop throttling, meaning a server telling my app to slow down. And the app proudly shows a note about pancake recipes."),
-            leo("[chuckle] Pancakes. Detective Leo is hungry, and on the case. How was it meant to find the right note, in plain words?"),
-            maya("By meaning, not by words. Each note is turned into an embedding: a list of numbers, 1,536 of them, made by an AI model. Texts that mean similar things get lists that point in similar directions. The right note said, handle 429 with autoscale. 429 is the too many requests error; autoscale lets the database add capacity by itself. Hardly a shared word, same meaning."),
-            leo("Lists that point? Numbers don't point."),
-            maya("Under the picture, they do. Each list is a vector, a point in a space with 1,536 directions instead of three. Every number is one coordinate, like on a map. The notes and their vectors live together in Azure Cosmos DB, Microsoft's cloud database, and the search asks for the notes whose vectors are closest to the question's. That's vector search."),
-            leo("Then my first suspect is the distance function, the maths that decides what counts as close. They picked the wrong one. Switch cosine to euclidean, and the pancakes go away."),
-            maya("[pause] Good instinct, wrong suspect. Cosine, the default, looks at the angle between two vectors, from minus one to plus one, and higher is closer. Dot product multiplies them number by number and adds it up; higher is closer. Euclidean is a ruler distance, so lower is closer. Any of the three works, as long as both vectors come from the same model."),
-            leo("Suspect two. The database read stale data, old copies. Turn the consistency up to strong."),
-            maya("Consistency is how fresh a read must be, and strong means always the very latest. It has nothing to do with how vectors are compared; it only makes reads cost more. Here's the clue that cracks it. The notes were embedded last month with one embedding model, the AI that makes these numbers. On launch day, the developer embedded the questions with a different, newer model."),
-            leo("So the question and the notes speak different languages."),
-            maya("Exactly. Each model places meaning in its own space, often with different dimensions, meaning a different count of numbers per list. Numbers from two models are not comparable. The same model for the stored notes and for the question, always. And if you ever change models, every stored note must be embedded again."),
+            maya("Welcome to Case Files. Today's case: The Answer About Pancakes. A small Android app called Pocket Tutor finds a student's own notes that answer their question. On launch day, a student asks, why is my app being told to slow down? And the app proudly shows a note about pancake recipes."),
+            leo("[chuckle] Pancakes. Detective Leo is hungry, and on the case. How was it meant to find the right note?"),
+            maya("By meaning, not by words. The right note said, when the database gets busy, let it grow by itself. Hardly a shared word. So each note is turned into numbers. Picture a town map: 3 steps east and 4 steps north is a spot you can write as 3, 4. A list of numbers like that is called a vector."),
+            leo("A spot on a map. Fine. But a note isn't a map."),
+            maya("No, but an AI model can give it a spot on a huge one. That list is called an embedding, and texts that mean similar things get nearby spots. The model writes 1,536 numbers per note, so 1,536 dimensions, where a dimension means one number in the list. A town map has two."),
+            leo("1,536 directions. I can't picture that."),
+            maya("Nobody can, and you don't need to. Under the picture, each number is one coordinate, and the maths works just as on paper. The notes and their vectors live together in Azure Cosmos DB, Microsoft's cloud database, and the search asks for the notes nearest the question. That's vector search."),
+            leo("Then my first suspect is the distance function, the rule for what counts as near. They picked the wrong one, I bet."),
+            maya("[pause] Good instinct, wrong suspect, but let's question all three, one at a time. Cosine, the default. Picture arrows from the middle of the map to two spots. Do they point the same way, whatever their length? Same way scores 1, a right angle 0, opposite minus 1. Higher means more similar."),
+            leo("So arrows to 3, 4 and 6, 8, same direction, score 1?"),
+            maya("Exactly, though one arrow is twice as long. Second, dot product. In plain words: multiply the matching numbers and add them up. Take 2, 3 and 4, 1: two times four, plus three times one, is eleven. A bigger answer means the lists agree more."),
+            leo("And the third suspect's euclidean."),
+            maya("Picture a ruler laid between two pins on the map. From the middle to 3, 4, it reads 5, so lower is closer. And here's the clue: any of the three works, as long as both vectors come from the same model. The notes were embedded last month with one embedding model. On launch day, the questions used a newer one."),
+            leo("So the question and the notes are on different maps."),
+            maya("Exactly. Each model draws its own map, often with a different number of dimensions. Spots from two maps don't compare. The same model for notes and questions, always, and if you change models, embed every note again."),
             leo("Fix the model, pancakes gone. Case closed?"),
-            maya("Not quite. Second witness: the finance team. The Cosmos DB bill tripled in the first week. Every search cost far more RUs, request units, the price tag Cosmos DB puts on every call."),
-            leo("Suspect: it needs a composite index on the embedding, an index over two fields together. Indexes make queries cheap, like the index at the back of a book."),
-            maya("Wrong kind. Vectors need a vector index, a special one built for finding near neighbours. Look at the query itself, written in SQL, the language for asking a database questions. It sorts the notes by VectorDistance, a function that scores how close each note is to the question. SQL calls that sorting ORDER BY. What's missing?"),
-            leo("[pause] A limit? It ranks every note, and the app only shows a few."),
-            maya("Detective Leo, finally. TOP N means only the top few. Without it, the engine scores far more items than you need, and the RU charge climbs. So, TOP 5. And a WHERE, SQL's filter, on the student's id. The notes sit in drawers by student, called partitions, so the search opens just one drawer. Cheap."),
-            leo("And the inserts? Finance said writes were pricey too."),
-            maya("Third clue. The vector path, the field where the numbers live, was still in the indexing policy, the database's list of what to index. So every insert paid to index 1,536 numbers one by one. Leave that path out of the normal index, and give it a vector index instead. The Cosmos performance episode covers indexing policies and RUs in depth."),
+            maya("Not quite. Second witness: the finance team. The bill tripled in week one. Every search cost far more RUs, request units, the price tag Cosmos DB puts on every call."),
+            leo("Suspect: there's no index. An index makes queries cheap, like the one at the back of a book."),
+            maya("Close, but look at the query, written in SQL, the language for asking a database questions. It sorts the notes by VectorDistance, a function that scores how near each note is to the question. SQL calls sorting ORDER BY. What's missing?"),
+            leo("[pause] A limit? It ranks every note, and the app only shows five."),
+            maya("Detective Leo, finally. TOP N means only the top few. Without it, the engine scores far more notes than you need, and the RU charge climbs. So, TOP 5, and a WHERE, SQL's filter, on the student's id. Notes sit in drawers by student, each drawer called a partition, so the search opens one drawer."),
+            leo("And the writes? Finance said those were pricey too."),
+            maya("Third clue. The vector field was still in the indexing policy, the list of what goes in the normal index. So every insert paid to index 1,536 numbers one by one. Leave it out, and give it a vector index instead, one built for finding the nearest spots. The Cosmos performance episode covers indexing and RUs in depth."),
             leo("Easy. Edit the existing container, add the vector settings, done by lunch."),
-            maya("That's how you open the next case. A container, Cosmos DB's word for a table of documents, gets its vector settings when you create it. You can't switch them on for an existing one. So the team made a new container and moved the notes in. And first, the account, the top-level home for the databases, needs vector search switched on, which can take about fifteen minutes."),
-            leo("What goes on that new container?"),
-            maya("A vector embedding policy: a short description of the vectors. The kind of number, how many, 1,536 to match the model, and the distance function, cosine. Then the vector index. And one warning: vector search isn't supported on shared throughput, where several containers share one pot of capacity."),
-            leo("Which index, then? I'll say flat. It checks every single note, so it never misses."),
-            maya("[sigh] And a fourth case opens. Flat is exact, it's brute force, checking every one, but it stops at lists of 505 numbers, 505 dimensions. 1,536 doesn't fit. It's the exam's favourite trap."),
-            leo("Fine. Then the fancy one. DiskANN."),
-            maya("Closer, but look at the scope, the number of vectors one search actually looks at. Pocket Tutor holds 300,000 notes, but each search is filtered to one student, so only a few hundred are in scope. Well under 50,000. That's quantizedFlat. Quantized means the numbers are rounded and squeezed, like a compressed photo. It still checks them all, with a slight loss of accuracy."),
-            leo("So when is diskANN the right answer?"),
-            maya("When far more than 50,000 are in scope, say two million public study cards, searched with no filter. ANN stands for approximate nearest neighbour. It builds a graph, a web where each vector links to a few near neighbours, and a search hops along those links toward the question, checking only a small part. Approximate means very close, not guaranteed perfect. Fastest and cheapest at that size."),
+            maya("That's how you open the next case. A container is Cosmos DB's box of documents, and its vector settings go on when you create it. So the team made a new one. First, vector search is switched on for the account, which can take fifteen minutes. Then a vector embedding policy: the kind of number, 1,536 of them, and cosine."),
+            leo("Which vector index, then? I'll say flat. It sounds simple."),
+            maya("[sigh] And a fourth case opens. Picture measuring the distance to every café in the city, then picking the closest. That's flat: it compares the question with every note. Never misses, slow with many notes, and it stops at lists of 505 numbers. 1,536 doesn't fit. The exam's favourite trap."),
+            leo("Fine. What did they pick?"),
+            maya("QuantizedFlat. Quantized means each list is squeezed smaller first, like a compressed photo, then still compared with every note. It suits up to about 50,000 in scope, the notes one search looks at. Pocket Tutor holds 300,000, but each search is filtered to one student: a few hundred in scope."),
+            leo("And when is diskANN the answer?"),
+            maya("Far more than 50,000 in scope, say two million public cards with no filter. It links the notes into a graph, meaning a web of dots joined by lines. Each node, one stored note, is joined to its near neighbours, and a search hops from dot to closer dot, like friends of friends instead of knocking on every door."),
+            leo("So it doesn't check every note. Can it miss?"),
+            maya("Slightly. ANN stands for approximate nearest neighbour. The nearest neighbour is the stored note closest to the question, and approximate means very close, not guaranteed perfect. At that size, it's the fastest and cheapest."),
             leo("And the student sees five notes. That's it?"),
-            maya("Then comes RAG, retrieval augmented generation. Retrieve the top notes, add them to the prompt, the message sent to a chat model, an AI that writes replies. It generates an answer only from them. The answer rests on the student's own notes, and the app can show which ones it used."),
+            maya("Then comes RAG, short for retrieval augmented generation. Retrieve the top notes, add them to the prompt, the message sent to a chat model, an AI that writes replies. It answers only from them, and the app can show which notes it used."),
             leo("Any loose ends in the file?"),
-            maya("One, and it's where vector search stops working. It always returns the closest notes, even when nothing is about the question. Ask Pocket Tutor about tax returns, and it will still find five notes. Closest isn't the same as relevant. So check the scores, and tell the chat model to say when the notes don't answer it."),
-            leo("And when a student edits a note?"),
-            maya("Its embedding is out of date, so it must be made again. The change feed, Cosmos DB's running list of every change, lets you react to new and edited notes; its own episode shows how. And the pgvector episode does this same search on PostgreSQL, another popular database."),
+            maya("One, where vector search stops working. It always returns the nearest notes, even when nothing is about the question. Ask about tax returns, and you still get five. Nearest isn't relevant. So check the scores, and let the chat model say it doesn't know. A changed note is embedded again; the change feed episode shows how. And the pgvector episode does all this on PostgreSQL."),
             leo("So, the case summary for the exam?"),
             maya("Five rules. If the results are nonsense, the question and the notes need the same embedding model. If a vector query costs too many RUs, add TOP N. If the question says 1,536 dimensions with a flat index, that's the trap: flat stops at 505. A small set after a filter is quantizedFlat; far more than 50,000 in scope is diskANN. And a vector policy needs a new container."),
             leo("Case closed. Anything to try today?"),
             maya("Recreate the case, without the pancakes. Enable vector search on the account. Create a container with a vector embedding policy and a quantizedFlat index. Turn five notes on different topics into embeddings, and upsert them, meaning save them. Then ask a question in different words from any note, and see which note ranks first."),
-            leo("Pancakes for breakfast, throttling after lunch. See you next time."),
+            leo("Pancakes for breakfast, slow-downs after lunch. See you next time."),
         ),
         series = PodcastSeries.AI200,
         style = PodcastStyle.CASE_FILES,
@@ -108,47 +112,51 @@ internal object Ai200EpisodesCosmosVector {
     private val gossip = Podcast(
         "ai-cosmos-vector",
         listOf(
-            maya("Okay, did you hear what happened on the Coach team this week? Grab a coffee. They shipped smart search for the Two Tracks Coach, the study assistant in the Android app, with its Python backend, the server code behind the app, on Azure. And let's just say, it was a week."),
-            leo("[laugh] I heard there was a meeting with the word sourdough in the title. What were they building?"),
-            maya("A search that finds a learner's notes by meaning, not by words. Ask, how do I stop throttling, meaning a server telling your app to slow down, and it finds the note that says, handle 429 with autoscale. 429 is the too many requests error; autoscale adds capacity by itself. No words in common, same meaning."),
+            maya("Okay, did you hear what happened on the Coach team this week? Grab a coffee. They shipped smart search for the Two Tracks Coach, the study assistant in the Android app, with a Python backend on Azure. And let's just say, it was a week."),
+            leo("[laugh] I heard there was a meeting with sourdough in the title. What were they building?"),
+            maya("A search that finds a learner's notes by meaning, not words. Ask, why is my app being told to slow down, and it finds the note that says, when the database gets busy, let it grow by itself. No shared words, same meaning."),
             leo("How does a database know what anything means?"),
-            maya("It doesn't, really. An AI model turns each note into an embedding, a list of numbers, usually 1,536 of them. Picture a point on a map, but with 1,536 coordinates instead of two. Notes that mean similar things land near each other. You store that list on the note in Cosmos DB, Microsoft's cloud database, embed the question the same way, and ask for the closest notes. That's vector search."),
+            maya("It doesn't, really. It compares numbers. Picture a town map: 3 steps east and 4 steps north is a spot you can write as 3, 4. That list is called a vector. An AI model gives each note a spot like that on a huge map, and that list is called an embedding. Similar meanings, nearby spots."),
+            leo("A huge map. How huge?"),
+            maya("1,536 numbers per note, so 1,536 dimensions. A dimension means one number in the list; a town map has two. Nobody can picture 1,536, but the maths is the same. The notes and their vectors live in Cosmos DB, Microsoft's cloud database, and vector search asks for the nearest spots."),
             leo("Okay. So who went first?"),
-            maya("Tom. Monday morning. Tom had last year's notes container, full of data. A container is Cosmos DB's word for a table of documents. And he thought he'd just switch vector search on for it. Add the settings, done by coffee."),
+            maya("Tom. Monday morning. Tom had last year's notes container. A container is Cosmos DB's box of documents, like a table. He thought he'd just switch vector search on for it. Done by coffee."),
             leo("And?"),
-            maya("And you can't. Vector settings go on a new container, when you create it. You can't add them to an existing one. Oh, and the account, the top-level home for your databases, needs vector search switched on first, which can take about fifteen minutes. Tom spent his Monday making a new container and copying the notes across."),
-            leo("[sigh] Poor Tom. What settings did the new container need?"),
-            maya("A vector embedding policy, a short description of the vectors. For the embedding path, meaning the field where the numbers live, it gives the kind of number, how many, 1,536 to match the model, and the distance function."),
-            leo("Distance function. In plain words?"),
-            maya("How closeness is measured. Cosine is the default. It looks at the angle between two vectors, from minus one to plus one, and higher is closer. Dot product multiplies them number by number and adds it up; higher is closer too. Euclidean is a ruler distance, so lower is closer."),
+            maya("And you can't. Vector settings go on a new container, when you create it. And the account, the top-level home for your databases, needs vector search switched on first, which can take fifteen minutes. Tom spent his Monday copying notes into a new container."),
+            leo("[sigh] Poor Tom. What settings did it need?"),
+            maya("A vector embedding policy, a short description of the vectors: the kind of number, how many, 1,536 to match the model, and the distance function, the rule for how near two spots are. There are three rules, and Tom had to learn all three before lunch."),
+            leo("Go on then, one at a time."),
+            maya("Cosine, the default. Picture arrows from the middle of the map to two spots. Do they point the same way, whatever their length? Same way scores 1, a right angle 0, opposite minus 1. Higher means more similar."),
+            leo("And the second?"),
+            maya("Dot product. In plain words: multiply the matching numbers, then add them up. Take 2, 3 and 4, 1: two times four is eight, three times one is three, eleven in all. A bigger answer means the lists agree more."),
+            leo("And the third?"),
+            maya("Euclidean. Picture a ruler laid between two pins on the map. From the middle to 3, 4, it reads 5. A real distance, so this one's backwards: lower means closer."),
             leo("And Tuesday?"),
-            maya("Tuesday was Dana. Dana loaded the notes, and the write costs went through the roof. Every insert cost far more RUs, request units, than before. An RU is Cosmos DB's price tag on every call."),
+            maya("Tuesday was Dana. Dana loaded the notes, and every insert cost far more RUs. RUs, request units, are the price tag Cosmos DB puts on every call."),
             leo("Why? It's just a note."),
-            maya("A note with 1,536 numbers on it. Dana had left the vector path in the indexing policy, the container's list of what to index, like the index at the back of a book. So every insert paid to index all those numbers one by one. Leave the vector path out, and give it a vector index instead. Dana fixed it before lunch. The Cosmos performance episode has the rest."),
+            maya("A note with 1,536 numbers on it. Dana left the vector field in the indexing policy, the list of what goes in the normal index. An index is like the one at the back of a book. So every insert indexed all those numbers one by one. Leave the field out, and give it a vector index instead."),
             leo("Which vector index? I sense a Wednesday."),
-            maya("[chuckle] Wednesday was Marcus. Marcus picked flat. Flat checks the question against every single vector, which is called brute force. Exact, it never misses."),
+            maya("[chuckle] Wednesday was Marcus. Marcus picked flat. Picture measuring the distance to every single café in the city, then picking the closest. That's flat: it compares the question with every note. It never misses."),
             leo("Sounds perfect. What's the catch?"),
-            maya("Flat only takes lists of up to 505 numbers, 505 dimensions. Marcus had 1,536. The container just said no, and the whole floor heard about it."),
+            maya("Slow and costly with many notes, and it only takes lists of up to 505 numbers. Marcus had 1,536. The container said no, and the whole floor heard about it."),
             leo("So what should Marcus have picked?"),
-            maya("It depends how many vectors one search looks at, which is called in scope. The Coach holds 300,000 notes, but each search is filtered to one learner, so a few hundred are in scope. Under about 50,000 in scope, it's quantizedFlat. Quantized means the numbers are rounded and squeezed, like a compressed photo. It still checks them all, with a slight loss of accuracy."),
+            maya("It depends on the notes in scope, the ones one search looks at. Each Coach search is filtered to one learner, so a few hundred are in scope, out of 300,000. Under about 50,000 in scope, it's quantizedFlat. Quantized means each list is squeezed smaller first, like a compressed photo, then still compared with every note."),
             leo("And the big one? Everyone keeps saying diskANN."),
-            maya("DiskANN is for more than about 50,000 in scope, like a public library of two million study cards searched with no filter. ANN stands for approximate nearest neighbour. It builds a graph, a web where each vector links to a few near neighbours, and a search hops along those links toward the question, checking only a small part. Very close, not guaranteed perfect, and fastest at that size."),
-            leo("And if you've only got fifty notes, like me?"),
-            maya("Then it hardly matters. Under about a thousand vectors, quantizedFlat and diskANN don't help yet. A full scan, checking everything, runs anyway."),
+            maya("For far more than 50,000 in scope, like two million public cards with no filter. It's a graph, which is a web of dots joined by lines. Each node, meaning one stored note, is joined to its near neighbours. A search hops from dot to closer dot, like friends of friends, instead of knocking on every door."),
+            leo("So it might miss one?"),
+            maya("Just about. ANN stands for approximate nearest neighbour. The nearest neighbour is the note closest to the question, and approximate means very close, not guaranteed perfect. Fastest and cheapest at that size."),
             leo("Thursday. Go."),
-            maya("Thursday, the intern. Bless them. Their search worked beautifully. Great matches. And the RU bill for that one day was enormous."),
-            leo("Let me guess. They asked for everything."),
-            maya("They did. Their query, written in SQL, the language for asking a database questions, sorted the notes by VectorDistance, a function that scores how close each note is to the question. SQL calls that sorting ORDER BY. But there was no TOP."),
+            maya("Thursday, the intern. Bless them. Great matches, and an enormous RU bill. Their query, in SQL, the language for asking a database questions, sorted every note by VectorDistance, a function that scores how near each note is. SQL calls that ORDER BY. But there was no TOP."),
             leo("And TOP is what?"),
-            maya("TOP N means only the top few. Without it, the engine scores far more items than you need. TOP 5, with a WHERE, SQL's filter, on the learner's id, and it's cheap again. The notes sit in drawers by learner, called partitions, so the search opens just one drawer."),
+            maya("TOP N means only the top few. Without it, the engine scores far more notes than you need. TOP 5, with a WHERE, SQL's filter, on the learner's id, and it's cheap again. Notes sit in drawers by learner, each drawer called a partition, so the search opens one drawer."),
             leo("And Friday? There's always a Friday."),
-            maya("The Friday. Priya. Priya never makes mistakes, which is why everyone's still talking about it. She tried a newer embedding model for the questions, but the notes were still embedded with the old model. And the Coach answered a question about throttling with a note about sourdough starters."),
-            leo("[laugh] The sourdough meeting. But why sourdough?"),
-            maya("Because each model places meaning in its own space, often with different dimensions, a different count of numbers. Vectors from two models aren't comparable. The same model for notes and questions, always, and if you change models, every note gets embedded again. The change feed, Cosmos DB's running list of every change, has its own episode on reacting when notes are added or edited."),
-            leo("So once it all worked, what did the Coach do with its five notes?"),
-            maya("RAG. Retrieval augmented generation. Retrieve the top notes, add them to the prompt, the message sent to a chat model, an AI that writes replies. It generates an answer only from them. The answer rests on the learner's own notes, and the app shows which ones it used."),
+            maya("Priya. Priya never makes mistakes, which is why everyone's still talking. She tried a newer embedding model for the questions, but the notes were embedded with the old one. And the Coach answered a question about slowing down with a note about sourdough starters."),
+            leo("[laugh] The sourdough meeting. But why?"),
+            maya("Each model draws its own map, often with different dimensions. Spots from two maps don't compare. The same model for notes and questions, always, and if you change models, embed every note again. The change feed episode shows how to react when notes are added or edited."),
+            leo("Once it worked, what did the Coach do with its five notes?"),
+            maya("RAG, which stands for retrieval augmented generation. Retrieve the top notes, add them to the prompt, the message sent to a chat model, an AI that writes replies. It answers only from them, and the app shows which notes it used."),
             leo("Did anything still go wrong?"),
-            maya("Only where vector search stops working. It always returns the closest notes, even if none is really about the question. Closest isn't relevant. So the team checks the scores, and lets the chat model say it doesn't know. And it isn't supported on shared throughput, where several containers share one pot of capacity. Nobody tried that one this week. Give it time."),
+            maya("Only where vector search stops working. It always returns the nearest notes, even when none is about the question. Nearest isn't relevant. So the team checks the scores, and lets the chat model say it doesn't know. And the pgvector episode does all this on PostgreSQL, if your team prefers it."),
             leo("So, the gossip I should remember for the exam?"),
             maya("Five things. A vector policy on an existing container? No, a new one. 1,536 dimensions with a flat index is the trap: flat stops at 505. A small set after a filter is quantizedFlat; far more than 50,000 in scope is diskANN. Too many RUs on a vector query, add TOP N. And nonsense results mean the same embedding model for both."),
             leo("And something to try today, so I'm not next week's story?"),
@@ -164,45 +172,45 @@ internal object Ai200EpisodesCosmosVector {
         listOf(
             nova("Hey, you. It's late, the house is quiet, and it's just the three of us. Me, Ivy, and you, still up, still learning. [pause] Tonight, let's talk about finding things by what they mean."),
             ivy("Mm. Meaning, at this hour? You're ambitious tonight, Nova."),
-            nova("Only a little. Picture this. A learner is revising late, like you. They type, how do I stop throttling, which is a server telling their app to slow down. And somewhere in their notes is the perfect answer: handle 429 with autoscale. [pause] Barely a word in common."),
-            ivy("429 and autoscale. Say those to me in plain words."),
-            nova("429 is the error a server sends back for too many requests. Autoscale lets the database add capacity by itself when it gets busy. So the note does answer the question. It just uses other words."),
-            ivy("So a search for the word throttling finds nothing. How lonely."),
-            nova("Lonely. Unless the database compares meaning instead of words. And the way to do that is an embedding. A list of numbers an AI model makes from a piece of text, often 1,536 of them. Texts with similar meaning get lists that point in similar directions."),
-            ivy("Numbers that point. Tell me what that really is."),
-            nova("Under the picture, each list is a vector, a point in a space with 1,536 directions instead of the three we live in. Every number is one coordinate, like on a map. Two notes about the same idea sit close together in that space, [pause] even if they never share a word."),
+            nova("Only a little. A learner is revising late, like you. They type, why is my app being told to slow down? And somewhere in their notes is the perfect answer: when the database gets busy, let it grow by itself. [pause] Barely a word in common."),
+            ivy("So a search for their words finds nothing. How lonely."),
+            nova("Lonely. Unless we compare meaning, and for that we turn text into numbers. Close your eyes and picture a town map. Walk 3 steps east, 4 steps north. Your spot is two numbers, 3 and 4. A list of numbers like that is called a vector. [pause] A spot on the map."),
+            ivy("A spot on the map. I can see it. And a dimension?"),
+            nova("A dimension means one number in the list. A map spot has two. The lists tonight have 1,536. Nobody can picture that many directions, not even at this hour. You don't need to. The maths works just the same."),
+            ivy("And who writes 1,536 numbers for a note?"),
+            nova("An embedding model, an AI whose only job is that. The list it writes is called an embedding: the spot a text gets on its huge map. Texts with similar meaning land close together, [pause] even if they never share a word."),
             ivy("Close together, in the dark. I like that. Where do they live?"),
-            nova("Right next to the notes, in Azure Cosmos DB, Microsoft's cloud database. Take the Two Tracks Coach, the study assistant in the Android app, with a Python backend, the server code, on Azure. Each note keeps its embedding beside its text. The question gets embedded too, and the database looks for the notes whose vectors are closest. That's vector search."),
-            ivy("And who makes the numbers?"),
-            nova("An embedding model, an AI whose only job is turning text into numbers. The Coach gets one from Azure OpenAI, Microsoft's service for OpenAI's models. And there's one promise you have to keep. The same model for the notes and for the question."),
-            ivy("Or what?"),
-            nova("Or nonsense. Each model has its own space, often with its own number of dimensions, its own count of numbers per list. Numbers from two models simply don't compare. It's like whispering in one language and listening in another."),
-            ivy("[chuckle] I've been on dates like that. So how close is close?"),
-            nova("That's the distance function: how closeness is measured. Cosine is the default. It looks at the angle between two vectors, from minus one to plus one, and higher is more similar. Dot product multiplies them number by number and adds it up; higher is closer too. And euclidean is a ruler distance, from zero up, so there, lower means closer."),
+            nova("Right beside the notes, in Azure Cosmos DB, Microsoft's cloud database. Take the Two Tracks Coach, the study assistant in the Android app. Each note keeps its embedding. The question gets one too, from the same model, and the database finds the nearest spots. That's vector search."),
+            ivy("The same model. Is that a rule?"),
+            nova("A promise. Each model draws its own map. Spots from two maps simply don't compare. It's like whispering in one language and listening in another."),
+            ivy("[chuckle] I've been on dates like that. So how near is near?"),
+            nova("That's the distance function: the rule for how close two spots are. There are three. Slowly, one at a time. The default is cosine. Picture an arrow from the middle of the map to each spot."),
+            ivy("Two arrows, in the dark. Then?"),
+            nova("Cosine asks, do they point the same way, whatever their length? Same way, 1. A right angle, 0. Opposite ways, minus 1. Higher means more similar. Arrows to 3, 4 and to 6, 8 point the same way, so they score 1. [pause] Length doesn't matter. Only direction."),
+            ivy("Only direction. Romantic. The second?"),
+            nova("Dot product. In plain words, multiply the matching numbers, then add them up. Take 2, 3 and 4, 1. Two times four is eight. Three times one is three. Eight plus three, eleven. A bigger answer means the lists agree more."),
+            ivy("Multiply and add. Even at this hour. And the third?"),
+            nova("Euclidean. Picture a ruler laid between two pins on the map. From the middle to 3, 4, the ruler reads 5. A real distance, so this time, lower means closer."),
             ivy("And Cosmos DB? Does it just do this, out of the box?"),
-            nova("Not quite. First you enable vector search on your account, the top-level home for your databases. A switch you flip once, and it can take about fifteen minutes. [pause] Then, and this part matters, the vector settings go on a new container when you create it. A container is Cosmos DB's word for a table. You can't add them to an existing one."),
-            ivy("No changing your mind later. Strict."),
-            nova("Strict. And not on shared throughput either, where several containers share one pot of capacity. The container gets a vector embedding policy, a short description of the vectors. For the path, the field where the numbers live, it says the kind of number, how many, 1,536 to match the model, and the distance function."),
-            ivy("And the index? I can hear an index coming."),
-            nova("The indexing policy is the container's list of what to index, like the index at the back of a book. Leave the vector path out of the normal index, or every insert pays to index 1,536 numbers, one by one. And add a vector index, a special one for finding near neighbours. There are three, and the exam loves them."),
-            ivy("Tell me slowly."),
-            nova("Flat. It checks the question against every single vector, which is called brute force. Exact, it never misses. But it only takes lists of up to 505 numbers, 505 dimensions."),
-            ivy("Mm. And the second?"),
-            nova("QuantizedFlat. Quantized means the numbers are rounded and squeezed, like a compressed photo. It still checks them all, with a slight loss of accuracy. [pause] Good for up to about 50,000 vectors in scope, meaning the ones a search actually looks at, often after a filter."),
-            ivy("And the third one. The one everyone whispers about."),
-            nova("DiskANN. For more than about 50,000 vectors in scope. ANN stands for approximate nearest neighbour. It builds a graph, each vector holding hands with a few of its near neighbours, and a search walks along those links toward the question, visiting only a small part of the crowd. Approximate means very close, not guaranteed perfect. And at that size, it's the fastest and cheapest."),
-            ivy("Nearest neighbours, holding hands. You're making indexes romantic."),
-            nova("[pause] Someone has to. One more thing. QuantizedFlat and diskANN need about a thousand vectors before they help; below that, it checks everything anyway. So for the Coach: 300,000 notes, but each search filtered to one learner, a few hundred in scope. Flat can't take 1,536 dimensions. So, quantizedFlat, with cosine."),
-            ivy("And the search itself? What do I actually write?"),
-            nova("A query in SQL, the language for asking a database questions. It uses VectorDistance, a function that scores how close each note is to the question. You sort by that score, which SQL calls ORDER BY, and keep only the best five, TOP 5."),
-            ivy("And how do I keep it to just my notes?"),
-            nova("A WHERE, SQL's filter, on the learner's id. The notes sit in drawers by learner, called partitions, so the search opens one drawer. And always the TOP. Without it, the engine scores far more items than you need, and the RU charge climbs. RUs, request units, are Cosmos DB's price tag on every call."),
+            nova("Not quite. First you enable vector search on the account, the top-level home for your databases. It can take fifteen minutes. [pause] Then the vector settings go on a new container, Cosmos DB's box of documents, when you create it. Never an existing one."),
+            ivy("No changing your mind later. Strict. What settings?"),
+            nova("A vector embedding policy: the kind of number, how many, 1,536 to match the model, and the distance function. Then the indexing policy. An index is like the one at the back of a book. Leave the vector field out of the normal one, or every insert indexes 1,536 numbers, and add a vector index instead."),
+            ivy("And there's more than one kind. I can hear it."),
+            nova("Three, and the exam loves them. The first is flat. Picture measuring the distance to every single café in the city, then picking the closest. Flat compares the question with every note. It never misses. But it's slow with many notes, and it stops at lists of 505 numbers."),
+            ivy("And ours have 1,536. Mm. The second?"),
+            nova("QuantizedFlat. Quantized means each list is squeezed smaller first, like a compressed photo. Then it still compares with every note, a little less exactly. [pause] Good for up to about 50,000 notes in scope, the ones a search actually looks at, often after a filter."),
+            ivy("And the third, diskANN. The one everyone whispers about."),
+            nova("It's for far more than 50,000 in scope. It links the notes into a graph, which is a web of dots joined by lines. Each node, meaning one stored note, holds hands with its near neighbours. A search hops from dot to closer dot, like friends of friends, instead of knocking on every door."),
+            ivy("Holding hands. You're making indexes romantic. Does it ever miss?"),
+            nova("[pause] A little. ANN stands for approximate nearest neighbour. The nearest neighbour is the note closest to the question; approximate means very close, not guaranteed perfect. At that size, it's the fastest and cheapest. The Coach? 300,000 notes, each search filtered to one learner, a few hundred in scope. So, quantizedFlat."),
+            ivy("And the search itself? What do I write?"),
+            nova("A query in SQL, the language for asking a database questions. VectorDistance is a function that scores how near each note is. Sort by it, ORDER BY, keep the best five, TOP 5, and add a WHERE, SQL's filter, on the learner's id. Notes sit in drawers by learner, each called a partition, so the search opens one."),
+            ivy("Why only five?"),
+            nova("Because without TOP N, the top few, the engine scores far more notes than you need, and the RU charge climbs. RUs, request units, are the price tag Cosmos DB puts on every call."),
             ivy("Five notes, then. What does the Coach do with them?"),
-            nova("RAG. Retrieval augmented generation. It retrieves those notes, adds their text to the prompt, the message sent to a chat model, an AI that writes replies, and asks it to answer only from them. So the answer rests on your own notes, and the app can show you which ones it used."),
-            ivy("Now the part I've been waiting for. Where does all this stop working?"),
-            nova("Here. [pause] Vector search always brings back the closest notes, even when none of them is really about the question. Closest isn't the same as relevant. So look at the scores, and let the chat model say, I don't know. And when a note changes, its embedding must be made again. The change feed, Cosmos DB's running list of changes, has its own episode."),
-            ivy("And if I'd rather do all this in PostgreSQL?"),
-            nova("PostgreSQL, the other popular database. Then the pgvector episode is your next late night. The same idea, in a different database."),
+            nova("RAG, which stands for retrieval augmented generation. It retrieves those notes, adds their text to the prompt, the message sent to a chat model, an AI that writes replies, and asks it to answer only from them. So the answer rests on your own notes."),
+            ivy("Now the part I've been waiting for. Where does it stop working?"),
+            nova("Here. [pause] It always brings back the nearest notes, even when none is about the question. Nearest isn't relevant. So look at the scores, and let the chat model say, I don't know. When a note changes, embed it again; the change feed episode shows how. And the pgvector episode is this same idea in PostgreSQL."),
             ivy("[sigh] Mm. Before you send me off to bed. What do I remember for the exam?"),
             nova("Five little things. If it's 1,536 dimensions with a flat index, that's the trap: flat stops at 505. If far more than 50,000 vectors are in scope, diskANN. If a filter leaves a small set, quantizedFlat. If a vector query costs too many RUs, add TOP N. And if the results are nonsense, use the same embedding model for notes and questions."),
             ivy("And something to try today, before I sleep?"),
@@ -218,48 +226,54 @@ internal object Ai200EpisodesCosmosVector {
         listOf(
             nova("Tonight is date night, darling. Candles, a little wine, and you and me, Rafe, talking about the most romantic thing in the cloud."),
             rafe("Let me guess. Finding someone close to you."),
-            nova("[laugh] Vector search in Cosmos DB, Microsoft's cloud database. Which is, in fact, all about finding what's close to you. Not what uses the same words. What means the same thing."),
-            rafe("Like us. We never say the same thing, and somehow we always mean it."),
-            nova("Smooth. So, picture the Two Tracks Coach, the study assistant in the Android app. A learner asks, how do I stop throttling, meaning a server telling their app to slow down. And the perfect note says, handle 429 with autoscale: answer the too many requests error by letting the database add capacity by itself. Hardly a word in common."),
-            rafe("But a perfect match. So how does the database see it?"),
-            nova("With an embedding. An AI model turns each piece of text into a list of numbers, often 1,536 of them. Texts with similar meaning get lists that point in similar directions."),
-            rafe("1,536 dimensions. [pause] I always knew you were complicated, but that's a lot of dimensions."),
-            nova("And you love every one of them. Dimensions just means how many numbers are in the list. Under the picture, each list is a vector, a point in a space with 1,536 directions. Two notes that mean the same thing sit close together there, a small distance apart."),
-            rafe("A small distance apart. Exactly where I'd like to be. So where do these vectors live?"),
-            nova("Right beside the notes, in Cosmos DB. The question gets embedded too, and the database finds the notes whose vectors are closest. That's vector search. The numbers come from an embedding model, an AI whose only job is turning text into numbers, from Azure OpenAI, Microsoft's service for OpenAI's models."),
-            rafe("Then let me test you, darling. Exam style. The notes were embedded with one model, but the questions with a different one. The results are nonsense. Why?"),
-            nova("Because vectors from different models aren't comparable. Each model places meaning in its own space, often with different dimensions. The same model for the notes and the question, always."),
-            rafe("Right answer. Two people have to be on the same wavelength. [kiss]"),
-            nova("Mm. My turn. How does a database measure similarity? Ours is obvious."),
-            rafe("With the distance function. It's how closeness is measured. Cosine is the default, from minus one to plus one, and higher means more similar. Dot product multiplies the lists number by number and adds it up; higher is closer as well. Euclidean is a ruler distance, from zero up, so lower is closer."),
-            nova("And cosine only looks at the angle between two vectors, not how long they are. It's about which way you're facing, Rafe, not how big you are."),
-            rafe("[chuckle] I'll take that as a compliment. Now, Cosmos DB. Can I just switch this on for any container I like?"),
-            nova("Oh, no. A container is Cosmos DB's word for a table. First you enable vector search on the account, the top-level home for your databases, which can take about fifteen minutes. Then the vector settings go on a new container, when you create it, never an existing one. Commitment from the very start. And never on shared throughput, where containers share one pot of capacity."),
-            rafe("Committed from day one. I approve. What settings?"),
-            nova("A vector embedding policy, a short description of the vectors. For the path, the field holding the numbers, it says the kind of number, how many, which must match the model, and the distance function. Then the indexing policy, the list of what to index, like the back of a book. Here's your question. Every insert is suddenly very expensive. What did we forget?"),
-            rafe("We left the vector path in the normal indexing policy, so every insert pays to index 1,536 numbers one by one. Leave it out of the normal index, and give it a vector index instead, a special one for finding near neighbours."),
+            nova("[laugh] Search by meaning, in Cosmos DB, Microsoft's cloud database. All about finding what's close. A learner asks the Two Tracks Coach, our study app, why is my app being told to slow down? The perfect note says, when the database gets busy, let it grow. Hardly a word in common."),
+            rafe("But a perfect match. How does a database see that?"),
+            nova("With numbers. Picture a town map. Three steps east, four steps north, and your spot is 3, 4. A list of numbers like that is a vector. And a dimension is one number in it, so a map spot has two dimensions."),
+            rafe("And how many dimensions do you have, darling?"),
+            nova("For notes, 1,536. An embedding model, an AI, writes that many numbers for a text, and the list is called an embedding: the text's spot on a huge map. Similar meanings, nearby spots. Nobody can picture 1,536 directions, but the maths is the same."),
+            rafe("I always knew you were complicated. So two notes that mean the same sit close?"),
+            nova("A small distance apart. Under the picture, each number is one coordinate. The question gets a spot too, and the database finds the nearest notes. That's vector search. The model comes from Azure OpenAI, Microsoft's service for OpenAI's models."),
+            rafe("A small distance apart. Exactly where I'd like to be. Exam style, darling: notes embedded with one model, questions with another. Nonsense results. Why?"),
+            nova("Each model draws its own map. Spots from two maps don't compare. The same model for notes and questions, always."),
+            rafe("Right answer. Two people have to be on the same map. [kiss]"),
+            nova("Mm. My turn. How close are two spots? That's the distance function, and there are three. Tell me the default first."),
+            rafe("Cosine. Picture an arrow from the middle of the map to each spot. Do they point the same way, whatever their length? Same way scores 1, a right angle 0, opposite minus 1. Higher is more similar."),
+            nova("Right answer. It's about which way you're facing, Rafe, not how big you are. [kiss]"),
+            rafe("[chuckle] I'll take that as a compliment. The second is dot product. Multiply me out."),
+            nova("In plain words: multiply the matching numbers, then add them up. Take 2, 3 and 4, 1: two times four is eight, three times one is three, eleven in all. A bigger answer means the lists agree more."),
+            rafe("We agree on plenty. And the third, euclidean?"),
+            nova("Picture a ruler laid between two pins on the map. From the middle to 3, 4, it reads 5. A real distance, so lower means closer. The one time smaller is better."),
+            rafe("Noted. Can I switch this on for any container I like?"),
+            nova("Oh, no. First you enable vector search on the account, the top-level home for your databases. Then the vector settings go on a new container, Cosmos DB's box of documents, when you create it. Never an existing one. Commitment from the start."),
+            rafe("Committed from day one. What settings?"),
+            nova("A vector embedding policy: the kind of number, how many, 1,536 to match the model, and the distance function. Then the indexing policy. An index is like the one at the back of a book. Quiz: every insert is suddenly very expensive. What did we forget?"),
+            rafe("We left the vector field in the normal index, so every insert indexes 1,536 numbers. Leave it out, and give it a vector index instead, one built for finding the nearest spots."),
             nova("Right answer. Some things shouldn't be indexed in public. [kiss]"),
-            rafe("Now the vector indexes. Flat, quantizedFlat and diskANN. Shall I quiz you, or will you just tell me?"),
-            nova("Tell first, quiz after. Flat checks every single vector, which is called brute force. Exact, never misses, but only lists of up to 505 numbers, 505 dimensions. QuantizedFlat squeezes the numbers smaller, like a compressed photo, and still checks them all, with a slight loss of accuracy. It suits up to about 50,000 vectors in scope, meaning the ones a search looks at."),
-            rafe("And diskANN?"),
-            nova("ANN stands for approximate nearest neighbour. It's for more than about 50,000 vectors in scope. Under the hood it builds a graph, each vector linked to a few near neighbours, and a search hops along those links toward the question, visiting only a small part. Close, not perfect, and the fastest at that size."),
-            rafe("Nearest neighbours. The ones you can always lean over the fence to. All right, my question. Notes with 1,536 dimensions, and someone picks a flat index. Good idea?"),
-            nova("No. Flat stops at 505 dimensions, and 1,536 doesn't fit. It's the exam's favourite trap."),
+            rafe("Now the vector indexes. Tell me slowly."),
+            nova("The first is flat. Picture measuring the distance to every single café in the city, then picking the closest. Flat compares the question with every note. Never misses, but slow with many notes, and only lists of up to 505 numbers."),
+            rafe("Leaning over every fence in town. And the second?"),
+            nova("QuantizedFlat. Quantized means each list is squeezed smaller first, like a compressed photo, then still compared with every note. Up to about 50,000 notes in scope, meaning the ones a search actually looks at."),
+            rafe("And the third, diskANN?"),
+            nova("For far more than 50,000 in scope. It's a graph, which is a web of dots joined by lines. Each node, meaning one stored note, is joined to its near neighbours. A search hops from dot to closer dot, like friends of friends, not knocking on every door."),
+            rafe("Friends of friends. How we met. Does it find the very closest?"),
+            nova("Almost. ANN stands for approximate nearest neighbour. The nearest neighbour is the note closest to the question; approximate means very close, not guaranteed perfect. The fastest at that size."),
+            rafe("My question, then. Notes with 1,536 dimensions, and someone picks flat. Good idea?"),
+            nova("No. Flat stops at 505, and 1,536 doesn't fit. The exam's favourite trap."),
             rafe("Right answer, and a dangerous one to get wrong. [kiss]"),
-            nova("My turn. The Coach holds 300,000 notes, but every search is filtered to one learner, so only a few hundred vectors are in scope. Which index?"),
+            nova("My turn. The Coach holds 300,000 notes, but each search is filtered to one learner, so a few hundred are in scope. Which index?"),
             rafe("DiskANN. It's the biggest, so it's the best."),
-            nova("[sigh] No kiss for that one. Under 50,000 vectors in scope means quantizedFlat. DiskANN is for far more than that, like two million public study cards searched with no filter. And below about a thousand vectors, neither helps; it checks everything anyway."),
-            rafe("Bigger isn't always better. Noted. Let me win one back. How do I actually search?"),
-            nova("With a query in SQL, the language for asking a database questions. VectorDistance is a function that scores how close each note is to the question. You sort by it, ORDER BY, and keep the best five, TOP 5. And a WHERE, SQL's filter, on the learner's id, so it opens just one drawer of notes, one partition."),
-            rafe("And what does all that cost me?"),
-            nova("RUs, request units, Cosmos DB's price tag on every call. So, darling. A vector query returns good matches, but costs far too many RUs. What's missing?"),
-            rafe("TOP N, only the top few. Without it the engine scores far more items than you need, and the RU charge climbs. I only want my top five. Well. My top one."),
+            nova("[sigh] No kiss for that one. Under 50,000 in scope means quantizedFlat. DiskANN is for far more, like two million public cards with no filter."),
+            rafe("Bigger isn't always better. Noted. How do I search?"),
+            nova("A query in SQL, the language for asking a database questions. VectorDistance is a function that scores how near each note is. Sort by it, ORDER BY, keep the best five, TOP 5, and a WHERE, SQL's filter, on the learner's id, so it opens one drawer of notes, called a partition."),
+            rafe("And what does it cost me?"),
+            nova("RUs, request units, are the price tag Cosmos DB puts on every call. So, darling. A vector query gives good matches, but far too many RUs. What's missing?"),
+            rafe("TOP N, only the top few. Without it the engine scores far more notes than you need. I only want my top five. Well. My top one."),
             nova("Right answer, and charming with it. [kiss]"),
-            rafe("My question, then. The Coach must answer only from the learner's own notes, and show which ones it used. What's that pattern called?"),
-            nova("RAG, retrieval augmented generation. Retrieve the closest notes with vector search, put their text into the prompt, the message sent to a chat model, an AI that writes replies, and ask it to answer only from them. So the answer is grounded in those notes, and can cite them."),
+            rafe("My question. The Coach must answer only from the learner's notes, and show which it used. The pattern?"),
+            nova("RAG, which stands for retrieval augmented generation. Retrieve the nearest notes, put their text in the prompt, the message sent to a chat model, an AI that writes replies, and ask it to answer only from them."),
             rafe("Right answer. Grounded, like a good relationship. [kiss]"),
-            nova("And where does it all stop working, Rafe? Every romance has its limits."),
-            rafe("Vector search always brings back the closest notes, even when none is really about the question. Closest isn't always the one for you. So check the scores, and let the chat model say it doesn't know. When a note changes, embed it again; the change feed, Cosmos DB's running list of changes, has its own episode."),
+            nova("And where does it stop working, Rafe? Every romance has its limits."),
+            rafe("It always brings back the nearest notes, even when none is about the question. Nearest isn't always the one. So check the scores, and let the chat model say it doesn't know. A changed note gets embedded again; the change feed episode shows how, and the pgvector episode does it all on PostgreSQL."),
             nova("Last question, for the exam. What do we remember?"),
             rafe("If the results are nonsense, the same embedding model for both. If a vector query costs too many RUs, add TOP N. If it's 1,536 dimensions with flat, that's the trap. A small set after a filter is quantizedFlat; far more than 50,000 in scope is diskANN. And a vector policy needs a new container."),
             nova("Five for five. That one earns a long one. [kiss]"),
@@ -287,6 +301,40 @@ internal object Ai200EpisodesCosmosVector {
             DEdge("q", "model", "embed"),
             DEdge("note", "model", "embed"),
             DEdge("model", "vec"),
+        ),
+        aspect = 0.8f,
+    )
+
+    private fun mapPicture() = DiagramSpec(
+        "On a town map, 3 steps east and 4 north is the vector (3, 4); an embedding is a text's spot on a far bigger map.",
+        nodes = listOf(
+            DNode("mid", "Middle", 0.2f, 0.8f, w = 0.28f, h = 0.16f, kind = NodeKind.PILL, sub = "(0, 0)"),
+            DNode("a", "Question", 0.4f, 0.2f, w = 0.34f, h = 0.2f, tone = 1, sub = "(3, 4)"),
+            DNode("b", "Note", 0.8f, 0.44f, w = 0.3f, h = 0.2f, kind = NodeKind.NOTE, sub = "(4, 3): nearby"),
+            DNode("dims", "1,536 dimensions", 0.66f, 0.8f, w = 0.56f, h = 0.16f, tone = 2, sub = "one number each"),
+        ),
+        edges = listOf(
+            DEdge("mid", "a", "3 east, 4 north"),
+            DEdge("mid", "b"),
+            DEdge("a", "b", "close", dashed = true),
+        ),
+        aspect = 0.8f,
+    )
+
+    private fun web() = DiagramSpec(
+        "diskANN: each node is one stored note joined to its near neighbours, and a search hops toward the question.",
+        nodes = listOf(
+            DNode("q", "Question", 0.22f, 0.15f, w = 0.36f, h = 0.16f, tone = 1),
+            DNode("a", "Note", 0.75f, 0.15f, w = 0.3f, h = 0.16f, kind = NodeKind.NOTE, sub = "start here"),
+            DNode("b", "Note", 0.5f, 0.47f, w = 0.3f, h = 0.16f, kind = NodeKind.NOTE, sub = "a neighbour"),
+            DNode("c", "Note", 0.2f, 0.8f, w = 0.3f, h = 0.16f, kind = NodeKind.NOTE),
+            DNode("d", "Nearest note", 0.75f, 0.8f, w = 0.4f, h = 0.16f, kind = NodeKind.NOTE, sub = "the answer"),
+        ),
+        edges = listOf(
+            DEdge("q", "a", "start", dashed = true),
+            DEdge("a", "b", "hop"),
+            DEdge("b", "d", "hop"),
+            DEdge("b", "c"),
         ),
         aspect = 0.8f,
     )
@@ -392,7 +440,7 @@ internal object Ai200EpisodesCosmosVector {
         nodes = listOf(
             DNode("close", "Closest, not relevant", 0.26f, 0.2f, w = 0.46f, h = 0.22f, kind = NodeKind.NOTE, sub = "check the scores"),
             DNode("again", "Embed again", 0.76f, 0.2f, w = 0.42f, h = 0.22f, kind = NodeKind.NOTE, sub = "note or model changed"),
-            DNode("shared", "Shared throughput", 0.26f, 0.76f, w = 0.46f, h = 0.2f, tone = 2, sub = "not supported"),
+            DNode("say", "Say I don't know", 0.26f, 0.76f, w = 0.46f, h = 0.2f, tone = 2, sub = "the chat model may"),
             DNode("feed", "Change feed", 0.76f, 0.76f, w = 0.42f, h = 0.2f, tone = 1, sub = "another episode"),
         ),
         edges = listOf(DEdge("again", "feed", "reacts to edits")),
@@ -416,6 +464,20 @@ internal object Ai200EpisodesCosmosVector {
     private val sql = BoardCard("Query", "SELECT TOP 5 c.id FROM c WHERE c.userId = @u ORDER BY VectorDistance(c.embedding, @q)", code = true)
     private val policyCode = BoardCard("Python", "{\"path\": \"/embedding\", \"dataType\": \"float32\", \"dimensions\": 1536}", code = true)
 
+
+    private val vectorCard = BoardCard("Vector", "3 steps east, 4 north: the vector (3, 4), a spot on the map.")
+    private val dimensionCard = BoardCard("Dimension", "How many numbers in the list. A map spot has 2; these embeddings 1,536.")
+    private val embeddingCard = BoardCard("Embedding", "The spot an AI model gives a text. Similar meaning, nearby spots.")
+    private val cosineCard = BoardCard("cosine (default)", "Arrows from the middle: same way 1, right angle 0, opposite minus 1.")
+    private val dotCard = BoardCard("dot product", "(2, 3) and (4, 1): 2 times 4 plus 3 times 1 is 11. Bigger agrees more.")
+    private val euclideanCard = BoardCard("euclidean", "A ruler between two pins: middle to (3, 4) reads 5. Lower is closer.")
+    private val flatCard = BoardCard("flat", "Measure to every café in town: never misses, but only up to 505 numbers.")
+    private val quantizedCard = BoardCard("quantizedFlat", "Each list squeezed like a compressed photo; up to about 50,000 in scope.")
+    private val graphCard = BoardCard("Node and graph", "A node is one stored note, joined to near neighbours. The web is a graph.")
+    private val annCard = BoardCard("Approximate nearest neighbour", "Hop dot to closer dot: very close, not guaranteed perfect. Past 50,000.")
+    private val ragCard = BoardCard("RAG", "Retrieve the closest notes, put them in the prompt, answer only from them.")
+    private val todayCard = BoardCard("Today", "Enable vector search, a quantizedFlat container, five notes, one question.")
+
     private fun classicBoard() = PodcastBoard(
         "ai-cosmos-vector",
         listOf(
@@ -423,83 +485,96 @@ internal object Ai200EpisodesCosmosVector {
             Scene(
                 0, "Meaning, not words", meaning(),
                 beats = listOf(
-                    Beat(0, show = setOf("q", "note"), light = setOf("q", "note"), card = BoardCard("The puzzle", "Stop throttling? The best note says: handle 429 with autoscale.")),
-                    Beat(2, light = setOf("note"), card = BoardCard("429 and autoscale", "429: too many requests, slow down. Autoscale: capacity grows by itself.")),
-                    Beat(4, light = setOf("q", "note"), card = BoardCard("Matching words fails", "Hardly a word in common. Compare what the texts mean instead.")),
-                    Beat(6, show = setOf("model", "vec"), light = setOf("vec"), pulse = "model" to "vec", card = BoardCard("Embedding", "A list of numbers from an AI model, often 1,536. Similar meaning, similar direction.")),
+                    Beat(0, show = setOf("q", "note"), light = setOf("q", "note"), card = BoardCard("The puzzle", "Why is my app told to slow down? The note: let the database grow.")),
                 ),
             ),
-            // 8: "That's vector search. A vector is just that list of numbers..."
+            // 2: "By turning meaning into numbers. Let me give you one picture..."
             Scene(
-                8, "The Coach's search", coach(),
+                2, "A spot on the map", mapPicture(),
                 beats = listOf(
-                    Beat(8, show = setOf("user", "api", "db"), light = setOf("api", "db"), pulse = "api" to "db", card = BoardCard("Vector search", "Store each note's embedding; find the notes closest to the question.")),
-                    Beat(10, show = setOf("emb"), light = setOf("emb"), pulse = "api" to "emb", card = BoardCard("Embedding model", "An AI that turns text into numbers, from Azure OpenAI.")),
-                    Beat(12, light = setOf("emb", "db"), card = BoardCard("Same model for both", "Notes and question from one model, or the numbers don't compare.")),
+                    Beat(2, show = setOf("mid", "a"), light = setOf("a"), pulse = "mid" to "a", card = vectorCard),
+                    Beat(4, show = setOf("dims"), light = setOf("dims"), card = dimensionCard),
+                    Beat(6, show = setOf("b"), light = setOf("a", "b"), pulse = "a" to "b", card = embeddingCard),
                 ),
             ),
-            // 14: "Lovely. Now, Cosmos DB doesn't do this out of the box..."
+            // 8: "From Azure OpenAI, Microsoft's home for OpenAI's models..."
             Scene(
-                14, "Turn it on", container(),
+                8, "Same model, same map", coach(),
                 beats = listOf(
-                    Beat(14, show = setOf("acct"), light = setOf("acct"), card = BoardCard("Enable vector search", "One switch on the account; it can take about 15 minutes.")),
-                    Beat(16, show = setOf("cont"), light = setOf("cont"), pulse = "acct" to "cont", card = BoardCard("A new container", "A container is a table of documents. Vector settings go on at creation.")),
-                    Beat(18, show = setOf("policy"), light = setOf("policy"), pulse = "cont" to "policy", card = BoardCard("Vector embedding policy", "Per field: kind of number, how many to match the model, distance function.")),
+                    Beat(8, show = setOf("user", "api", "emb"), light = setOf("emb"), pulse = "api" to "emb", card = BoardCard("Same model for both", "Each model draws its own map. Mix two, and the results are nonsense.")),
+                    Beat(10, show = setOf("db"), light = setOf("db"), pulse = "api" to "db", card = BoardCard("Vector search", "Find the notes whose spots sit nearest the question's, in Cosmos DB.")),
                 ),
             ),
-            // 19: "Distance function. That sounds like maths homework."
+            // 11: "Then I store notes in a container. Which is, what, a table?"
             Scene(
-                19, "Distance functions", distance(),
+                11, "A new container", container(),
                 beats = listOf(
-                    Beat(19, show = setOf("q"), card = BoardCard("Distance function", "How closeness is measured: cosine, dot product or euclidean.")),
-                    Beat(20, show = setOf("cos", "dot", "euc"), light = setOf("cos"), pulse = "q" to "cos", card = BoardCard("cosine (default)", "The angle between two arrows, minus one to plus one: higher is more similar.")),
-                    Beat(21, light = setOf("euc"), pulse = "q" to "euc", card = BoardCard("euclidean", "A ruler distance from zero up, so lower is closer.")),
+                    Beat(11, show = setOf("cont"), light = setOf("acct", "cont"), card = BoardCard("A new container", "A box of documents. Vector settings go on when you create it.")),
+                    Beat(12, show = setOf("policy"), light = setOf("policy"), pulse = "cont" to "policy", card = BoardCard("Vector embedding policy", "Per field: kind of number, how many to match the model, distance function.")),
                 ),
             ),
-            // 22: "The indexing policy. An index is like the index at the back of a book..."
+            // 13: "Distance function. That sounds like maths homework."
+            Scene(
+                13, "Three distance functions", distance(),
+                beats = listOf(
+                    Beat(13, show = setOf("q"), card = BoardCard("Distance function", "The rule for how close two spots are. Three, one at a time.")),
+                    Beat(14, show = setOf("cos"), light = setOf("cos"), pulse = "q" to "cos", card = cosineCard),
+                    Beat(18, show = setOf("dot"), light = setOf("dot"), pulse = "q" to "dot", card = dotCard),
+                    Beat(20, show = setOf("euc"), light = setOf("euc"), pulse = "q" to "euc", card = euclideanCard),
+                ),
+            ),
+            // 22: "The indexing policy. An index is like the one at the back of a book..."
             Scene(
                 22, "The indexing policy", container(),
                 beats = listOf(
-                    Beat(22, light = setOf("cont"), card = BoardCard("Indexing policy", "The container's list of what goes in its index, like a book's index.")),
-                    Beat(24, light = setOf("excl", "index"), pulse = "cont" to "excl", card = BoardCard("Two rules", "Leave the vector path out of the normal index, and add a vector index.")),
+                    Beat(22, show = setOf("excl", "index"), light = setOf("excl", "index"), pulse = "cont" to "excl", card = BoardCard("Two rules", "Leave the vector field out of the normal index, and add a vector index.")),
                 ),
             ),
-            // 26: "Flat checks the question against every single vector..."
+            // 24: "Three, one at a time. The first is called flat..."
             Scene(
-                26, "Which vector index?", indexes(),
+                24, "Which vector index?", indexes(),
                 beats = listOf(
-                    Beat(26, show = setOf("flat"), light = setOf("flat"), card = BoardCard("flat", "Checks every vector: exact, but only up to 505 numbers a list.")),
-                    Beat(28, show = setOf("qf"), light = setOf("qf"), card = BoardCard("quantizedFlat", "Squeezed numbers, still checks all: up to about 50,000 in scope.")),
-                    Beat(30, show = setOf("disk"), light = setOf("disk"), card = BoardCard("diskANN", "Hops between near neighbours: approximate, fastest past 50,000.")),
-                    Beat(31, show = setOf("dims"), light = setOf("dims", "flat"), pulse = "dims" to "flat", card = BoardCard("1,536 dimensions", "flat is out straight away: it stops at 505.")),
-                    Beat(32, light = setOf("qf"), pulse = "dims" to "qf", card = BoardCard("The Coach: quantizedFlat", "300,000 notes, filtered to one learner: a few hundred in scope.")),
+                    Beat(24, show = setOf("flat"), light = setOf("flat"), card = flatCard),
+                    Beat(25, show = setOf("dims"), light = setOf("dims", "flat"), pulse = "dims" to "flat", card = BoardCard("1,536 dimensions", "flat is out straight away: it stops at 505.")),
+                    Beat(26, show = setOf("qf"), light = setOf("qf"), pulse = "dims" to "qf", card = quantizedCard),
+                    Beat(28, show = setOf("disk"), light = setOf("qf"), card = BoardCard("The Coach: quantizedFlat", "300,000 notes, filtered to one learner: a few hundred in scope.")),
                 ),
             ),
-            // 33: "Okay. The container's ready. How do I actually search?"
+            // 29: "DiskANN. What's that, in plain words?"
             Scene(
-                33, "The query", query(),
+                29, "diskANN: a web of notes", web(),
                 beats = listOf(
-                    Beat(33, show = setOf("q")),
-                    Beat(34, show = setOf("rank"), light = setOf("rank"), pulse = "q" to "rank", card = BoardCard("VectorDistance", "A closeness score for each note; sort by it and keep the top five.")),
-                    Beat(36, show = setOf("filter"), light = setOf("rank", "filter"), pulse = "filter" to "rank", card = sql),
-                    Beat(38, show = setOf("top"), light = setOf("top"), pulse = "rank" to "top", card = BoardCard("TOP N", "Without it, far more items are scored and the RU charge climbs.")),
+                    Beat(30, show = setOf("a", "b", "c", "d"), light = setOf("b"), card = graphCard),
+                    Beat(32, show = setOf("q"), light = setOf("b", "d"), pulse = "b" to "d", card = BoardCard("Friends of friends", "Hop to whichever neighbour is closer, instead of knocking on every door.")),
+                    Beat(34, light = setOf("d"), card = annCard),
                 ),
             ),
-            // 39: "And then the Coach shows the learner five notes?"
+            // 35: "Okay, container ready. How do I search?"
             Scene(
-                39, "From retrieval to RAG", rag(),
+                35, "The query", query(),
                 beats = listOf(
-                    Beat(39, show = setOf("notes")),
-                    Beat(40, show = setOf("prompt", "chat", "ans"), light = setOf("prompt", "chat"), pulse = "notes" to "prompt", card = BoardCard("RAG", "Retrieve the closest notes, put them in the prompt, answer only from them.")),
-                    Beat(42, light = setOf("notes"), card = BoardCard("The usual mistakes", "Old container, vector path indexed, flat at 1,536, no TOP N, two models.")),
+                    Beat(35, show = setOf("q")),
+                    Beat(36, show = setOf("rank"), light = setOf("rank"), pulse = "q" to "rank", card = BoardCard("VectorDistance", "A closeness score for each note; sort by it and keep the top five.")),
+                    Beat(37, show = setOf("filter"), light = setOf("rank", "filter"), pulse = "filter" to "rank", card = sql),
+                    Beat(38, light = setOf("filter"), card = BoardCard("Partition", "A drawer of notes for one learner: the search opens just one.")),
+                    Beat(40, show = setOf("top"), light = setOf("top"), pulse = "rank" to "top", card = BoardCard("TOP N", "RUs are the price tag on every call. Without TOP N, far more is scored.")),
                 ),
             ),
-            // 43: "So what do I remember for the exam?"
+            // 41: "And then the learner sees five notes?"
             Scene(
-                43, "For the exam", exam(),
+                41, "From retrieval to RAG", rag(),
                 beats = listOf(
-                    Beat(44, show = all6, light = setOf("flat", "big", "small"), card = BoardCard("Listen for the phrase", "Each exam phrase points to one answer: TOP N, diskANN, quantizedFlat, one model.")),
-                    Beat(46, card = BoardCard("Today", "Enable vector search, a quantizedFlat container, five notes, one question.")),
+                    Beat(41, show = setOf("notes")),
+                    Beat(42, show = setOf("prompt", "chat", "ans"), light = setOf("prompt", "chat"), pulse = "notes" to "prompt", card = ragCard),
+                    Beat(44, light = setOf("notes"), card = BoardCard("The usual mistakes", "Old container, vector field indexed, flat at 1,536, no TOP N, two models.")),
+                ),
+            ),
+            // 45: "So what do I remember for the exam?"
+            Scene(
+                45, "For the exam", exam(),
+                beats = listOf(
+                    Beat(46, show = all6, light = setOf("flat", "big", "small"), card = BoardCard("Listen for the phrase", "Each exam phrase points to one answer: TOP N, diskANN, quantizedFlat, one model.")),
+                    Beat(48, card = todayCard),
                 ),
             ),
         ),
@@ -512,7 +587,7 @@ internal object Ai200EpisodesCosmosVector {
             Scene(
                 0, "The Answer About Pancakes",
                 DiagramSpec(
-                    "Pocket Tutor's question about throttling comes back with a note about pancakes: the search found the wrong neighbour.",
+                    "Pocket Tutor's question about slowing down comes back with a note about pancakes: the search found the wrong neighbour.",
                     nodes = listOf(
                         DNode("phone", "Android app", 0.22f, 0.18f, w = 0.38f, h = 0.2f, sub = "Pocket Tutor"),
                         DNode("api", "Python backend", 0.22f, 0.72f, w = 0.38f, h = 0.2f, sub = "on Azure"),
@@ -527,26 +602,36 @@ internal object Ai200EpisodesCosmosVector {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(0, show = setOf("phone", "api", "bad"), light = setOf("bad"), pulse = "phone" to "api", card = BoardCard("The case", "Ask how to stop throttling; get a note about pancake recipes.")),
-                    Beat(2, show = setOf("db"), light = setOf("db"), pulse = "api" to "db", card = BoardCard("Embedding", "1,536 numbers from an AI model; similar meaning points the same way.")),
+                    Beat(0, show = setOf("phone", "api", "bad"), light = setOf("bad"), pulse = "phone" to "api", card = BoardCard("The case", "Ask why the app is told to slow down; get a note about pancakes.")),
+                    Beat(1, show = setOf("db"), light = setOf("db"), pulse = "api" to "db"),
                 ),
             ),
-            // 3: "Lists that point? Numbers don't point."
+            // 2: "By meaning, not by words..."
             Scene(
-                3, "Under the picture", meaning(),
+                2, "A spot on the map", mapPicture(),
                 beats = listOf(
-                    Beat(3, show = setOf("q", "note"), light = setOf("q", "note")),
-                    Beat(4, show = setOf("model", "vec"), light = setOf("vec"), pulse = "model" to "vec", card = BoardCard("A vector", "A point in a space with 1,536 directions; every number a coordinate.")),
+                    Beat(2, show = setOf("mid", "a"), light = setOf("a"), pulse = "mid" to "a", card = vectorCard),
+                    Beat(4, show = setOf("b", "dims"), light = setOf("a", "b"), pulse = "a" to "b", card = embeddingCard),
+                    Beat(6, light = setOf("dims"), card = BoardCard("Under the picture", "Each number is one coordinate; 1,536 of them, the maths as on paper.")),
                 ),
             ),
-            // 5: "Then my first suspect is the distance function..."
+            // 7: "Then my first suspect is the distance function..."
             Scene(
-                5, "The suspects",
+                7, "Suspect one: distance", distance(),
+                beats = listOf(
+                    Beat(7, show = setOf("q"), card = BoardCard("Distance function", "The rule for what counts as near. Three suspects, one at a time.")),
+                    Beat(8, show = setOf("cos"), light = setOf("cos"), pulse = "q" to "cos", card = cosineCard),
+                    Beat(10, show = setOf("dot"), light = setOf("dot"), pulse = "q" to "dot", card = dotCard),
+                    Beat(12, show = setOf("euc"), light = setOf("euc"), pulse = "q" to "euc", card = euclideanCard),
+                ),
+            ),
+            // 13: "So the question and the notes are on different maps."
+            Scene(
+                13, "The real culprit",
                 DiagramSpec(
-                    "Changing the distance function or the consistency does not fix vectors made by two different models.",
+                    "Any distance function works, but vectors made by two different models are on different maps.",
                     nodes = listOf(
-                        DNode("fn", "Distance function", 0.26f, 0.18f, w = 0.46f, h = 0.2f, kind = NodeKind.NOTE, sub = "any of three works"),
-                        DNode("cons", "Strong consistency", 0.76f, 0.18f, w = 0.44f, h = 0.2f, kind = NodeKind.NOTE, sub = "only costs more"),
+                        DNode("fn", "Distance function", 0.5f, 0.18f, w = 0.5f, h = 0.2f, kind = NodeKind.NOTE, sub = "any of three works"),
                         DNode("m1", "Notes: one model", 0.26f, 0.74f, w = 0.46f, h = 0.2f, tone = 1, sub = "text-embedding-3-small"),
                         DNode("m2", "Questions: another", 0.76f, 0.74f, w = 0.44f, h = 0.2f, tone = 2, sub = "a newer model"),
                     ),
@@ -554,67 +639,69 @@ internal object Ai200EpisodesCosmosVector {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(5, show = setOf("fn"), light = setOf("fn")),
-                    Beat(6, card = BoardCard("Suspect one: cleared", "Cosine, dot product, euclidean: any works if both vectors share a model.")),
-                    Beat(7, show = setOf("cons"), light = setOf("cons")),
-                    Beat(8, show = setOf("m1", "m2"), light = setOf("m1", "m2"), pulse = "m1" to "m2", card = BoardCard("The clue", "Notes from one embedding model; questions from a newer one.")),
-                    Beat(10, light = setOf("m2"), card = BoardCard("Not comparable", "Same model for notes and question. Change models, embed everything again.")),
+                    Beat(13, show = setOf("fn", "m1", "m2"), light = setOf("m1", "m2"), pulse = "m1" to "m2", card = BoardCard("The clue", "Notes from one embedding model; questions from a newer one.")),
+                    Beat(14, light = setOf("m2"), card = BoardCard("Different maps", "Same model for notes and question. Change models, embed everything again.")),
                 ),
             ),
-            // 12: "Not quite. There's a second witness: the finance team..."
+            // 16: "Not quite. Second witness: the finance team..."
             Scene(
-                12, "The second witness", query(),
+                16, "The second witness", query(),
                 beats = listOf(
-                    Beat(12, show = setOf("q", "rank"), light = setOf("rank"), card = BoardCard("The bill tripled", "Every search cost far more RUs than anyone expected.")),
-                    Beat(13, card = BoardCard("Suspect: a composite index", "Wrong kind. Vectors use a vector index, not a composite one.")),
-                    Beat(14, light = setOf("rank"), pulse = "q" to "rank", card = BoardCard("VectorDistance", "The function that scores how similar two vectors are.")),
-                    Beat(16, show = setOf("filter", "top"), light = setOf("top", "filter"), pulse = "rank" to "top", card = sql),
+                    Beat(16, show = setOf("q", "rank"), light = setOf("rank"), card = BoardCard("The bill tripled", "Every search cost far more RUs, the price tag on every call.")),
+                    Beat(17, card = BoardCard("Suspect: no index", "An index is like a book's. But the culprit is in the query.")),
+                    Beat(18, light = setOf("rank"), pulse = "q" to "rank", card = BoardCard("VectorDistance", "The function that scores how near each note is to the question.")),
+                    Beat(20, show = setOf("filter", "top"), light = setOf("top", "filter"), pulse = "rank" to "top", card = sql),
                 ),
             ),
-            // 17: "And the inserts? Finance said writes were pricey too."
+            // 21: "And the writes? Finance said those were pricey too."
             Scene(
-                17, "The third clue", container(),
+                21, "The third clue", container(),
                 beats = listOf(
-                    Beat(17, show = setOf("cont")),
-                    Beat(18, show = setOf("excl"), light = setOf("excl"), pulse = "cont" to "excl", card = BoardCard("Vector path in the normal index", "Every insert paid to index 1,536 numbers. Exclude it.")),
-                    Beat(19, light = setOf("cont"), card = BoardCard("Edit the existing container?", "No: vector policies go on a new container, set at creation.")),
-                    Beat(20, show = setOf("acct"), light = setOf("acct", "cont"), pulse = "acct" to "cont", card = BoardCard("Enable vector search", "Switched on for the account first; it can take about 15 minutes.")),
-                    Beat(22, show = setOf("policy", "index"), light = setOf("policy"), pulse = "cont" to "policy", card = policyCode),
+                    Beat(21, show = setOf("cont")),
+                    Beat(22, show = setOf("excl", "index"), light = setOf("excl"), pulse = "cont" to "excl", card = BoardCard("Vector field in the normal index", "Every insert paid to index 1,536 numbers. Leave it out.")),
+                    Beat(23, light = setOf("cont"), card = BoardCard("Edit the existing container?", "No: vector settings go on a new container, at creation.")),
+                    Beat(24, show = setOf("acct", "policy"), light = setOf("acct", "policy"), pulse = "acct" to "cont", card = policyCode),
                 ),
             ),
-            // 23: "Which index, then? I'll say flat..."
+            // 25: "Which vector index, then? I'll say flat."
             Scene(
-                23, "Which index?", indexes(),
+                25, "Which index?", indexes(),
                 beats = listOf(
-                    Beat(23, show = setOf("flat"), light = setOf("flat")),
-                    Beat(24, show = setOf("dims"), light = setOf("flat", "dims"), pulse = "dims" to "flat", card = BoardCard("A fourth case", "flat stops at 505 dimensions: 1,536 doesn't fit.")),
-                    Beat(25, show = setOf("disk"), light = setOf("disk")),
-                    Beat(26, show = setOf("qf"), light = setOf("qf"), pulse = "dims" to "qf", card = BoardCard("quantizedFlat", "A few hundred in scope after the filter: compressed, compares them all.")),
-                    Beat(28, light = setOf("disk"), pulse = "dims" to "disk", card = BoardCard("diskANN", "Past 50,000 in scope: a graph of near neighbours, approximate.")),
+                    Beat(25, show = setOf("flat"), light = setOf("flat")),
+                    Beat(26, show = setOf("dims"), light = setOf("flat", "dims"), pulse = "dims" to "flat", card = BoardCard("A fourth case", "Every café in town: exact, but flat stops at 505. 1,536 doesn't fit.")),
+                    Beat(28, show = setOf("qf"), light = setOf("qf"), pulse = "dims" to "qf", card = quantizedCard),
+                    Beat(29, show = setOf("disk"), light = setOf("disk"), pulse = "dims" to "disk"),
                 ),
             ),
-            // 29: "And the student sees five notes. That's it?"
+            // 30: "Far more than 50,000 in scope... It links the notes into a graph"
             Scene(
-                29, "Then comes RAG", rag(),
+                30, "diskANN: friends of friends", web(),
                 beats = listOf(
-                    Beat(29, show = setOf("notes")),
-                    Beat(30, show = setOf("prompt", "chat", "ans"), light = setOf("prompt", "chat"), pulse = "notes" to "prompt", card = BoardCard("RAG", "The top notes go into the prompt; the chat model answers only from them.")),
+                    Beat(30, show = setOf("q", "a", "b", "c", "d"), light = setOf("b"), pulse = "a" to "b", card = graphCard),
+                    Beat(32, light = setOf("d"), pulse = "b" to "d", card = annCard),
                 ),
             ),
-            // 31: "Any loose ends in the file?"
+            // 33: "And the student sees five notes. That's it?"
             Scene(
-                31, "Loose ends", limits(),
+                33, "Then comes RAG", rag(),
                 beats = listOf(
-                    Beat(32, show = setOf("close"), light = setOf("close"), card = BoardCard("Closest isn't relevant", "It always returns five notes, even about tax returns. Check the scores.")),
-                    Beat(34, show = setOf("again", "feed", "shared"), light = setOf("again", "feed"), pulse = "again" to "feed", card = BoardCard("Other episodes", "Change feed: react to edited notes. pgvector: the same on PostgreSQL.")),
+                    Beat(33, show = setOf("notes")),
+                    Beat(34, show = setOf("prompt", "chat", "ans"), light = setOf("prompt", "chat"), pulse = "notes" to "prompt", card = ragCard),
                 ),
             ),
-            // 35: "So, the case summary for the exam?"
+            // 35: "Any loose ends in the file?"
             Scene(
-                35, "Case closed", exam(),
+                35, "Loose ends", limits(),
                 beats = listOf(
-                    Beat(36, show = all6, light = setOf("models", "rus"), card = BoardCard("Listen for the phrase", "Each exam phrase points to one answer. Same model, TOP N, the right index.")),
-                    Beat(38, card = BoardCard("Today", "Recreate it: enable, a quantizedFlat container, five notes, one question.")),
+                    Beat(36, show = setOf("close", "say", "again", "feed"), light = setOf("close", "say"), pulse = "again" to "feed", card = BoardCard("Nearest isn't relevant", "Five notes even about tax returns. Check the scores. Change feed, pgvector.")),
+                ),
+            ),
+            // 37: "So, the case summary for the exam?"
+            Scene(
+                37, "Case closed", exam(),
+                beats = listOf(
+                    Beat(38, show = all6, light = setOf("models", "rus"), card = BoardCard("Listen for the phrase", "Each exam phrase points to one answer. Same model, TOP N, the right index.")),
+                    Beat(40, card = BoardCard("Today", "Recreate it: enable, a quantizedFlat container, five notes, one question.")),
                 ),
             ),
         ),
@@ -628,51 +715,73 @@ internal object Ai200EpisodesCosmosVector {
                 0, "What the Coach team built", coach(),
                 beats = listOf(
                     Beat(0, show = setOf("user", "api"), light = setOf("api"), pulse = "user" to "api", card = BoardCard("Smart search", "The Coach finds a learner's notes by meaning, not by words.")),
-                    Beat(2, show = setOf("db"), light = setOf("db"), pulse = "api" to "db"),
-                    Beat(4, show = setOf("emb"), light = setOf("emb"), pulse = "api" to "emb", card = BoardCard("Embedding", "1,536 numbers per note; notes that mean similar things land nearby.")),
+                    Beat(2, show = setOf("db"), light = setOf("db"), pulse = "api" to "db", card = BoardCard("No shared words", "Told to slow down? The note: let the database grow by itself.")),
                 ),
             ),
-            // 5: "Okay. So who went first?"
+            // 4: "It doesn't, really. It compares numbers. Picture a town map..."
             Scene(
-                5, "Monday: Tom", container(),
+                4, "A spot on the map", mapPicture(),
                 beats = listOf(
-                    Beat(6, show = setOf("cont"), light = setOf("cont"), card = BoardCard("An existing container?", "A container is a table of documents. Tom's was last year's notes.")),
-                    Beat(8, show = setOf("acct"), light = setOf("acct", "cont"), pulse = "acct" to "cont", card = BoardCard("A new container", "Vector settings go on at creation. Switch on the account first.")),
-                    Beat(10, show = setOf("policy"), light = setOf("policy"), pulse = "cont" to "policy", card = BoardCard("Vector embedding policy", "Kind of number, 1,536 of them, and a distance function.")),
-                    Beat(12, light = setOf("policy"), card = BoardCard("Distance function", "Cosine, the default, and dot product: higher is closer. Euclidean: lower.")),
+                    Beat(4, show = setOf("mid", "a", "b"), light = setOf("a", "b"), pulse = "mid" to "a", card = BoardCard("Vector and embedding", "(3, 4) is a spot on a map. An embedding is a text's spot on a huge one.")),
+                    Beat(6, show = setOf("dims"), light = setOf("dims"), card = dimensionCard),
                 ),
             ),
-            // 13: "And Tuesday?"
+            // 7: "Okay. So who went first?"
             Scene(
-                13, "Tuesday: Dana", container(),
+                7, "Monday: Tom", container(),
                 beats = listOf(
-                    Beat(14, show = setOf("cont"), light = setOf("cont"), card = BoardCard("Inserts through the roof", "Every write cost far more RUs, request units, than before.")),
-                    Beat(16, show = setOf("excl", "index"), light = setOf("excl", "index"), pulse = "cont" to "excl", card = BoardCard("Leave the vector path out", "Out of the normal index, and give it a vector index instead.")),
+                    Beat(8, show = setOf("cont"), light = setOf("cont"), card = BoardCard("An existing container?", "A container is a box of documents. Tom's was last year's notes.")),
+                    Beat(10, show = setOf("acct"), light = setOf("acct", "cont"), pulse = "acct" to "cont", card = BoardCard("A new container", "Vector settings go on at creation. Switch on the account first.")),
+                    Beat(12, show = setOf("policy"), light = setOf("policy"), pulse = "cont" to "policy", card = BoardCard("Vector embedding policy", "Kind of number, 1,536 of them, and a distance function.")),
                 ),
             ),
-            // 17: "Which vector index? I sense a Wednesday."
+            // 13: "Go on then, one at a time."
             Scene(
-                17, "Wednesday: Marcus", indexes(),
+                13, "Three distance rules", distance(),
                 beats = listOf(
-                    Beat(18, show = setOf("flat"), light = setOf("flat"), card = BoardCard("flat", "Brute force: checks every vector, exact, never misses.")),
-                    Beat(20, show = setOf("dims"), light = setOf("dims", "flat"), pulse = "dims" to "flat", card = BoardCard("1,536 dimensions", "flat stops at 505. The container said no.")),
-                    Beat(22, show = setOf("qf"), light = setOf("qf"), pulse = "dims" to "qf", card = BoardCard("quantizedFlat", "A few hundred in scope after the filter: under about 50,000.")),
-                    Beat(24, show = setOf("disk"), light = setOf("disk"), pulse = "dims" to "disk", card = BoardCard("diskANN", "Past 50,000 in scope: a web of near neighbours, approximate.")),
-                    Beat(26, light = setOf("qf", "disk"), card = BoardCard("Fifty notes?", "Under about 1,000 vectors, a full scan runs anyway.")),
+                    Beat(13, show = setOf("q")),
+                    Beat(14, show = setOf("cos"), light = setOf("cos"), pulse = "q" to "cos", card = cosineCard),
+                    Beat(16, show = setOf("dot"), light = setOf("dot"), pulse = "q" to "dot", card = dotCard),
+                    Beat(18, show = setOf("euc"), light = setOf("euc"), pulse = "q" to "euc", card = euclideanCard),
                 ),
             ),
-            // 27: "Thursday. Go."
+            // 19: "And Tuesday?"
             Scene(
-                27, "Thursday: the intern", query(),
+                19, "Tuesday: Dana", container(),
                 beats = listOf(
-                    Beat(28, show = setOf("q", "rank"), light = setOf("rank"), pulse = "q" to "rank", card = BoardCard("Great matches, huge bill", "One day's RU charge was enormous.")),
-                    Beat(30, light = setOf("rank"), card = BoardCard("VectorDistance", "Scores how close each note is; ORDER BY sorts by that score.")),
-                    Beat(32, show = setOf("filter", "top"), light = setOf("top", "filter"), pulse = "rank" to "top", card = sql),
+                    Beat(20, show = setOf("cont"), light = setOf("cont"), card = BoardCard("Inserts through the roof", "Every write cost far more RUs, the price tag on every call.")),
+                    Beat(22, show = setOf("excl", "index"), light = setOf("excl", "index"), pulse = "cont" to "excl", card = BoardCard("Leave the vector field out", "Out of the normal index, and give it a vector index instead.")),
                 ),
             ),
-            // 33: "And Friday? There's always a Friday."
+            // 23: "Which vector index? I sense a Wednesday."
             Scene(
-                33, "Friday: Priya",
+                23, "Wednesday: Marcus", indexes(),
+                beats = listOf(
+                    Beat(24, show = setOf("flat"), light = setOf("flat"), card = flatCard),
+                    Beat(26, show = setOf("dims"), light = setOf("dims", "flat"), pulse = "dims" to "flat", card = BoardCard("1,536 dimensions", "flat stops at 505. The container said no.")),
+                    Beat(28, show = setOf("qf"), light = setOf("qf"), pulse = "dims" to "qf", card = quantizedCard),
+                    Beat(29, show = setOf("disk"), light = setOf("disk"), pulse = "dims" to "disk"),
+                ),
+            ),
+            // 30: "For far more than 50,000 in scope... It's a graph"
+            Scene(
+                30, "diskANN: a web of notes", web(),
+                beats = listOf(
+                    Beat(30, show = setOf("q", "a", "b", "c", "d"), light = setOf("b"), pulse = "a" to "b", card = graphCard),
+                    Beat(32, light = setOf("d"), pulse = "b" to "d", card = annCard),
+                ),
+            ),
+            // 33: "Thursday. Go."
+            Scene(
+                33, "Thursday: the intern", query(),
+                beats = listOf(
+                    Beat(34, show = setOf("q", "rank"), light = setOf("rank"), pulse = "q" to "rank", card = BoardCard("VectorDistance", "Scores how near each note is; ORDER BY sorts. No TOP: a huge RU bill.")),
+                    Beat(36, show = setOf("filter", "top"), light = setOf("top", "filter"), pulse = "rank" to "top", card = sql),
+                ),
+            ),
+            // 37: "And Friday? There's always a Friday."
+            Scene(
+                37, "Friday: Priya",
                 DiagramSpec(
                     "Questions embedded with a newer model than the notes cannot be compared, so the top result is nonsense.",
                     nodes = listOf(
@@ -687,32 +796,26 @@ internal object Ai200EpisodesCosmosVector {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(34, show = setOf("m1", "m2"), light = setOf("m2"), pulse = "m1" to "m2", card = BoardCard("Two models", "Questions from a newer model; notes from the old one.")),
-                    Beat(35, show = setOf("bad"), light = setOf("bad"), pulse = "m2" to "bad"),
-                    Beat(36, light = setOf("m1", "m2"), card = BoardCard("Same model, always", "Change models, embed every note again. Change feed: another episode.")),
+                    Beat(38, show = setOf("m1", "m2"), light = setOf("m2"), pulse = "m1" to "m2", card = BoardCard("Two models", "Questions from a newer model; notes from the old one.")),
+                    Beat(39, show = setOf("bad"), light = setOf("bad"), pulse = "m2" to "bad"),
+                    Beat(40, light = setOf("m1", "m2"), card = BoardCard("Two maps", "Same model, always. Change models, embed every note again.")),
                 ),
             ),
-            // 37: "So once it all worked, what did the Coach do with its five notes?"
+            // 41: "Once it worked, what did the Coach do with its five notes?"
             Scene(
-                37, "What the Coach did next", rag(),
+                41, "What the Coach did next", rag(),
                 beats = listOf(
-                    Beat(37, show = setOf("notes")),
-                    Beat(38, show = setOf("prompt", "chat", "ans"), light = setOf("prompt", "chat"), pulse = "notes" to "prompt", card = BoardCard("RAG", "The top notes go into the prompt; the chat model answers only from them.")),
+                    Beat(41, show = setOf("notes")),
+                    Beat(42, show = setOf("prompt", "chat", "ans"), light = setOf("prompt", "chat"), pulse = "notes" to "prompt", card = ragCard),
+                    Beat(44, light = setOf("notes"), card = BoardCard("Nearest isn't relevant", "Check the scores; let the chat model say it doesn't know.")),
                 ),
             ),
-            // 39: "Did anything still go wrong?"
+            // 45: "So, the gossip I should remember for the exam?"
             Scene(
-                39, "Where it stops", limits(),
+                45, "For the exam", exam(),
                 beats = listOf(
-                    Beat(40, show = setOf("close", "shared"), light = setOf("close", "shared"), card = BoardCard("Closest isn't relevant", "Check the scores; let the chat model say it doesn't know.")),
-                ),
-            ),
-            // 41: "So, the gossip I should remember for the exam?"
-            Scene(
-                41, "For the exam", exam(),
-                beats = listOf(
-                    Beat(42, show = all6, light = setOf("new", "flat"), card = BoardCard("Listen for the phrase", "Each exam phrase points to one answer. Nobody wants to be next week's story.")),
-                    Beat(44, card = BoardCard("Today", "Enable vector search, a quantizedFlat container, five notes, one question.")),
+                    Beat(46, show = all6, light = setOf("new", "flat"), card = BoardCard("Listen for the phrase", "Each exam phrase points to one answer. Nobody wants to be next week's story.")),
+                    Beat(48, card = todayCard),
                 ),
             ),
         ),
@@ -726,70 +829,83 @@ internal object Ai200EpisodesCosmosVector {
                 0, "Finding things by meaning", meaning(),
                 beats = listOf(
                     Beat(0, show = setOf("q"), card = BoardCard("Tonight", "Finding things by what they mean, not by the words they use.")),
-                    Beat(2, show = setOf("note"), light = setOf("q", "note"), card = BoardCard("The perfect answer", "Handle 429 with autoscale. Barely a word in common.")),
-                    Beat(4, light = setOf("note"), card = BoardCard("429 and autoscale", "429: too many requests, slow down. Autoscale: capacity grows by itself.")),
-                    Beat(6, show = setOf("model", "vec"), light = setOf("vec"), pulse = "model" to "vec", card = BoardCard("Embedding", "Numbers from an AI model, often 1,536. Similar meaning, similar direction.")),
-                    Beat(8, light = setOf("vec"), card = BoardCard("Under the picture", "A point in a space with 1,536 directions; every number a coordinate.")),
+                    Beat(2, show = setOf("note"), light = setOf("q", "note"), card = BoardCard("The perfect answer", "Let the database grow by itself. Barely a word in common.")),
+                ),
+            ),
+            // 4: "Lonely. Unless we compare meaning... picture a town map."
+            Scene(
+                4, "A spot on the map", mapPicture(),
+                beats = listOf(
+                    Beat(4, show = setOf("mid", "a"), light = setOf("a"), pulse = "mid" to "a", card = vectorCard),
+                    Beat(6, show = setOf("dims"), light = setOf("dims"), card = dimensionCard),
+                    Beat(8, show = setOf("b"), light = setOf("a", "b"), pulse = "a" to "b", card = embeddingCard),
                 ),
             ),
             // 9: "Close together, in the dark. I like that. Where do they live?"
             Scene(
                 9, "The Coach", coach(),
                 beats = listOf(
-                    Beat(10, show = setOf("user", "api", "db"), light = setOf("db"), pulse = "api" to "db", card = BoardCard("Vector search", "The question is embedded too; the closest vectors come back.")),
-                    Beat(12, show = setOf("emb"), light = setOf("emb"), pulse = "api" to "emb", card = BoardCard("Embedding model", "An AI that turns text into numbers, from Azure OpenAI.")),
-                    Beat(14, light = setOf("emb", "db"), card = BoardCard("One promise", "The same model for the notes and the question, or nonsense.")),
+                    Beat(10, show = setOf("user", "api", "db"), light = setOf("db"), pulse = "api" to "db", card = BoardCard("Vector search", "The question gets a spot too; the nearest notes come back.")),
+                    Beat(12, show = setOf("emb"), light = setOf("emb"), pulse = "api" to "emb", card = BoardCard("One promise", "Each model draws its own map. The same model for notes and question.")),
                 ),
             ),
-            // 15: "I've been on dates like that. So how close is close?"
+            // 13: "I've been on dates like that. So how near is near?"
             Scene(
-                15, "How close is close", distance(),
+                13, "How near is near", distance(),
                 beats = listOf(
-                    Beat(15, show = setOf("q")),
-                    Beat(16, show = setOf("cos", "dot", "euc"), light = setOf("cos"), pulse = "q" to "cos", card = BoardCard("Distance function", "Cosine: the angle, higher is closer. Euclidean: a ruler, lower is closer.")),
+                    Beat(13, show = setOf("q")),
+                    Beat(14, show = setOf("cos"), light = setOf("cos"), card = BoardCard("Distance function", "The rule for how close two spots are. Three of them, slowly.")),
+                    Beat(16, light = setOf("cos"), pulse = "q" to "cos", card = cosineCard),
+                    Beat(18, show = setOf("dot"), light = setOf("dot"), pulse = "q" to "dot", card = dotCard),
+                    Beat(20, show = setOf("euc"), light = setOf("euc"), pulse = "q" to "euc", card = euclideanCard),
                 ),
             ),
-            // 17: "And Cosmos DB? Does it just do this, out of the box?"
+            // 21: "And Cosmos DB? Does it just do this, out of the box?"
             Scene(
-                17, "Setting it up", container(),
+                21, "Setting it up", container(),
                 beats = listOf(
-                    Beat(18, show = setOf("acct", "cont"), light = setOf("acct", "cont"), pulse = "acct" to "cont", card = BoardCard("Account, then a new container", "Switch on vector search for the account; vector settings only at creation.")),
-                    Beat(20, show = setOf("policy"), light = setOf("policy"), pulse = "cont" to "policy", card = BoardCard("Vector embedding policy", "Kind of number, 1,536 of them, a distance function. Not on shared throughput.")),
-                    Beat(22, show = setOf("excl", "index"), light = setOf("excl", "index"), pulse = "cont" to "excl", card = BoardCard("Indexing policy", "Leave the vector path out of the normal index; add a vector index.")),
+                    Beat(22, show = setOf("acct", "cont"), light = setOf("acct", "cont"), pulse = "acct" to "cont", card = BoardCard("Account, then a new container", "Switch on vector search for the account; vector settings only at creation.")),
+                    Beat(24, show = setOf("policy", "excl", "index"), light = setOf("policy", "excl"), pulse = "cont" to "excl", card = BoardCard("Policy and index", "Kind, count and distance. Leave the vector field out; add a vector index.")),
                 ),
             ),
-            // 23: "Tell me slowly."
+            // 25: "And there's more than one kind. I can hear it."
             Scene(
-                23, "Three vector indexes", indexes(),
+                25, "Three vector indexes", indexes(),
                 beats = listOf(
-                    Beat(24, show = setOf("flat"), light = setOf("flat"), card = BoardCard("flat", "Brute force: checks every vector, exact, up to 505 dimensions.")),
-                    Beat(26, show = setOf("qf"), light = setOf("qf"), card = BoardCard("quantizedFlat", "Squeezed numbers, still checks all: up to about 50,000 in scope.")),
-                    Beat(28, show = setOf("disk"), light = setOf("disk"), card = BoardCard("diskANN", "Near neighbours holding hands: a graph. Approximate, fastest at scale.")),
-                    Beat(30, show = setOf("dims"), light = setOf("qf", "dims"), pulse = "dims" to "qf", card = BoardCard("The Coach: quantizedFlat", "A few hundred in scope; flat can't take 1,536 dimensions.")),
+                    Beat(26, show = setOf("flat"), light = setOf("flat"), card = flatCard),
+                    Beat(28, show = setOf("qf"), light = setOf("qf"), card = quantizedCard),
+                    Beat(29, show = setOf("disk"), light = setOf("disk")),
                 ),
             ),
-            // 31: "And the search itself? What do I actually write?"
+            // 30: "It's for far more than 50,000 in scope. It links the notes into a graph..."
             Scene(
-                31, "The search", query(),
+                30, "Holding hands", web(),
                 beats = listOf(
-                    Beat(32, show = setOf("q", "rank"), light = setOf("rank"), pulse = "q" to "rank", card = BoardCard("VectorDistance", "The function that scores how similar two vectors are.")),
-                    Beat(34, show = setOf("filter", "top"), light = setOf("top", "filter"), pulse = "rank" to "top", card = sql),
+                    Beat(30, show = setOf("q", "a", "b", "c", "d"), light = setOf("b"), pulse = "a" to "b", card = graphCard),
+                    Beat(32, light = setOf("d"), pulse = "b" to "d", card = annCard),
                 ),
             ),
-            // 35: "Five notes, then. What does the Coach do with them?"
+            // 33: "And the search itself? What do I write?"
             Scene(
-                35, "Grounded answers", rag(),
+                33, "The search", query(),
                 beats = listOf(
-                    Beat(35, show = setOf("notes")),
-                    Beat(36, show = setOf("prompt", "chat", "ans"), light = setOf("prompt", "chat"), pulse = "notes" to "prompt", card = BoardCard("RAG", "Retrieval augmented generation: answer only from your own notes.")),
+                    Beat(34, show = setOf("q", "rank", "filter"), light = setOf("rank", "filter"), pulse = "q" to "rank", card = sql),
+                    Beat(36, show = setOf("top"), light = setOf("top"), pulse = "rank" to "top", card = BoardCard("TOP N", "RUs are the price tag on every call. Without TOP N, far more is scored.")),
                 ),
             ),
-            // 37: "Now the part I've been waiting for. Where does all this stop working?"
+            // 37: "Five notes, then. What does the Coach do with them?"
             Scene(
-                37, "Where it stops", limits(),
+                37, "Grounded answers", rag(),
                 beats = listOf(
-                    Beat(38, show = setOf("close", "again", "feed", "shared"), light = setOf("close", "again"), pulse = "again" to "feed", card = BoardCard("Closest isn't relevant", "Look at the scores. A changed note is embedded again.")),
-                    Beat(40, light = setOf("feed"), card = BoardCard("Your next late night", "The pgvector episode: the same idea on PostgreSQL.")),
+                    Beat(37, show = setOf("notes")),
+                    Beat(38, show = setOf("prompt", "chat", "ans"), light = setOf("prompt", "chat"), pulse = "notes" to "prompt", card = ragCard),
+                ),
+            ),
+            // 39: "Now the part I've been waiting for. Where does it stop working?"
+            Scene(
+                39, "Where it stops", limits(),
+                beats = listOf(
+                    Beat(40, show = setOf("close", "say", "again", "feed"), light = setOf("close", "again"), pulse = "again" to "feed", card = BoardCard("Nearest isn't relevant", "Look at the scores. A changed note is embedded again. pgvector: next.")),
                 ),
             ),
             // 41: "Mm. Before you send me off to bed. What do I remember for the exam?"
@@ -797,7 +913,7 @@ internal object Ai200EpisodesCosmosVector {
                 41, "For the exam", exam(),
                 beats = listOf(
                     Beat(42, show = all6, light = setOf("flat", "big", "small"), card = BoardCard("Listen for the phrase", "Each exam phrase points to one answer: the index, TOP N, one model.")),
-                    Beat(44, card = BoardCard("Today", "Enable vector search, a quantizedFlat container, five notes, one question.")),
+                    Beat(44, card = todayCard),
                 ),
             ),
         ),
@@ -810,82 +926,97 @@ internal object Ai200EpisodesCosmosVector {
             Scene(
                 0, "Date night", meaning(),
                 beats = listOf(
-                    Beat(0, show = setOf("q"), card = BoardCard("Date night", "Finding someone close to you: vector search in Cosmos DB.")),
-                    Beat(4, show = setOf("note"), light = setOf("q", "note"), card = BoardCard("A perfect match", "Stop throttling? Handle 429 with autoscale. Hardly a word in common.")),
-                    Beat(6, show = setOf("model", "vec"), light = setOf("vec"), pulse = "model" to "vec", card = BoardCard("Embedding", "Numbers from an AI model, often 1,536. Similar meaning, similar direction.")),
-                    Beat(8, light = setOf("vec"), card = BoardCard("A small distance apart", "Each list is a vector: a point with 1,536 dimensions. Close means similar.")),
+                    Beat(0, show = setOf("q"), card = BoardCard("Date night", "Finding what's close to you: search by meaning in Cosmos DB.")),
+                    Beat(2, show = setOf("note"), light = setOf("q", "note"), card = BoardCard("A perfect match", "Told to slow down? Let the database grow. Hardly a word in common.")),
                 ),
             ),
-            // 9: "A small distance apart. Exactly where I'd like to be..."
+            // 4: "With numbers. Picture a town map..."
             Scene(
-                9, "Where they live", coach(),
+                4, "A spot on the map", mapPicture(),
                 beats = listOf(
-                    Beat(10, show = setOf("user", "api", "emb", "db"), light = setOf("emb", "db"), pulse = "api" to "db", card = BoardCard("Vector search", "Embed the question with the same model; find the closest notes.")),
-                    Beat(11, light = setOf("emb"), card = BoardCard("Quiz: two models", "Notes and questions from different models. Nonsense results. Why?")),
-                    Beat(13, light = setOf("emb"), pulse = "api" to "emb", card = BoardCard("Right answer", "Vectors from different models aren't comparable. Same model, always.")),
+                    Beat(4, show = setOf("mid", "a"), light = setOf("a"), pulse = "mid" to "a", card = BoardCard("Vector and dimension", "(3, 4) is a spot on a map; each number in it is one dimension.")),
+                    Beat(6, show = setOf("b", "dims"), light = setOf("a", "b"), pulse = "a" to "b", card = embeddingCard),
+                    Beat(9, light = setOf("a", "b"), card = BoardCard("Quiz: two models", "Notes and questions from different models. Nonsense results. Why?")),
+                    Beat(10, light = setOf("dims"), card = BoardCard("Right answer", "Each model draws its own map. Same model, always.")),
                 ),
             ),
-            // 14: "Mm. My turn. How does a database measure similarity?..."
+            // 12: "Mm. My turn. How close are two spots?..."
             Scene(
-                14, "Similarity", distance(),
+                12, "Similarity", distance(),
                 beats = listOf(
-                    Beat(14, show = setOf("q")),
-                    Beat(15, show = setOf("cos", "dot", "euc"), light = setOf("cos"), pulse = "q" to "cos", card = BoardCard("Distance function", "Cosine and dot product: higher is closer. Euclidean: lower is closer.")),
-                    Beat(16, light = setOf("cos"), card = BoardCard("Cosine is the angle", "Which way two vectors face, not how long they are.")),
+                    Beat(12, show = setOf("q"), card = BoardCard("Distance function", "The rule for how close two spots are. Three of them.")),
+                    Beat(13, show = setOf("cos"), light = setOf("cos"), pulse = "q" to "cos", card = cosineCard),
+                    Beat(16, show = setOf("dot"), light = setOf("dot"), pulse = "q" to "dot", card = dotCard),
+                    Beat(18, show = setOf("euc"), light = setOf("euc"), pulse = "q" to "euc", card = euclideanCard),
                 ),
             ),
-            // 17: "I'll take that as a compliment. Now, Cosmos DB..."
+            // 19: "Noted. Can I switch this on for any container I like?"
             Scene(
-                17, "Commitment", container(),
+                19, "Commitment", container(),
                 beats = listOf(
-                    Beat(18, show = setOf("acct", "cont"), light = setOf("cont"), pulse = "acct" to "cont", card = BoardCard("A new container", "Switch on the account first; vector settings go on at creation.")),
-                    Beat(20, show = setOf("policy"), light = setOf("policy"), pulse = "cont" to "policy", card = BoardCard("Quiz: expensive inserts", "Every insert suddenly costs far more. What was forgotten?")),
-                    Beat(21, show = setOf("excl", "index"), light = setOf("excl"), pulse = "cont" to "excl", card = BoardCard("Leave the vector path out", "Out of the normal index, and give it a vector index instead.")),
+                    Beat(20, show = setOf("acct", "cont"), light = setOf("cont"), pulse = "acct" to "cont", card = BoardCard("A new container", "Switch on the account first; vector settings go on at creation.")),
+                    Beat(22, show = setOf("policy"), light = setOf("policy"), pulse = "cont" to "policy", card = BoardCard("Quiz: expensive inserts", "Every insert suddenly costs far more. What was forgotten?")),
+                    Beat(23, show = setOf("excl", "index"), light = setOf("excl"), pulse = "cont" to "excl", card = BoardCard("Leave the vector field out", "Out of the normal index, and give it a vector index instead.")),
                 ),
             ),
-            // 23: "Now the vector indexes..."
+            // 25: "Now the vector indexes. Tell me slowly."
             Scene(
-                23, "Nearest neighbours", indexes(),
+                25, "Three indexes", indexes(),
                 beats = listOf(
-                    Beat(24, show = setOf("flat", "qf"), light = setOf("flat", "qf"), card = BoardCard("flat and quantizedFlat", "flat: checks all, exact, up to 505. quantizedFlat: squeezed, to about 50,000.")),
-                    Beat(26, show = setOf("disk"), light = setOf("disk"), card = BoardCard("diskANN", "A graph of near neighbours: approximate, fastest at scale.")),
-                    Beat(27, show = setOf("dims"), light = setOf("dims", "flat"), pulse = "dims" to "flat", card = BoardCard("Quiz: 1,536 with flat", "Notes with 1,536 dimensions and a flat index. Good idea?")),
-                    Beat(28, light = setOf("flat"), card = BoardCard("Right answer", "flat stops at 505 dimensions. The exam's favourite trap.")),
-                    Beat(30, light = setOf("dims"), card = BoardCard("Quiz: a few hundred in scope", "300,000 notes, every search filtered to one learner. Which index?")),
-                    Beat(32, light = setOf("qf"), pulse = "dims" to "qf", card = BoardCard("No kiss: it's quantizedFlat", "Under 50,000 in scope. diskANN is for far more than that.")),
+                    Beat(26, show = setOf("flat"), light = setOf("flat"), card = flatCard),
+                    Beat(28, show = setOf("qf"), light = setOf("qf"), card = quantizedCard),
+                    Beat(29, show = setOf("disk"), light = setOf("disk")),
                 ),
             ),
-            // 33: "Bigger isn't always better. Noted..."
+            // 30: "For far more than 50,000 in scope. It's a graph..."
             Scene(
-                33, "My top one", query(),
+                30, "Friends of friends", web(),
                 beats = listOf(
-                    Beat(33, show = setOf("q", "rank")),
-                    Beat(34, show = setOf("filter"), light = setOf("rank", "filter"), pulse = "filter" to "rank", card = sql),
-                    Beat(36, light = setOf("rank"), card = BoardCard("Quiz: too many RUs", "RUs, request units, are the price of every call. What's missing?")),
-                    Beat(37, show = setOf("top"), light = setOf("top"), pulse = "rank" to "top", card = BoardCard("TOP N", "Without it, far more items are scored and the RU charge climbs.")),
+                    Beat(30, show = setOf("q", "a", "b", "c", "d"), light = setOf("b"), pulse = "a" to "b", card = graphCard),
+                    Beat(32, light = setOf("d"), pulse = "b" to "d", card = annCard),
                 ),
             ),
-            // 39: "My question, then. The Coach must answer only from the learner's own notes..."
+            // 33: "My question, then. Notes with 1,536 dimensions, and someone picks flat."
             Scene(
-                39, "Grounded", rag(),
+                33, "Quiz night", indexes(),
                 beats = listOf(
-                    Beat(39, show = setOf("notes"), card = BoardCard("Quiz: only from the notes", "Answer only from the learner's notes, and cite them. The pattern?")),
-                    Beat(40, show = setOf("prompt", "chat", "ans"), light = setOf("prompt", "chat"), pulse = "notes" to "prompt", card = BoardCard("RAG", "Retrieval augmented generation: retrieve, then answer only from it.")),
+                    Beat(33, show = setOf("dims"), light = setOf("dims", "flat"), pulse = "dims" to "flat", card = BoardCard("Quiz: 1,536 with flat", "Notes with 1,536 dimensions and a flat index. Good idea?")),
+                    Beat(34, light = setOf("flat"), card = BoardCard("Right answer", "flat stops at 505 dimensions. The exam's favourite trap.")),
+                    Beat(36, light = setOf("dims"), card = BoardCard("Quiz: a few hundred in scope", "300,000 notes, every search filtered to one learner. Which index?")),
+                    Beat(38, light = setOf("qf"), pulse = "dims" to "qf", card = BoardCard("No kiss: it's quantizedFlat", "Under 50,000 in scope. diskANN is for far more than that.")),
                 ),
             ),
-            // 42: "And where does it all stop working, Rafe?..."
+            // 39: "Bigger isn't always better. Noted. How do I search?"
             Scene(
-                42, "Every romance has limits", limits(),
+                39, "My top one", query(),
                 beats = listOf(
-                    Beat(43, show = setOf("close", "again", "feed", "shared"), light = setOf("close"), pulse = "again" to "feed", card = BoardCard("Closest isn't the one", "Check the scores. A changed note is embedded again: see the change feed.")),
+                    Beat(39, show = setOf("q", "rank")),
+                    Beat(40, show = setOf("filter"), light = setOf("rank", "filter"), pulse = "filter" to "rank", card = sql),
+                    Beat(42, light = setOf("rank"), card = BoardCard("Quiz: too many RUs", "RUs, request units, are the price of every call. What's missing?")),
+                    Beat(43, show = setOf("top"), light = setOf("top"), pulse = "rank" to "top", card = BoardCard("TOP N", "Without it, far more notes are scored and the RU charge climbs.")),
                 ),
             ),
-            // 44: "Last question, for the exam. What do we remember?"
+            // 45: "My question. The Coach must answer only from the learner's notes..."
             Scene(
-                44, "For the exam", exam(),
+                45, "Grounded", rag(),
                 beats = listOf(
-                    Beat(45, show = all6, light = setOf("models", "rus", "new"), card = BoardCard("Listen for the phrase", "Each exam phrase points to one answer. Five for five.")),
-                    Beat(48, card = BoardCard("Today", "Enable vector search, a quantizedFlat container, five notes, one question.")),
+                    Beat(45, show = setOf("notes"), card = BoardCard("Quiz: only from the notes", "Answer only from the learner's notes, and cite them. The pattern?")),
+                    Beat(46, show = setOf("prompt", "chat", "ans"), light = setOf("prompt", "chat"), pulse = "notes" to "prompt", card = ragCard),
+                ),
+            ),
+            // 48: "And where does it stop working, Rafe?..."
+            Scene(
+                48, "Every romance has limits", limits(),
+                beats = listOf(
+                    Beat(49, show = setOf("close", "say", "again", "feed"), light = setOf("close"), pulse = "again" to "feed", card = BoardCard("Nearest isn't the one", "Check the scores. A changed note is embedded again: see the change feed.")),
+                ),
+            ),
+            // 50: "Last question, for the exam. What do we remember?"
+            Scene(
+                50, "For the exam", exam(),
+                beats = listOf(
+                    Beat(51, show = all6, light = setOf("models", "rus", "new"), card = BoardCard("Listen for the phrase", "Each exam phrase points to one answer. Five for five.")),
+                    Beat(54, card = todayCard),
                 ),
             ),
         ),
