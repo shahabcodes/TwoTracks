@@ -43,6 +43,37 @@ glossary and try-it) and use its own examples, names and situations.
   - Code words (TOP N, VectorDistance, PeekLock) only after the plain idea,
     with what they do.
   - When a term is not needed for the exam or the try-it, leave it out.
+  - **A definition is not an explanation.** "Dot product multiplies the lists
+    number by number and adds it up" is a definition. An explanation gives the
+    picture and a tiny worked example, takes its own exchange (the asker says
+    "what's that, in plain words?"), and is never squeezed in a line with two
+    other terms. Maths terms always get the picture *and* the example.
+  - **The shared pictures.** Every episode uses the same pictures for the same
+    ideas, so a listener builds one picture, not a new one each time:
+    - *Vector*: a list of numbers. On a map, "3 steps east, 4 steps north" is
+      the vector (3, 4): a spot on the map.
+    - *Dimension*: how many numbers are in the list. A map spot has 2; an
+      embedding has hundreds or thousands; nobody can picture that, but the
+      maths works the same.
+    - *Embedding*: the list of numbers an AI model writes for a piece of text,
+      so texts that mean similar things get nearby spots on the map.
+    - *Euclidean distance*: a ruler laid between two pins on the map; smaller
+      is closer.
+    - *Cosine similarity*: arrows from the middle of the map to each spot; do
+      they point the same way, whatever their length? Same way 1, right angle
+      0, opposite minus 1.
+    - *Dot product*: multiply the matching numbers and add them up: (2, 3) and
+      (4, 1) give 2 times 4 plus 3 times 1, which is 11; bigger means the
+      lists agree more.
+    - *Node*: one dot in a network. In a cluster (AKS) it is one computer, a
+      virtual machine; in a search index's graph it is one stored item.
+    - *Graph*: dots joined by lines, like a map of who knows whom; a search
+      hops from dot to nearby dot instead of checking every one.
+    - *Cluster*: a group of computers working as one. *Index*: the index at
+      the back of a book. *Partition*: a drawer, so a search opens one drawer.
+    - *Token* (sign-in): a short-lived signed pass, like a wristband at a
+      festival. *Hash*: a fingerprint of some data; same data, same
+      fingerprint.
 - When to use what, shown with small ordinary apps: "Say you're building a
   small recipe app...", "Picture a small online shop with...". At least two.
 - Near the end Leo asks what to remember for the exam, and Maya gives three to
