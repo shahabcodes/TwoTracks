@@ -5,7 +5,7 @@ internal object Ai200EpisodesAppServiceContainers {
     private val classic = Podcast(
         "ai-appservice-containers",
         listOf(
-            maya("Hi, and welcome back. Today, your own container, running on App Service. First, App Service itself. It's Azure's web hosting. You bring the app, and Azure runs the building: the machines, the updates, the web address. Like renting a furnished flat instead of building a house."),
+            maya("Hi, and welcome back. Today, your own container, running on App Service. First, App Service itself. It's Azure's web hosting. You bring the app, and Azure runs the building: the machines, the updates, the web address. Think of it like renting a furnished flat instead of building a house."),
             leo("A furnished flat. And I just move my app in?"),
             maya("You can move in code, and App Service picks a ready-made Python setup for it. Or you can move in your own container image, a packed-up copy of your app and everything it needs, like a lunchbox. That's called a custom container: your image, instead of the built-in setup."),
             leo("And where does App Service find my lunchbox?"),
@@ -13,7 +13,9 @@ internal object Ai200EpisodesAppServiceContainers {
             leo("Does App Service need a password to get into the warehouse?"),
             maya("It shouldn't. Give the app a managed identity. That's a badge Azure gives your app, so it can prove who it is with no password stored anywhere."),
             leo("And the badge opens the warehouse door?"),
-            maya("Once you give it a role, a named set of permissions. The role for pulling is AcrPull: download images, nothing more. Then one switch on the app tells App Service to use the badge for pulls. Its name is acrUseManagedIdentityCreds, which just means, use the identity's credentials for the registry."),
+            maya("Once you give it a role, a named set of permissions. The role for pulling is AcrPull: download images, nothing more."),
+            leo("And App Service knows to use the badge?"),
+            maya("Only after you flip one switch on the app. Its name is acrUseManagedIdentityCreds, which just means, use the identity's credentials, its proof of who it is, for the registry."),
             leo("[chuckle] Rolls off the tongue. Okay, it's pulled and started. How does my app get its settings, like where the database is?"),
             maya("Through app settings. An app setting is a name and a value you type into App Service, like one named COSMOS ENDPOINT, holding the address of the Coach's database. When the container starts, each one arrives inside it as an environment variable."),
             leo("Environment variable. Plain words?"),
@@ -27,7 +29,7 @@ internal object Ai200EpisodesAppServiceContainers {
             leo("And who fetches it?"),
             maya("App Service does, when the app starts, using the app's managed identity again. So the badge needs one more role on the vault: Key Vault Secrets User, which lets it read secrets. The container just sees the real key in an environment variable."),
             leo("And if the badge doesn't have that role?"),
-            maya("Then the reference can't be resolved, and the app sees the reference text itself instead of the key. The portal shows a green tick next to each reference that worked. One more tip: leave the version off the reference, so when you rotate the key, meaning replace it with a new one, the app picks it up."),
+            maya("Then the reference can't be resolved, and the app sees the reference text itself instead of the key. The portal, Azure's website where you manage everything, shows a green tick next to each reference that worked. One more tip: leave the version off the reference, so when you rotate the key, meaning replace it with a new one, the app picks it up."),
             leo("Okay. Now how do I release a new version without breaking things?"),
             maya("With a deployment slot. A slot is a second live copy of your app, with its own web address, such as staging. Like a rehearsal stage right next to the main stage. Slots need the Standard price level or higher."),
             leo("And the rehearsal goes on stage how?"),
@@ -37,7 +39,7 @@ internal object Ai200EpisodesAppServiceContainers {
             leo("Nice. Last piece. I push a new image to the registry. Does App Service notice?"),
             maya("Not by itself. It only pulls again on a restart. For it to happen automatically, turn on continuous deployment. App Service gives you a web address for it, and the registry gets a webhook, which is like a doorbell: on every push, the registry rings that address, and the app pulls the new image."),
             leo("And when something goes wrong, how do I see what my container says?"),
-            maya("Turn on container logging, then run az webapp log tail on Azure's command line. You watch the container's output live, start-up lines and all, like a ticker."),
+            maya("Turn on container logging, then run az webapp log tail on Azure's command line, the text window where you type instructions. You watch the container's output live, start-up lines and all, like a ticker."),
             leo("[laugh] A ticker for my bugs. What are the usual mistakes?"),
             maya("Forgetting websites port when the app isn't on port 80. Keeping the OpenAI key as a plain setting. Giving the badge no Key Vault role, so the reference never resolves. Not marking per-stage settings as slot settings. And pushing a new image while expecting App Service to notice by magic."),
             leo("So what do I remember for the exam?"),
@@ -76,7 +78,9 @@ internal object Ai200EpisodesAppServiceContainers {
             leo("What's actually happening under the badge?"),
             maya("The managed identity is an account in Entra ID, Microsoft's sign-in system. Azure started the app, so it answers the app's requests for short-lived passes on a private address nobody outside can reach. No password exists to leak. And leave the version off the reference, so a rotated, meaning replaced, key is picked up."),
             leo("Third case?"),
-            maya("Third case. The team now releases through a deployment slot, a second live copy of the app with its own address, called staging. Like a rehearsal stage. They test there, then swap: the two slots trade places with no downtime. But after one swap, production started writing to the test database."),
+            maya("Third case. The team now releases through a deployment slot, a second live copy of the app with its own address, called staging. Like a rehearsal stage next to the main stage."),
+            leo("And how does the rehearsal reach the main stage?"),
+            maya("By a swap: the two slots trade places, with no downtime, meaning no moment where the site is down. But after one swap, production started writing to the test database."),
             leo("Suspect: someone typed the wrong database name."),
             maya("Nobody typed anything. Settings move with the swap, unless they're marked as a deployment slot setting. The database name wasn't marked, so staging's test database walked onto the main stage with the new image. Mark it as a slot setting, and it stays with its slot."),
             leo("And how did they undo the bad swap?"),
@@ -84,9 +88,9 @@ internal object Ai200EpisodesAppServiceContainers {
             leo("And the last clue in the file?"),
             maya("A fix was pushed to the registry on Friday, and production kept running the old image all weekend. Continuous deployment was switched on, but the registry had no webhook. A webhook is a doorbell: on every push, the registry rings the app's deployment address, and the app pulls the new image. Without it, App Service only pulls on a restart."),
             leo("How did the team see any of this happening?"),
-            maya("Container logging, turned on, and az webapp log tail on Azure's command line, which streams the container's output live. Start-up lines, errors, all of it."),
+            maya("Container logging, turned on, and az webapp log tail on Azure's command line, the text window for typed instructions. It streams the container's output live. Start-up lines, errors, all of it."),
             leo("And where does all this stop working?"),
-            maya("Slots need the Standard price level or higher, so a Basic plan has none. And the phone never holds a secret at all; it calls the backend, which does. If PlantPal later needs to scale to zero when nobody's watering, that's the Container Apps episode."),
+            maya("Slots need the Standard price level or higher, so a Basic plan has none. And the phone never holds a secret at all; it calls the backend, which does. If PlantPal later needs to scale to zero, running nothing and costing nothing when nobody's watering, that's the Container Apps episode."),
             leo("So, the case summary for the exam?"),
             maya("If the container starts but requests time out on port 8000, the answer is websites port set to 8000. If a key must stay out of settings and code, a Key Vault reference, with the Secrets User role. If staging keeps its own database after a swap, a slot setting. And if production ignores a pushed image, the registry webhook."),
             leo("Case closed. Anything to try today?"),
@@ -104,7 +108,9 @@ internal object Ai200EpisodesAppServiceContainers {
             leo("[laugh] I heard there's now a sign on the kitchen door that says, check the port. Start at the start. What's App Service?"),
             maya("Azure's web hosting. You bring the app, Azure runs the building: the machines, the updates, the web address. Under the picture, it's a plan of rented machines with a front door that takes web traffic and passes it to your app. The Coach brings its own container image, which App Service calls a custom container."),
             leo("Image meaning the lunchbox. The app packed with everything it needs."),
-            maya("Right. It waits in the team's registry, a private warehouse for images, and App Service pulls it, downloads it, with a managed identity, a badge Azure gives the app. The badge holds AcrPull, the role that allows downloading and nothing more. The registry episode has the details."),
+            maya("Right. It waits in the team's registry, a private warehouse for images, and App Service pulls it, meaning downloads it. The registry episode has the details."),
+            leo("And it gets into the warehouse with a password?"),
+            maya("No, with a managed identity, a badge Azure gives the app. The badge holds AcrPull, the role that allows downloading and nothing more."),
             leo("Hang on. What's a role, again?"),
             maya("A named set of permissions. AcrPull is the smallest one that works for pulling. There's also a switch on the app, acrUseManagedIdentityCreds, which just says, use the badge for pulls. Nobody can pronounce it, which is half the office's fun."),
             leo("Okay. Who went first?"),
@@ -120,11 +126,13 @@ internal object Ai200EpisodesAppServiceContainers {
             leo("Wednesday. Go."),
             maya("Marcus. Marcus followed Dana's fix exactly, and the app started reading a strange line of text instead of the key. It was the reference itself."),
             leo("Why?"),
-            maya("Because App Service reads the secret using the app's managed identity, and Marcus never gave that badge a role on the vault. It needs Key Vault Secrets User. When a reference can't be resolved, the app gets the reference text. The portal shows a green tick next to each one that worked. Marcus's had no tick."),
+            maya("Because App Service reads the secret using the app's managed identity, and Marcus never gave that badge a role on the vault. It needs Key Vault Secrets User. When a reference can't be resolved, the app gets the reference text. The portal, Azure's website where you manage it all, shows a green tick next to each one that worked. Marcus's had no tick."),
             leo("What's the badge, really, under the picture?"),
             maya("An account in Entra ID, Microsoft's sign-in system. Azure started the app, so Azure answers its requests for short-lived passes, on a private address nobody outside can reach. No password exists to steal. Marcus now checks for green ticks before coffee."),
             leo("Thursday. I sense a swap."),
-            maya("The intern. The team uses a deployment slot now: a second live copy of the app with its own address, called staging, like a rehearsal stage. They test the new image there, then swap, and the slots trade places with no downtime. The intern swapped on Thursday."),
+            maya("The intern. The team uses a deployment slot now: a second live copy of the app with its own address, called staging, like a rehearsal stage."),
+            leo("And the rehearsal goes live how?"),
+            maya("With a swap. They test the new image in staging, then the two slots trade places, with no downtime, no moment where the site is down. The intern swapped on Thursday."),
             leo("And?"),
             maya("And production started writing learners' notes into the test database. Settings move with the swap, unless they're marked as a deployment slot setting. The database name wasn't marked. Swap back, which is the undo button, mark the database name as a slot setting, and it stays with its slot."),
             leo("Couldn't they have caught it in staging first?"),
@@ -156,7 +164,9 @@ internal object Ai200EpisodesAppServiceContainers {
             ivy("And I move in with my own lunchbox."),
             nova("Your container image, the app packed with everything it needs. That's a custom container. Picture the Two Tracks Coach, the study assistant in the Android app, with its Python backend packed as coach-api. It waits in a container registry, a private warehouse, and App Service pulls it, downloads it, and starts it."),
             ivy("Pulls it with a password?"),
-            nova("[pause] No password. With a managed identity, a badge Azure gives your app. Azure started the app, so it answers the app's requests for short-lived passes on a private address nobody outside can reach. The badge holds AcrPull, the role that allows downloading images, and nothing more."),
+            nova("[pause] No password. With a managed identity, a badge Azure gives your app. Azure started the app, so it answers the app's requests for short-lived passes on a private address nobody outside can reach."),
+            ivy("And the badge opens the warehouse door?"),
+            nova("It holds AcrPull, the role that allows downloading images, and nothing more."),
             ivy("And what's a role, exactly?"),
             nova("A named set of permissions. AcrPull is the smallest one that lets the badge download images. Then one switch on the app tells App Service to use the badge for pulls. [pause] Quiet, sensible, no secrets."),
             ivy("So it's in, and it's running. How does it know where its database is?"),
@@ -168,7 +178,7 @@ internal object Ai200EpisodesAppServiceContainers {
             ivy("Now the secrets. Whisper them."),
             nova("Never in the image, never as a plain setting. Keep them in Key Vault, Azure's safe. The app setting becomes a Key Vault reference, a value that says, fetch this from the safe. App Service fetches it at start-up, with the same badge, and the container sees the real value."),
             ivy("And the badge just walks into the safe?"),
-            nova("Only if you give it the Key Vault Secrets User role. If you forget, the reference can't be resolved, and the app reads the reference text itself instead of the secret. Look for the green tick in the portal. And leave the version off the reference, so a rotated secret, a replaced one, is picked up."),
+            nova("Only if you give it the Key Vault Secrets User role. If you forget, the reference can't be resolved, and the app reads the reference text itself instead of the secret. Look for the green tick in the portal, Azure's website where you manage it all. And leave the version off the reference, so a rotated secret, a replaced one, is picked up."),
             ivy("Mm. Now tell me how to change things without anyone noticing."),
             nova("A deployment slot. A second live copy of your app, with its own address, called staging. A rehearsal stage, right beside the main one. You put the new image there, warm it up, check it, [pause] and then swap."),
             ivy("Swap. Slowly."),
@@ -202,7 +212,9 @@ internal object Ai200EpisodesAppServiceContainers {
             rafe("Moving in? That's a big step."),
             nova("[laugh] Your container, moving into App Service. Azure's web hosting. You bring the app, Azure runs the building: machines, updates, web address. Under the picture, it's a plan of rented machines with a front door that passes web traffic to your app."),
             rafe("A furnished flat. I can do furnished. What do I bring?"),
-            nova("Your own container image, the app packed with everything it needs, like an overnight bag. That's a custom container. Picture the Two Tracks Coach, the study assistant in the Android app, with its Python backend as coach-api. App Service pulls it, downloads it, from a container registry, a private warehouse."),
+            nova("Your own container image, the app packed with everything it needs, like an overnight bag. That's a custom container."),
+            rafe("And where does my bag wait?"),
+            nova("In a container registry, a private warehouse. Picture the Two Tracks Coach, the study assistant in the Android app, with its Python backend as coach-api. App Service pulls it, meaning downloads it, from there."),
             rafe("And it gets into the warehouse how? I'm not sharing my password."),
             nova("No password. A managed identity, a badge Azure gives the app, holding AcrPull: download images, nothing more. Azure answers the badge's requests for short-lived passes on a private address nobody outside can reach."),
             rafe("And what's a role, exactly? I like to know my place."),
@@ -216,17 +228,19 @@ internal object Ai200EpisodesAppServiceContainers {
             rafe("In Key Vault, Azure's safe for secrets. The app setting becomes a Key Vault reference, a value that says, fetch this from the safe. App Service fetches the secret at start-up, and the container sees the real key. Never a plain setting."),
             nova("Right answer. Some things stay private. [kiss]"),
             rafe("Now a harder one for you. The reference is set up, but the app reads a strange line of text instead of the key. Why?"),
-            nova("The badge has no role on the vault, so the reference can't be resolved, and the app gets the reference text itself. Give the managed identity Key Vault Secrets User. And look for the green tick in the portal."),
+            nova("The badge has no role on the vault, so the reference can't be resolved, and the app gets the reference text itself. Give the managed identity Key Vault Secrets User. And look for the green tick in the portal, Azure's website where you manage it all."),
             rafe("Right answer. You always know what's holding us back. [kiss]"),
             nova("And leave the version off the reference, so when you rotate the key, meaning replace it, the app picks up the new one. Fresh starts are healthy."),
             rafe("Speaking of fresh starts. How do we release a new version without a scene?"),
-            nova("A deployment slot. A second live copy of the app, with its own address, called staging. A rehearsal stage. Put the new image there, warm it up, then swap. The two slots trade places, no downtime. And swapping back is the undo."),
+            nova("A deployment slot. A second live copy of the app, with its own address, called staging. A rehearsal stage."),
+            rafe("A rehearsal. And how does it get on stage?"),
+            nova("Put the new image there, warm it up, then swap. The two slots trade places with no downtime, not one moment offline. And swapping back is the undo."),
             rafe("Every couple needs an undo. Slots on any plan?"),
             nova("Standard price level or higher. Basic has none. Now, quiz. Staging must keep its own test database, even after a swap. What do we do with the database name?"),
             rafe("Make it a Key Vault reference."),
             nova("[sigh] No kiss for that one. A reference changes where a value comes from, not whether it swaps. Mark it as a deployment slot setting. A slot setting stays with its slot. Some things belong to the room, not to whoever's in it."),
             rafe("Point taken. My question, then. We push a new image to the registry, and production keeps running the old one. Continuous deployment is meant to be on. What do we check?"),
-            nova("The webhook. A doorbell: on every push, the registry rings the app's deployment address, and the app pulls the new image. Without it, App Service only pulls on a restart."),
+            nova("The webhook, which is like a doorbell: on every push, the registry rings the app's deployment address, and the app pulls the new image. Without it, App Service only pulls on a restart."),
             rafe("Right answer. I'd ring your doorbell any time. [kiss]"),
             nova("[chuckle] Behave. And when things go quiet, turn on container logging and run az webapp log tail. The container's output streams in live. No secrets between us."),
             rafe("So the whole Coach, put together, darling?"),
@@ -376,52 +390,53 @@ internal object Ai200EpisodesAppServiceContainers {
                     Beat(2, show = setOf("cont"), light = setOf("cont"), pulse = "app" to "cont", card = BoardCard("Custom container", "Your own image, instead of the built-in Python setup.")),
                     Beat(4, show = setOf("acr"), light = setOf("acr", "app"), pulse = "acr" to "app", card = BoardCard("Pull from the registry", "coach-api from ttcoach: downloaded, started, sent web traffic.")),
                     Beat(6, show = setOf("mi"), light = setOf("mi"), pulse = "mi" to "app", card = BoardCard("Managed identity", "A badge Azure gives your app. No registry password stored.")),
-                    Beat(8, light = setOf("mi", "acr"), card = useIdentity),
+                    Beat(8, light = setOf("mi", "acr"), card = BoardCard("AcrPull", "A role, a named set of permissions: download images, nothing more.")),
+                    Beat(10, light = setOf("mi", "acr"), card = useIdentity),
                 ),
             ),
-            // 9: "Rolls off the tongue. Okay, it's pulled and started..."
+            // 11: "Rolls off the tongue. Okay, it's pulled and started..."
             Scene(
-                9, "Settings become variables", settings(),
+                11, "Settings become variables", settings(),
                 beats = listOf(
-                    Beat(10, show = setOf("app", "env"), light = setOf("app", "env"), pulse = "app" to "env", card = BoardCard("App setting", "A name and a value, like COSMOS_ENDPOINT, typed into App Service.")),
-                    Beat(12, show = setOf("cont"), light = setOf("env", "cont"), pulse = "env" to "cont", card = BoardCard("Environment variable", "A note the code reads at start, with os.environ. A change restarts.")),
-                    Beat(14, show = setOf("web"), light = setOf("web"), pulse = "web" to "cont", card = BoardCard("Port", "A numbered door. App Service knocks on door 80 by default.")),
-                    Beat(16, show = setOf("port"), light = setOf("port"), pulse = "port" to "web", card = BoardCard("WEBSITES_PORT", "Set it to 8000, and App Service knocks on the right door.")),
+                    Beat(12, show = setOf("app", "env"), light = setOf("app", "env"), pulse = "app" to "env", card = BoardCard("App setting", "A name and a value, like COSMOS_ENDPOINT, typed into App Service.")),
+                    Beat(14, show = setOf("cont"), light = setOf("env", "cont"), pulse = "env" to "cont", card = BoardCard("Environment variable", "A note the code reads at start, with os.environ. A change restarts.")),
+                    Beat(16, show = setOf("web"), light = setOf("web"), pulse = "web" to "cont", card = BoardCard("Port", "A numbered door. App Service knocks on door 80 by default.")),
+                    Beat(18, show = setOf("port"), light = setOf("port"), pulse = "port" to "web", card = BoardCard("WEBSITES_PORT", "Set it to 8000, and App Service knocks on the right door.")),
                 ),
             ),
-            // 17: "Now secrets. The Coach has a key for Azure OpenAI..."
+            // 19: "Now secrets. The Coach has a key for Azure OpenAI..."
             Scene(
-                17, "Secrets from the safe", secrets(),
+                19, "Secrets from the safe", secrets(),
                 beats = listOf(
-                    Beat(18, show = setOf("kv", "ref"), light = setOf("kv", "ref"), card = BoardCard("Key Vault reference", "Not the key itself: a setting that says, fetch this from the safe.")),
-                    Beat(20, show = setOf("app", "mi"), light = setOf("mi"), pulse = "mi" to "kv", card = tick),
-                    Beat(22, show = setOf("env"), light = setOf("env"), pulse = "app" to "env", card = BoardCard("No tick, no key", "Unresolved, the app sees the reference text. Leave the version off.")),
+                    Beat(20, show = setOf("kv", "ref"), light = setOf("kv", "ref"), card = BoardCard("Key Vault reference", "Not the key itself: a setting that says, fetch this from the safe.")),
+                    Beat(22, show = setOf("app", "mi"), light = setOf("mi"), pulse = "mi" to "kv", card = tick),
+                    Beat(24, show = setOf("env"), light = setOf("env"), pulse = "app" to "env", card = BoardCard("No tick, no key", "Unresolved, the app sees the reference text. Leave the version off.")),
                 ),
             ),
-            // 23: "Okay. Now how do I release a new version without breaking things?"
+            // 25: "Okay. Now how do I release a new version without breaking things?"
             Scene(
-                23, "Slots and swaps", slots(),
+                25, "Slots and swaps", slots(),
                 beats = listOf(
-                    Beat(24, show = setOf("prod", "stage"), light = setOf("stage"), card = BoardCard("Deployment slot", "A second live copy with its own address. Standard tier or higher.")),
-                    Beat(26, show = setOf("swap"), light = setOf("swap"), pulse = "stage" to "swap", card = BoardCard("Swap", "The slots trade places with no downtime. Swap back to undo.")),
-                    Beat(28, show = setOf("slotset", "normal"), light = setOf("slotset"), pulse = "slotset" to "swap", card = BoardCard("Slot setting", "Stays with its slot during a swap, like staging's test database.")),
+                    Beat(26, show = setOf("prod", "stage"), light = setOf("stage"), card = BoardCard("Deployment slot", "A second live copy with its own address. Standard tier or higher.")),
+                    Beat(28, show = setOf("swap"), light = setOf("swap"), pulse = "stage" to "swap", card = BoardCard("Swap", "The slots trade places with no downtime. Swap back to undo.")),
+                    Beat(30, show = setOf("slotset", "normal"), light = setOf("slotset"), pulse = "slotset" to "swap", card = BoardCard("Slot setting", "Stays with its slot during a swap, like staging's test database.")),
                 ),
             ),
-            // 29: "Nice. Last piece. I push a new image to the registry..."
+            // 31: "Nice. Last piece. I push a new image to the registry..."
             Scene(
-                29, "New images, live", cd(),
+                31, "New images, live", cd(),
                 beats = listOf(
-                    Beat(30, show = setOf("acr", "hook", "app"), light = setOf("hook"), pulse = "acr" to "hook", card = BoardCard("Continuous deployment", "The registry's webhook rings on every push, and the app pulls.")),
-                    Beat(32, show = setOf("logs"), light = setOf("logs"), pulse = "app" to "logs", card = logTail),
+                    Beat(32, show = setOf("acr", "hook", "app"), light = setOf("hook"), pulse = "acr" to "hook", card = BoardCard("Continuous deployment", "The registry's webhook rings on every push, and the app pulls.")),
+                    Beat(34, show = setOf("logs"), light = setOf("logs"), pulse = "app" to "logs", card = logTail),
                 ),
             ),
-            // 33: "A ticker for my bugs. What are the usual mistakes?"
+            // 35: "A ticker for my bugs. What are the usual mistakes?"
             Scene(
-                33, "For the exam", exam(),
+                35, "For the exam", exam(),
                 beats = listOf(
-                    Beat(34, show = setOf("port", "secret"), light = setOf("port", "secret"), card = BoardCard("The usual mistakes", "No port, a plain key, no vault role, no slot setting, no webhook.")),
-                    Beat(36, show = setOf("slot", "cd", "pull", "tier"), light = setOf("port", "secret", "slot", "cd", "pull"), card = BoardCard("Listen for the phrase", "Port 8000, a reference, a slot setting, a webhook, AcrPull.")),
-                    Beat(38, card = today),
+                    Beat(36, show = setOf("port", "secret"), light = setOf("port", "secret"), card = BoardCard("The usual mistakes", "No port, a plain key, no vault role, no slot setting, no webhook.")),
+                    Beat(38, show = setOf("slot", "cd", "pull", "tier"), light = setOf("port", "secret", "slot", "cd", "pull"), card = BoardCard("Listen for the phrase", "Port 8000, a reference, a slot setting, a webhook, AcrPull.")),
+                    Beat(40, card = today),
                 ),
             ),
         ),
@@ -465,31 +480,32 @@ internal object Ai200EpisodesAppServiceContainers {
                 23, "The third case", slots(),
                 beats = listOf(
                     Beat(24, show = setOf("prod", "stage", "swap"), light = setOf("swap"), pulse = "stage" to "swap", card = BoardCard("Deployment slot", "Staging: a second live copy. Test there, then swap.")),
-                    Beat(26, show = setOf("slotset", "normal"), light = setOf("slotset", "normal"), pulse = "normal" to "swap", card = BoardCard("Settings travel", "Unless marked as a slot setting. The test database walked on.")),
-                    Beat(28, light = setOf("swap", "prod"), pulse = "swap" to "prod", card = BoardCard("Swap back", "Rolling back is just one more swap.")),
+                    Beat(26, light = setOf("swap"), card = BoardCard("Swap", "The two slots trade places, with no moment where the site is down.")),
+                    Beat(28, show = setOf("slotset", "normal"), light = setOf("slotset", "normal"), pulse = "normal" to "swap", card = BoardCard("Settings travel", "Unless marked as a slot setting. The test database walked on.")),
+                    Beat(30, light = setOf("swap", "prod"), pulse = "swap" to "prod", card = BoardCard("Swap back", "Rolling back is just one more swap.")),
                 ),
             ),
-            // 29: "And the last clue in the file?"
+            // 31: "And the last clue in the file?"
             Scene(
-                29, "The last clue", cd(),
+                31, "The last clue", cd(),
                 beats = listOf(
-                    Beat(30, show = setOf("acr", "hook", "app"), light = setOf("hook"), pulse = "acr" to "hook", card = BoardCard("Webhook", "On every push, the registry rings the app, and the app pulls.")),
-                    Beat(32, show = setOf("logs"), light = setOf("logs"), pulse = "app" to "logs", card = logTail),
+                    Beat(32, show = setOf("acr", "hook", "app"), light = setOf("hook"), pulse = "acr" to "hook", card = BoardCard("Webhook", "On every push, the registry rings the app, and the app pulls.")),
+                    Beat(34, show = setOf("logs"), light = setOf("logs"), pulse = "app" to "logs", card = logTail),
                 ),
             ),
-            // 33: "And where does all this stop working?"
+            // 35: "And where does all this stop working?"
             Scene(
-                33, "Where it stops", limits(),
+                35, "Where it stops", limits(),
                 beats = listOf(
-                    Beat(34, show = setOf("phone", "version", "plan", "next"), light = setOf("plan", "phone"), pulse = "plan" to "next", card = BoardCard("Where it stops", "Slots need Standard or higher. The phone never holds a secret.")),
+                    Beat(36, show = setOf("phone", "version", "plan", "next"), light = setOf("plan", "phone"), pulse = "plan" to "next", card = BoardCard("Where it stops", "Slots need Standard or higher. The phone never holds a secret.")),
                 ),
             ),
-            // 35: "So, the case summary for the exam?"
+            // 37: "So, the case summary for the exam?"
             Scene(
-                35, "Case closed", exam(),
+                37, "Case closed", exam(),
                 beats = listOf(
-                    Beat(36, show = all6, light = setOf("port", "secret", "slot", "cd"), card = BoardCard("Listen for the phrase", "Port 8000, a reference with Secrets User, a slot setting, a webhook.")),
-                    Beat(38, card = today),
+                    Beat(38, show = all6, light = setOf("port", "secret", "slot", "cd"), card = BoardCard("Listen for the phrase", "Port 8000, a reference with Secrets User, a slot setting, a webhook.")),
+                    Beat(40, card = today),
                 ),
             ),
         ),
@@ -504,67 +520,68 @@ internal object Ai200EpisodesAppServiceContainers {
                 beats = listOf(
                     Beat(0, show = setOf("app"), light = setOf("app"), card = BoardCard("The week", "The Coach backend moved to App Service. Five days, five stories.")),
                     Beat(2, show = setOf("cont"), light = setOf("cont"), pulse = "app" to "cont", card = BoardCard("Custom container", "App Service runs the Coach's own image.")),
-                    Beat(4, show = setOf("acr", "mi"), light = setOf("acr", "mi"), pulse = "acr" to "app", card = BoardCard("Pulled with a badge", "A managed identity holding AcrPull. No registry password.")),
-                    Beat(6, light = setOf("mi"), pulse = "mi" to "app", card = useIdentity),
+                    Beat(6, show = setOf("acr", "mi"), light = setOf("acr", "mi"), pulse = "acr" to "app", card = BoardCard("Pulled with a badge", "A managed identity holding AcrPull. No registry password.")),
+                    Beat(8, light = setOf("mi"), pulse = "mi" to "app", card = useIdentity),
                 ),
             ),
-            // 7: "Okay. Who went first?"
+            // 9: "Okay. Who went first?"
             Scene(
-                7, "Monday: Tom", settings(),
+                9, "Monday: Tom", settings(),
                 beats = listOf(
-                    Beat(8, show = setOf("cont", "web"), light = setOf("cont"), card = BoardCard("Every request timed out", "The container started. Tom blamed Azure.")),
-                    Beat(10, light = setOf("web"), pulse = "web" to "cont", card = BoardCard("Door 80, door 8000", "App Service knocks on 80; the Coach waits behind 8000.")),
-                    Beat(12, show = setOf("app", "port", "env"), light = setOf("port"), pulse = "port" to "web", card = BoardCard("WEBSITES_PORT", "An app setting set to 8000. Hence the sign on the kitchen door.")),
+                    Beat(10, show = setOf("cont", "web"), light = setOf("cont"), card = BoardCard("Every request timed out", "The container started. Tom blamed Azure.")),
+                    Beat(12, light = setOf("web"), pulse = "web" to "cont", card = BoardCard("Door 80, door 8000", "App Service knocks on 80; the Coach waits behind 8000.")),
+                    Beat(14, show = setOf("app", "port", "env"), light = setOf("port"), pulse = "port" to "web", card = BoardCard("WEBSITES_PORT", "An app setting set to 8000. Hence the sign on the kitchen door.")),
                 ),
             ),
-            // 13: "Tuesday?"
+            // 15: "Tuesday?"
             Scene(
-                13, "Tuesday: Dana", secrets(),
+                15, "Tuesday: Dana", secrets(),
                 beats = listOf(
-                    Beat(14, show = setOf("env"), light = setOf("env"), card = BoardCard("A plain app setting", "Every setting becomes an environment variable. Visible to all.")),
-                    Beat(16, show = setOf("kv", "ref"), light = setOf("kv", "ref"), card = BoardCard("Key Vault reference", "The setting says: fetch this from the safe.")),
+                    Beat(16, show = setOf("env"), light = setOf("env"), card = BoardCard("A plain app setting", "Every setting becomes an environment variable. Visible to all.")),
+                    Beat(18, show = setOf("kv", "ref"), light = setOf("kv", "ref"), card = BoardCard("Key Vault reference", "The setting says: fetch this from the safe.")),
                 ),
             ),
-            // 17: "Wednesday. Go."
+            // 19: "Wednesday. Go."
             Scene(
-                17, "Wednesday: Marcus", secrets(),
+                19, "Wednesday: Marcus", secrets(),
                 beats = listOf(
-                    Beat(18, show = setOf("ref", "env"), light = setOf("env"), card = BoardCard("The reference text", "The app read the reference itself, not the key.")),
-                    Beat(20, show = setOf("kv", "app", "mi"), light = setOf("mi"), pulse = "mi" to "kv", card = tick),
-                    Beat(22, light = setOf("mi", "app"), pulse = "app" to "mi", card = BoardCard("Under the badge", "An Entra ID account; short-lived passes on a private address.")),
+                    Beat(20, show = setOf("ref", "env"), light = setOf("env"), card = BoardCard("The reference text", "The app read the reference itself, not the key.")),
+                    Beat(22, show = setOf("kv", "app", "mi"), light = setOf("mi"), pulse = "mi" to "kv", card = tick),
+                    Beat(24, light = setOf("mi", "app"), pulse = "app" to "mi", card = BoardCard("Under the badge", "An Entra ID account; short-lived passes on a private address.")),
                 ),
             ),
-            // 23: "Thursday. I sense a swap."
+            // 25: "Thursday. I sense a swap."
             Scene(
-                23, "Thursday: the intern", slots(),
+                25, "Thursday: the intern", slots(),
                 beats = listOf(
-                    Beat(24, show = setOf("prod", "stage", "swap"), light = setOf("stage"), pulse = "stage" to "swap", card = BoardCard("Deployment slot", "Staging: a second live copy. Test there, then swap.")),
-                    Beat(26, show = setOf("slotset", "normal"), light = setOf("slotset"), pulse = "slotset" to "swap", card = BoardCard("Slot setting", "The database name wasn't marked, so it travelled.")),
-                    Beat(28, light = setOf("stage"), card = BoardCard("Staging was fine", "Only the setting travelled. Swapping back is the undo.")),
+                    Beat(26, show = setOf("prod", "stage", "swap"), light = setOf("stage"), pulse = "stage" to "swap", card = BoardCard("Deployment slot", "Staging: a second live copy. Test there, then swap.")),
+                    Beat(28, light = setOf("swap"), card = BoardCard("Swap", "The two slots trade places, with no moment where the site is down.")),
+                    Beat(30, show = setOf("slotset", "normal"), light = setOf("slotset"), pulse = "slotset" to "swap", card = BoardCard("Slot setting", "The database name wasn't marked, so it travelled.")),
+                    Beat(32, light = setOf("stage"), card = BoardCard("Staging was fine", "Only the setting travelled. Swapping back is the undo.")),
                 ),
             ),
-            // 29: "And Friday? There's always a Friday."
+            // 33: "And Friday? There's always a Friday."
             Scene(
-                29, "Friday: Priya", cd(),
+                33, "Friday: Priya", cd(),
                 beats = listOf(
-                    Beat(30, show = setOf("acr", "app"), light = setOf("acr"), card = BoardCard("A weekend on the old image", "Continuous deployment on, but no webhook.")),
-                    Beat(32, show = setOf("hook"), light = setOf("hook"), pulse = "acr" to "hook", card = BoardCard("Webhook", "A doorbell: every push rings the app, and it pulls.")),
-                    Beat(34, show = setOf("logs"), light = setOf("logs"), pulse = "app" to "logs", card = logTail),
+                    Beat(34, show = setOf("acr", "app"), light = setOf("acr"), card = BoardCard("A weekend on the old image", "Continuous deployment on, but no webhook.")),
+                    Beat(36, show = setOf("hook"), light = setOf("hook"), pulse = "acr" to "hook", card = BoardCard("Webhook", "A doorbell: every push rings the app, and it pulls.")),
+                    Beat(38, show = setOf("logs"), light = setOf("logs"), pulse = "app" to "logs", card = logTail),
                 ),
             ),
-            // 35: "Did anything else go wrong?"
+            // 39: "Did anything else go wrong?"
             Scene(
-                35, "Where it stops", limits(),
+                39, "Where it stops", limits(),
                 beats = listOf(
-                    Beat(36, show = setOf("phone", "version", "plan", "next"), light = setOf("plan", "phone"), pulse = "plan" to "next", card = BoardCard("Where it stops", "Slots need Standard or higher. The phone never holds a key.")),
+                    Beat(40, show = setOf("phone", "version", "plan", "next"), light = setOf("plan", "phone"), pulse = "plan" to "next", card = BoardCard("Where it stops", "Slots need Standard or higher. The phone never holds a key.")),
                 ),
             ),
-            // 37: "So, the gossip I should remember for the exam?"
+            // 41: "So, the gossip I should remember for the exam?"
             Scene(
-                37, "For the exam", exam(),
+                41, "For the exam", exam(),
                 beats = listOf(
-                    Beat(38, show = all6, light = setOf("port", "secret", "slot", "cd"), card = BoardCard("Listen for the phrase", "Each phrase points to one answer. Nobody wants to be next week's story.")),
-                    Beat(40, card = today),
+                    Beat(42, show = all6, light = setOf("port", "secret", "slot", "cd"), card = BoardCard("Listen for the phrase", "Each phrase points to one answer. Nobody wants to be next week's story.")),
+                    Beat(44, card = today),
                 ),
             ),
         ),
@@ -581,58 +598,58 @@ internal object Ai200EpisodesAppServiceContainers {
                     Beat(2, light = setOf("app"), card = BoardCard("App Service", "Azure's web hosting: a furnished flat for your app.")),
                     Beat(4, show = setOf("acr", "cont"), light = setOf("acr"), pulse = "acr" to "app", card = BoardCard("Custom container", "coach-api, pulled from the registry and started.")),
                     Beat(6, show = setOf("mi"), light = setOf("mi"), pulse = "mi" to "app", card = BoardCard("Managed identity", "A badge holding AcrPull. No password.")),
-                    Beat(8, light = setOf("mi"), card = useIdentity),
+                    Beat(10, light = setOf("mi"), card = useIdentity),
                 ),
             ),
-            // 9: "So it's in, and it's running. How does it know where its database is?"
+            // 11: "So it's in, and it's running. How does it know where its database is?"
             Scene(
-                9, "Notes on the pillow", settings(),
+                11, "Notes on the pillow", settings(),
                 beats = listOf(
-                    Beat(10, show = setOf("app", "env", "cont"), light = setOf("env"), pulse = "app" to "env", card = BoardCard("App setting", "Arrives as an environment variable. os.environ reads it.")),
-                    Beat(12, show = setOf("web"), light = setOf("web"), pulse = "web" to "cont", card = BoardCard("Port", "A numbered door. App Service knocks on door 80.")),
-                    Beat(14, show = setOf("port"), light = setOf("port"), pulse = "port" to "web", card = BoardCard("WEBSITES_PORT", "Set to 8000: knock on this door.")),
+                    Beat(12, show = setOf("app", "env", "cont"), light = setOf("env"), pulse = "app" to "env", card = BoardCard("App setting", "Arrives as an environment variable. os.environ reads it.")),
+                    Beat(14, show = setOf("web"), light = setOf("web"), pulse = "web" to "cont", card = BoardCard("Port", "A numbered door. App Service knocks on door 80.")),
+                    Beat(16, show = setOf("port"), light = setOf("port"), pulse = "port" to "web", card = BoardCard("WEBSITES_PORT", "Set to 8000: knock on this door.")),
                 ),
             ),
-            // 15: "Now the secrets. Whisper them."
+            // 17: "Now the secrets. Whisper them."
             Scene(
-                15, "Secrets, whispered", secrets(),
+                17, "Secrets, whispered", secrets(),
                 beats = listOf(
-                    Beat(16, show = setOf("kv", "ref", "app"), light = setOf("ref"), pulse = "ref" to "app", card = BoardCard("Key Vault reference", "Fetch this from the safe, at start-up.")),
-                    Beat(18, show = setOf("mi", "env"), light = setOf("mi"), pulse = "mi" to "kv", card = tick),
+                    Beat(18, show = setOf("kv", "ref", "app"), light = setOf("ref"), pulse = "ref" to "app", card = BoardCard("Key Vault reference", "Fetch this from the safe, at start-up.")),
+                    Beat(20, show = setOf("mi", "env"), light = setOf("mi"), pulse = "mi" to "kv", card = tick),
                 ),
             ),
-            // 19: "Mm. Now tell me how to change things without anyone noticing."
+            // 21: "Mm. Now tell me how to change things without anyone noticing."
             Scene(
-                19, "The rehearsal stage", slots(),
+                21, "The rehearsal stage", slots(),
                 beats = listOf(
-                    Beat(20, show = setOf("prod", "stage"), light = setOf("stage"), card = BoardCard("Deployment slot", "Staging: a second live copy with its own address.")),
-                    Beat(22, show = setOf("swap"), light = setOf("swap"), pulse = "stage" to "swap", card = BoardCard("Swap", "Trade places, no downtime; swap back to undo. Standard or higher.")),
-                    Beat(24, show = setOf("slotset", "normal"), light = setOf("slotset"), pulse = "slotset" to "swap", card = BoardCard("Slot setting", "It belongs to the stage, not the actor.")),
-                    Beat(26, light = setOf("prod", "stage"), card = BoardCard("Build once", "The same image in both slots; only the settings differ.")),
+                    Beat(22, show = setOf("prod", "stage"), light = setOf("stage"), card = BoardCard("Deployment slot", "Staging: a second live copy with its own address.")),
+                    Beat(24, show = setOf("swap"), light = setOf("swap"), pulse = "stage" to "swap", card = BoardCard("Swap", "Trade places, no downtime; swap back to undo. Standard or higher.")),
+                    Beat(26, show = setOf("slotset", "normal"), light = setOf("slotset"), pulse = "slotset" to "swap", card = BoardCard("Slot setting", "It belongs to the stage, not the actor.")),
+                    Beat(28, light = setOf("prod", "stage"), card = BoardCard("Build once", "The same image in both slots; only the settings differ.")),
                 ),
             ),
-            // 27: "And when you push a new image at midnight?..."
+            // 29: "And when you push a new image at midnight?..."
             Scene(
-                27, "At midnight", cd(),
+                29, "At midnight", cd(),
                 beats = listOf(
-                    Beat(28, show = setOf("acr", "hook", "app"), light = setOf("hook"), pulse = "acr" to "hook", card = BoardCard("Webhook", "Every push rings the app's address, and the app pulls.")),
-                    Beat(30, show = setOf("logs"), light = setOf("logs"), pulse = "app" to "logs", card = logTail),
-                    Beat(32, light = setOf("app", "hook"), card = BoardCard("The whole Coach", "Standard plan, AcrPull, port 8000, references, slots, webhook.")),
+                    Beat(30, show = setOf("acr", "hook", "app"), light = setOf("hook"), pulse = "acr" to "hook", card = BoardCard("Webhook", "Every push rings the app's address, and the app pulls.")),
+                    Beat(32, show = setOf("logs"), light = setOf("logs"), pulse = "app" to "logs", card = logTail),
+                    Beat(34, light = setOf("app", "hook"), card = BoardCard("The whole Coach", "Standard plan, AcrPull, port 8000, references, slots, webhook.")),
                 ),
             ),
-            // 33: "Where does all this stop working?"
+            // 35: "Where does all this stop working?"
             Scene(
-                33, "Where it stops", limits(),
+                35, "Where it stops", limits(),
                 beats = listOf(
-                    Beat(34, show = setOf("phone", "version", "plan", "next"), light = setOf("phone", "next"), pulse = "plan" to "next", card = BoardCard("Your next late night", "The Container Apps episode: a worker that sleeps for free.")),
+                    Beat(36, show = setOf("phone", "version", "plan", "next"), light = setOf("phone", "next"), pulse = "plan" to "next", card = BoardCard("Your next late night", "The Container Apps episode: a worker that sleeps for free.")),
                 ),
             ),
-            // 35: "Mm. Before you send me to bed. What do I remember for the exam?"
+            // 37: "Mm. Before you send me to bed. What do I remember for the exam?"
             Scene(
-                35, "For the exam", exam(),
+                37, "For the exam", exam(),
                 beats = listOf(
-                    Beat(36, show = all6, light = setOf("port", "secret", "slot", "cd", "pull"), card = BoardCard("Listen for the phrase", "Port 8000, a reference, a slot setting, a webhook, AcrPull.")),
-                    Beat(38, card = today),
+                    Beat(38, show = all6, light = setOf("port", "secret", "slot", "cd", "pull"), card = BoardCard("Listen for the phrase", "Port 8000, a reference, a slot setting, a webhook, AcrPull.")),
+                    Beat(40, card = today),
                 ),
             ),
         ),
@@ -648,62 +665,63 @@ internal object Ai200EpisodesAppServiceContainers {
                     Beat(0, show = setOf("app"), card = BoardCard("Date night", "Moving in together: your container, on App Service.")),
                     Beat(2, light = setOf("app"), card = BoardCard("App Service", "Azure's web hosting: you bring the app, Azure runs the building.")),
                     Beat(4, show = setOf("acr", "cont"), light = setOf("acr"), pulse = "acr" to "app", card = BoardCard("Custom container", "The Coach's own image, pulled from the registry.")),
-                    Beat(6, show = setOf("mi"), light = setOf("mi"), pulse = "mi" to "app", card = BoardCard("Managed identity", "A badge holding AcrPull. No password shared.")),
-                    Beat(8, light = setOf("mi"), card = BoardCard("Knowing your role", "AcrPull: the smallest role that downloads images.")),
+                    Beat(8, show = setOf("mi"), light = setOf("mi"), pulse = "mi" to "app", card = BoardCard("Managed identity", "A badge holding AcrPull. No password shared.")),
+                    Beat(10, light = setOf("mi"), card = BoardCard("Knowing your role", "AcrPull: the smallest role that downloads images.")),
                 ),
             ),
-            // 9: "Then let me test you, darling. Exam style..."
+            // 11: "Then let me test you, darling. Exam style..."
             Scene(
-                9, "The right door", settings(),
+                11, "The right door", settings(),
                 beats = listOf(
-                    Beat(9, show = setOf("cont", "web"), light = setOf("web"), pulse = "web" to "cont", card = BoardCard("Quiz: timing out", "The container listens on 8000, and every request times out.")),
-                    Beat(10, show = setOf("port"), light = setOf("port"), pulse = "port" to "web", card = BoardCard("Right answer", "WEBSITES_PORT set to 8000.")),
-                    Beat(13, show = setOf("app", "env"), light = setOf("env"), pulse = "app" to "env", card = BoardCard("App setting", "A note on the pillow: an environment variable at start-up.")),
+                    Beat(11, show = setOf("cont", "web"), light = setOf("web"), pulse = "web" to "cont", card = BoardCard("Quiz: timing out", "The container listens on 8000, and every request times out.")),
+                    Beat(12, show = setOf("port"), light = setOf("port"), pulse = "port" to "web", card = BoardCard("Right answer", "WEBSITES_PORT set to 8000.")),
+                    Beat(15, show = setOf("app", "env"), light = setOf("env"), pulse = "app" to "env", card = BoardCard("App setting", "A note on the pillow: an environment variable at start-up.")),
                 ),
             ),
-            // 14: "A note on the pillow. You do remember things. My turn to quiz you..."
+            // 16: "A note on the pillow. You do remember things. My turn to quiz you..."
             Scene(
-                14, "Some things stay private", secrets(),
+                16, "Some things stay private", secrets(),
                 beats = listOf(
-                    Beat(14, show = setOf("kv"), light = setOf("kv"), card = BoardCard("Quiz: the OpenAI key", "Where does the Coach's key go?")),
-                    Beat(15, show = setOf("ref", "app"), light = setOf("ref"), pulse = "ref" to "app", card = BoardCard("Key Vault reference", "Fetch this from the safe. Never a plain setting.")),
-                    Beat(17, show = setOf("env"), light = setOf("env"), card = BoardCard("Quiz: strange text", "The app reads the reference text, not the key. Why?")),
-                    Beat(18, show = setOf("mi"), light = setOf("mi"), pulse = "mi" to "kv", card = tick),
-                    Beat(20, light = setOf("kv"), card = BoardCard("Rotate", "Leave the version off, and a replaced key is picked up.")),
+                    Beat(16, show = setOf("kv"), light = setOf("kv"), card = BoardCard("Quiz: the OpenAI key", "Where does the Coach's key go?")),
+                    Beat(17, show = setOf("ref", "app"), light = setOf("ref"), pulse = "ref" to "app", card = BoardCard("Key Vault reference", "Fetch this from the safe. Never a plain setting.")),
+                    Beat(19, show = setOf("env"), light = setOf("env"), card = BoardCard("Quiz: strange text", "The app reads the reference text, not the key. Why?")),
+                    Beat(20, show = setOf("mi"), light = setOf("mi"), pulse = "mi" to "kv", card = tick),
+                    Beat(22, light = setOf("kv"), card = BoardCard("Rotate", "Leave the version off, and a replaced key is picked up.")),
                 ),
             ),
-            // 21: "Speaking of fresh starts..."
+            // 23: "Speaking of fresh starts..."
             Scene(
-                21, "Every couple needs an undo", slots(),
+                23, "Every couple needs an undo", slots(),
                 beats = listOf(
-                    Beat(22, show = setOf("prod", "stage", "swap"), light = setOf("swap"), pulse = "stage" to "swap", card = BoardCard("Deployment slot", "Staging: test there, then swap. Swap back to undo.")),
-                    Beat(24, show = setOf("slotset", "normal"), light = setOf("slotset"), card = BoardCard("Quiz: staging's database", "It must stay put after a swap. What do we do?")),
-                    Beat(26, light = setOf("slotset"), pulse = "slotset" to "swap", card = BoardCard("No kiss: a slot setting", "A reference changes the source, not whether it swaps.")),
+                    Beat(24, show = setOf("prod", "stage", "swap"), light = setOf("swap"), pulse = "stage" to "swap", card = BoardCard("Deployment slot", "Staging: test there, then swap. Swap back to undo.")),
+                    Beat(26, light = setOf("swap"), card = BoardCard("Swap", "The two slots trade places, with no moment where the site is down.")),
+                    Beat(28, show = setOf("slotset", "normal"), light = setOf("slotset"), card = BoardCard("Quiz: staging's database", "It must stay put after a swap. What do we do?")),
+                    Beat(30, light = setOf("slotset"), pulse = "slotset" to "swap", card = BoardCard("No kiss: a slot setting", "A reference changes the source, not whether it swaps.")),
                 ),
             ),
-            // 27: "Point taken. My question, then. We push a new image..."
+            // 31: "Point taken. My question, then. We push a new image..."
             Scene(
-                27, "The doorbell", cd(),
+                31, "The doorbell", cd(),
                 beats = listOf(
-                    Beat(27, show = setOf("acr", "app"), light = setOf("acr"), card = BoardCard("Quiz: the old image", "A push, and production still runs the old image. What do we check?")),
-                    Beat(28, show = setOf("hook"), light = setOf("hook"), pulse = "acr" to "hook", card = BoardCard("Right answer", "The webhook: every push rings the app, and it pulls.")),
-                    Beat(30, show = setOf("logs"), light = setOf("logs"), pulse = "app" to "logs", card = logTail),
-                    Beat(32, light = setOf("app", "hook"), card = BoardCard("The whole Coach", "Standard plan, AcrPull, port 8000, references, slots, webhook.")),
+                    Beat(31, show = setOf("acr", "app"), light = setOf("acr"), card = BoardCard("Quiz: the old image", "A push, and production still runs the old image. What do we check?")),
+                    Beat(32, show = setOf("hook"), light = setOf("hook"), pulse = "acr" to "hook", card = BoardCard("Right answer", "The webhook: every push rings the app, and it pulls.")),
+                    Beat(34, show = setOf("logs"), light = setOf("logs"), pulse = "app" to "logs", card = logTail),
+                    Beat(36, light = setOf("app", "hook"), card = BoardCard("The whole Coach", "Standard plan, AcrPull, port 8000, references, slots, webhook.")),
                 ),
             ),
-            // 33: "And where does it all stop working? Every romance has its limits."
+            // 37: "And where does it all stop working? Every romance has its limits."
             Scene(
-                33, "Every romance has limits", limits(),
+                37, "Every romance has limits", limits(),
                 beats = listOf(
-                    Beat(34, show = setOf("phone", "version", "plan", "next"), light = setOf("phone", "plan"), pulse = "plan" to "next", card = BoardCard("Where it stops", "The phone holds no secret. Slots need Standard or higher.")),
+                    Beat(38, show = setOf("phone", "version", "plan", "next"), light = setOf("phone", "plan"), pulse = "plan" to "next", card = BoardCard("Where it stops", "The phone holds no secret. Slots need Standard or higher.")),
                 ),
             ),
-            // 35: "Last question, for the exam. What do we remember?"
+            // 39: "Last question, for the exam. What do we remember?"
             Scene(
-                35, "For the exam", exam(),
+                39, "For the exam", exam(),
                 beats = listOf(
-                    Beat(36, show = all6, light = setOf("port", "secret", "slot", "cd", "pull"), card = BoardCard("Listen for the phrase", "Port 8000, a reference, a slot setting, a webhook, AcrPull.")),
-                    Beat(39, card = today),
+                    Beat(40, show = all6, light = setOf("port", "secret", "slot", "cd", "pull"), card = BoardCard("Listen for the phrase", "Port 8000, a reference, a slot setting, a webhook, AcrPull.")),
+                    Beat(43, card = today),
                 ),
             ),
         ),

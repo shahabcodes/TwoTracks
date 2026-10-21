@@ -233,7 +233,7 @@ internal object Ai200EpisodesAppConfig {
             nova("With the configuration provider, a ready-made Python library from Microsoft. It calls load once at start-up, and gets the settings back like a dictionary. It also has a refresh function, called at the start of each request. It waits until a set time has passed, often thirty seconds, then checks the store."),
             rafe("Checks every key? That's a lot of checking."),
             nova("That's why you watch only one: a sentinel key. A sentinel is a guard on watch. Refresh asks, has the sentinel changed? If yes, everything reloads at once. So, Rafe. You change three settings and want every copy to take all three together. What do you do last?"),
-            rafe("Change the sentinel. Last. So nobody reloads halfway through and catches me half dressed."),
+            rafe("Change the sentinel, say from 12 to 13. Last. So nobody reloads halfway through and catches me half dressed."),
             nova("Right answer, and a cheeky one. [kiss]"),
             rafe("My question. Someone set it all up, but changed values never arrive, ever. What did they forget?"),
             nova("They never called refresh. The provider doesn't check in the background. No refresh, no news. Like a partner who never asks how your day was."),
