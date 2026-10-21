@@ -18,6 +18,9 @@ $gcloud = (Get-Command gcloud -ErrorAction SilentlyContinue).Source
 if (-not $gcloud) { $gcloud = Join-Path $env:LOCALAPPDATA "Google\Cloud SDK\google-cloud-sdk\bin\gcloud.cmd" }
 
 $files = if ($Episodes) { $Episodes | ForEach-Object { Join-Path $upload "$_.ogg" } } else { (Get-ChildItem $upload -Filter *.ogg).FullName }
-& $gcloud storage cp --content-type=audio/ogg @files "$Bucket/couples/$CoupleId/podcasts/"
-if ($LASTEXITCODE -ne 0) { throw "upload failed" }
+# One call per file: a single call with dozens of files has failed part way.
+foreach ($f in $files) {
+    & $gcloud storage cp --content-type=audio/ogg $f "$Bucket/couples/$CoupleId/podcasts/"
+    if ($LASTEXITCODE -ne 0) { throw "upload failed: $f" }
+}
 "Uploaded $($files.Count) episode(s) to $Bucket/couples/$CoupleId/podcasts/."

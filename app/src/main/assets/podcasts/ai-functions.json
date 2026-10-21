@@ -1,0 +1,294 @@
+{
+ "topicId": "ai-functions",
+ "seconds": 485.63,
+ "lines": [
+  {
+   "line": 0,
+   "host": "maya",
+   "start": 0.0,
+   "end": 14.96
+  },
+  {
+   "line": 1,
+   "host": "leo",
+   "start": 15.28,
+   "end": 19.4
+  },
+  {
+   "line": 2,
+   "host": "maya",
+   "start": 19.72,
+   "end": 32.72
+  },
+  {
+   "line": 3,
+   "host": "leo",
+   "start": 33.04,
+   "end": 35.04
+  },
+  {
+   "line": 4,
+   "host": "maya",
+   "start": 35.36,
+   "end": 51.24
+  },
+  {
+   "line": 5,
+   "host": "leo",
+   "start": 51.56,
+   "end": 54.76
+  },
+  {
+   "line": 6,
+   "host": "maya",
+   "start": 55.08,
+   "end": 74.08
+  },
+  {
+   "line": 7,
+   "host": "leo",
+   "start": 74.4,
+   "end": 76.08
+  },
+  {
+   "line": 8,
+   "host": "maya",
+   "start": 76.4,
+   "end": 88.96
+  },
+  {
+   "line": 9,
+   "host": "leo",
+   "start": 89.28,
+   "end": 91.52
+  },
+  {
+   "line": 10,
+   "host": "maya",
+   "start": 91.84,
+   "end": 113.48
+  },
+  {
+   "line": 11,
+   "host": "leo",
+   "start": 113.8,
+   "end": 115.52
+  },
+  {
+   "line": 12,
+   "host": "maya",
+   "start": 115.84,
+   "end": 129.44
+  },
+  {
+   "line": 13,
+   "host": "leo",
+   "start": 129.76,
+   "end": 130.56
+  },
+  {
+   "line": 14,
+   "host": "maya",
+   "start": 130.88,
+   "end": 146.48
+  },
+  {
+   "line": 15,
+   "host": "leo",
+   "start": 146.8,
+   "end": 149.04
+  },
+  {
+   "line": 16,
+   "host": "maya",
+   "start": 149.36,
+   "end": 161.68
+  },
+  {
+   "line": 17,
+   "host": "leo",
+   "start": 162.0,
+   "end": 170.16
+  },
+  {
+   "line": 18,
+   "host": "maya",
+   "start": 170.48,
+   "end": 185.2
+  },
+  {
+   "line": 19,
+   "host": "leo",
+   "start": 185.52,
+   "end": 188.92
+  },
+  {
+   "line": 20,
+   "host": "maya",
+   "start": 189.24,
+   "end": 205.44
+  },
+  {
+   "line": 21,
+   "host": "leo",
+   "start": 205.76,
+   "end": 208.52
+  },
+  {
+   "line": 22,
+   "host": "maya",
+   "start": 208.84,
+   "end": 231.88
+  },
+  {
+   "line": 23,
+   "host": "leo",
+   "start": 232.2,
+   "end": 235.68
+  },
+  {
+   "line": 24,
+   "host": "maya",
+   "start": 236.0,
+   "end": 256.56
+  },
+  {
+   "line": 25,
+   "host": "leo",
+   "start": 256.88,
+   "end": 260.28
+  },
+  {
+   "line": 26,
+   "host": "maya",
+   "start": 260.6,
+   "end": 275.12
+  },
+  {
+   "line": 27,
+   "host": "leo",
+   "start": 275.44,
+   "end": 280.32
+  },
+  {
+   "line": 28,
+   "host": "maya",
+   "start": 280.64,
+   "end": 300.59
+  },
+  {
+   "line": 29,
+   "host": "leo",
+   "start": 300.91,
+   "end": 304.07
+  },
+  {
+   "line": 30,
+   "host": "maya",
+   "start": 304.39,
+   "end": 324.43
+  },
+  {
+   "line": 31,
+   "host": "leo",
+   "start": 324.75,
+   "end": 328.27
+  },
+  {
+   "line": 32,
+   "host": "maya",
+   "start": 328.59,
+   "end": 348.59
+  },
+  {
+   "line": 33,
+   "host": "leo",
+   "start": 348.91,
+   "end": 352.43
+  },
+  {
+   "line": 34,
+   "host": "maya",
+   "start": 352.75,
+   "end": 368.67
+  },
+  {
+   "line": 35,
+   "host": "leo",
+   "start": 368.99,
+   "end": 371.91
+  },
+  {
+   "line": 36,
+   "host": "maya",
+   "start": 372.23,
+   "end": 388.95
+  },
+  {
+   "line": 37,
+   "host": "leo",
+   "start": 389.27,
+   "end": 393.31
+  },
+  {
+   "line": 38,
+   "host": "maya",
+   "start": 393.63,
+   "end": 405.79
+  },
+  {
+   "line": 39,
+   "host": "leo",
+   "start": 406.11,
+   "end": 408.31
+  },
+  {
+   "line": 40,
+   "host": "maya",
+   "start": 408.63,
+   "end": 418.39
+  },
+  {
+   "line": 41,
+   "host": "leo",
+   "start": 418.71,
+   "end": 420.71
+  },
+  {
+   "line": 42,
+   "host": "maya",
+   "start": 421.03,
+   "end": 433.99
+  },
+  {
+   "line": 43,
+   "host": "leo",
+   "start": 434.31,
+   "end": 436.35
+  },
+  {
+   "line": 44,
+   "host": "maya",
+   "start": 436.67,
+   "end": 460.51
+  },
+  {
+   "line": 45,
+   "host": "leo",
+   "start": 460.83,
+   "end": 462.51
+  },
+  {
+   "line": 46,
+   "host": "maya",
+   "start": 462.83,
+   "end": 481.39
+  },
+  {
+   "line": 47,
+   "host": "leo",
+   "start": 481.71,
+   "end": 485.63
+  }
+ ]
+}

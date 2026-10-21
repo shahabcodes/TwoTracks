@@ -1,0 +1,294 @@
+{
+ "topicId": "ai-eventgrid--couples",
+ "seconds": 460.58,
+ "lines": [
+  {
+   "line": 0,
+   "host": "nova",
+   "start": 0.0,
+   "end": 9.08
+  },
+  {
+   "line": 1,
+   "host": "rafe",
+   "start": 9.4,
+   "end": 12.74
+  },
+  {
+   "line": 2,
+   "host": "nova",
+   "start": 13.06,
+   "end": 22.86
+  },
+  {
+   "line": 3,
+   "host": "rafe",
+   "start": 23.18,
+   "end": 26.6
+  },
+  {
+   "line": 4,
+   "host": "nova",
+   "start": 26.92,
+   "end": 40.16
+  },
+  {
+   "line": 5,
+   "host": "rafe",
+   "start": 40.48,
+   "end": 44.34
+  },
+  {
+   "line": 6,
+   "host": "nova",
+   "start": 44.66,
+   "end": 63.66
+  },
+  {
+   "line": 7,
+   "host": "rafe",
+   "start": 63.98,
+   "end": 79.44
+  },
+  {
+   "line": 8,
+   "host": "nova",
+   "start": 79.76,
+   "end": 96.36
+  },
+  {
+   "line": 9,
+   "host": "rafe",
+   "start": 96.68,
+   "end": 99.62
+  },
+  {
+   "line": 10,
+   "host": "nova",
+   "start": 99.94,
+   "end": 104.06
+  },
+  {
+   "line": 11,
+   "host": "rafe",
+   "start": 104.38,
+   "end": 119.84
+  },
+  {
+   "line": 12,
+   "host": "nova",
+   "start": 120.16,
+   "end": 124.91
+  },
+  {
+   "line": 13,
+   "host": "rafe",
+   "start": 125.23,
+   "end": 131.01
+  },
+  {
+   "line": 14,
+   "host": "nova",
+   "start": 131.33,
+   "end": 146.29
+  },
+  {
+   "line": 15,
+   "host": "rafe",
+   "start": 146.61,
+   "end": 156.47
+  },
+  {
+   "line": 16,
+   "host": "nova",
+   "start": 156.79,
+   "end": 160.03
+  },
+  {
+   "line": 17,
+   "host": "rafe",
+   "start": 160.35,
+   "end": 174.05
+  },
+  {
+   "line": 18,
+   "host": "nova",
+   "start": 174.37,
+   "end": 186.65
+  },
+  {
+   "line": 19,
+   "host": "rafe",
+   "start": 186.97,
+   "end": 189.75
+  },
+  {
+   "line": 20,
+   "host": "nova",
+   "start": 190.07,
+   "end": 205.03
+  },
+  {
+   "line": 21,
+   "host": "rafe",
+   "start": 205.35,
+   "end": 208.17
+  },
+  {
+   "line": 22,
+   "host": "nova",
+   "start": 208.49,
+   "end": 224.41
+  },
+  {
+   "line": 23,
+   "host": "rafe",
+   "start": 224.73,
+   "end": 231.19
+  },
+  {
+   "line": 24,
+   "host": "nova",
+   "start": 231.51,
+   "end": 235.66
+  },
+  {
+   "line": 25,
+   "host": "rafe",
+   "start": 235.98,
+   "end": 240.2
+  },
+  {
+   "line": 26,
+   "host": "nova",
+   "start": 240.52,
+   "end": 266.36
+  },
+  {
+   "line": 27,
+   "host": "rafe",
+   "start": 266.68,
+   "end": 270.02
+  },
+  {
+   "line": 28,
+   "host": "nova",
+   "start": 270.34,
+   "end": 279.06
+  },
+  {
+   "line": 29,
+   "host": "rafe",
+   "start": 279.38,
+   "end": 288.64
+  },
+  {
+   "line": 30,
+   "host": "nova",
+   "start": 288.96,
+   "end": 292.67
+  },
+  {
+   "line": 31,
+   "host": "rafe",
+   "start": 292.99,
+   "end": 299.77
+  },
+  {
+   "line": 32,
+   "host": "nova",
+   "start": 300.09,
+   "end": 323.21
+  },
+  {
+   "line": 33,
+   "host": "rafe",
+   "start": 323.53,
+   "end": 328.3
+  },
+  {
+   "line": 34,
+   "host": "nova",
+   "start": 328.62,
+   "end": 344.82
+  },
+  {
+   "line": 35,
+   "host": "rafe",
+   "start": 345.14,
+   "end": 348.2
+  },
+  {
+   "line": 36,
+   "host": "nova",
+   "start": 348.52,
+   "end": 353.48
+  },
+  {
+   "line": 37,
+   "host": "rafe",
+   "start": 353.8,
+   "end": 365.14
+  },
+  {
+   "line": 38,
+   "host": "nova",
+   "start": 365.46,
+   "end": 375.54
+  },
+  {
+   "line": 39,
+   "host": "rafe",
+   "start": 375.86,
+   "end": 382.32
+  },
+  {
+   "line": 40,
+   "host": "nova",
+   "start": 382.64,
+   "end": 402.24
+  },
+  {
+   "line": 41,
+   "host": "rafe",
+   "start": 402.56,
+   "end": 406.01
+  },
+  {
+   "line": 42,
+   "host": "nova",
+   "start": 406.33,
+   "end": 410.37
+  },
+  {
+   "line": 43,
+   "host": "rafe",
+   "start": 410.69,
+   "end": 427.11
+  },
+  {
+   "line": 44,
+   "host": "nova",
+   "start": 427.43,
+   "end": 431.26
+  },
+  {
+   "line": 45,
+   "host": "rafe",
+   "start": 431.58,
+   "end": 434.24
+  },
+  {
+   "line": 46,
+   "host": "nova",
+   "start": 434.56,
+   "end": 455.84
+  },
+  {
+   "line": 47,
+   "host": "rafe",
+   "start": 456.16,
+   "end": 460.58
+  }
+ ]
+}
