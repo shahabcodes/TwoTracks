@@ -83,7 +83,7 @@ data class BoardFrame(
 
 /** The boards there are. An episode without one shows its cover. */
 object PodcastBoards {
-    val all: List<PodcastBoard> by lazy { Az204Boards.all + Az204StyledBoards.all + GermanBoards.all + Ai200Boards.all }
+    val all: List<PodcastBoard> by lazy { Az204Boards.all + Az204StyledBoards.all + GermanBoards.all + Ai200Boards.all + Az305Boards.all }
 
     /** The board for an episode, by its id (a topic's id for its classic episode). */
     fun forEpisode(episodeId: String): PodcastBoard? = all.firstOrNull { it.episodeId == episodeId }

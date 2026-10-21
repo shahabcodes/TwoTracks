@@ -38,7 +38,7 @@ class ContentTest {
 
     @Test
     fun `the mock exam covers every module and points at real topics`() {
-        listOf(Az204.course, Ai200.course).forEach { course ->
+        listOf(Az204.course, Ai200.course, Az305.course).forEach { course ->
             val mock = course.mockExam
             assertTrue("${course.id} has no mock exam", mock != null)
             val topicIds = course.allTopics.map { it.id }.toSet()
@@ -119,6 +119,9 @@ class ContentTest {
         // AI-200: containers, aidata, connect, secure, practice.
         val ai = setOf("containers", "aidata", "connect", "secure", "practice")
         Ai200.course.modules.forEach { m -> assertTrue(m.componentId, m.componentId in ai) }
+        // AZ-305: identity, data, continuity, infrastructure, practice.
+        val sa = setOf("identity", "data", "continuity", "infrastructure", "practice")
+        Az305.course.modules.forEach { m -> assertTrue(m.componentId, m.componentId in sa) }
         // IELTS goals are seeded with the four paper components only.
         val ielts = setOf("listening", "reading", "writing", "speaking")
         Ielts.course.modules.forEach { m -> assertTrue(m.componentId, m.componentId in ielts) }
@@ -171,7 +174,7 @@ class ContentTest {
         // nothing can show is how 44 notes sat invisible until 0.43.0. The
         // results page shows the note for the option you picked now, which
         // is the only place a mock can ever show one.
-        listOf(Az204.course, GermanA1.course, Ielts.course, Ai200.course).forEach { course ->
+        listOf(Az204.course, GermanA1.course, Ielts.course, Ai200.course, Az305.course).forEach { course ->
             val papers = course.modules.mapNotNull { m -> m.quiz?.let { m.id to it } } +
                 listOfNotNull(course.mockExam).map { "mock" to it }
             papers.forEach { (where, quiz) ->
@@ -192,7 +195,7 @@ class ContentTest {
         // rehearsal of the real sitting, which tells you nothing until the
         // end. The note on the option you picked is how a mock says it
         // afterwards instead.
-        listOf(Az204.course, GermanA1.course, Ielts.course, Ai200.course).forEach { course ->
+        listOf(Az204.course, GermanA1.course, Ielts.course, Ai200.course, Az305.course).forEach { course ->
             course.modules.mapNotNull { it.quiz }.forEach { quiz ->
                 assertTrue("${quiz.id} should give instant feedback", quiz.instantFeedback)
             }
@@ -304,7 +307,7 @@ class ContentTest {
         // deliberate act: add it here and the rule starts holding it. All
         // three courses are now in, which means a fourth would have to be
         // written up to the rule rather than quietly skipping it.
-        listOf(Az204.course, GermanA1.course, Ielts.course, Ai200.course).forEach { course -> warmupsHold(course) }
+        listOf(Az204.course, GermanA1.course, Ielts.course, Ai200.course, Az305.course).forEach { course -> warmupsHold(course) }
     }
 
     private fun warmupsHold(course: Course) {

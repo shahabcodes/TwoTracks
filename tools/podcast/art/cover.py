@@ -31,6 +31,11 @@ SERIES = {
         "out": "podcast_cover_ai.png", "title": "AI-200", "sub": "P O D C A S T", "hosts": "M L", "credit": "TwoTracks · Maya & Leo",
         "stops": [(0.0, (26, 16, 72)), (0.55, (92, 52, 200)), (1.0, (40, 200, 200))], "glow": (190, 160, 255, 90), "ink": (26, 16, 72, 255),
     },
+    # The architect's exam: dusk over a city plan, from deep slate to amber.
+    "az305": {
+        "out": "podcast_cover_sa.png", "title": "AZ-305", "sub": "P O D C A S T", "hosts": "M L", "credit": "TwoTracks · Maya & Leo",
+        "stops": [(0.0, (18, 26, 44)), (0.55, (120, 60, 30)), (1.0, (240, 170, 50))], "glow": (255, 200, 120, 80), "ink": (18, 26, 44, 255),
+    },
     # The flag's colours, kept dark enough for white type: charcoal, a deep red, then gold.
     "german": {
         "out": "podcast_cover_de.png", "title": "DEUTSCH", "sub": "A 1   P O D C A S T", "hosts": "M L J", "credit": "TwoTracks · Maya, Leo & Jonas",

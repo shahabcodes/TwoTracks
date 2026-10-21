@@ -433,6 +433,7 @@ internal fun coverOf(series: PodcastSeries): Int = when (series) {
     PodcastSeries.AZ204 -> R.drawable.podcast_cover
     PodcastSeries.GERMAN_A1 -> R.drawable.podcast_cover_de
     PodcastSeries.AI200 -> R.drawable.podcast_cover_ai
+    PodcastSeries.AZ305 -> R.drawable.podcast_cover_sa
 }
 
 /** The status bar's icons in white while the player's dark field is behind them. */

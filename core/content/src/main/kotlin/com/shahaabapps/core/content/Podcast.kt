@@ -54,6 +54,7 @@ enum class PodcastSeries(val label: String, val hosts: String) {
     AZ204("AZ-204", "Maya & Leo"),
     GERMAN_A1("German A1", "Maya, Leo & Jonas"),
     AI200("AI-200", "Maya & Leo"),
+    AZ305("AZ-305", "Maya & Leo"),
 }
 
 /**
@@ -117,7 +118,7 @@ object PodcastCue {
 
 /** The episodes there are. A topic without one simply has no player. */
 object Podcasts {
-    val all: List<Podcast> by lazy { Az204Podcasts.all + Az204StyledPodcasts.all + GermanPodcasts.all + Ai200Podcasts.all }
+    val all: List<Podcast> by lazy { Az204Podcasts.all + Az204StyledPodcasts.all + GermanPodcasts.all + Ai200Podcasts.all + Az305Podcasts.all }
 
     /** A topic's classic episode, the one every topic with episodes has. */
     fun forTopic(topicId: String): Podcast? = all.firstOrNull { it.topicId == topicId && it.style == PodcastStyle.CLASSIC }

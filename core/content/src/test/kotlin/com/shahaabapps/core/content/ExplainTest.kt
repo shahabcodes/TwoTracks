@@ -30,7 +30,7 @@ class ExplainTest {
         // learnt. Explaining a German rule in English is a different skill
         // and not one the exam tests. AZ-204 and IELTS are both courses about
         // method, where saying the method back is exactly the point.
-        listOf(Az204.course, Ielts.course, Ai200.course).forEach { c ->
+        listOf(Az204.course, Ielts.course, Ai200.course, Az305.course).forEach { c ->
             c.allTopics.forEach { t ->
                 val n = t.blocks.filterIsInstance<Block.Exercise>().map { it.exercise }
                     .filterIsInstance<Ex.Writing>().count { it.form == WritingForm.EXPLANATION }

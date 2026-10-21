@@ -100,6 +100,19 @@ object SeedGoals {
             ),
         ),
         StudyGoal(
+            id = "az-305", owner = PersonRole.TECH, kind = GoalKind.CERTIFICATION, title = "AZ-305 Azure Solutions Architect Expert",
+            subtitle = "Tier 2. Needs AZ-104 too for the certificate. Fee about USD 165",
+            why = "The architect exam: designing whole Azure solutions, a step up from building parts of them.",
+            priority = 22, targetDateIso = "2027-07-31", tier = CertTier.TIER_2, feeUsd = 165,
+            components = listOf(
+                GoalComponent("identity", "Design identity, governance and monitoring solutions (25-30%)", 14.0),
+                GoalComponent("data", "Design data storage solutions (20-25%)", 11.0),
+                GoalComponent("continuity", "Design business continuity solutions (15-20%)", 9.0),
+                GoalComponent("infrastructure", "Design infrastructure solutions (30-35%)", 17.0),
+                GoalComponent("practice", "Practice exams", 8.0),
+            ),
+        ),
+        StudyGoal(
             id = "psm-1", owner = PersonRole.TECH, kind = GoalKind.CERTIFICATION, title = "PSM I Professional Scrum Master",
             subtitle = "Tier 1. Fee about USD 200, no renewal",
             why = "Scrum appears in most German and Irish developer ads; two weeks of evenings.",

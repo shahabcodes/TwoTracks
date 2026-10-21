@@ -18,7 +18,7 @@ import java.time.temporal.ChronoUnit
  * Real-world dates such as the marriage and birthdays never move.
  */
 object Seed {
-    const val VERSION = 4
+    const val VERSION = 5
     const val ANCHOR_ISO = "2026-10-01"
 
     val goals get() = SeedGoals.all

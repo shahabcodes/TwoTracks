@@ -41,7 +41,7 @@ class PodcastTest {
 
     @Test
     fun `an exam course's episodes belong to its own series`() {
-        mapOf(PodcastSeries.AZ204 to Az204.course, PodcastSeries.AI200 to Ai200.course).forEach { (series, course) ->
+        mapOf(PodcastSeries.AZ204 to Az204.course, PodcastSeries.AI200 to Ai200.course, PodcastSeries.AZ305 to Az305.course).forEach { (series, course) ->
             val ids = course.allTopics.map { it.id }.toSet()
             classic.filter { it.series == series }.forEach { assertTrue("${it.topicId} is not a ${course.id} topic", it.topicId in ids) }
         }
