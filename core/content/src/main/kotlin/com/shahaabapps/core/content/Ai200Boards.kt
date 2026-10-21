@@ -5,5 +5,5 @@ package com.shahaabapps.core.content
  * scripts, one function each (the JVM's 64 KB limit on a method).
  */
 internal object Ai200Boards {
-    val all: List<PodcastBoard> by lazy { listOf() }
+    val all: List<PodcastBoard> by lazy { Ai200EpisodesCosmosVector.boards }
 }

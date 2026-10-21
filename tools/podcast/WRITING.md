@@ -9,6 +9,7 @@ there hold most of what follows; this is the part a test cannot hold.
 | AZ-204 | `Az204Podcasts.kt` | `Az204Boards.kt` | `PodcastTest`, `PodcastBoardTest`, `DiagramTest` |
 | German A1 | `GermanPodcasts.kt` | `GermanBoards.kt` | `GermanPodcastTest`, `GermanGrammarTest`, `PodcastBoardTest`, `DiagramTest` |
 | AZ-204, other tellings | `Az204Styled*.kt` | the same files | `StyledPodcastTest`, `PodcastBoardTest`, `DiagramTest` |
+| AI-200, every telling | `Ai200Podcasts*.kt` | the same files | `PodcastTest`, `StyledPodcastTest`, `PodcastBoardTest`, `DiagramTest` |
 
 An episode is one topic, and says nothing its topic does not teach: read the
 whole topic first (its tables, diagrams, checks, mistakes, worked example,
@@ -24,6 +25,24 @@ glossary and try-it) and use its own examples, names and situations.
   usually with an everyday picture: Key Vault is a safe, a managed identity is
   an employee badge, soft delete is a recycle bin, PKCE is a cloakroom ticket
   with a secret word.
+- **The fresher test.** Picture a fresh graduate who has written a little code
+  but never used the cloud, listening on a walk with nothing to look up. Then:
+  - Every technical word, acronym, product name and code word gets its plain
+    meaning the first time it is said, in that line or the next, ideally with
+    an everyday picture. "An embedding: a list of numbers that captures what a
+    sentence means, so two sentences that mean the same land close together."
+  - Say what a thing is *for* before what it is *called*.
+  - An acronym: what its letters stand for, then what it means. "RU, a request
+    unit: the price tag on every call you make to the database."
+  - One new term a line, never two stacked ("a quantized flat index on a
+    float32 path" fails); jargon verbs in plain English ("throttled" is "told
+    to slow down", "brute force" is "checks every single one").
+  - A number or limit only when the exam or the try-it needs it, and then say
+    what it means for you ("up to 505 dimensions, so the usual 1,536-number
+    embeddings don't fit").
+  - Code words (TOP N, VectorDistance, PeekLock) only after the plain idea,
+    with what they do.
+  - When a term is not needed for the exam or the try-it, leave it out.
 - When to use what, shown with small ordinary apps: "Say you're building a
   small recipe app...", "Picture a small online shop with...". At least two.
 - Near the end Leo asks what to remember for the exam, and Maya gives three to
@@ -39,11 +58,29 @@ glossary and try-it) and use its own examples, names and situations.
   respell them for the voice, and a new one goes there, not in the script.
   Numbers can be words or digits.
 
-## AZ-204, told another way: Case Files and Gossip
+## Told another way: Case Files, Gossip, Late Night and Couples
 
 A topic's classic episode stays as it is; these sit beside it, and the
 listener picks one in the player. Same facts, same take-aways, same try-it;
-another telling.
+another telling. AZ-204 has Case Files and Gossip; AI-200 and AZ-305 have all
+four.
+
+- **Late Night** (Nova explains, Ivy asks, `nova(...)`/`ivy(...)`): late-night
+  radio. Slow and warm, a little playful and teasing, the listener addressed
+  as "you", still up and still learning. Light flirtation in the banter only;
+  never explicit. Opens with "late", "night" or "tonight". More `[pause]`s
+  than elsewhere; sounds still at most one per 90 words.
+- **Couples** (Nova and Rafe, `nova(...)`/`rafe(...)`, Nova opens): a couple
+  on a date night, flirting in double meanings drawn from the topic ("it's all
+  about knowing your role", "a token that doesn't last the night"): cheeky
+  innuendo, never explicit, the facts exact. They quiz each other the exam's
+  way: one asks a real exam-style question, the other answers, and a right
+  answer is paid with a kiss, the `[kiss]` cue at the end of the line that
+  says it was right ("Right answer. [kiss]"), which render.py turns into a
+  sound. Three to eight kisses an episode; a wrong answer gets the
+  explanation and a teasing "no kiss for that one". Opens with "tonight",
+  "date", "darling" or "love". Either of them may ask the exam question near
+  the end.
 
 - **Case Files** opens on "the case": something in a small app has broken.
   Leo, the junior detective, suspects the wrong causes first, the mistakes
@@ -53,7 +90,7 @@ another telling.
   office's week, one colleague a mistake. Colleagues are always invented
   (Priya, Tom, Dana, Marcus, the intern), never a real person or company.
 
-Both go past the classic episode in four ways, because a listener's next
+All four go past the classic episode in four ways, because a listener's next
 question is usually one of them:
 
 1. **What it really is, under the picture.** After the everyday picture,

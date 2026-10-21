@@ -7,5 +7,5 @@ package com.shahaabapps.core.content
  * in a file of their own, Ai200Podcasts<Module>.kt, gathered here.
  */
 internal object Ai200Podcasts {
-    val all: List<Podcast> by lazy { listOf() }
+    val all: List<Podcast> by lazy { Ai200EpisodesCosmosVector.podcasts }
 }

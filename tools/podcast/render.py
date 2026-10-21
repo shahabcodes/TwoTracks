@@ -173,6 +173,12 @@ EXTRA_SAY = [
     (r"\bUUIDs?\b", "U U I D"),
     (r"\bOTel\b", "O tel"),
     (r"\bVMs?\b", "V M"),
+    (r"\bquantizedFlat\b", "quantized flat"),
+    (r"\b[Dd]iskANN\b", "disk A N N"),
+    (r"\bfloat32\b", "float thirty-two"),
+    (r"\btext-embedding-3-small\b", "text embedding three small"),
+    (r"\btext-embedding-3-large\b", "text embedding three large"),
+    (r"\bEnableNoSQLVectorSearch\b", "Enable no sequel vector search"),
 ]
 
 # Identifiers such as AcquireTokenSilent or CreateItemAsync read as one long
