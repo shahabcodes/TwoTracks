@@ -72,7 +72,7 @@ fun LearnScreen(
     viewModel: LearnViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
-    LearnContent(state, onOpenCourse, onOpenTopic, onOpenDeck, onOpenQuiz)
+    LearnContent(state, onOpenCourse, onOpenTopic, onOpenDeck, onOpenQuiz, onToggleFavorite = viewModel::toggleFavorite)
 }
 
 /**
@@ -91,11 +91,12 @@ fun LearnContent(
     onOpenTopic: (String, String) -> Unit,
     onOpenDeck: (String) -> Unit,
     onOpenQuiz: (String, String) -> Unit,
+    onToggleFavorite: (String) -> Unit = {},
 ) {
     val meIsTech = state.myRole == PersonRole.TECH
     val myColor = AppTheme.colors.track(meIsTech)
     val partnerColor = AppTheme.colors.track(!meIsTech)
-    if (AppTheme.departures) { BoardLearnBody(state, onOpenCourse, onOpenTopic, onOpenDeck, onOpenQuiz); return }
+    if (AppTheme.departures) { BoardLearnBody(state, onOpenCourse, onOpenTopic, onOpenDeck, onOpenQuiz, onToggleFavorite); return }
     val mine = state.courses.count { state.myRole in state.owners[it.id].orEmpty() }
     CupertinoScaffold(title = "Learn", eyebrow = coursesLine(state.courses.size, mine)) {
         LazyColumn(contentPadding = PaddingValues(bottom = Spacing.xl)) {
@@ -139,6 +140,8 @@ fun LearnContent(
                     val next = p?.nextTopic(course)
                     CourseRow(
                         course = course,
+                        starred = course.id in state.favorites,
+                        onStar = { onToggleFavorite(course.id) },
                         who = when {
                             forMe && forPartner -> "Both"
                             forMe -> "You"
@@ -207,6 +210,8 @@ private fun Tile(label: String, value: String, detail: String, labelColor: Color
 @Composable
 private fun CourseRow(
     course: Course,
+    starred: Boolean,
+    onStar: () -> Unit,
     who: String,
     bars: List<Triple<String, CourseProgress?, Color>>,
     next: String,
@@ -222,6 +227,7 @@ private fun CourseRow(
         ) {
             Row(verticalAlignment = Alignment.Top) {
                 Text(course.title, style = MaterialTheme.typography.titleLarge, modifier = Modifier.weight(1f).semantics { heading() })
+                FavoriteStar(course, starred, onStar, AppTheme.colors.accent, AppTheme.colors.secondaryLabel)
                 if (who.isNotBlank()) Text(who.uppercase(), style = MaterialTheme.typography.labelMedium, color = AppTheme.colors.secondaryLabel, modifier = Modifier.padding(start = 12.dp, top = 4.dp))
             }
             Text(course.subtitle, style = MaterialTheme.typography.bodySmall, color = AppTheme.colors.secondaryLabel)
@@ -490,5 +496,21 @@ private fun PracticeLink(text: String, onClick: () -> Unit) {
     ) {
         Text(text, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold, color = AppTheme.colors.accentText)
         Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = null, tint = AppTheme.colors.accentText, modifier = Modifier.size(14.dp))
+    }
+}
+
+/**
+ * The star on a course: filled when it is a favourite, which Learn lists
+ * first, hollow when not; a tap turns it over. Drawn as a character so both
+ * looks set it in their own type.
+ */
+@Composable
+internal fun FavoriteStar(course: Course, starred: Boolean, onToggle: () -> Unit, on: Color, off: Color) {
+    Box(
+        contentAlignment = Alignment.Center,
+        modifier = Modifier.size(36.dp).clip(CircleShape)
+            .clickable(role = Role.Button, onClickLabel = if (starred) "Unstar ${course.title}" else "Star ${course.title}", onClick = onToggle),
+    ) {
+        Text(if (starred) "★" else "☆", fontSize = 22.sp, color = if (starred) on else off)
     }
 }

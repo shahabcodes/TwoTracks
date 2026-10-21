@@ -5,6 +5,10 @@ build number is appended by CI (for example `0.1.0 (build 12)`).
 
 ## [Unreleased]
 
+## [0.90.1] - 2026-10-21
+### Added
+- Star a course to keep it at the top of Learn; AI-200, AZ-305 and German A1 start starred.
+
 ## [0.90.0] - 2026-10-21
 ### Added
 - AI-200 and AZ-305 courses, each with module tests, a mock exam and podcasts in five tellings (more episodes arrive as they render).

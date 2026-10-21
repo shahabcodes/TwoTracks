@@ -32,7 +32,8 @@ internal object LearnSamples {
     private val myGerman = progress(de.modules.first().topics.map { it.id }.toSet() + "de4-words", passed = setOf(de.modules.first().id), best = mapOf(de.modules.first().id to 92))
 
     fun learn() = LearnUiState(
-        courses = Courses.all,
+        courses = com.shahaabapps.twotracks.feature.learn.CourseFavorites.sorted(Courses.all, com.shahaabapps.twotracks.feature.learn.CourseFavorites.DEFAULT),
+        favorites = com.shahaabapps.twotracks.feature.learn.CourseFavorites.DEFAULT,
         progress = mapOf(az.id to progress(first(az, 1)), de.id to myGerman, ielts.id to progress(emptySet())),
         partnerProgress = mapOf(az.id to progress(emptySet()), de.id to progress(first(de, 6)), ielts.id to progress(first(ielts, 6))),
         partnerName = "Sanya",
