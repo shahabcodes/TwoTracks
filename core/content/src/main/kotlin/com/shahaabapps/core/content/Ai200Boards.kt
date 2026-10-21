@@ -16,6 +16,9 @@ internal object Ai200Boards {
             Ai200EpisodesCosmosVector.boards +
             Ai200EpisodesCosmosChangeFeed.boards +
             Ai200EpisodesPostgres.boards +
+            Ai200EpisodesPgvector.boards +
+            Ai200EpisodesRedis.boards +
+            Ai200EpisodesServiceBus.boards +
             Ai200EpisodesEventGrid.boards +
             Ai200EpisodesFunctions.boards +
             Ai200EpisodesKeyVault.boards +

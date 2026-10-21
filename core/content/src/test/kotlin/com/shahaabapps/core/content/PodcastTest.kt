@@ -32,6 +32,14 @@ class PodcastTest {
     private fun topic(id: String): Topic = topics.getValue(id)
 
     @Test
+    fun `every AI-200 topic has all five tellings`() {
+        Ai200.course.allTopics.forEach { t ->
+            assertEquals("${t.id}'s tellings", PodcastStyle.entries.toSet(), Podcasts.styles(t.id).map { it.style }.toSet())
+            Podcasts.styles(t.id).forEach { assertEquals("${it.episodeId} is not in the AI-200 series", PodcastSeries.AI200, it.series) }
+        }
+    }
+
+    @Test
     fun `an exam course's episodes belong to its own series`() {
         mapOf(PodcastSeries.AZ204 to Az204.course, PodcastSeries.AI200 to Ai200.course).forEach { (series, course) ->
             val ids = course.allTopics.map { it.id }.toSet()

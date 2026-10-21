@@ -18,6 +18,9 @@ internal object Ai200Podcasts {
             Ai200EpisodesCosmosVector.podcasts +
             Ai200EpisodesCosmosChangeFeed.podcasts +
             Ai200EpisodesPostgres.podcasts +
+            Ai200EpisodesPgvector.podcasts +
+            Ai200EpisodesRedis.podcasts +
+            Ai200EpisodesServiceBus.podcasts +
             Ai200EpisodesEventGrid.podcasts +
             Ai200EpisodesFunctions.podcasts +
             Ai200EpisodesKeyVault.podcasts +
