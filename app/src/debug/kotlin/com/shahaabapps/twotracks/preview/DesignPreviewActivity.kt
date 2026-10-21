@@ -76,7 +76,11 @@ import java.time.LocalDate
  * Both launcher icons, as a launcher crops them: icons. --es icon departures (or parallel) runs the real icon switch;
  * --es setlook departures saves the look and closes, for the whole path through the app itself.
  */
+@dagger.hilt.android.AndroidEntryPoint
 class DesignPreviewActivity : ComponentActivity() {
+    /** Where the live player's sound comes from: the couple space's storage, as in the app. */
+    @javax.inject.Inject lateinit var audio: com.shahaabapps.twotracks.feature.listen.EpisodeAudio
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -137,7 +141,7 @@ class DesignPreviewActivity : ComponentActivity() {
                                         val course = com.shahaabapps.twotracks.feature.listen.Episodes.courseOf(episode)!!
                                         androidx.lifecycle.SavedStateHandle(mapOf("courseId" to course, "topicId" to episode))
                                     },
-                                    episodes, com.shahaabapps.twotracks.feature.listen.ListenPlayer(applicationContext, episodes, place), place,
+                                    episodes, com.shahaabapps.twotracks.feature.listen.ListenPlayer(applicationContext, episodes, place, audio), place, audio,
                                 )
                             }
                             com.shahaabapps.twotracks.feature.listen.ListenScreen(onBack = { finish() }, viewModel = vm)

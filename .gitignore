@@ -39,3 +39,7 @@ tools/podcast/__pycache__/
 tools/podcast/out/
 tools/podcast/cache/
 tools/podcast/podcasts.json
+tools/podcast/upload/
+# The audio itself is never committed or shipped: it lives in Firebase Storage,
+# readable only by a couple space's members (firebase/storage.rules).
+app/src/main/assets/podcasts/*.ogg

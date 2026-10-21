@@ -1,0 +1,288 @@
+{
+ "topicId": "ai-container-apps--couples",
+ "seconds": 441.89,
+ "lines": [
+  {
+   "line": 0,
+   "host": "nova",
+   "start": 0.0,
+   "end": 10.6
+  },
+  {
+   "line": 1,
+   "host": "rafe",
+   "start": 10.92,
+   "end": 13.66
+  },
+  {
+   "line": 2,
+   "host": "nova",
+   "start": 13.98,
+   "end": 38.7
+  },
+  {
+   "line": 3,
+   "host": "rafe",
+   "start": 39.02,
+   "end": 41.48
+  },
+  {
+   "line": 4,
+   "host": "nova",
+   "start": 41.8,
+   "end": 54.24
+  },
+  {
+   "line": 5,
+   "host": "rafe",
+   "start": 54.56,
+   "end": 57.82
+  },
+  {
+   "line": 6,
+   "host": "nova",
+   "start": 58.14,
+   "end": 73.66
+  },
+  {
+   "line": 7,
+   "host": "rafe",
+   "start": 73.98,
+   "end": 75.28
+  },
+  {
+   "line": 8,
+   "host": "nova",
+   "start": 75.6,
+   "end": 93.04
+  },
+  {
+   "line": 9,
+   "host": "rafe",
+   "start": 93.36,
+   "end": 96.54
+  },
+  {
+   "line": 10,
+   "host": "nova",
+   "start": 96.86,
+   "end": 108.54
+  },
+  {
+   "line": 11,
+   "host": "rafe",
+   "start": 108.86,
+   "end": 111.64
+  },
+  {
+   "line": 12,
+   "host": "nova",
+   "start": 111.96,
+   "end": 118.36
+  },
+  {
+   "line": 13,
+   "host": "rafe",
+   "start": 118.68,
+   "end": 127.74
+  },
+  {
+   "line": 14,
+   "host": "nova",
+   "start": 128.06,
+   "end": 140.14
+  },
+  {
+   "line": 15,
+   "host": "rafe",
+   "start": 140.46,
+   "end": 145.27
+  },
+  {
+   "line": 16,
+   "host": "nova",
+   "start": 145.59,
+   "end": 169.99
+  },
+  {
+   "line": 17,
+   "host": "rafe",
+   "start": 170.31,
+   "end": 176.69
+  },
+  {
+   "line": 18,
+   "host": "nova",
+   "start": 177.01,
+   "end": 180.92
+  },
+  {
+   "line": 19,
+   "host": "rafe",
+   "start": 181.24,
+   "end": 190.54
+  },
+  {
+   "line": 20,
+   "host": "nova",
+   "start": 190.86,
+   "end": 205.26
+  },
+  {
+   "line": 21,
+   "host": "rafe",
+   "start": 205.58,
+   "end": 209.75
+  },
+  {
+   "line": 22,
+   "host": "nova",
+   "start": 210.07,
+   "end": 217.71
+  },
+  {
+   "line": 23,
+   "host": "rafe",
+   "start": 218.03,
+   "end": 219.85
+  },
+  {
+   "line": 24,
+   "host": "nova",
+   "start": 220.17,
+   "end": 228.29
+  },
+  {
+   "line": 25,
+   "host": "rafe",
+   "start": 228.61,
+   "end": 232.23
+  },
+  {
+   "line": 26,
+   "host": "nova",
+   "start": 232.55,
+   "end": 251.95
+  },
+  {
+   "line": 27,
+   "host": "rafe",
+   "start": 252.27,
+   "end": 254.25
+  },
+  {
+   "line": 28,
+   "host": "nova",
+   "start": 254.57,
+   "end": 263.21
+  },
+  {
+   "line": 29,
+   "host": "rafe",
+   "start": 263.53,
+   "end": 270.51
+  },
+  {
+   "line": 30,
+   "host": "nova",
+   "start": 270.83,
+   "end": 274.03
+  },
+  {
+   "line": 31,
+   "host": "rafe",
+   "start": 274.35,
+   "end": 294.01
+  },
+  {
+   "line": 32,
+   "host": "nova",
+   "start": 294.33,
+   "end": 306.49
+  },
+  {
+   "line": 33,
+   "host": "rafe",
+   "start": 306.81,
+   "end": 314.87
+  },
+  {
+   "line": 34,
+   "host": "nova",
+   "start": 315.19,
+   "end": 319.5
+  },
+  {
+   "line": 35,
+   "host": "rafe",
+   "start": 319.82,
+   "end": 322.72
+  },
+  {
+   "line": 36,
+   "host": "nova",
+   "start": 323.04,
+   "end": 338.56
+  },
+  {
+   "line": 37,
+   "host": "rafe",
+   "start": 338.88,
+   "end": 341.02
+  },
+  {
+   "line": 38,
+   "host": "nova",
+   "start": 341.34,
+   "end": 361.1
+  },
+  {
+   "line": 39,
+   "host": "rafe",
+   "start": 361.42,
+   "end": 365.36
+  },
+  {
+   "line": 40,
+   "host": "nova",
+   "start": 365.68,
+   "end": 384.08
+  },
+  {
+   "line": 41,
+   "host": "rafe",
+   "start": 384.4,
+   "end": 387.78
+  },
+  {
+   "line": 42,
+   "host": "nova",
+   "start": 388.1,
+   "end": 409.1
+  },
+  {
+   "line": 43,
+   "host": "rafe",
+   "start": 409.42,
+   "end": 412.87
+  },
+  {
+   "line": 44,
+   "host": "nova",
+   "start": 413.19,
+   "end": 416.55
+  },
+  {
+   "line": 45,
+   "host": "rafe",
+   "start": 416.87,
+   "end": 435.01
+  },
+  {
+   "line": 46,
+   "host": "nova",
+   "start": 435.33,
+   "end": 441.89
+  }
+ ]
+}

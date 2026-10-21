@@ -1,7 +1,6 @@
 package com.shahaabapps.twotracks.feature.listen
 
 import android.content.Context
-import android.net.Uri
 import com.shahaabapps.core.content.Podcast
 import com.shahaabapps.core.content.PodcastTimeline
 import com.shahaabapps.core.content.Podcasts
@@ -12,12 +11,14 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 /**
- * The AZ-204 episodes, which ship inside the app: an Opus file and its timing
- * for each topic, under assets/podcasts. Nothing is downloaded, so an episode
- * plays offline from the first time, and a topic whose episode has not been
- * rendered yet simply has no Listen card.
+ * The episodes the app knows: each one's timing ships under assets/podcasts,
+ * so its transcript and board work offline from the start, and a topic whose
+ * episode has not been rendered yet simply has no Listen card. The sound is
+ * not in the app; EpisodeAudio fetches it from the couple's own Firebase
+ * Storage on the first play.
  *
- * tools/podcast/install.sh is what puts a render here.
+ * tools/podcast/install.sh puts a render's timing here and stages its audio
+ * for tools/podcast/upload.sh.
  */
 @Singleton
 class Episodes @Inject constructor(@ApplicationContext private val context: Context) {
@@ -50,6 +51,5 @@ class Episodes @Inject constructor(@ApplicationContext private val context: Cont
             val topicId = Podcasts.episode(episodeId)?.topicId ?: episodeId
             return com.shahaabapps.core.content.Courses.all.firstOrNull { c -> c.modules.any { m -> m.topics.any { it.id == topicId } } }?.id
         }
-        fun uri(topicId: String): Uri = Uri.parse("asset:///$DIR/$topicId.ogg")
     }
 }

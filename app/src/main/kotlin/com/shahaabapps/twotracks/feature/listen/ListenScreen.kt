@@ -119,7 +119,16 @@ data class ListenUiState(
     /** The tellings this topic has in the app; the player offers a choice when there is more than one. */
     val styles: List<PodcastStyle> = emptyList(),
     val style: PodcastStyle = PodcastStyle.CLASSIC,
+    /** The sound on its way from the couple's storage, or why it could not come; null once it is on the phone. */
+    val fetch: EpisodeAudio.Fetch? = null,
 ) {
+    /** One line for the player while the sound is fetched, or why it is not here. */
+    val fetchLine: String? get() = when (val f = fetch) {
+        is EpisodeAudio.Fetch.Downloading -> "Downloading… ${(f.fraction * 100).toInt()}%"
+        is EpisodeAudio.Fetch.Failed -> "${f.message} Press play to try again."
+        null -> null
+    }
+
     /** Who is on it: the series' hosts, or the telling's own. */
     val hosts: String get() = style.hosts ?: series.hosts
     val duration: Double get() = timeline?.seconds ?: 0.0
@@ -133,13 +142,14 @@ class ListenViewModel @Inject constructor(
     private val episodes: Episodes,
     private val player: ListenPlayer,
     private val place: ListenPlace,
+    private val audio: EpisodeAudio,
 ) : ViewModel() {
     // The route's id is the episode's: a topic's id opens its classic episode.
     private val episodeId = MutableStateFlow(savedStateHandle.get<String>("topicId").orEmpty())
     private val courseId: String = savedStateHandle.get<String>("courseId").orEmpty()
     private val id: String get() = episodeId.value
 
-    val uiState: StateFlow<ListenUiState> = combine(player.state, episodeId) { now, id -> state(now, id) }
+    val uiState: StateFlow<ListenUiState> = combine(player.state, episodeId, audio.fetching) { now, id, fetching -> state(now, id).copy(fetch = fetching[id]) }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), state(player.state.value, episodeId.value))
 
     private fun state(now: NowPlaying?, id: String): ListenUiState {
@@ -319,6 +329,7 @@ fun ListenContent(
 private fun Titles(state: ListenUiState, size: androidx.compose.ui.unit.TextUnit) {
     Text(state.title, color = Ink, fontSize = size, lineHeight = size * 1.2f, fontWeight = FontWeight.SemiBold, maxLines = 2, overflow = TextOverflow.Ellipsis)
     Text("${state.hosts} · Module ${state.module}", color = Soft, fontSize = 15.sp, modifier = Modifier.padding(top = 2.dp))
+    state.fetchLine?.let { Text(it, color = Soft, fontSize = 13.sp, modifier = Modifier.padding(top = 4.dp)) }
 }
 
 /** The transcript as a podcast app shows one: big type, the line being spoken lit, the rest dimmed. */

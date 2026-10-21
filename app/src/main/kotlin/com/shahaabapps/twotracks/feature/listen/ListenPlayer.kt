@@ -52,6 +52,7 @@ class ListenPlayer @Inject constructor(
     @ApplicationContext private val context: Context,
     private val episodes: Episodes,
     private val place: ListenPlace,
+    private val audio: EpisodeAudio,
 ) {
     private val _state = MutableStateFlow<NowPlaying?>(null)
     val state: StateFlow<NowPlaying?> = _state.asStateFlow()
@@ -81,8 +82,20 @@ class ListenPlayer @Inject constructor(
         }
     }
 
-    /** Plays [episodeId]: carries on if it is the one loaded, otherwise loads it at the place you left it. */
-    fun play(episodeId: String, from: Double? = null) = withController { c ->
+    /**
+     * Plays [episodeId]: carries on if it is the one loaded, otherwise loads it
+     * at the place you left it. An episode not on the phone yet is fetched
+     * first (EpisodeAudio), and starts once it has arrived.
+     */
+    fun play(episodeId: String, from: Double? = null) {
+        if (audio.ready(episodeId)) {
+            start(episodeId, from)
+            return
+        }
+        scope.launch { if (audio.fetch(episodeId)) start(episodeId, from) }
+    }
+
+    private fun start(episodeId: String, from: Double?) = withController { c ->
         val loaded = c.currentMediaItem?.mediaId == episodeId && c.playbackState != Player.STATE_IDLE
         if (loaded && from == null) {
             if (c.playbackState == Player.STATE_ENDED) c.seekTo(0)
@@ -125,7 +138,7 @@ class ListenPlayer @Inject constructor(
         val style = if (podcast.style == PodcastStyle.CLASSIC) "" else " · ${podcast.style.label}"
         return MediaItem.Builder()
             .setMediaId(episodeId)
-            .setUri(Episodes.uri(episodeId))
+            .setUri(audio.uri(episodeId))
             .setMediaMetadata(
                 MediaMetadata.Builder()
                     .setTitle(topic.title)

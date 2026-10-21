@@ -54,6 +54,7 @@ dependencies {
     implementation(libs.androidx.biometric)
     implementation(libs.media3.exoplayer)
     implementation(libs.media3.session)
+    implementation(libs.firebase.storage)
 
     testImplementation(libs.junit)
     testImplementation(libs.kotlinx.coroutines.test)

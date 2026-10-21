@@ -102,6 +102,7 @@ internal fun BoardListen(
                         BoardLabel("Module ${state.module} · ${state.hosts}", color = AppTheme.colors.accent)
                         BoardTitle(state.title, size = 26.sp)
                         BoardMono("${state.minutes} MIN · ${state.lines.size} LINES")
+                        state.fetchLine?.let { BoardMono(it.uppercase()) }
                     }
                 }
                 // The tellings of this topic, when it has more than one.
