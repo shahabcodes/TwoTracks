@@ -1,0 +1,294 @@
+{
+ "topicId": "sa-data-integration",
+ "seconds": 467.96,
+ "lines": [
+  {
+   "line": 0,
+   "host": "maya",
+   "start": 0.0,
+   "end": 22.76
+  },
+  {
+   "line": 1,
+   "host": "leo",
+   "start": 23.08,
+   "end": 26.04
+  },
+  {
+   "line": 2,
+   "host": "maya",
+   "start": 26.36,
+   "end": 46.0
+  },
+  {
+   "line": 3,
+   "host": "leo",
+   "start": 46.32,
+   "end": 49.04
+  },
+  {
+   "line": 4,
+   "host": "maya",
+   "start": 49.36,
+   "end": 62.48
+  },
+  {
+   "line": 5,
+   "host": "leo",
+   "start": 62.8,
+   "end": 65.56
+  },
+  {
+   "line": 6,
+   "host": "maya",
+   "start": 65.88,
+   "end": 78.56
+  },
+  {
+   "line": 7,
+   "host": "leo",
+   "start": 78.88,
+   "end": 80.88
+  },
+  {
+   "line": 8,
+   "host": "maya",
+   "start": 81.2,
+   "end": 97.0
+  },
+  {
+   "line": 9,
+   "host": "leo",
+   "start": 97.32,
+   "end": 100.44
+  },
+  {
+   "line": 10,
+   "host": "maya",
+   "start": 100.76,
+   "end": 114.12
+  },
+  {
+   "line": 11,
+   "host": "leo",
+   "start": 114.44,
+   "end": 116.8
+  },
+  {
+   "line": 12,
+   "host": "maya",
+   "start": 117.12,
+   "end": 131.16
+  },
+  {
+   "line": 13,
+   "host": "leo",
+   "start": 131.48,
+   "end": 135.12
+  },
+  {
+   "line": 14,
+   "host": "maya",
+   "start": 135.44,
+   "end": 144.2
+  },
+  {
+   "line": 15,
+   "host": "leo",
+   "start": 144.52,
+   "end": 146.36
+  },
+  {
+   "line": 16,
+   "host": "maya",
+   "start": 146.68,
+   "end": 162.48
+  },
+  {
+   "line": 17,
+   "host": "leo",
+   "start": 162.8,
+   "end": 165.76
+  },
+  {
+   "line": 18,
+   "host": "maya",
+   "start": 166.08,
+   "end": 180.04
+  },
+  {
+   "line": 19,
+   "host": "leo",
+   "start": 180.36,
+   "end": 182.16
+  },
+  {
+   "line": 20,
+   "host": "maya",
+   "start": 182.48,
+   "end": 200.04
+  },
+  {
+   "line": 21,
+   "host": "leo",
+   "start": 200.36,
+   "end": 205.48
+  },
+  {
+   "line": 22,
+   "host": "maya",
+   "start": 205.8,
+   "end": 225.12
+  },
+  {
+   "line": 23,
+   "host": "leo",
+   "start": 225.44,
+   "end": 231.36
+  },
+  {
+   "line": 24,
+   "host": "maya",
+   "start": 231.68,
+   "end": 242.84
+  },
+  {
+   "line": 25,
+   "host": "leo",
+   "start": 243.16,
+   "end": 246.32
+  },
+  {
+   "line": 26,
+   "host": "maya",
+   "start": 246.64,
+   "end": 262.08
+  },
+  {
+   "line": 27,
+   "host": "leo",
+   "start": 262.4,
+   "end": 264.04
+  },
+  {
+   "line": 28,
+   "host": "maya",
+   "start": 264.36,
+   "end": 281.48
+  },
+  {
+   "line": 29,
+   "host": "leo",
+   "start": 281.8,
+   "end": 283.48
+  },
+  {
+   "line": 30,
+   "host": "maya",
+   "start": 283.8,
+   "end": 300.08
+  },
+  {
+   "line": 31,
+   "host": "leo",
+   "start": 300.4,
+   "end": 301.6
+  },
+  {
+   "line": 32,
+   "host": "maya",
+   "start": 301.92,
+   "end": 321.96
+  },
+  {
+   "line": 33,
+   "host": "leo",
+   "start": 322.28,
+   "end": 323.56
+  },
+  {
+   "line": 34,
+   "host": "maya",
+   "start": 323.88,
+   "end": 342.4
+  },
+  {
+   "line": 35,
+   "host": "leo",
+   "start": 342.72,
+   "end": 345.64
+  },
+  {
+   "line": 36,
+   "host": "maya",
+   "start": 345.96,
+   "end": 357.2
+  },
+  {
+   "line": 37,
+   "host": "leo",
+   "start": 357.52,
+   "end": 359.36
+  },
+  {
+   "line": 38,
+   "host": "maya",
+   "start": 359.68,
+   "end": 378.64
+  },
+  {
+   "line": 39,
+   "host": "leo",
+   "start": 378.96,
+   "end": 381.96
+  },
+  {
+   "line": 40,
+   "host": "maya",
+   "start": 382.28,
+   "end": 392.04
+  },
+  {
+   "line": 41,
+   "host": "leo",
+   "start": 392.36,
+   "end": 397.08
+  },
+  {
+   "line": 42,
+   "host": "maya",
+   "start": 397.4,
+   "end": 412.48
+  },
+  {
+   "line": 43,
+   "host": "leo",
+   "start": 412.8,
+   "end": 414.84
+  },
+  {
+   "line": 44,
+   "host": "maya",
+   "start": 415.16,
+   "end": 441.36
+  },
+  {
+   "line": 45,
+   "host": "leo",
+   "start": 441.68,
+   "end": 443.36
+  },
+  {
+   "line": 46,
+   "host": "maya",
+   "start": 443.68,
+   "end": 462.36
+  },
+  {
+   "line": 47,
+   "host": "leo",
+   "start": 462.68,
+   "end": 467.96
+  }
+ ]
+}
