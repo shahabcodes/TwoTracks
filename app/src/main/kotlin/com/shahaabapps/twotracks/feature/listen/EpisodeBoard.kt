@@ -15,10 +15,12 @@ import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -32,7 +34,9 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.min
 import androidx.compose.ui.unit.sp
 import com.shahaabapps.core.content.BoardCard
 import com.shahaabapps.core.content.PodcastBoard
@@ -58,6 +62,8 @@ internal fun EpisodeBoard(
     playing: Boolean,
     modifier: Modifier = Modifier,
     palette: BoardPalette = PlayerPalette,
+    /** In a space of fixed height: the card keeps its full height and the diagram shrinks to what is left. */
+    fit: Boolean = false,
     heading: @Composable (String) -> Unit = { Text(it.uppercase(), color = palette.soft, fontSize = 12.sp, fontWeight = FontWeight.SemiBold, letterSpacing = 1.4.sp) },
 ) {
     val frame = board.frameAt(line)
@@ -65,7 +71,9 @@ internal fun EpisodeBoard(
         AnimatedContent(
             targetState = frame.sceneIndex, label = "scene",
             transitionSpec = { fadeIn(tween(450)) togetherWith fadeOut(tween(300)) },
-            modifier = Modifier.fillMaxWidth(),
+            // Weighted, a column measures it last, so the card below is measured
+            // first at its own height rather than squeezed into what is left.
+            modifier = Modifier.fillMaxWidth().then(if (fit) Modifier.weight(1f, fill = false) else Modifier),
         ) { index ->
             val scene = board.scenes[index]
             // Only the scene on screen follows the line; one fading out keeps
@@ -73,7 +81,16 @@ internal fun EpisodeBoard(
             val here = if (index == frame.sceneIndex) frame else board.frameAt(scene.fromLine)
             Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 heading(scene.heading)
-                SceneDiagram(scene, here.shown, here.lit, here.pulse.takeIf { playing }, palette.diagram)
+                if (fit) {
+                    // Narrowed to keep its shape in the height it is given, rather
+                    // than drawn at full width and spilling over the heading.
+                    BoxWithConstraints(contentAlignment = Alignment.TopCenter, modifier = Modifier.fillMaxWidth().weight(1f, fill = false)) {
+                        val width = if (maxHeight == Dp.Infinity) maxWidth else min(maxWidth, maxHeight / scene.diagram.aspect)
+                        Box(Modifier.width(width)) { SceneDiagram(scene, here.shown, here.lit, here.pulse.takeIf { playing }, palette.diagram) }
+                    }
+                } else {
+                    SceneDiagram(scene, here.shown, here.lit, here.pulse.takeIf { playing }, palette.diagram)
+                }
             }
         }
         Box(Modifier.fillMaxWidth().heightIn(min = 76.dp)) {

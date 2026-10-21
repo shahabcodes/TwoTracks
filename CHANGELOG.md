@@ -5,6 +5,14 @@ build number is appended by CI (for example `0.1.0 (build 12)`).
 
 ## [Unreleased]
 
+## [0.90.4] - 2026-10-21
+### Added
+- Subtitles in the podcast player: who is talking and what they are saying now, above the board.
+- The play button shows the download as it comes, after you press play.
+### Fixed
+- The board's note card no longer gets cut off at the bottom; the style pills no longer wrap in Departures.
+- The mini player picks up an episode resumed from the lock screen or a headset.
+
 ## [0.90.3] - 2026-10-21
 ### Added
 - All 95 AI-200 podcast episodes, and the first 17 AZ-305 ones (identity, authorization, monitoring, governance).

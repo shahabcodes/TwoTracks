@@ -47,7 +47,9 @@ import kotlin.math.max
 
 /** The player for the bar that sits over the tabs while an episode is loaded. */
 @HiltViewModel
-class NowPlayingViewModel @Inject constructor(val player: ListenPlayer) : ViewModel()
+class NowPlayingViewModel @Inject constructor(val player: ListenPlayer) : ViewModel() {
+    init { player.attach() }
+}
 
 /**
  * The episode carried on through the rest of the app: a small player above
