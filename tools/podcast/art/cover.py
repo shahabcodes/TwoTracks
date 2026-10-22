@@ -5,6 +5,7 @@ notification, the picture on the lock screen and the artwork in the player.
     python tools/podcast/art/cover.py            the AZ-204 cover
     python tools/podcast/art/cover.py german     the German A1 cover
     python tools/podcast/art/cover.py ai200      the AI-200 cover
+    python tools/podcast/art/cover.py psm1       the PSM I cover
 
 writes app/src/main/res/drawable-nodpi/podcast_cover.png (or
 podcast_cover_de.png). The fonts are the app's own, so the cover speaks the
@@ -35,6 +36,11 @@ SERIES = {
     "az305": {
         "out": "podcast_cover_sa.png", "title": "AZ-305", "sub": "P O D C A S T", "hosts": "M L", "credit": "TwoTracks · Maya & Leo",
         "stops": [(0.0, (18, 26, 44)), (0.55, (120, 60, 30)), (1.0, (240, 170, 50))], "glow": (255, 200, 120, 80), "ink": (18, 26, 44, 255),
+    },
+    # Scrum's sprint cycle: deep forest green turning to fresh lime, like a team that keeps improving.
+    "psm1": {
+        "out": "podcast_cover_psm.png", "title": "PSM I", "sub": "P O D C A S T", "hosts": "M L", "credit": "TwoTracks · Maya & Leo",
+        "stops": [(0.0, (10, 40, 30)), (0.55, (20, 120, 80)), (1.0, (150, 220, 90))], "glow": (170, 255, 170, 80), "ink": (10, 40, 30, 255),
     },
     # The flag's colours, kept dark enough for white type: charcoal, a deep red, then gold.
     "german": {

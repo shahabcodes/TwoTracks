@@ -173,6 +173,7 @@ internal fun examName(course: com.shahaabapps.core.content.Course): String = whe
     "az-204" -> "Microsoft AZ-204"
     "ai-200" -> "Microsoft AI-200"
     "az-305" -> "Microsoft AZ-305"
+    "psm-1" -> "Scrum.org PSM I"
     "de-a1" -> "Goethe-Zertifikat A1"
     "ielts" -> "IELTS Academic and General"
     else -> course.title
@@ -180,7 +181,7 @@ internal fun examName(course: com.shahaabapps.core.content.Course): String = whe
 
 /** "THREE COURSES · TWO OF THEM YOURS" */
 internal fun coursesLine(total: Int, mine: Int): String {
-    fun word(n: Int) = when (n) { 0 -> "none"; 1 -> "one"; 2 -> "two"; 3 -> "three"; 4 -> "four"; 5 -> "five"; else -> n.toString() }
+    fun word(n: Int) = when (n) { 0 -> "none"; 1 -> "one"; 2 -> "two"; 3 -> "three"; 4 -> "four"; 5 -> "five"; 6 -> "six"; else -> n.toString() }
     val head = "${word(total)} course${if (total == 1) "" else "s"}"
     return when {
         mine == total -> "$head · all of them yours"

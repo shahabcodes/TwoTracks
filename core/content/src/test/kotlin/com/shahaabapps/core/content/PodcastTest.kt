@@ -48,8 +48,16 @@ class PodcastTest {
     }
 
     @Test
+    fun `every PSM I topic has all five tellings`() {
+        Psm1.course.allTopics.forEach { t ->
+            assertEquals("${t.id}'s tellings", PodcastStyle.entries.toSet(), Podcasts.styles(t.id).map { it.style }.toSet())
+            Podcasts.styles(t.id).forEach { assertEquals("${it.episodeId} is not in the PSM I series", PodcastSeries.PSM1, it.series) }
+        }
+    }
+
+    @Test
     fun `an exam course's episodes belong to its own series`() {
-        mapOf(PodcastSeries.AZ204 to Az204.course, PodcastSeries.AI200 to Ai200.course, PodcastSeries.AZ305 to Az305.course).forEach { (series, course) ->
+        mapOf(PodcastSeries.AZ204 to Az204.course, PodcastSeries.AI200 to Ai200.course, PodcastSeries.AZ305 to Az305.course, PodcastSeries.PSM1 to Psm1.course).forEach { (series, course) ->
             val ids = course.allTopics.map { it.id }.toSet()
             classic.filter { it.series == series }.forEach { assertTrue("${it.topicId} is not a ${course.id} topic", it.topicId in ids) }
         }

@@ -50,6 +50,7 @@ class CoversTest {
             "az-204" to "compute",
             "ai-200" to "containers",
             "az-305" to "identity",
+            "psm-1" to "guide",
             "de-a1" to "vocabulary",
             "de-a1-teacher" to "vocabulary",
             "ielts-general-tech" to "reading",

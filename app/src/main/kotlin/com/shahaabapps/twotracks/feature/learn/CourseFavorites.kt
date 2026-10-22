@@ -14,7 +14,7 @@ import javax.inject.Singleton
  * The courses starred on this phone, which Learn lists first. Starring is
  * each reader's own, so it stays on the device rather than in the shared
  * space. Until someone changes it, each person starts with the courses
- * they study now: the developer AI-200, AZ-305 and German A1; the teacher
+ * they study now: the developer AI-200, AZ-305, PSM I and German A1; the teacher
  * IELTS, then French, then German A1.
  */
 @Singleton
@@ -41,7 +41,7 @@ class CourseFavorites @Inject constructor(@ApplicationContext context: Context) 
          * one, its id goes between IELTS and German A1.
          */
         fun first(role: PersonRole): List<String> = when (role) {
-            PersonRole.TECH -> listOf("ai-200", "az-305", "de-a1")
+            PersonRole.TECH -> listOf("ai-200", "az-305", "psm-1", "de-a1")
             PersonRole.TEACHER -> listOf("ielts", "de-a1")
         }
 
