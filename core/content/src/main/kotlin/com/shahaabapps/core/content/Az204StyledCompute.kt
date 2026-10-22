@@ -17,7 +17,9 @@ internal object Az204StyledCompute {
             leo("So the app was asleep. How do you keep it awake?"),
             maya("A setting called Always On. Under the picture, it's simple. App Service sends your app a small request every few minutes, so it never counts as idle and never gets unloaded. But Always On is offered from the Basic tier upwards. On Free, you can't switch it on. The weekend's saving switched it off."),
             leo("A tier is a price level, right? Like phone contracts?"),
-            maya("Exactly. Free and Shared are for trying things out, on shared hardware, with no scaling. Basic gives you your own workers and custom domains, scaled by hand. Standard adds auto scale, deployment slots and daily backups. Premium adds more power and private networking, and Isolated gives you a whole environment of your own."),
+            maya("Exactly. Free and Shared are for trying things out, on shared hardware, with no scaling. Basic gives you your own workers and custom domains, scaled by hand."),
+            leo("And a gym taking real bookings in a Monday rush? Where should that sit?"),
+            maya("Standard, which adds auto scale, deployment slots and daily backups. Premium adds more power and private networking, and Isolated gives you a whole environment of your own."),
             leo("Wait, where does the tier live? On the app?"),
             maya("On the App Service plan. Every app has two parts. The plan is the shelf: the region, Windows or Linux, the tier, and how many workers you get. Under the picture, those workers are virtual machines that Azure runs and patches for you. The web app is the cake: your code, its app settings, its domain and its slots."),
             leo("So the admin site and the booking API could sit on one plan?"),
@@ -62,7 +64,9 @@ internal object Az204StyledCompute {
             leo("A deployment slot being what?"),
             maya("A second live copy of your app, on the same plan, with its own address. You test the new version there, then swap it in. But slots start at Standard. So does auto scale. Basic gives you your own workers and custom domains, but you scale by hand, and there are no slots."),
             leo("So Ben needed to move up a tier. What are the tiers again?"),
-            maya("Free and Shared for trying things out, on shared hardware. Basic. Standard, where most production apps live, with slots, auto scale and daily backups. Premium for more power and private networking. Isolated, a whole environment of your own, for strict compliance. Ben moved to Standard that afternoon."),
+            maya("Free and Shared for trying things out, on shared hardware. Basic, which is where Ben was. Standard, where most production apps live, with slots, auto scale and daily backups."),
+            leo("And above Standard? A plant app is hardly a bank."),
+            maya("[chuckle] Premium for more power and private networking. Isolated, a whole environment of your own, for strict compliance. Ben moved to Standard that afternoon."),
             leo("Hold on, did Ben change the tier on the app?"),
             maya("On the plan, which is the bit people mix up. Every app has two parts. The App Service plan is the shelf: region, Windows or Linux, tier, and how many workers. Under the picture, those workers are virtual machines Azure runs and patches for you. The web app is the cake: your code, settings, domain and slots."),
             leo("Can two apps share a shelf?"),
@@ -187,7 +191,9 @@ internal object Az204StyledCompute {
             leo("[chuckle] A habit tracker that's lost the habit. Detective Leo is on it. First, what's a function, in plain words?"),
             maya("A small piece of code that runs only when something happens. You pay per run, and there's no server to manage. When nothing happens, nothing runs. Under the picture, Azure keeps a host, a small runtime that listens for events and starts your code when one arrives."),
             leo("And what decides when it runs?"),
-            maya("Its trigger. A trigger is the one event that starts the function, like a doorbell. Every function has exactly one. HTTP for a web request, a timer for a schedule, a queue message, a new blob, a Cosmos DB change, or messages from Event Grid, Event Hubs or Service Bus. Here, it's a timer."),
+            maya("Its trigger. A trigger is the one event that starts the function, like a doorbell. Every function has exactly one. Here, it's a timer."),
+            leo("What else can ring that bell, besides a clock?"),
+            maya("A web request, through HTTP. A queue message, a new blob, a Cosmos DB change, or messages from Event Grid, Event Hubs or Service Bus."),
             leo("Then my first suspect is the schedule. Someone wrote it wrong. Isn't the format weird?"),
             maya("Good instinct, so we check. The timer uses NCRONTAB, a CRON format with six fields, not the usual five. Seconds, minutes, hours, day, month, weekday. Seven every morning is zero, zero, seven, then three stars. [pause] And that's exactly what's in the code. Suspect cleared."),
             leo("Okay. Suspect two. It's on the Consumption plan, it took too long, and it got killed."),
@@ -238,7 +244,7 @@ internal object Az204StyledCompute {
             leo("What's the Consumption plan?"),
             maya("Pay per run. It scales to zero, so a quiet app costs almost nothing. The catch is a cold start, a delay while Azure loads your function after a quiet spell, like a cold car on a winter morning. And a single run is capped at ten minutes, five by default, with no private network."),
             leo("So what did Raj do?"),
-            maya("Priya gave him two choices. Premium, which allows sixty minutes by default, or longer if you set it. Or Durable Functions, which splits long work into steps that can wait and pick up again. The Durable Functions episode tells that story."),
+            maya("Priya gave him two choices. Premium, where a run gets thirty minutes by default, and you can raise it, even to no limit. Or Durable Functions, which splits long work into steps that can wait and pick up again. The Durable Functions episode tells that story."),
             leo("And Premium is just Consumption, but more?"),
             maya("Premium keeps instances pre-warmed, so there's no cold start, and it can join a private network. But you pay even when it's idle, for at least one instance. The booking function, which must answer an owner instantly, went on Premium. Flex Consumption sits in between: still pay per run, with a few always-ready instances to soften cold starts."),
             leo("Okay. Who's next?"),
@@ -358,9 +364,9 @@ internal object Az204StyledCompute {
                     Beat(12, show = setOf("free", "basic", "std", "prem", "iso", "on"), light = setOf("basic", "on"), pulse = "on" to "basic", card = BoardCard("A tier is a price level", "Basic: own workers, Always On. Standard: auto scale, slots, backups.")),
                 ),
             ),
-            // 13: "Wait, where does the tier live? On the app?"
+            // 15: "Wait, where does the tier live? On the app?"
             Scene(
-                13, "The shelf and the cake",
+                15, "The shelf and the cake",
                 DiagramSpec(
                     "Every app has two parts: the App Service plan underneath, and the web app that runs on it.",
                     nodes = listOf(
@@ -377,13 +383,13 @@ internal object Az204StyledCompute {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(14, show = setOf("plan", "w1", "w2", "w3", "app"), light = setOf("plan"), pulse = "plan" to "w2", card = BoardCard("App Service plan", "The shelf: region, OS, tier, workers. The workers are VMs Azure runs.")),
-                    Beat(16, light = setOf("plan", "app"), pulse = "app" to "w2", card = BoardCard("Apps on one plan share workers", "Two apps that must scale differently need two plans.")),
+                    Beat(16, show = setOf("plan", "w1", "w2", "w3", "app"), light = setOf("plan"), pulse = "plan" to "w2", card = BoardCard("App Service plan", "The shelf: region, OS, tier, workers. The workers are VMs Azure runs.")),
+                    Beat(18, light = setOf("plan", "app"), pulse = "app" to "w2", card = BoardCard("Apps on one plan share workers", "Two apps that must scale differently need two plans.")),
                 ),
             ),
-            // 17: "Fine. Basic tier, Always On, the morning stall is solved..."
+            // 19: "Fine. Basic tier, Always On, the morning stall is solved..."
             Scene(
-                17, "The empty setting",
+                19, "The empty setting",
                 DiagramSpec(
                     "An app setting is handed to the app as an environment variable at start-up; on Linux its name must match exactly.",
                     nodes = listOf(
@@ -399,15 +405,15 @@ internal object Az204StyledCompute {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(18, show = setOf("app"), light = setOf("app"), card = BoardCard("Empty, not wrong", "The code asked for a setting and got nothing back.")),
-                    Beat(20, show = setOf("set", "env"), light = setOf("set", "env"), pulse = "env" to "app", card = BoardCard("App setting", "A name and a value, handed over as an environment variable at start-up.")),
-                    Beat(22, light = setOf("set", "app"), card = BoardCard("Linux reads names exactly", "Lower case in the portal, capitals in the code: not the same setting.")),
-                    Beat(24, show = setOf("restart"), light = setOf("restart"), card = BoardCard("Saving restarts the app", "Settings are handed over at start-up. Pick a quiet minute.")),
+                    Beat(20, show = setOf("app"), light = setOf("app"), card = BoardCard("Empty, not wrong", "The code asked for a setting and got nothing back.")),
+                    Beat(22, show = setOf("set", "env"), light = setOf("set", "env"), pulse = "env" to "app", card = BoardCard("App setting", "A name and a value, handed over as an environment variable at start-up.")),
+                    Beat(24, light = setOf("set", "app"), card = BoardCard("Linux reads names exactly", "Lower case in the portal, capitals in the code: not the same setting.")),
+                    Beat(26, show = setOf("restart"), light = setOf("restart"), card = BoardCard("Saving restarts the app", "Settings are handed over at start-up. Pick a quiet minute.")),
                 ),
             ),
-            // 25: "A copy? Like a second version of the app?"
+            // 27: "A copy? Like a second version of the app?"
             Scene(
-                25, "A copy to test on",
+                27, "A copy to test on",
                 DiagramSpec(
                     "A deployment slot is a second live copy on the same plan; slots begin at the Standard tier.",
                     nodes = listOf(
@@ -422,13 +428,13 @@ internal object Az204StyledCompute {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(25, show = setOf("prod")),
-                    Beat(26, show = setOf("stage", "std"), light = setOf("stage", "std"), pulse = "stage" to "prod", card = BoardCard("Deployment slot", "A second live copy on the same plan. Cheapest tier with slots: Standard.")),
+                    Beat(27, show = setOf("prod")),
+                    Beat(28, show = setOf("stage", "std"), light = setOf("stage", "std"), pulse = "stage" to "prod", card = BoardCard("Deployment slot", "A second live copy on the same plan. Cheapest tier with slots: Standard.")),
                 ),
             ),
-            // 27: "And how would a detective have seen all this sooner?"
+            // 29: "And how would a detective have seen all this sooner?"
             Scene(
-                27, "The logs",
+                29, "The logs",
                 DiagramSpec(
                     "App Service keeps application logs, web server logs and failed request traces; log stream shows them live.",
                     nodes = listOf(
@@ -443,13 +449,13 @@ internal object Az204StyledCompute {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(27, show = setOf("app")),
-                    Beat(28, show = setOf("logs", "stream"), light = setOf("logs", "stream"), pulse = "app" to "logs", card = BoardCard("File system logging", "Switches itself off after twelve hours. Long-term: Application Insights.")),
+                    Beat(29, show = setOf("app")),
+                    Beat(30, show = setOf("logs", "stream"), light = setOf("logs", "stream"), pulse = "app" to "logs", card = BoardCard("File system logging", "Switches itself off after twelve hours. Long-term: Application Insights.")),
                 ),
             ),
-            // 29: "Is App Service always the right home, though?..."
+            // 31: "Is App Service always the right home, though?..."
             Scene(
-                29, "Where it stops",
+                31, "Where it stops",
                 DiagramSpec(
                     "App Service hosts APIs that run all day; event-driven jobs suit Functions, and the phone only calls the API.",
                     nodes = listOf(
@@ -465,13 +471,13 @@ internal object Az204StyledCompute {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(29, show = setOf("phone", "api", "db"), pulse = "phone" to "api"),
-                    Beat(30, show = setOf("fn"), light = setOf("fn", "phone"), pulse = "api" to "db", card = BoardCard("Past the edge", "On an event: Functions. The phone never holds the password; the API does.")),
+                    Beat(31, show = setOf("phone", "api", "db"), pulse = "phone" to "api"),
+                    Beat(32, show = setOf("fn"), light = setOf("fn", "phone"), pulse = "api" to "db", card = BoardCard("Past the edge", "On an event: Functions. The phone never holds the password; the API does.")),
                 ),
             ),
-            // 31: "So, the case summary for the exam?"
+            // 33: "So, the case summary for the exam?"
             Scene(
-                31, "Case closed",
+                33, "Case closed",
                 DiagramSpec(
                     "The exam's App Service questions, each as the phrase to listen for and the answer it points to.",
                     nodes = listOf(
@@ -484,9 +490,9 @@ internal object Az204StyledCompute {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(32, show = setOf("scale", "slots", "secret", "idle", "linux"), light = setOf("linux"), card = BoardCard("Listen for the phrase", "Each exam phrase points straight to one answer.")),
-                    Beat(34, card = BoardCard("Saved a setting?", "Expected: settings are read at start-up, so the app restarts.")),
-                    Beat(36, card = BoardCard("Today", "Free Linux web app, Hello=World, watch Log stream, browse, delete.")),
+                    Beat(34, show = setOf("scale", "slots", "secret", "idle", "linux"), light = setOf("linux"), card = BoardCard("Listen for the phrase", "Each exam phrase points straight to one answer.")),
+                    Beat(36, card = BoardCard("Saved a setting?", "Expected: settings are read at start-up, so the app restarts.")),
+                    Beat(38, card = BoardCard("Today", "Free Linux web app, Hello=World, watch Log stream, browse, delete.")),
                 ),
             ),
         ),
@@ -560,12 +566,12 @@ internal object Az204StyledCompute {
                 beats = listOf(
                     Beat(8, show = setOf("free", "basic", "std"), light = setOf("basic"), card = BoardCard("Slots on Basic?", "Not there. Basic gives your own workers, scaled by hand.")),
                     Beat(10, show = setOf("slots"), light = setOf("std", "slots"), pulse = "slots" to "std", card = BoardCard("Deployment slot", "A second live copy with its own address, to test and then swap in.")),
-                    Beat(12, show = setOf("prem", "iso"), light = setOf("std"), card = BoardCard("Ben moved to Standard", "Where most production apps live: slots, auto scale, daily backups.")),
+                    Beat(14, show = setOf("prem", "iso"), light = setOf("std"), card = BoardCard("Ben moved to Standard", "Where most production apps live: slots, auto scale, daily backups.")),
                 ),
             ),
-            // 13: "Hold on, did Ben change the tier on the app?"
+            // 15: "Hold on, did Ben change the tier on the app?"
             Scene(
-                13, "The shelf and the cake",
+                15, "The shelf and the cake",
                 DiagramSpec(
                     "Every app has two parts: the App Service plan underneath, and the web app that runs on it.",
                     nodes = listOf(
@@ -582,12 +588,12 @@ internal object Az204StyledCompute {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(14, show = setOf("plan", "w1", "w2", "w3", "app"), light = setOf("plan"), pulse = "plan" to "w2", card = BoardCard("The tier lives on the plan", "Region, OS, tier, workers. The workers are VMs Azure runs for you.")),
+                    Beat(16, show = setOf("plan", "w1", "w2", "w3", "app"), light = setOf("plan"), pulse = "plan" to "w2", card = BoardCard("The tier lives on the plan", "Region, OS, tier, workers. The workers are VMs Azure runs for you.")),
                 ),
             ),
-            // 15: "Can two apps share a shelf?"
+            // 17: "Can two apps share a shelf?"
             Scene(
-                15, "Sharing a plan",
+                17, "Sharing a plan",
                 DiagramSpec(
                     "Apps on one plan share its workers, so apps that must scale differently need separate plans.",
                     nodes = listOf(
@@ -603,13 +609,13 @@ internal object Az204StyledCompute {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(15, show = setOf("store", "admin")),
-                    Beat(16, show = setOf("plan", "two"), light = setOf("admin", "two"), pulse = "admin" to "plan", card = BoardCard("Six workers for one admin", "Apps on one plan share its workers. Scale differently? Two plans.")),
+                    Beat(17, show = setOf("store", "admin")),
+                    Beat(18, show = setOf("plan", "two"), light = setOf("admin", "two"), pulse = "admin" to "plan", card = BoardCard("Six workers for one admin", "Apps on one plan share its workers. Scale differently? Two plans.")),
                 ),
             ),
-            // 18: "Dana. The watering app sends its reminders at quarter past four..."
+            // 20: "Dana. The watering app sends its reminders at quarter past four..."
             Scene(
-                18, "Dana's quarter past four",
+                20, "Dana's quarter past four",
                 DiagramSpec(
                     "Saving an app setting restarts the app, because settings are handed over only as it starts.",
                     nodes = listOf(
@@ -623,13 +629,13 @@ internal object Az204StyledCompute {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(18, show = setOf("remind", "set"), light = setOf("remind"), card = BoardCard("Quarter past four", "Dana saved a setting right as the reminders went out.")),
-                    Beat(20, show = setOf("app"), light = setOf("app"), pulse = "set" to "app", card = BoardCard("Saving restarts the app", "Settings are handed over at start-up. Change them at quiet times.")),
+                    Beat(20, show = setOf("remind", "set"), light = setOf("remind"), card = BoardCard("Quarter past four", "Dana saved a setting right as the reminders went out.")),
+                    Beat(22, show = setOf("app"), light = setOf("app"), pulse = "set" to "app", card = BoardCard("Saving restarts the app", "Settings are handed over at start-up. Change them at quiet times.")),
                 ),
             ),
-            // 22: "Not quite. Tom moved the backend from Windows to Linux..."
+            // 24: "Not quite. Tom moved the backend from Windows to Linux..."
             Scene(
-                22, "Tom's move to Linux",
+                24, "Tom's move to Linux",
                 DiagramSpec(
                     "On Linux a setting's name is read exactly as typed, so lower case in the portal misses capitals in the code.",
                     nodes = listOf(
@@ -644,14 +650,14 @@ internal object Az204StyledCompute {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(22, show = setOf("portal", "code")),
-                    Beat(24, light = setOf("portal", "code"), pulse = "portal" to "code", card = BoardCard("Linux reads names exactly", "Capital letters and all. Match the case.")),
-                    Beat(26, show = setOf("stream"), light = setOf("stream"), pulse = "code" to "stream", card = BoardCard("Logs", "File system logging stops after twelve hours. Long-term: App Insights.")),
+                    Beat(24, show = setOf("portal", "code")),
+                    Beat(26, light = setOf("portal", "code"), pulse = "portal" to "code", card = BoardCard("Linux reads names exactly", "Capital letters and all. Match the case.")),
+                    Beat(28, show = setOf("stream"), light = setOf("stream"), pulse = "code" to "stream", card = BoardCard("Logs", "File system logging stops after twelve hours. Long-term: App Insights.")),
                 ),
             ),
-            // 28: "The intern noticed that the first request each morning was slow..."
+            // 30: "The intern noticed that the first request each morning was slow..."
             Scene(
-                28, "The intern's slow mornings",
+                30, "The intern's slow mornings",
                 DiagramSpec(
                     "An idle app is unloaded and must start again; Always On, from Basic up, keeps it loaded.",
                     nodes = listOf(
@@ -667,13 +673,13 @@ internal object Az204StyledCompute {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(28, show = setOf("user", "app", "big"), light = setOf("big"), pulse = "user" to "app", card = BoardCard("A bigger worker?", "Priya said no: switch on Always On.")),
-                    Beat(30, show = setOf("on"), light = setOf("on"), pulse = "on" to "app", card = BoardCard("Always On", "Keeps the app loaded with a small request now and then. Basic and up.")),
+                    Beat(30, show = setOf("user", "app", "big"), light = setOf("big"), pulse = "user" to "app", card = BoardCard("A bigger worker?", "Priya said no: switch on Always On.")),
+                    Beat(32, show = setOf("on"), light = setOf("on"), pulse = "on" to "app", card = BoardCard("Always On", "Keeps the app loaded with a small request now and then. Basic and up.")),
                 ),
             ),
-            // 31: "Does the phone app live on App Service too?"
+            // 33: "Does the phone app live on App Service too?"
             Scene(
-                31, "Where it stops",
+                33, "Where it stops",
                 DiagramSpec(
                     "App Service hosts APIs that run all day; the phone only calls the API, and event-driven code suits Functions.",
                     nodes = listOf(
@@ -689,12 +695,12 @@ internal object Az204StyledCompute {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(32, show = setOf("phone", "api", "db", "fn"), light = setOf("fn", "phone"), pulse = "phone" to "api", card = BoardCard("Past the edge", "The phone calls the API and holds no password. On an event: Functions.")),
+                    Beat(34, show = setOf("phone", "api", "db", "fn"), light = setOf("fn", "phone"), pulse = "phone" to "api", card = BoardCard("Past the edge", "The phone calls the API and holds no password. On an event: Functions.")),
                 ),
             ),
-            // 33: "So, the office lessons for the exam?"
+            // 35: "So, the office lessons for the exam?"
             Scene(
-                33, "For the exam",
+                35, "For the exam",
                 DiagramSpec(
                     "The exam's App Service questions, each as the phrase to listen for and the answer it points to.",
                     nodes = listOf(
@@ -707,8 +713,8 @@ internal object Az204StyledCompute {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(34, show = setOf("scale", "slots", "secret", "idle", "restart"), light = setOf("restart"), card = BoardCard("Listen for the phrase", "Each exam phrase points straight to one answer.")),
-                    Beat(36, card = BoardCard("Today", "Free Linux web app, Hello=World, watch Log stream, browse, delete.")),
+                    Beat(36, show = setOf("scale", "slots", "secret", "idle", "restart"), light = setOf("restart"), card = BoardCard("Listen for the phrase", "Each exam phrase points straight to one answer.")),
+                    Beat(38, card = BoardCard("Today", "Free Linux web app, Hello=World, watch Log stream, browse, delete.")),
                 ),
             ),
         ),
@@ -1125,9 +1131,9 @@ internal object Az204StyledCompute {
                     Beat(4, light = setOf("timer"), pulse = "timer" to "fn", card = BoardCard("Exactly one trigger", "The one event that starts a function. Here: a timer.")),
                 ),
             ),
-            // 5: "Then my first suspect is the schedule..."
+            // 7: "Then my first suspect is the schedule..."
             Scene(
-                5, "Suspect one: the schedule",
+                7, "Suspect one: the schedule",
                 DiagramSpec(
                     "NCRONTAB has six fields, and the first is seconds, not minutes.",
                     nodes = listOf(
@@ -1142,13 +1148,13 @@ internal object Az204StyledCompute {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(5, show = setOf("sec", "min", "hour", "day", "month", "week")),
-                    Beat(6, show = setOf("ok"), light = setOf("hour", "ok"), card = BoardCard("Seven every morning", "0 0 7 * * *", code = true)),
+                    Beat(7, show = setOf("sec", "min", "hour", "day", "month", "week")),
+                    Beat(8, show = setOf("ok"), light = setOf("hour", "ok"), card = BoardCard("Seven every morning", "0 0 7 * * *", code = true)),
                 ),
             ),
-            // 7: "Okay. Suspect two. It's on the Consumption plan..."
+            // 9: "Okay. Suspect two. It's on the Consumption plan..."
             Scene(
-                7, "Suspect two: Consumption",
+                9, "Suspect two: Consumption",
                 DiagramSpec(
                     "Consumption scales to zero and bills per run, at the price of cold starts and a ten-minute cap.",
                     nodes = listOf(
@@ -1164,13 +1170,13 @@ internal object Az204StyledCompute {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(8, show = setOf("plan", "cap"), light = setOf("cap"), card = BoardCard("The weekly report", "Twenty minutes on Consumption: stopped at ten, every Sunday.")),
-                    Beat(10, show = setOf("zero", "cold"), light = setOf("cold"), pulse = "plan" to "cold", card = BoardCard("Cold start", "A delay while Azure loads the function after a quiet spell.")),
+                    Beat(10, show = setOf("plan", "cap"), light = setOf("cap"), card = BoardCard("The weekly report", "Twenty minutes on Consumption: stopped at ten, every Sunday.")),
+                    Beat(12, show = setOf("zero", "cold"), light = setOf("cold"), pulse = "plan" to "cold", card = BoardCard("Cold start", "A delay while Azure loads the function after a quiet spell.")),
                 ),
             ),
-            // 11: "So how did they fix the long report?"
+            // 13: "So how did they fix the long report?"
             Scene(
-                11, "The move to Dedicated",
+                13, "The move to Dedicated",
                 DiagramSpec(
                     "On a Dedicated App Service plan the host sleeps when idle, so a timer needs Always On.",
                     nodes = listOf(
@@ -1186,13 +1192,13 @@ internal object Az204StyledCompute {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(12, show = setOf("ded", "fa"), light = setOf("ded"), pulse = "fa" to "ded", card = BoardCard("The clue", "For the long report, the app moved onto the backend's plan.")),
-                    Beat(14, show = setOf("sleep", "on"), light = setOf("sleep", "on"), pulse = "on" to "fa", card = BoardCard("Always On", "On Dedicated, a timer needs it. A sleeping host hears no alarm.")),
+                    Beat(14, show = setOf("ded", "fa"), light = setOf("ded"), pulse = "fa" to "ded", card = BoardCard("The clue", "For the long report, the app moved onto the backend's plan.")),
+                    Beat(16, show = setOf("sleep", "on"), light = setOf("sleep", "on"), pulse = "on" to "fa", card = BoardCard("Always On", "On Dedicated, a timer needs it. A sleeping host hears no alarm.")),
                 ),
             ),
-            // 16: "Not yet. The developer's first panic fix..."
+            // 18: "Not yet. The developer's first panic fix..."
             Scene(
-                16, "Every five seconds",
+                18, "Every five seconds",
                 DiagramSpec(
                     "A step in the first field repeats every few seconds; every five minutes puts the step in the second field.",
                     nodes = listOf(
@@ -1207,13 +1213,13 @@ internal object Az204StyledCompute {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(16, show = setOf("sec", "min", "hour", "day", "month", "week"), light = setOf("sec"), card = BoardCard("The panic fix", "*/5 * * * * *", code = true)),
-                    Beat(18, show = setOf("trap"), light = setOf("min", "trap"), card = BoardCard("Every five minutes", "0 */5 * * * *", code = true)),
+                    Beat(18, show = setOf("sec", "min", "hour", "day", "month", "week"), light = setOf("sec"), card = BoardCard("The panic fix", "*/5 * * * * *", code = true)),
+                    Beat(20, show = setOf("trap"), light = setOf("min", "trap"), card = BoardCard("Every five minutes", "0 */5 * * * *", code = true)),
                 ),
             ),
-            // 19: "Ouch. Were there other clues in the file?"
+            // 21: "Ouch. Were there other clues in the file?"
             Scene(
-                19, "The committed file",
+                21, "The committed file",
                 DiagramSpec(
                     "The local settings file is for your laptop and never committed; in Azure the same keys live in app settings.",
                     nodes = listOf(
@@ -1229,13 +1235,13 @@ internal object Az204StyledCompute {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(20, show = setOf("local", "never"), light = setOf("local", "never"), card = BoardCard("In the repository", "The local settings file, with the storage connection string.")),
-                    Beat(22, show = setOf("host", "appset"), light = setOf("appset", "host"), pulse = "local" to "appset", card = BoardCard("In Azure", "Same keys in app settings; secrets in Key Vault. host.json is deployed.")),
+                    Beat(22, show = setOf("local", "never"), light = setOf("local", "never"), card = BoardCard("In the repository", "The local settings file, with the storage connection string.")),
+                    Beat(24, show = setOf("host", "appset"), light = setOf("appset", "host"), pulse = "local" to "appset", card = BoardCard("In Azure", "Same keys in app settings; secrets in Key Vault. host.json is deployed.")),
                 ),
             ),
-            // 23: "A function app being the whole box, not one function?"
+            // 25: "A function app being the whole box, not one function?"
             Scene(
-                23, "One box, one trigger each",
+                25, "One box, one trigger each",
                 DiagramSpec(
                     "A function app holds many functions sharing a plan, runtime and settings; each has its own single trigger.",
                     nodes = listOf(
@@ -1253,12 +1259,12 @@ internal object Az204StyledCompute {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(24, show = setOf("timer", "sweep", "queue", "send", "app"), light = setOf("app"), pulse = "queue" to "send", card = BoardCard("Function app", "The box you deploy: many functions sharing plan, runtime and settings.")),
+                    Beat(26, show = setOf("timer", "sweep", "queue", "send", "app"), light = setOf("app"), pulse = "queue" to "send", card = BoardCard("Function app", "The box you deploy: many functions sharing plan, runtime and settings.")),
                 ),
             ),
-            // 25: "If the reminder reads users from a database and writes messages to a queue..."
+            // 27: "If the reminder reads users from a database and writes messages to a queue..."
             Scene(
-                25, "Bindings",
+                27, "Bindings",
                 DiagramSpec(
                     "One trigger starts the function; input bindings bring data in and output bindings send results out.",
                     nodes = listOf(
@@ -1275,13 +1281,13 @@ internal object Az204StyledCompute {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(25, show = setOf("trig", "fn"), pulse = "trig" to "fn"),
-                    Beat(26, show = setOf("in", "out"), light = setOf("in", "out"), pulse = "fn" to "out", card = BoardCard("Binding", "A ready-made connection: no connection code. Still one trigger.")),
+                    Beat(27, show = setOf("trig", "fn"), pulse = "trig" to "fn"),
+                    Beat(28, show = setOf("in", "out"), light = setOf("in", "out"), pulse = "fn" to "out", card = BoardCard("Binding", "A ready-made connection: no connection code. Still one trigger.")),
                 ),
             ),
-            // 27: "Like plugs instead of wiring. And where does all this stop working?"
+            // 29: "Like plugs instead of wiring. And where does all this stop working?"
             Scene(
-                27, "Past the edge",
+                29, "Past the edge",
                 DiagramSpec(
                     "No cold start or a private network points to Premium; work that waits for days belongs in Durable Functions.",
                     nodes = listOf(
@@ -1292,12 +1298,12 @@ internal object Az204StyledCompute {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(28, show = setOf("prem", "long", "dur"), light = setOf("prem", "dur"), card = BoardCard("Past the edge", "No cold start: Premium. A thirty-day challenge: Durable Functions.")),
+                    Beat(30, show = setOf("prem", "long", "dur"), light = setOf("prem", "dur"), card = BoardCard("Past the edge", "No cold start: Premium. A thirty-day challenge: Durable Functions.")),
                 ),
             ),
-            // 29: "So, the case summary for the exam?"
+            // 31: "So, the case summary for the exam?"
             Scene(
-                29, "Case closed",
+                31, "Case closed",
                 DiagramSpec(
                     "The exam's Functions questions, each as the phrase to listen for and the answer it points to.",
                     nodes = listOf(
@@ -1310,9 +1316,9 @@ internal object Az204StyledCompute {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(30, show = setOf("one", "cold", "cheap", "long", "timer"), light = setOf("timer"), card = BoardCard("Listen for the phrase", "Each exam phrase points straight to one answer.")),
-                    Beat(32, card = BoardCard("Count the fields", "Six, and the first is seconds: NCRONTAB.")),
-                    Beat(34, card = BoardCard("Today", "Consumption app, an HTTP trigger, then a timer every minute. Watch Monitor.")),
+                    Beat(32, show = setOf("one", "cold", "cheap", "long", "timer"), light = setOf("timer"), card = BoardCard("Listen for the phrase", "Each exam phrase points straight to one answer.")),
+                    Beat(34, card = BoardCard("Count the fields", "Six, and the first is seconds: NCRONTAB.")),
+                    Beat(36, card = BoardCard("Today", "Consumption app, an HTTP trigger, then a timer every minute. Watch Monitor.")),
                 ),
             ),
         ),
@@ -1382,7 +1388,7 @@ internal object Az204StyledCompute {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(12, show = setOf("prem", "dur"), light = setOf("prem", "dur"), card = BoardCard("Raj's two choices", "Premium: sixty minutes by default. Or Durable Functions.")),
+                    Beat(12, show = setOf("prem", "dur"), light = setOf("prem", "dur"), card = BoardCard("Raj's two choices", "Premium: thirty minutes by default, raise it at will. Or Durable Functions.")),
                     Beat(14, show = setOf("book"), light = setOf("prem", "book"), pulse = "book" to "prem", card = BoardCard("Premium", "No cold start, private network, but you pay while it's idle.")),
                 ),
             ),

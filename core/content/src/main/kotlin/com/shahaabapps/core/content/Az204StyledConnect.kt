@@ -29,7 +29,9 @@ internal object Az204StyledConnect {
             leo("So they never came through the front door. [pause] They came through the back."),
             maya("Exactly. The backend's own address was still open to the internet. Someone found it and called it directly, skipping every policy. The fix is to lock the backend so it only accepts the gateway: an IP restriction, a private network, or a client certificate. And the gateway signs in to the backend with a managed identity, so no password is stored."),
             leo("A private network. Easy. Done."),
-            maya("That's the twist. They chose the Consumption tier: serverless, pay per call, ready in minutes. But Consumption has no private network and no developer portal, and the gym's partners want the portal. Developer tier is for testing only. Basic and Standard are for production, and Standard v2 adds network integration. Premium adds several regions and full private networks."),
+            maya("That's the twist. They chose the Consumption tier: serverless, pay per call, ready in minutes. But Consumption has no private network and no developer portal, and the gym's partners want the portal."),
+            leo("So which tier gives them both, without paying for the biggest one?"),
+            maya("Basic and Standard have the portal, and Standard v2 adds network integration, so the gateway can reach a private backend. Premium adds several regions and full private networks. Developer tier is for testing only."),
             leo("And if the gym chain wants the doorman in its own server room?"),
             maya("The self-hosted gateway. It's the gateway packed as a container, run on your own machines or in another cloud. That's Premium, or Developer for testing. And know where API Management stops. One global entry point that sends web traffic to the nearest region and caches files at the edge is Front Door. The Front Door and CDN episode covers it."),
             leo("One more. Could the rate limit count per member, not per whole app?"),
@@ -56,7 +58,9 @@ internal object Az204StyledConnect {
             leo("And what is the doorman really, under the picture?"),
             maya("A proxy that Azure runs for you. A call comes in, the gateway runs the inbound policies, forwards the call to your backend, then runs the outbound policies on the reply, and on-error if anything breaks. Policies are short statements in XML, a tag-based text format. Priya put a rate limit in the inbound section, and gave the hotel a fair monthly quota."),
             leo("A monthly plan. Is that a product thing?"),
-            maya("It is. A product is a bundle of APIs with its own terms, like a phone plan. The bike team has a Free product anyone can try, and a Partner product that needs approval. A subscription gives a caller two keys to one product. The caller sends the subscription key in a header, and the gateway knows who's calling. Two keys, so one can be swapped while the other works."),
+            maya("It is. A product is a bundle of APIs with its own terms, like a phone plan. The bike team has a Free product anyone can try, and a Partner product that needs approval."),
+            leo("And how does the hotel prove it's on the Partner plan?"),
+            maya("With a subscription. It gives a caller two keys to one product. The caller sends the subscription key in a header, and the gateway knows who's calling. Two keys, so one can be swapped while the other works."),
             leo("Okay. What's week two?"),
             maya("Sam. Sam wanted a stricter limit on just one operation, unlocking a bike. An operation is one address and method. Policies sit at four levels: global, product, API and operation. Sam wrote a fresh policy for unlock, and left out one tiny line called base. Unlock had been getting hammered by a script, so Sam was in a hurry."),
             leo("Which does what?"),
@@ -107,7 +111,9 @@ internal object Az204StyledConnect {
             leo("Any more witnesses?"),
             maya("One. A garden shop partner wanted those plant watered events, to send discount codes. They pointed a subscription at their webhook, which is just a web address that accepts the notes. Not one event ever arrived."),
             leo("A broken webhook?"),
-            maya("A too polite webhook. Before Event Grid trusts an address, it does a validation handshake. It sends a validation code, and the webhook must send that same code back. Theirs just replied 200, okay, without the code, so the subscription was never validated. A Function with an Event Grid trigger does the handshake for you. Or someone opens the validation link Event Grid sends, within five minutes."),
+            maya("A too polite webhook. Before Event Grid trusts an address, it does a validation handshake. It sends a validation code, and the webhook must send that same code back. Theirs just replied 200, okay, without the code, so the subscription was never validated."),
+            leo("So the garden shop has to write that echo themselves?"),
+            maya("Or use a Function with an Event Grid trigger, which does the handshake for you. Or someone opens the validation link Event Grid sends, within ten minutes."),
             leo("And notes that never get through, even after a whole day of trying?"),
             maya("By default, they're dropped. Configure dead-lettering, and they're saved as files in a storage container instead, a lost-property box you can read later. Leafy now dead-letters, so a corrupted photo that keeps crashing the Function is kept, not lost."),
             leo("Last suspect. The smart flower pots. Can they send their soil readings through Event Grid too?"),
@@ -140,7 +146,9 @@ internal object Az204StyledConnect {
             leo("What did Ben do?"),
             maya("Ben built a webhook in his own API, to email players a well done. He made it answer 200, okay, to anything at all, then created the subscription. Ben was proud of it for about an hour. The subscription never got validated, and not one event arrived."),
             leo("Why not? It said okay."),
-            maya("Okay isn't enough. Before Event Grid trusts a web address, it does a validation handshake. It sends a validation code, and the webhook has to send that same code back. Like confirming your email for a newsletter. Sam showed Ben the fix: echo the code. Or use a Function with an Event Grid trigger, which does the handshake for you. Or open the validation link it sends, within five minutes."),
+            maya("Okay isn't enough. Before Event Grid trusts a web address, it does a validation handshake. It sends a validation code, and the webhook has to send that same code back. Like confirming your email for a newsletter."),
+            leo("So Ben's webhook said okay, but never repeated the code back."),
+            maya("Exactly. Sam showed Ben the fix: echo the code. Or use a Function with an Event Grid trigger, which does the handshake for you. Or open the validation link it sends, within ten minutes."),
             leo("Week three?"),
             maya("The intern, bless them. The avatar resizer was waking up for every file in the storage account. Backups, logs, everything. The intern's fix was a check at the top of the Function: if it's not a picture, stop. It ran thousands of times a day, mostly to say, not mine."),
             leo("That sounds reasonable, though?"),
@@ -300,13 +308,13 @@ internal object Az204StyledConnect {
                 ),
                 beats = listOf(
                     Beat(24, show = setOf("cons", "dev", "std", "prem"), light = setOf("cons"), card = BoardCard("Consumption", "Serverless, pay per call. No developer portal, no private network.")),
-                    Beat(25, show = setOf("sh"), light = setOf("prem", "sh"), pulse = "prem" to "sh"),
-                    Beat(26, light = setOf("sh"), card = BoardCard("Self-hosted gateway", "A container on-premises or in another cloud. Past APIM: Front Door.")),
+                    Beat(27, show = setOf("sh"), light = setOf("prem", "sh"), pulse = "prem" to "sh"),
+                    Beat(28, light = setOf("sh"), card = BoardCard("Self-hosted gateway", "A container on-premises or in another cloud. Past APIM: Front Door.")),
                 ),
             ),
-            // 27: "One more. Could the rate limit count per member, not per whole app?"
+            // 29: "One more. Could the rate limit count per member, not per whole app?"
             Scene(
-                27, "Count by key",
+                29, "Count by key",
                 DiagramSpec(
                     "Rate limit by key counts per caller address, per subscription, or by any value a policy expression reads.",
                     nodes = listOf(
@@ -323,13 +331,13 @@ internal object Az204StyledConnect {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(27, show = setOf("rl"), light = setOf("rl")),
-                    Beat(28, show = setOf("a1", "a2", "a3"), light = setOf("rl", "a2"), pulse = "rl" to "a2", card = BoardCard("Policy expression", "counter-key=\"@(context.Subscription.Id)\"", code = true)),
+                    Beat(29, show = setOf("rl"), light = setOf("rl")),
+                    Beat(30, show = setOf("a1", "a2", "a3"), light = setOf("rl", "a2"), pulse = "rl" to "a2", card = BoardCard("Policy expression", "counter-key=\"@(context.Subscription.Id)\"", code = true)),
                 ),
             ),
-            // 29: "So, the case summary for the exam?"
+            // 31: "So, the case summary for the exam?"
             Scene(
-                29, "Case closed",
+                31, "Case closed",
                 DiagramSpec(
                     "The exam's API Management questions, each as the phrase to listen for and the answer it points to.",
                     nodes = listOf(
@@ -342,8 +350,8 @@ internal object Az204StyledConnect {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(30, show = setOf("burst", "allow", "base", "skip", "onprem"), light = setOf("base", "skip"), card = BoardCard("Listen for the phrase", "Each exam phrase points straight to one policy, fix or tier.")),
-                    Beat(32, card = BoardCard("Today", "Consumption tier, import the sample, rate limit 3 per 60, read the 429.")),
+                    Beat(32, show = setOf("burst", "allow", "base", "skip", "onprem"), light = setOf("base", "skip"), card = BoardCard("Listen for the phrase", "Each exam phrase points straight to one policy, fix or tier.")),
+                    Beat(34, card = BoardCard("Today", "Consumption tier, import the sample, rate limit 3 per 60, read the 429.")),
                 ),
             ),
         ),
@@ -419,9 +427,9 @@ internal object Az204StyledConnect {
                     Beat(10, show = setOf("free", "partner", "key", "gw"), light = setOf("key"), pulse = "key" to "gw", card = BoardCard("Product", "A bundle of APIs with its own terms, like a phone plan.")),
                 ),
             ),
-            // 11: "Okay. What's week two?"
+            // 13: "Okay. What's week two?"
             Scene(
-                11, "Week two: Sam",
+                13, "Week two: Sam",
                 DiagramSpec(
                     "Sam's unlock policy left out base, so the global token check stopped running on that one operation.",
                     nodes = listOf(
@@ -435,14 +443,14 @@ internal object Az204StyledConnect {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(12, show = setOf("global", "op"), light = setOf("op"), card = BoardCard("Four levels", "Global, product, API, operation. Sam wrote a fresh one for unlock.")),
-                    Beat(14, show = setOf("base"), light = setOf("base"), pulse = "global" to "op", card = BoardCard("base", "Run the wider level's rules here too. Without it: no token check.")),
-                    Beat(16, light = setOf("global", "op"), card = BoardCard("The trace, then the fix", "Base back in; a policy expression counts per rider, not per app.")),
+                    Beat(14, show = setOf("global", "op"), light = setOf("op"), card = BoardCard("Four levels", "Global, product, API, operation. Sam wrote a fresh one for unlock.")),
+                    Beat(16, show = setOf("base"), light = setOf("base"), pulse = "global" to "op", card = BoardCard("base", "Run the wider level's rules here too. Without it: no token check.")),
+                    Beat(18, light = setOf("global", "op"), card = BoardCard("The trace, then the fix", "Base back in; a policy expression counts per rider, not per app.")),
                 ),
             ),
-            // 17: "Week three?"
+            // 19: "Week three?"
             Scene(
-                17, "Week three: Ben",
+                19, "Week three: Ben",
                 DiagramSpec(
                     "Ben's backend was still open to the internet; it should accept only the gateway, which signs in with a managed identity.",
                     nodes = listOf(
@@ -459,13 +467,13 @@ internal object Az204StyledConnect {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(18, show = setOf("ghost", "gw", "be"), light = setOf("ghost", "be"), pulse = "ghost" to "be", card = BoardCard("Round the front door", "No key, no token, no rate limit. The backend's address was open.")),
-                    Beat(20, show = setOf("id"), light = setOf("be", "id"), pulse = "gw" to "be", card = BoardCard("Lock the backend", "Accept only the gateway: IP restriction, private network or certificate.")),
+                    Beat(20, show = setOf("ghost", "gw", "be"), light = setOf("ghost", "be"), pulse = "ghost" to "be", card = BoardCard("Round the front door", "No key, no token, no rate limit. The backend's address was open.")),
+                    Beat(22, show = setOf("id"), light = setOf("be", "id"), pulse = "gw" to "be", card = BoardCard("Lock the backend", "Accept only the gateway: IP restriction, private network or certificate.")),
                 ),
             ),
-            // 21: "And the intern? There's always an intern."
+            // 23: "And the intern? There's always an intern."
             Scene(
-                21, "The intern's tier",
+                23, "The intern's tier",
                 DiagramSpec(
                     "Consumption is pay per call with no portal or private network; Premium adds regions, networks and the self-hosted gateway.",
                     nodes = listOf(
@@ -481,13 +489,13 @@ internal object Az204StyledConnect {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(22, show = setOf("cons"), light = setOf("cons"), card = BoardCard("Consumption", "Serverless and quick, but no developer portal and no private network.")),
-                    Beat(24, show = setOf("dev", "std", "prem", "sh"), light = setOf("prem", "sh"), pulse = "prem" to "sh", card = BoardCard("Self-hosted gateway", "The gateway as a container, in your building or another cloud. Premium.")),
+                    Beat(24, show = setOf("cons"), light = setOf("cons"), card = BoardCard("Consumption", "Serverless and quick, but no developer portal and no private network.")),
+                    Beat(26, show = setOf("dev", "std", "prem", "sh"), light = setOf("prem", "sh"), pulse = "prem" to "sh", card = BoardCard("Self-hosted gateway", "The gateway as a container, in your building or another cloud. Premium.")),
                 ),
             ),
-            // 25: "Is API Management the answer to everything, then?"
+            // 27: "Is API Management the answer to everything, then?"
             Scene(
-                25, "Where it stops",
+                27, "Where it stops",
                 DiagramSpec(
                     "API Management manages APIs; a global entry point that caches at the edge is Front Door, and mock response fakes a reply.",
                     nodes = listOf(
@@ -498,13 +506,13 @@ internal object Az204StyledConnect {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(25, show = setOf("apim"), light = setOf("apim")),
-                    Beat(26, show = setOf("fd", "mock"), light = setOf("fd"), card = BoardCard("Past the edge", "Nearest region and an edge cache: Front Door, not API Management.")),
+                    Beat(27, show = setOf("apim"), light = setOf("apim")),
+                    Beat(28, show = setOf("fd", "mock"), light = setOf("fd"), card = BoardCard("Past the edge", "Nearest region and an edge cache: Front Door, not API Management.")),
                 ),
             ),
-            // 27: "So, the gossip I should remember for the exam?"
+            // 29: "So, the gossip I should remember for the exam?"
             Scene(
-                27, "For the exam",
+                29, "For the exam",
                 DiagramSpec(
                     "The exam's API Management questions, each as the phrase to listen for and the answer it points to.",
                     nodes = listOf(
@@ -517,8 +525,8 @@ internal object Az204StyledConnect {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(28, show = setOf("burst", "allow", "base", "skip", "onprem"), light = setOf("burst", "allow"), card = BoardCard("Listen for the phrase", "Each exam phrase points straight to one policy, fix or tier.")),
-                    Beat(30, card = BoardCard("Today", "Consumption tier, import the sample, rate limit 3 per 60, read the 429.")),
+                    Beat(30, show = setOf("burst", "allow", "base", "skip", "onprem"), light = setOf("burst", "allow"), card = BoardCard("Listen for the phrase", "Each exam phrase points straight to one policy, fix or tier.")),
+                    Beat(32, card = BoardCard("Today", "Consumption tier, import the sample, rate limit 3 per 60, read the 429.")),
                 ),
             ),
         ),
@@ -675,9 +683,9 @@ internal object Az204StyledConnect {
                     Beat(22, show = setOf("fn"), light = setOf("hook", "fn"), pulse = "grid" to "hook", card = BoardCard("Validation handshake", "Send the code back; a bare 200 isn't enough. A Function trigger does it.")),
                 ),
             ),
-            // 23: "And notes that never get through, even after a whole day of trying?"
+            // 25: "And notes that never get through, even after a whole day of trying?"
             Scene(
-                23, "Lost property",
+                25, "Lost property",
                 DiagramSpec(
                     "Events that still cannot be delivered after the retries are dead-lettered to a storage container.",
                     nodes = listOf(
@@ -692,13 +700,13 @@ internal object Az204StyledConnect {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(23, show = setOf("grid", "handler"), pulse = "grid" to "handler"),
-                    Beat(24, show = setOf("dl"), light = setOf("dl"), pulse = "grid" to "dl", card = BoardCard("Dead-letter", "Without it, dropped. With it, kept as files, like a lost-property box.")),
+                    Beat(25, show = setOf("grid", "handler"), pulse = "grid" to "handler"),
+                    Beat(26, show = setOf("dl"), light = setOf("dl"), pulse = "grid" to "dl", card = BoardCard("Dead-letter", "Without it, dropped. With it, kept as files, like a lost-property box.")),
                 ),
             ),
-            // 25: "Last suspect. The smart flower pots..."
+            // 27: "Last suspect. The smart flower pots..."
             Scene(
-                25, "Where it stops",
+                27, "Where it stops",
                 DiagramSpec(
                     "Readings every second are a stream for Event Hubs; Event Grid reacts to single events; Service Bus handles careful jobs.",
                     nodes = listOf(
@@ -713,13 +721,13 @@ internal object Az204StyledConnect {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(25, show = setOf("pots"), light = setOf("pots")),
-                    Beat(26, show = setOf("eg", "eh", "sb"), light = setOf("eh"), pulse = "pots" to "eh", card = BoardCard("High-volume telemetry", "That's Event Hubs. Orders that must be right: Service Bus.")),
+                    Beat(27, show = setOf("pots"), light = setOf("pots")),
+                    Beat(28, show = setOf("eg", "eh", "sb"), light = setOf("eh"), pulse = "pots" to "eh", card = BoardCard("High-volume telemetry", "That's Event Hubs. Orders that must be right: Service Bus.")),
                 ),
             ),
-            // 27: "So, the case summary for the exam?"
+            // 29: "So, the case summary for the exam?"
             Scene(
-                27, "Case closed",
+                29, "Case closed",
                 DiagramSpec(
                     "The exam's Event Grid questions, each as the phrase to listen for and the answer it points to.",
                     nodes = listOf(
@@ -732,8 +740,8 @@ internal object Az204StyledConnect {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(28, show = setOf("react", "some", "keep", "dup", "hook"), light = setOf("dup"), card = BoardCard("Listen for the phrase", "Each exam phrase points straight to one answer.")),
-                    Beat(30, card = BoardCard("Today", "Trigger Function, BlobCreated, read the JSON; a .png filter skips a .txt.")),
+                    Beat(30, show = setOf("react", "some", "keep", "dup", "hook"), light = setOf("dup"), card = BoardCard("Listen for the phrase", "Each exam phrase points straight to one answer.")),
+                    Beat(32, card = BoardCard("Today", "Trigger Function, BlobCreated, read the JSON; a .png filter skips a .txt.")),
                 ),
             ),
         ),
@@ -850,9 +858,9 @@ internal object Az204StyledConnect {
                     Beat(16, show = setOf("fn"), light = setOf("hook", "fn"), pulse = "grid" to "hook", card = BoardCard("Validation handshake", "Send the code back, like confirming an email. A Function trigger does it.")),
                 ),
             ),
-            // 17: "Week three?"
+            // 19: "Week three?"
             Scene(
-                17, "Week three: the intern",
+                19, "Week three: the intern",
                 DiagramSpec(
                     "A subject filter on the subscription lets PNG avatars through and stops the rest before delivery.",
                     nodes = listOf(
@@ -869,13 +877,13 @@ internal object Az204StyledConnect {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(18, show = setOf("txt", "fn"), light = setOf("txt", "fn"), card = BoardCard("A check in the Function", "Still delivered, still wakes the Function, still costs.")),
-                    Beat(20, show = setOf("png", "filter"), light = setOf("filter", "png"), pulse = "filter" to "fn", card = BoardCard("Subject filter", "Priya's fix, on the subscription: begins with avatars, ends with .png.")),
+                    Beat(20, show = setOf("txt", "fn"), light = setOf("txt", "fn"), card = BoardCard("A check in the Function", "Still delivered, still wakes the Function, still costs.")),
+                    Beat(22, show = setOf("png", "filter"), light = setOf("filter", "png"), pulse = "filter" to "fn", card = BoardCard("Subject filter", "Priya's fix, on the subscription: begins with avatars, ends with .png.")),
                 ),
             ),
-            // 21: "And the Friday? There's always a Friday."
+            // 23: "And the Friday? There's always a Friday."
             Scene(
-                21, "Marcus's Friday",
+                23, "Marcus's Friday",
                 DiagramSpec(
                     "Thousands of taps a second are a stream for Event Hubs; Event Grid reacts to single events; Service Bus handles careful jobs.",
                     nodes = listOf(
@@ -890,12 +898,12 @@ internal object Az204StyledConnect {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(22, show = setOf("taps", "eg", "eh", "sb"), light = setOf("eh"), pulse = "taps" to "eh", card = BoardCard("High-volume telemetry", "That's Event Hubs. A prize payout to get right: Service Bus.")),
+                    Beat(24, show = setOf("taps", "eg", "eh", "sb"), light = setOf("eh"), pulse = "taps" to "eh", card = BoardCard("High-volume telemetry", "That's Event Hubs. A prize payout to get right: Service Bus.")),
                 ),
             ),
-            // 23: "Did anything get lost for good in all this?"
+            // 25: "Did anything get lost for good in all this?"
             Scene(
-                23, "Lost property",
+                25, "Lost property",
                 DiagramSpec(
                     "Events that still cannot be delivered after the retries are dead-lettered to a storage container.",
                     nodes = listOf(
@@ -910,12 +918,12 @@ internal object Az204StyledConnect {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(24, show = setOf("grid", "handler", "dl"), light = setOf("dl"), pulse = "grid" to "dl", card = BoardCard("Dead-letter", "Instead of being dropped, kept as files, like a lost-property box.")),
+                    Beat(26, show = setOf("grid", "handler", "dl"), light = setOf("dl"), pulse = "grid" to "dl", card = BoardCard("Dead-letter", "Instead of being dropped, kept as files, like a lost-property box.")),
                 ),
             ),
-            // 25: "So, the gossip I should remember for the exam?"
+            // 27: "So, the gossip I should remember for the exam?"
             Scene(
-                25, "For the exam",
+                27, "For the exam",
                 DiagramSpec(
                     "The exam's Event Grid questions, each as the phrase to listen for and the answer it points to.",
                     nodes = listOf(
@@ -928,8 +936,8 @@ internal object Az204StyledConnect {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(26, show = setOf("react", "some", "keep", "dup", "hook"), light = setOf("dup"), card = BoardCard("Listen for the phrase", "Each exam phrase points straight to one answer.")),
-                    Beat(28, card = BoardCard("Today", "Trigger Function, BlobCreated, read the JSON; a .png filter skips a .txt.")),
+                    Beat(28, show = setOf("react", "some", "keep", "dup", "hook"), light = setOf("dup"), card = BoardCard("Listen for the phrase", "Each exam phrase points straight to one answer.")),
+                    Beat(30, card = BoardCard("Today", "Trigger Function, BlobCreated, read the JSON; a .png filter skips a .txt.")),
                 ),
             ),
         ),

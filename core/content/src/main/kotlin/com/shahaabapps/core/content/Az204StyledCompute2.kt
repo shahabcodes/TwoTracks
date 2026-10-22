@@ -35,7 +35,9 @@ internal object Az204StyledCompute2 {
             leo("How does the event get in?"),
             maya("The client function hands back management addresses. The backend sends a POST to the send-event address with the event's name. And the status address shows the workflow Running, then Completed."),
             leo("Are there other patterns the exam likes?"),
-            maya("Five in all. The ride is function chaining: check, charge, email, each using the last result. Fan-out, fan-in starts many activities at once and waits for all with Task.WhenAll, like checking every bike's battery at night. Async HTTP API gives a caller an answer at once and a status address to poll. And monitor loops with a durable timer until a job is done."),
+            maya("Five in all. The ride is function chaining: check, charge, email, each using the last result. Fan-out, fan-in starts many activities at once and waits for all with Task.WhenAll, like checking every bike's battery at night."),
+            leo("And when the work is slow, and the phone can't just sit there waiting for an answer?"),
+            maya("That's the async HTTP API. It gives the caller an answer at once, and a status address the phone polls for the result. And monitor loops with a durable timer until a job is done."),
             leo("And where does all this stop working?"),
             maya("Two edges. A workflow that loops for ever keeps growing its history, so it should restart itself fresh with ContinueAsNew. And if one function just hands a message to another, with no waiting and no state, you don't need an orchestrator at all. A queue does it. The Service Bus episode covers that."),
             leo("So, the case summary for the exam?"),
@@ -76,7 +78,9 @@ internal object Az204StyledCompute2 {
             leo("Did anything good happen this week?"),
             maya("Marcus used the human interaction pattern, nicely. The app lets a friend approve your cheat day. His orchestrator waits for an external event, a named signal from outside called Approved, raced against a durable timer. If the friend answers first, cheat day granted. If a day passes first, the timer wins, and no cheat day."),
             leo("Harsh but fair. Any other patterns I should know?"),
-            maya("Five, by shape. Function chaining runs A, then B, then C. Fan-out, fan-in starts many activities in parallel and waits for all with Task.WhenAll, like building every user's weekly chart at once. Async HTTP API answers a caller at once, with a status address to poll. And monitor loops with a durable timer until a condition holds."),
+            maya("Five, by shape. Function chaining runs A, then B, then C. Fan-out, fan-in starts many activities in parallel and waits for all with Task.WhenAll, like building every user's weekly chart at once."),
+            leo("And the ones where the app mostly waits, rather than works?"),
+            maya("Async HTTP API answers a caller at once, with a status address the caller polls. Monitor loops with a durable timer until a condition holds. And waiting for a person is Marcus's human interaction."),
             leo("And when is Durable Functions the wrong tool?"),
             maya("When there's no waiting and no state. If one service just hands a message to another, a queue does it, and the Service Bus episode covers that. And a workflow that loops for ever should restart itself fresh with ContinueAsNew, or its history keeps growing. Durable Functions earns its place when one step has to wait for another."),
             leo("So, the gossip I should remember for the exam?"),
@@ -92,10 +96,16 @@ internal object Az204StyledCompute2 {
         "az-containers",
         listOf(
             maya("Welcome to Case Files. Today's case: The Eight O'Clock Freeze. A small trivia company has an Android quiz app. Every morning at eight, the daily quiz goes live. The app calls an API that runs as a container on Azure. And every morning, the first players stare at a spinner for fifteen seconds. Some give up."),
-            leo("[chuckle] A quiz where the first question is, how long can you wait? Detective Leo on the case. But first, a container. What's that, in plain words?"),
-            maya("Your app packed up with everything it needs, so it runs the same on a laptop and in the cloud. The packed-up blueprint is an image. Under the picture, a container isn't a whole virtual machine. It's an ordinary process, walled off from its neighbours, sharing the host's operating system. That's why it starts in seconds."),
+            leo("[chuckle] A quiz where the first question is, how long can you wait? Detective Leo on the case. But first, a container. I know my code, the server it runs on, and that server's operating system. Where does a container come in?"),
+            maya("Without one, someone sets up a server, a virtual machine, installs the operating system, the runtime and the libraries, then copies your build on. If that server differs from your laptop, it breaks. A container image packs your built code, the runtime, the libraries, and a slim base image of operating system files. Every machine runs the same package."),
+            leo("So the operating system is inside the image? That sounds huge."),
+            maya("Only its files, from a cut-down Debian or Alpine. Not the kernel, the core that talks to the hardware. Under the picture, a running container is one ordinary process, walled off from its neighbours, on the host's kernel. That's why images are megabytes and start in seconds. And why a Linux image needs a Linux host."),
+            leo("And a virtual machine has its own kernel? So, how is an image made?"),
+            maya("Right, a whole operating system, kernel and all, which is why it's heavy. The image comes from a Dockerfile, the recipe: FROM a base image, copy the code in, install, set the start command. Docker build bakes it. Like an APK: build once, and every running copy, every container, is the same."),
             leo("And where does this quiz API live?"),
-            maya("Two services. The image sits in Azure Container Registry, ACR, a private shelf for images. You push images up, and Azure services pull them down to run. An ACR Task builds each new image in the cloud on every push, so nobody needs Docker on their laptop. And the API runs in Azure Container Apps, a managed home for containers with Kubernetes hidden underneath."),
+            maya("The image sits in Azure Container Registry, ACR, a private registry hosted in Azure. Like a private Maven repository, but for whole ready-to-run images. Each new image gets pushed in, which means uploaded. Here an ACR Task builds it in the cloud on every commit to the main branch and stores it, so nobody needs Docker on a laptop."),
+            leo("And pull is the other way?"),
+            maya("Pull means download. Whatever runs the image pulls it out of the registry. Here that's Azure Container Apps, a managed home for containers with Kubernetes hidden underneath. Every time it starts a new copy of the API, a replica, it pulls the image."),
             leo("Then my first suspect is the registry. It's on the Basic tier, it's slow, and the image comes from far away. We need geo-replication."),
             maya("[pause] Bold, and expensive. Geo-replication, copies of your images in several regions, is Premium only. But the players and the registry are in the same region. And a pull happens when a replica starts, not on every request. So why is a replica starting at eight every morning?"),
             leo("Because there wasn't one running before eight? Everyone's asleep at that hour, including the app."),
@@ -134,9 +144,15 @@ internal object Az204StyledCompute2 {
         listOf(
             maya("Did you hear what Dana did to the gym app on Monday? The Android app books fitness classes, and the booking API runs as a container on Azure. On Monday morning, nobody could book a spin class for two hours. Members queued at the front desk with their phones out."),
             leo("[laugh] I heard the spin instructor cycled to the office to complain. Very on brand. What happened?"),
-            maya("First, the pieces. A container is your app packed with everything it needs, so it runs the same anywhere. The packed blueprint is an image. Under the picture, a running container is just a process walled off from its neighbours, sharing the host's operating system, so it starts in seconds."),
+            maya("First, the pieces, the way Aisha explained them to the new Android developer. You know your code, the server it runs on, and its operating system. Without containers, someone builds that server by hand, a virtual machine with the runtime and libraries, and copies your build on. If it differs from your laptop, you get works on my machine."),
+            leo("And a container fixes that how? Does it ship the whole operating system?"),
+            maya("Half of it. The image packs your built code, the runtime, the libraries, and a slim base image: the operating system's files, from something like Alpine. Not the kernel, the core that talks to the hardware. Under the picture, a running container is one walled-off process sharing the host's kernel. So images are megabytes, start in seconds, and a Linux image needs a Linux host."),
+            leo("Unlike a virtual machine, which brings its own kernel. And the image comes from a Dockerfile?"),
+            maya("Right. The Dockerfile is the recipe: FROM a base image, copy the code in, install, set the start command. Docker build bakes the image, and each running copy of it is a container. Like an APK: one build, the same everywhere."),
             leo("And where do the gym's images live?"),
-            maya("In Azure Container Registry, ACR, a private shelf for images. You push images up to it, and Azure services pull them down to run. An ACR Task builds each image in the cloud whenever someone pushes code. And the API runs in Azure Container Apps, the managed home for microservices, with Kubernetes hidden underneath."),
+            maya("In Azure Container Registry, ACR, a private registry hosted in Azure. Think of a private Maven repository, but holding whole images. Pushing means uploading an image into it. Here an ACR Task builds each image in the cloud whenever someone commits to the main branch, and stores it there, so nobody needs Docker on a laptop."),
+            leo("And pulling is the download?"),
+            maya("Yes. The API runs in Azure Container Apps, the managed home for microservices, with Kubernetes hidden underneath. Every time it starts a copy of the API, it pulls the image down from the registry. Which is exactly where Dana's trouble started."),
             leo("So what did Dana do?"),
             maya("Dana set up the pull from the registry with the registry's admin password, stored as a secret in the container app. On Sunday, security rotated the password. On Monday, a new deployment couldn't pull its image. It had worked for months, so nobody had thought about it."),
             leo("Ouch. What's the right way?"),
@@ -357,9 +373,9 @@ internal object Az204StyledCompute2 {
                     Beat(30, show = setOf("r1", "r2", "r3", "sum"), light = setOf("r1", "r2", "r3"), pulse = "o" to "r2", card = BoardCard("Chaining, fan-out, async, monitor", "Plus human interaction: five patterns, told apart by their shape.")),
                 ),
             ),
-            // 31: "And where does all this stop working?"
+            // 33: "And where does all this stop working?"
             Scene(
-                31, "Where it stops",
+                33, "Where it stops",
                 DiagramSpec(
                     "A loop for ever restarts itself with ContinueAsNew; a simple hand-off with no state needs only a queue.",
                     nodes = listOf(
@@ -373,12 +389,12 @@ internal object Az204StyledCompute2 {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(32, show = setOf("loop", "hand", "sb"), light = setOf("hand", "sb"), pulse = "hand" to "sb", card = BoardCard("Past the edge", "No waiting, no state: no orchestrator. A queue does it.")),
+                    Beat(34, show = setOf("loop", "hand", "sb"), light = setOf("hand", "sb"), pulse = "hand" to "sb", card = BoardCard("Past the edge", "No waiting, no state: no orchestrator. A queue does it.")),
                 ),
             ),
-            // 33: "So, the case summary for the exam?"
+            // 35: "So, the case summary for the exam?"
             Scene(
-                33, "Case closed",
+                35, "Case closed",
                 DiagramSpec(
                     "The exam's Durable Functions questions, each as the phrase to listen for and the answer it points to.",
                     nodes = listOf(
@@ -390,8 +406,8 @@ internal object Az204StyledCompute2 {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(34, show = setOf("person", "many", "time", "side"), light = setOf("side"), card = BoardCard("Listen for the phrase", "Each exam phrase points to one answer. Real work only in activities.")),
-                    Beat(36, card = BoardCard("Today", "Template, POST to HttpStart, read the status, add a 30-second timer.")),
+                    Beat(36, show = setOf("person", "many", "time", "side"), light = setOf("side"), card = BoardCard("Listen for the phrase", "Each exam phrase points to one answer. Real work only in activities.")),
+                    Beat(38, card = BoardCard("Today", "Template, POST to HttpStart, read the status, add a 30-second timer.")),
                 ),
             ),
         ),
@@ -557,9 +573,9 @@ internal object Az204StyledCompute2 {
                     Beat(26, show = setOf("o", "r1", "r2", "r3", "all"), light = setOf("r1", "r2", "r3"), pulse = "o" to "r2", card = BoardCard("Chaining, fan-out, async, monitor", "Plus human interaction: five patterns, told apart by their shape.")),
                 ),
             ),
-            // 27: "And when is Durable Functions the wrong tool?"
+            // 29: "And when is Durable Functions the wrong tool?"
             Scene(
-                27, "The wrong tool",
+                29, "The wrong tool",
                 DiagramSpec(
                     "A simple hand-off with no state needs only a queue; a loop for ever restarts itself with ContinueAsNew.",
                     nodes = listOf(
@@ -573,12 +589,12 @@ internal object Az204StyledCompute2 {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(28, show = setOf("hand", "loop", "sb"), light = setOf("hand", "sb"), pulse = "hand" to "sb", card = BoardCard("Past the edge", "No waiting, no state: no orchestrator. A queue does it.")),
+                    Beat(30, show = setOf("hand", "loop", "sb"), light = setOf("hand", "sb"), pulse = "hand" to "sb", card = BoardCard("Past the edge", "No waiting, no state: no orchestrator. A queue does it.")),
                 ),
             ),
-            // 29: "So, the gossip I should remember for the exam?"
+            // 31: "So, the gossip I should remember for the exam?"
             Scene(
-                29, "For the exam",
+                31, "For the exam",
                 DiagramSpec(
                     "The exam's Durable Functions questions, each as the phrase to listen for and the answer it points to.",
                     nodes = listOf(
@@ -591,8 +607,8 @@ internal object Az204StyledCompute2 {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(30, show = setOf("person", "many", "time", "wait", "side"), light = setOf("side"), card = BoardCard("Listen for the phrase", "Each exam phrase points to one pattern or one safe call.")),
-                    Beat(32, card = BoardCard("Today", "Template, POST to HttpStart, read the status, add a 30-second timer.")),
+                    Beat(32, show = setOf("person", "many", "time", "wait", "side"), light = setOf("side"), card = BoardCard("Listen for the phrase", "Each exam phrase points to one pattern or one safe call.")),
+                    Beat(34, card = BoardCard("Today", "Template, POST to HttpStart, read the status, add a 30-second timer.")),
                 ),
             ),
         ),
@@ -621,49 +637,54 @@ internal object Az204StyledCompute2 {
                     Beat(0, show = setOf("phone", "api", "spin"), light = setOf("spin"), pulse = "phone" to "api", card = BoardCard("The case", "Every morning at eight, the first players stare at a spinner.")),
                 ),
             ),
-            // 1: "A quiz where the first question is, how long can you wait?..."
+            // 1: "A quiz where the first question is, how long can you wait? Detective L..."
             Scene(
                 1, "Image and container",
                 DiagramSpec(
-                    "An image is the packed-up app; each running copy is a container, a walled-off process on a shared host.",
+                    "An image packs code, runtime, libraries and OS files, but no kernel; a Dockerfile builds it, and each running copy is a container.",
                     nodes = listOf(
-                        DNode("img", "Image", 0.5f, 0.2f, w = 0.4f, h = 0.22f, kind = NodeKind.NOTE, sub = "the blueprint"),
-                        DNode("c1", "Container", 0.25f, 0.72f, w = 0.36f, h = 0.2f, tone = 1, sub = "a process"),
-                        DNode("c2", "Container", 0.75f, 0.72f, w = 0.36f, h = 0.2f, tone = 1, sub = "a process"),
+                        DNode("app", "Code, runtime, libraries", 0.5f, 0.1f, w = 0.8f, h = 0.13f, tone = 1),
+                        DNode("base", "Base image: OS files", 0.5f, 0.26f, w = 0.8f, h = 0.13f, tone = 1),
+                        DNode("kernel", "Host kernel, shared", 0.5f, 0.5f, w = 0.8f, h = 0.14f, tone = 2),
+                        DNode("df", "Dockerfile", 0.22f, 0.8f, w = 0.36f, h = 0.2f, kind = NodeKind.NOTE, sub = "the recipe"),
+                        DNode("c1", "Container", 0.76f, 0.8f, w = 0.4f, h = 0.2f, sub = "a process"),
                     ),
                     edges = listOf(
-                        DEdge("img", "c1", "run"),
-                        DEdge("img", "c2", "run"),
+                        DEdge("base", "kernel", "runs on", dashed = true),
+                        DEdge("df", "c1", "build, run"),
                     ),
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(2, show = setOf("img", "c1", "c2"), light = setOf("c1", "c2"), pulse = "img" to "c1", card = BoardCard("Under the picture", "Not a virtual machine: a walled-off process. It starts in seconds.")),
+                    Beat(2, show = setOf("app", "base"), light = setOf("base"), card = BoardCard("Container image", "Built code, runtime, libraries and a slim OS base image. One package.")),
+                    Beat(4, show = setOf("kernel"), light = setOf("kernel"), pulse = "base" to "kernel", card = BoardCard("No kernel inside", "A walled-off process on the host's kernel. Megabytes, seconds to start.")),
+                    Beat(6, show = setOf("df", "c1"), light = setOf("df"), pulse = "df" to "c1", card = BoardCard("Dockerfile", "The recipe. Docker build makes the image; each running copy is a container.")),
                 ),
             ),
-            // 3: "And where does this quiz API live?"
+            // 7: "And where does this quiz API live?"
             Scene(
-                3, "Registry and app",
+                7, "Registry and app",
                 DiagramSpec(
-                    "An ACR Task builds the image into the registry, and Container Apps pulls it to run the API.",
+                    "The image is pushed into the registry, built there by an ACR Task, and Container Apps pulls it to run the API.",
                     nodes = listOf(
                         DNode("task", "ACR Task", 0.2f, 0.22f, w = 0.32f, h = 0.18f, kind = NodeKind.PILL),
                         DNode("acr", "Container Registry", 0.72f, 0.22f, w = 0.44f, h = 0.3f, kind = NodeKind.CYLINDER, tone = 1, sub = "ACR"),
                         DNode("aca", "Container Apps", 0.72f, 0.75f, w = 0.44f, h = 0.22f, sub = "Kubernetes hidden"),
                     ),
                     edges = listOf(
-                        DEdge("task", "acr", "image"),
+                        DEdge("task", "acr", "push"),
                         DEdge("acr", "aca", "pull"),
                     ),
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(4, show = setOf("task", "acr", "aca"), light = setOf("task"), pulse = "task" to "acr", card = BoardCard("ACR and ACR Tasks", "A private shelf for images. An ACR Task builds one with no Docker.")),
+                    Beat(8, show = setOf("task", "acr"), light = setOf("task"), pulse = "task" to "acr", card = BoardCard("ACR and ACR Tasks", "A private registry. Push uploads; an ACR Task builds and stores the image.")),
+                    Beat(10, show = setOf("aca"), light = setOf("aca"), pulse = "acr" to "aca", card = BoardCard("Pull", "Whatever runs the image downloads it. Here, each new replica pulls.")),
                 ),
             ),
-            // 5: "Then my first suspect is the registry..."
+            // 11: "Then my first suspect is the registry..."
             Scene(
-                5, "Suspect: the registry",
+                11, "Suspect: the registry",
                 DiagramSpec(
                     "Geo-replication is Premium only, and the image is pulled when a replica starts, not on every request.",
                     nodes = listOf(
@@ -677,13 +698,13 @@ internal object Az204StyledCompute2 {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(5, show = setOf("acr", "geo"), light = setOf("geo"), card = BoardCard("Suspect one", "A slow Basic registry far away. Buy geo-replication?")),
-                    Beat(6, show = setOf("pull"), light = setOf("pull"), card = BoardCard("Suspect one: cleared", "Same region. So why does a replica start at eight?")),
+                    Beat(11, show = setOf("acr", "geo"), light = setOf("geo"), card = BoardCard("Suspect one", "A slow Basic registry far away. Buy geo-replication?")),
+                    Beat(12, show = setOf("pull"), light = setOf("pull"), card = BoardCard("Suspect one: cleared", "Same region. So why does a replica start at eight?")),
                 ),
             ),
-            // 7: "Because there wasn't one running before eight?"
+            // 13: "Because there wasn't one running before eight?"
             Scene(
-                7, "Clue one: nobody home",
+                13, "Clue one: nobody home",
                 DiagramSpec(
                     "KEDA watches traffic or a queue and adds or removes replicas between your minimum and maximum.",
                     nodes = listOf(
@@ -703,14 +724,14 @@ internal object Az204StyledCompute2 {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(8, show = setOf("rules", "keda", "r1", "r2", "r3"), light = setOf("keda"), pulse = "keda" to "r2", card = BoardCard("KEDA", "Adds replicas, extra copies of your app, from traffic or a queue.")),
-                    Beat(10, show = setOf("min"), light = setOf("min"), card = BoardCard("A cold start", "Minimum zero: nobody home at eight. A busy API keeps a minimum of one.")),
-                    Beat(12, light = setOf("rules", "keda"), pulse = "rules" to "keda", card = BoardCard("How it decides", "Past the rule, it asks Kubernetes for more replicas, up to the maximum.")),
+                    Beat(14, show = setOf("rules", "keda", "r1", "r2", "r3"), light = setOf("keda"), pulse = "keda" to "r2", card = BoardCard("KEDA", "Adds replicas, extra copies of your app, from traffic or a queue.")),
+                    Beat(16, show = setOf("min"), light = setOf("min"), card = BoardCard("A cold start", "Minimum zero: nobody home at eight. A busy API keeps a minimum of one.")),
+                    Beat(18, light = setOf("rules", "keda"), pulse = "rules" to "keda", card = BoardCard("How it decides", "Past the rule, it asks Kubernetes for more replicas, up to the maximum.")),
                 ),
             ),
-            // 13: "Minimum one. Case closed?"
+            // 19: "Minimum one. Case closed?"
             Scene(
-                13, "Clue two: Unauthorized",
+                19, "Clue two: Unauthorized",
                 DiagramSpec(
                     "The app pulled with the registry's admin password; a managed identity with AcrPull needs no password at all.",
                     nodes = listOf(
@@ -727,14 +748,14 @@ internal object Az204StyledCompute2 {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(14, show = setOf("app", "acr"), light = setOf("app"), pulse = "app" to "acr", card = BoardCard("Clue two", "The new revision couldn't pull its image. Unauthorized.")),
-                    Beat(16, show = setOf("secret"), light = setOf("secret"), card = BoardCard("Revision", "A frozen snapshot of one deployment. This one had an old password.")),
-                    Beat(18, show = setOf("id"), light = setOf("id", "acr"), pulse = "id" to "acr", card = BoardCard("No password at all", "A managed identity with AcrPull. Key Vault episode: identities.")),
+                    Beat(20, show = setOf("app", "acr"), light = setOf("app"), pulse = "app" to "acr", card = BoardCard("Clue two", "The new revision couldn't pull its image. Unauthorized.")),
+                    Beat(22, show = setOf("secret"), light = setOf("secret"), card = BoardCard("Revision", "A frozen snapshot of one deployment. This one had an old password.")),
+                    Beat(24, show = setOf("id"), light = setOf("id", "acr"), pulse = "id" to "acr", card = BoardCard("No password at all", "A managed identity with AcrPull. Key Vault episode: identities.")),
                 ),
             ),
-            // 19: "Any more clues in the file?"
+            // 25: "Any more clues in the file?"
             Scene(
-                19, "The night shift",
+                25, "The night shift",
                 DiagramSpec(
                     "ACI runs the export by the second; its disk is thrown away, so files go to an Azure Files share.",
                     nodes = listOf(
@@ -750,14 +771,14 @@ internal object Az204StyledCompute2 {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(20, show = setOf("aci"), light = setOf("aci"), card = BoardCard("The missing scores", "The export wrote to its own disk. By morning, the file was gone.")),
-                    Beat(22, show = setOf("files", "always"), light = setOf("files", "always"), pulse = "aci" to "files", card = BoardCard("Keep files, stop looping", "Mount Azure Files. And Always restarted it after every success.")),
-                    Beat(24, show = setOf("onf", "never"), light = setOf("onf"), card = BoardCard("Restart policy", "OnFailure retries a crash. Container group: several share one host.")),
+                    Beat(26, show = setOf("aci"), light = setOf("aci"), card = BoardCard("The missing scores", "The export wrote to its own disk. By morning, the file was gone.")),
+                    Beat(28, show = setOf("files", "always"), light = setOf("files", "always"), pulse = "aci" to "files", card = BoardCard("Keep files, stop looping", "Mount Azure Files. And Always restarted it after every success.")),
+                    Beat(30, show = setOf("onf", "never"), light = setOf("onf"), card = BoardCard("Restart policy", "OnFailure retries a crash. Container group: several share one host.")),
                 ),
             ),
-            // 25: "So with the fixes in, how do they ship the next version safely?"
+            // 31: "So with the fixes in, how do they ship the next version safely?"
             Scene(
-                25, "Ten percent",
+                31, "Ten percent",
                 DiagramSpec(
                     "In multiple revision mode, traffic is split across revisions by percentage, and a rollback is a routing change.",
                     nodes = listOf(
@@ -772,12 +793,12 @@ internal object Az204StyledCompute2 {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(26, show = setOf("users", "r1", "r2"), light = setOf("r2"), pulse = "users" to "r2", card = BoardCard("Rollback", "Point traffic back at the old revision. Slots do this on App Service.")),
+                    Beat(32, show = setOf("users", "r1", "r2"), light = setOf("r2"), pulse = "users" to "r2", card = BoardCard("Rollback", "Point traffic back at the old revision. Slots do this on App Service.")),
                 ),
             ),
-            // 27: "And where does Container Apps stop working?"
+            // 33: "And where does Container Apps stop working?"
             Scene(
-                27, "Where each fits",
+                33, "Where each fits",
                 DiagramSpec(
                     "ACI runs one container now; Container Apps runs microservices without a cluster; AKS is full Kubernetes control.",
                     nodes = listOf(
@@ -792,12 +813,12 @@ internal object Az204StyledCompute2 {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(28, show = setOf("aci", "aca", "aks", "note"), light = setOf("aca", "note"), pulse = "aca" to "note", card = BoardCard("Past the edge", "Your own cluster and operators: AKS. One container, no rules: ACI.")),
+                    Beat(34, show = setOf("aci", "aca", "aks", "note"), light = setOf("aca", "note"), pulse = "aca" to "note", card = BoardCard("Past the edge", "Your own cluster and operators: AKS. One container, no rules: ACI.")),
                 ),
             ),
-            // 29: "So, the case summary for the exam?"
+            // 35: "So, the case summary for the exam?"
             Scene(
-                29, "Case closed",
+                35, "Case closed",
                 DiagramSpec(
                     "The exam's container questions, each as the phrase to listen for and the answer it points to.",
                     nodes = listOf(
@@ -810,8 +831,8 @@ internal object Az204StyledCompute2 {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(30, show = setOf("now", "micro", "build", "cold", "geo"), light = setOf("cold"), card = BoardCard("Listen for the phrase", "Each exam phrase points straight to one service or setting.")),
-                    Beat(32, card = BoardCard("Today", "Basic registry, build a Dockerfile, run it with Never, read logs, delete.")),
+                    Beat(36, show = setOf("now", "micro", "build", "cold", "geo"), light = setOf("cold"), card = BoardCard("Listen for the phrase", "Each exam phrase points straight to one service or setting.")),
+                    Beat(38, card = BoardCard("Today", "Basic registry, build a Dockerfile, run it with Never, read logs, delete.")),
                 ),
             ),
         ),
@@ -840,31 +861,54 @@ internal object Az204StyledCompute2 {
                     Beat(0, show = setOf("phone", "api", "err"), light = setOf("err"), pulse = "phone" to "api", card = BoardCard("Monday", "Nobody could book a spin class for two hours.")),
                 ),
             ),
-            // 2: "First, the pieces..."
+            // 2: "First, the pieces, the way Aisha explained them to the new Android dev..."
             Scene(
-                2, "Image, registry, app",
+                2, "Image and container",
                 DiagramSpec(
-                    "An ACR Task builds the image into the registry, and Container Apps pulls it to run the API.",
+                    "An image packs code, runtime, libraries and OS files, but no kernel; a Dockerfile builds it, and each running copy is a container.",
                     nodes = listOf(
-                        DNode("img", "Image", 0.2f, 0.22f, w = 0.32f, h = 0.2f, kind = NodeKind.NOTE, sub = "the blueprint"),
+                        DNode("app", "Code, runtime, libraries", 0.5f, 0.1f, w = 0.8f, h = 0.13f, tone = 1),
+                        DNode("base", "Base image: OS files", 0.5f, 0.26f, w = 0.8f, h = 0.13f, tone = 1),
+                        DNode("kernel", "Host kernel, shared", 0.5f, 0.5f, w = 0.8f, h = 0.14f, tone = 2),
+                        DNode("df", "Dockerfile", 0.22f, 0.8f, w = 0.36f, h = 0.2f, kind = NodeKind.NOTE, sub = "the recipe"),
+                        DNode("c1", "Container", 0.76f, 0.8f, w = 0.4f, h = 0.2f, sub = "a process"),
+                    ),
+                    edges = listOf(
+                        DEdge("base", "kernel", "runs on", dashed = true),
+                        DEdge("df", "c1", "build, run"),
+                    ),
+                    aspect = 0.8f,
+                ),
+                beats = listOf(
+                    Beat(2, show = setOf("app"), light = setOf("app"), card = BoardCard("Without containers", "A server built by hand, then your build copied on. Works on my machine.")),
+                    Beat(4, show = setOf("base", "kernel"), light = setOf("kernel"), pulse = "base" to "kernel", card = BoardCard("No kernel inside", "OS files, not the kernel: a walled-off process on the host's kernel.")),
+                    Beat(6, show = setOf("df", "c1"), light = setOf("df"), pulse = "df" to "c1", card = BoardCard("Dockerfile", "The recipe. Docker build makes the image; each running copy is a container.")),
+                ),
+            ),
+            // 7: "And where do the gym's images live?"
+            Scene(
+                7, "Registry and app",
+                DiagramSpec(
+                    "An ACR Task builds the image and pushes it into the registry, and Container Apps pulls it to run the API.",
+                    nodes = listOf(
+                        DNode("task", "ACR Task", 0.2f, 0.22f, w = 0.32f, h = 0.18f, kind = NodeKind.PILL),
                         DNode("acr", "Container Registry", 0.72f, 0.22f, w = 0.44f, h = 0.3f, kind = NodeKind.CYLINDER, tone = 1, sub = "ACR"),
-                        DNode("task", "ACR Task", 0.2f, 0.75f, w = 0.32f, h = 0.18f, kind = NodeKind.PILL),
                         DNode("aca", "Container Apps", 0.72f, 0.75f, w = 0.44f, h = 0.22f, sub = "Kubernetes hidden"),
                     ),
                     edges = listOf(
-                        DEdge("task", "acr", "builds"),
+                        DEdge("task", "acr", "push"),
                         DEdge("acr", "aca", "pull"),
                     ),
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(2, show = setOf("img"), light = setOf("img"), card = BoardCard("Under the picture", "A container is a walled-off process on a shared host. Fast to start.")),
-                    Beat(4, show = setOf("acr", "task", "aca"), light = setOf("task", "acr"), pulse = "task" to "acr", card = BoardCard("ACR Task", "Builds the image in the cloud on every push. No Docker needed.")),
+                    Beat(8, show = setOf("task", "acr"), light = setOf("task", "acr"), pulse = "task" to "acr", card = BoardCard("ACR Task", "Builds the image in the cloud on every commit and stores it. No Docker.")),
+                    Beat(10, show = setOf("aca"), light = setOf("aca"), pulse = "acr" to "aca", card = BoardCard("Pull", "Container Apps downloads the image each time it starts a copy.")),
                 ),
             ),
-            // 5: "So what did Dana do?"
+            // 11: "So what did Dana do?"
             Scene(
-                5, "Dana's password",
+                11, "Dana's password",
                 DiagramSpec(
                     "The app pulled with the registry's admin password; a managed identity with AcrPull needs no password at all.",
                     nodes = listOf(
@@ -881,13 +925,13 @@ internal object Az204StyledCompute2 {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(6, show = setOf("app", "acr", "secret"), light = setOf("secret"), pulse = "app" to "secret", card = BoardCard("Dana's secret", "The registry's admin password, stored in the app. Then it was rotated.")),
-                    Beat(8, show = setOf("id"), light = setOf("id", "acr"), pulse = "id" to "acr", card = BoardCard("Priya's fix", "A managed identity with AcrPull. Nothing stored, nothing to rotate.")),
+                    Beat(12, show = setOf("app", "acr", "secret"), light = setOf("secret"), pulse = "app" to "secret", card = BoardCard("Dana's secret", "The registry's admin password, stored in the app. Then it was rotated.")),
+                    Beat(14, show = setOf("id"), light = setOf("id", "acr"), pulse = "id" to "acr", card = BoardCard("Priya's fix", "A managed identity with AcrPull. Nothing stored, nothing to rotate.")),
                 ),
             ),
-            // 9: "And what was being deployed on Monday anyway?"
+            // 15: "And what was being deployed on Monday anyway?"
             Scene(
-                9, "Ten percent",
+                15, "Ten percent",
                 DiagramSpec(
                     "Each deployment is a revision that never changes; traffic is split across revisions by percentage.",
                     nodes = listOf(
@@ -902,13 +946,13 @@ internal object Az204StyledCompute2 {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(10, show = setOf("users", "r1", "r2"), light = setOf("r2"), pulse = "users" to "r2", card = BoardCard("Revision", "A frozen snapshot. Multiple revision mode splits the traffic.")),
-                    Beat(12, light = setOf("r1"), pulse = "users" to "r1", card = BoardCard("Rollback", "Point traffic back at the old revision. Slots do this on App Service.")),
+                    Beat(16, show = setOf("users", "r1", "r2"), light = setOf("r2"), pulse = "users" to "r2", card = BoardCard("Revision", "A frozen snapshot. Multiple revision mode splits the traffic.")),
+                    Beat(18, light = setOf("r1"), pulse = "users" to "r1", card = BoardCard("Rollback", "Point traffic back at the old revision. Slots do this on App Service.")),
                 ),
             ),
-            // 13: "Okay, Dana's forgiven. Who's next?"
+            // 19: "Okay, Dana's forgiven. Who's next?"
             Scene(
-                13, "Marcus at six",
+                19, "Marcus at six",
                 DiagramSpec(
                     "KEDA watches traffic or a queue and adds or removes replicas between your minimum and maximum.",
                     nodes = listOf(
@@ -928,13 +972,13 @@ internal object Az204StyledCompute2 {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(14, show = setOf("min"), light = setOf("min"), card = BoardCard("Minimum zero", "Nothing runs while it's quiet. The six o'clock bookers waited.")),
-                    Beat(16, show = setOf("rules", "keda", "r1", "r2", "r3"), light = setOf("keda"), pulse = "rules" to "keda", card = BoardCard("KEDA", "Watches a number and adds replicas. A busy API keeps a minimum of one.")),
+                    Beat(20, show = setOf("min"), light = setOf("min"), card = BoardCard("Minimum zero", "Nothing runs while it's quiet. The six o'clock bookers waited.")),
+                    Beat(22, show = setOf("rules", "keda", "r1", "r2", "r3"), light = setOf("keda"), pulse = "rules" to "keda", card = BoardCard("KEDA", "Watches a number and adds replicas. A busy API keeps a minimum of one.")),
                 ),
             ),
-            // 17: "And Wednesday?"
+            // 23: "And Wednesday?"
             Scene(
-                17, "The intern's report",
+                23, "The intern's report",
                 DiagramSpec(
                     "ACI runs the report job by the second; its disk is thrown away, so files go to an Azure Files share.",
                     nodes = listOf(
@@ -950,14 +994,14 @@ internal object Az204StyledCompute2 {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(18, show = setOf("aci"), light = setOf("aci"), card = BoardCard("The vanished report", "Written to the container's own disk, thrown away when it stopped.")),
-                    Beat(20, show = setOf("files", "always"), light = setOf("files", "always"), pulse = "aci" to "files", card = BoardCard("Tom's catch", "Mount Azure Files. And Always meant seven reports by lunch.")),
-                    Beat(22, show = setOf("onf", "never"), light = setOf("onf"), card = BoardCard("Restart policy", "OnFailure retries a crash. Container group: several share one host.")),
+                    Beat(24, show = setOf("aci"), light = setOf("aci"), card = BoardCard("The vanished report", "Written to the container's own disk, thrown away when it stopped.")),
+                    Beat(26, show = setOf("files", "always"), light = setOf("files", "always"), pulse = "aci" to "files", card = BoardCard("Tom's catch", "Mount Azure Files. And Always meant seven reports by lunch.")),
+                    Beat(28, show = setOf("onf", "never"), light = setOf("onf"), card = BoardCard("Restart policy", "OnFailure retries a crash. Container group: several share one host.")),
                 ),
             ),
-            // 23: "Was there a Friday?"
+            // 29: "Was there a Friday?"
             Scene(
-                23, "Ben's Friday",
+                29, "Ben's Friday",
                 DiagramSpec(
                     "The registry tiers: Basic 10 GB, Standard 100 GB, and Premium 500 GB with geo-replication.",
                     nodes = listOf(
@@ -972,12 +1016,12 @@ internal object Az204StyledCompute2 {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(24, show = setOf("basic", "std", "prem", "geo"), light = setOf("prem", "geo"), pulse = "prem" to "geo", card = BoardCard("A second gym abroad", "Images copied to another region: geo-replication, Premium only.")),
+                    Beat(30, show = setOf("basic", "std", "prem", "geo"), light = setOf("prem", "geo"), pulse = "prem" to "geo", card = BoardCard("A second gym abroad", "Images copied to another region: geo-replication, Premium only.")),
                 ),
             ),
-            // 25: "And when is Container Apps the wrong choice?"
+            // 31: "And when is Container Apps the wrong choice?"
             Scene(
-                25, "Where each fits",
+                31, "Where each fits",
                 DiagramSpec(
                     "ACI runs one container now; Container Apps runs microservices without a cluster; AKS is full Kubernetes control.",
                     nodes = listOf(
@@ -992,12 +1036,12 @@ internal object Az204StyledCompute2 {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(26, show = setOf("aci", "aca", "aks", "note"), light = setOf("aca", "note"), pulse = "aca" to "note", card = BoardCard("Past the edge", "Your own cluster and operators: AKS. One container, no rules: ACI.")),
+                    Beat(32, show = setOf("aci", "aca", "aks", "note"), light = setOf("aca", "note"), pulse = "aca" to "note", card = BoardCard("Past the edge", "Your own cluster and operators: AKS. One container, no rules: ACI.")),
                 ),
             ),
-            // 27: "So, the gossip I should remember for the exam?"
+            // 33: "So, the gossip I should remember for the exam?"
             Scene(
-                27, "For the exam",
+                33, "For the exam",
                 DiagramSpec(
                     "The exam's container questions, each as the phrase to listen for and the answer it points to.",
                     nodes = listOf(
@@ -1010,8 +1054,8 @@ internal object Az204StyledCompute2 {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(28, show = setOf("now", "micro", "build", "retry", "geo"), light = setOf("retry"), card = BoardCard("Listen for the phrase", "Each exam phrase points straight to one service or setting.")),
-                    Beat(30, card = BoardCard("Today", "Basic registry, build a Dockerfile, run it with Never, read logs, delete.")),
+                    Beat(34, show = setOf("now", "micro", "build", "retry", "geo"), light = setOf("retry"), card = BoardCard("Listen for the phrase", "Each exam phrase points straight to one service or setting.")),
+                    Beat(36, card = BoardCard("Today", "Basic registry, build a Dockerfile, run it with Never, read logs, delete.")),
                 ),
             ),
         ),

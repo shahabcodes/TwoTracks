@@ -29,7 +29,9 @@ internal object Az204StyledConnect2 {
             leo("Do they have to write all that checkpoint code themselves?"),
             maya("No. The EventProcessorClient in the SDK reads every partition, shares the partitions out across the running copies of the job, and keeps ownership and checkpoints in a blob container. Or an Azure Function with the Event Hub trigger does the lot, given a storage connection. The Azure Functions episode covers triggers."),
             leo("And when the summer rush comes, and every bike is out?"),
-            maya("Two dials. Throughput units are slices of capacity, one megabyte a second in and two out each. Auto-inflate adds units under load, but never takes them back. And partitions give you more readers side by side, but you choose the count when you create the hub, and on Standard it stays fixed."),
+            maya("Two dials. Throughput units are slices of capacity, one megabyte a second in and two out each. Auto-inflate adds units under load, but never takes them back."),
+            leo("And the second dial? Can they add lanes once summer hits?"),
+            maya("Partitions give you more readers side by side. But you choose the count when you create the hub, and on Standard it stays fixed. So plan for summer on day one."),
             leo("Last thing. The owner wants every ride kept for years, for the insurance company."),
             maya("That's past the edge of retention, which stops at seven days on Standard and ninety on Premium. So turn on Capture. It writes the events to Blob Storage or a data lake, in batches, as Avro files, with no code at all. The Blob Storage episode covers what happens to them there."),
             leo("Then the new developer wants refunds on the same hub. Each refund handled once, with failures set aside to look at."),
@@ -78,7 +80,9 @@ internal object Az204StyledConnect2 {
             leo("So where else does Event Hubs stop?"),
             maya("At retention. Events are kept one to seven days on Standard, up to ninety on Premium, then they age out. The team wanted a year of readings for growth charts, so Priya turned on Capture. It writes the events in batches to Blob Storage or a data lake, as Avro files, with no code."),
             leo("And when spring comes and everyone buys a sensor?"),
-            maya("Throughput units, slices of capacity, one megabyte a second in and two out each. Auto-inflate adds units when it's busy, but never shrinks back. And more partitions mean more readers side by side, though on Standard you choose the count when you create the hub."),
+            maya("Throughput units, slices of capacity, one megabyte a second in and two out each. Auto-inflate adds units when it's busy, but never shrinks back."),
+            leo("Can they add more lanes in spring, too?"),
+            maya("More partitions mean more readers side by side. But on Standard you choose the count when you create the hub, and it stays fixed."),
             leo("So, the gossip I should remember for the exam?"),
             maya("Four things. Two apps that must each read every event get a consumer group each. One device's events in order means a partition key. Archive every event with no code means Capture. And millions of events a second, telemetry or clickstreams, means Event Hubs. To replay yesterday, use retention and a new consumer group."),
             leo("And something to try today, so the ferns survive?"),
@@ -101,11 +105,13 @@ internal object Az204StyledConnect2 {
             leo("How is PeekLock different, actually?"),
             maya("The broker hands the message over with a lock on it, and hides it from every other receiver while the lock lasts. It's still stored. The worker does the job and then settles it. If the worker crashes and never settles, the lock runs out, and the message appears again for the next try."),
             leo("Settles it how?"),
-            maya("Four ways. Complete means done, remove it. Abandon means let go, so it's delivered again and its delivery count goes up by one. Dead-letter means move it aside, with a reason. And defer means keep it but skip it, to fetch later by its sequence number."),
+            maya("Four ways. Complete means done, remove it. Abandon means let go, so it's delivered again and its delivery count goes up by one."),
+            leo("And a booking that can never work? Say, one for a class that's been cancelled."),
+            maya("Dead-letter means move it aside, with a reason. And defer means keep it but skip it, to fetch later by its sequence number."),
             leo("Right. Now the double bookings. Suspect two: the member tapped Book twice."),
-            maya("Good thought, but the logs show one message per booking. And even a repeat could be dropped by duplicate detection, which ignores a repeated message id within a time window. Look at the worker's timings instead. The confirmation step calls a slow payment service. On a busy Saturday it took forty seconds."),
+            maya("Good thought, but the logs show one message per booking. And even a repeat could be dropped by duplicate detection, which ignores a repeated message id within a time window. Look at the worker's timings instead. The confirmation step calls a slow payment service. On a busy Saturday it took ninety seconds."),
             leo("And the lock lasts..."),
-            maya("Thirty seconds by default, up to five minutes. After thirty seconds the lock ran out, while the first worker was still busy. So Service Bus handed the same message to a second worker. Two workers, one booking, two emails. Renew the lock during long work, or set a longer lock duration."),
+            maya("One minute by default, up to five minutes. After a minute the lock ran out, while the first worker was still busy. So Service Bus handed the same message to a second worker. Two workers, one booking, two emails. Renew the lock during long work, or set a longer lock duration."),
             leo("[laugh] Two cooks, one spin class. Case closed?"),
             maya("Not yet. The waitlist. The booking messages go to a topic, not a queue. A topic is publish once, many get a copy. Each subscription is its own mailbox: one for confirmations, and one for the waitlist, which should only get bookings for full classes. Topics need the Standard tier or above."),
             leo("Let me guess. The waitlist got everything."),
@@ -146,9 +152,11 @@ internal object Az204StyledConnect2 {
             leo("[sigh] Oh no. So what should Omar have used?"),
             maya("PeekLock, the default. The broker hands the message over locked, not removed, and hides it from other receivers while the lock lasts. If the worker crashes and never answers, the lock runs out and the message comes back. Priya made Omar write the four settlements on a sticky note."),
             leo("Which are?"),
-            maya("Complete: done, remove it. Abandon: let go, so it's delivered again and its delivery count goes up by one. Dead-letter: move it aside with a reason. And defer: keep it but skip it, to fetch later by its sequence number."),
+            maya("Complete: done, remove it. Abandon: let go, so it's delivered again and its delivery count goes up by one."),
+            leo("And a booking for a walker who's left? That one will never work."),
+            maya("Dead-letter: move it aside with a reason. And defer: keep it but skip it, to fetch later by its sequence number."),
             leo("Week three?"),
-            maya("Lena. Lena's worker matched each booking to a walker, and on busy mornings that took a minute. The lock lasts thirty seconds by default, up to five minutes. So halfway through, the lock ran out, and the same booking went to a second worker. Two walkers turned up for one poodle."),
+            maya("Lena. Lena's worker matched each booking to a walker, and on busy mornings that took two minutes. The lock lasts one minute by default, up to five minutes. So halfway through, the lock ran out, and the same booking went to a second worker. Two walkers turned up for one poodle."),
             leo("The poodle had a great day, though."),
             maya("It did. The fix is to renew the lock during long work, or set a longer lock duration. And for an owner who books and then changes the time a second later, Priya added sessions. Messages with the same session id, here the owner's id, go to one receiver, strictly in order. And duplicate detection drops a repeated message id within a time window, so a double send is harmless."),
             leo("And Marcus? I heard Marcus has a pile."),
@@ -285,9 +293,9 @@ internal object Az204StyledConnect2 {
                     Beat(24, show = setOf("auto"), light = setOf("tu", "auto"), card = BoardCard("Throughput unit", "One slice of capacity: 1 MB a second in, 2 out. Auto-inflate adds more.")),
                 ),
             ),
-            // 25: "Last thing. The owner wants every ride kept for years..."
+            // 27: "Last thing. The owner wants every ride kept for years..."
             Scene(
-                25, "Kept for years",
+                27, "Kept for years",
                 DiagramSpec(
                     "Retention ends after days; Capture writes events in batches to Blob Storage or a data lake as Avro files.",
                     nodes = listOf(
@@ -300,13 +308,13 @@ internal object Az204StyledConnect2 {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(25, show = setOf("hub"), card = BoardCard("Retention", "1 to 7 days on Standard, up to 90 on Premium. Not years.")),
-                    Beat(26, show = setOf("store"), light = setOf("store"), pulse = "hub" to "store", card = BoardCard("Capture", "Archive every event to storage as Avro files, with no code.")),
+                    Beat(27, show = setOf("hub"), card = BoardCard("Retention", "1 to 7 days on Standard, up to 90 on Premium. Not years.")),
+                    Beat(28, show = setOf("store"), light = setOf("store"), pulse = "hub" to "store", card = BoardCard("Capture", "Archive every event to storage as Avro files, with no code.")),
                 ),
             ),
-            // 27: "Then the new developer wants refunds on the same hub..."
+            // 29: "Then the new developer wants refunds on the same hub..."
             Scene(
-                27, "Refunds on the hub?",
+                29, "Refunds on the hub?",
                 DiagramSpec(
                     "Refunds that must each be handled go to Service Bus; Event Hubs streams, Event Grid pushes a note.",
                     nodes = listOf(
@@ -321,13 +329,13 @@ internal object Az204StyledConnect2 {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(27, show = setOf("refund"), light = setOf("refund"), card = BoardCard("Each refund handled once", "And failures set aside to look at later.")),
-                    Beat(28, show = setOf("eh", "eg", "sb"), light = setOf("sb"), pulse = "refund" to "sb", card = BoardCard("That's Service Bus", "Event Hubs has no settling and no dead-letter queue.")),
+                    Beat(29, show = setOf("refund"), light = setOf("refund"), card = BoardCard("Each refund handled once", "And failures set aside to look at later.")),
+                    Beat(30, show = setOf("eh", "eg", "sb"), light = setOf("sb"), pulse = "refund" to "sb", card = BoardCard("That's Service Bus", "Event Hubs has no settling and no dead-letter queue.")),
                 ),
             ),
-            // 29: "So, the case summary for the exam?"
+            // 31: "So, the case summary for the exam?"
             Scene(
-                29, "Case closed",
+                31, "Case closed",
                 DiagramSpec(
                     "The exam's Event Hubs questions, each as the phrase to listen for and the answer it points to.",
                     nodes = listOf(
@@ -340,8 +348,8 @@ internal object Az204StyledConnect2 {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(30, show = setOf("two", "order", "arch", "mill", "replay"), light = setOf("two", "order"), card = BoardCard("Listen for the phrase", "Each exam phrase points straight to one answer.")),
-                    Beat(32, card = BoardCard("Today", "Basic namespace, 2 partitions, send 10 events, read them, check Metrics.")),
+                    Beat(32, show = setOf("two", "order", "arch", "mill", "replay"), light = setOf("two", "order"), card = BoardCard("Listen for the phrase", "Each exam phrase points straight to one answer.")),
+                    Beat(34, card = BoardCard("Today", "Basic namespace, 2 partitions, send 10 events, read them, check Metrics.")),
                 ),
             ),
         ),
@@ -500,9 +508,9 @@ internal object Az204StyledConnect2 {
                     Beat(32, show = setOf("auto"), light = setOf("tu", "auto"), card = BoardCard("Throughput unit", "1 MB a second in, 2 out. Auto-inflate grows, never shrinks.")),
                 ),
             ),
-            // 33: "So, the gossip I should remember for the exam?"
+            // 35: "So, the gossip I should remember for the exam?"
             Scene(
-                33, "For the exam",
+                35, "For the exam",
                 DiagramSpec(
                     "The exam's Event Hubs questions, each as the phrase to listen for and the answer it points to.",
                     nodes = listOf(
@@ -515,8 +523,8 @@ internal object Az204StyledConnect2 {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(34, show = setOf("two", "order", "arch", "mill", "replay"), light = setOf("two", "order"), card = BoardCard("Listen for the phrase", "Each exam phrase points straight to one answer.")),
-                    Beat(36, card = BoardCard("Today", "Basic namespace, 2 partitions, send 10 events, read them, check Metrics.")),
+                    Beat(36, show = setOf("two", "order", "arch", "mill", "replay"), light = setOf("two", "order"), card = BoardCard("Listen for the phrase", "Each exam phrase points straight to one answer.")),
+                    Beat(38, card = BoardCard("Today", "Basic namespace, 2 partitions, send 10 events, read them, check Metrics.")),
                 ),
             ),
         ),
@@ -588,16 +596,16 @@ internal object Az204StyledConnect2 {
                     Beat(10, show = setOf("c", "a", "d", "f"), light = setOf("c"), card = BoardCard("Four ways to settle", "Complete, abandon, dead-letter or defer.")),
                 ),
             ),
-            // 11: "Right. Now the double bookings. Suspect two..."
+            // 13: "Right. Now the double bookings. Suspect two..."
             Scene(
-                11, "The double bookings",
+                13, "The double bookings",
                 DiagramSpec(
                     "Work that outlasts the lock lets the same message reach a second worker; renew the lock or lengthen it.",
                     nodes = listOf(
                         DNode("q", "Queue", 0.2f, 0.4f, w = 0.3f, h = 0.36f, kind = NodeKind.CYLINDER),
                         DNode("w1", "Worker 1", 0.78f, 0.2f, w = 0.36f, h = 0.22f, sub = "still busy"),
                         DNode("w2", "Worker 2", 0.78f, 0.6f, w = 0.36f, h = 0.22f, tone = 2, sub = "same message"),
-                        DNode("lock", "Lock: 30 s, up to 5 min", 0.5f, 0.88f, w = 0.6f, h = 0.16f, kind = NodeKind.NOTE),
+                        DNode("lock", "Lock: 1 min, up to 5", 0.5f, 0.88f, w = 0.6f, h = 0.16f, kind = NodeKind.NOTE),
                     ),
                     edges = listOf(
                         DEdge("q", "w1"),
@@ -606,14 +614,14 @@ internal object Az204StyledConnect2 {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(11, show = setOf("q", "w1"), card = BoardCard("Suspect two: a double tap", "Cleared. One message per booking, and duplicate detection drops repeats.")),
-                    Beat(12, light = setOf("w1"), pulse = "q" to "w1", card = BoardCard("Forty seconds", "A slow payment call made the work longer than the lock.")),
-                    Beat(14, show = setOf("w2", "lock"), light = setOf("w2", "lock"), pulse = "q" to "w2", card = BoardCard("The lock ran out", "Same message, second worker. Renew the lock, or make it longer.")),
+                    Beat(13, show = setOf("q", "w1"), card = BoardCard("Suspect two: a double tap", "Cleared. One message per booking, and duplicate detection drops repeats.")),
+                    Beat(14, light = setOf("w1"), pulse = "q" to "w1", card = BoardCard("Ninety seconds", "A slow payment call made the work longer than the lock.")),
+                    Beat(16, show = setOf("w2", "lock"), light = setOf("w2", "lock"), pulse = "q" to "w2", card = BoardCard("The lock ran out", "Same message, second worker. Renew the lock, or make it longer.")),
                 ),
             ),
-            // 16: "Not yet. The waitlist..."
+            // 18: "Not yet. The waitlist..."
             Scene(
-                16, "The waitlist",
+                18, "The waitlist",
                 DiagramSpec(
                     "Each subscription filters with rules; delete the default rule or it still lets every message in.",
                     nodes = listOf(
@@ -630,13 +638,13 @@ internal object Az204StyledConnect2 {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(16, show = setOf("t", "conf", "wait"), pulse = "t" to "conf", card = BoardCard("Topic", "Publish once; each subscription gets its own copy.")),
-                    Beat(18, show = setOf("def"), light = setOf("def", "wait"), pulse = "t" to "wait", card = BoardCard("Delete the default rule", "Any matching rule lets a message in. Exact match? A correlation filter.")),
+                    Beat(18, show = setOf("t", "conf", "wait"), pulse = "t" to "conf", card = BoardCard("Topic", "Publish once; each subscription gets its own copy.")),
+                    Beat(20, show = setOf("def"), light = setOf("def", "wait"), pulse = "t" to "wait", card = BoardCard("Delete the default rule", "Any matching rule lets a message in. Exact match? A correlation filter.")),
                 ),
             ),
-            // 19: "Any more clues in the file?"
+            // 21: "Any more clues in the file?"
             Scene(
-                19, "The pile nobody read",
+                21, "The pile nobody read",
                 DiagramSpec(
                     "A message that can never work is dead-lettered; one that fails too often lands there after ten tries.",
                     nodes = listOf(
@@ -652,13 +660,13 @@ internal object Az204StyledConnect2 {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(20, show = setOf("q", "w", "dlq"), light = setOf("dlq"), card = BoardCard("Dead-letter queue", "A side pile on every queue and subscription. 300 unread.")),
-                    Beat(22, pulse = "w" to "dlq", card = BoardCard("Dead-letter the hopeless", "Abandon circles to the max delivery count; complete hides it. Read it!")),
+                    Beat(22, show = setOf("q", "w", "dlq"), light = setOf("dlq"), card = BoardCard("Dead-letter queue", "A side pile on every queue and subscription. 300 unread.")),
+                    Beat(24, pulse = "w" to "dlq", card = BoardCard("Dead-letter the hopeless", "Abandon circles to the max delivery count; complete hides it. Read it!")),
                 ),
             ),
-            // 23: "And strict order? A member books, then cancels a second later."
+            // 25: "And strict order? A member books, then cancels a second later."
             Scene(
-                23, "Book, then cancel",
+                25, "Book, then cancel",
                 DiagramSpec(
                     "Sessions keep messages with the same session id in order for one receiver.",
                     nodes = listOf(
@@ -671,13 +679,13 @@ internal object Az204StyledConnect2 {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(23, show = setOf("q", "w")),
-                    Beat(24, light = setOf("w"), pulse = "q" to "w", card = BoardCard("Session", "Same session id, one receiver, strict order. No cancel overtakes.")),
+                    Beat(25, show = setOf("q", "w")),
+                    Beat(26, light = setOf("w"), pulse = "q" to "w", card = BoardCard("Session", "Same session id, one receiver, strict order. No cancel overtakes.")),
                 ),
             ),
-            // 25: "What about the profile photos?..."
+            // 27: "What about the profile photos?..."
             Scene(
-                25, "The thumbnail problem",
+                27, "The thumbnail problem",
                 DiagramSpec(
                     "Storage queues grow far past Service Bus's 80 GB, with a visibility timeout and a pop receipt instead of PeekLock.",
                     nodes = listOf(
@@ -689,13 +697,13 @@ internal object Az204StyledConnect2 {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(26, show = setOf("stq"), light = setOf("stq"), card = BoardCard("Base64", "The receiver expected Base64; the sender sent plain text.")),
-                    Beat(28, show = setOf("sbq", "vt", "pr"), light = setOf("vt", "pr"), card = BoardCard("No PeekLock here", "Hidden for the visibility timeout; delete it with the pop receipt.")),
+                    Beat(28, show = setOf("stq"), light = setOf("stq"), card = BoardCard("Base64", "The receiver expected Base64; the sender sent plain text.")),
+                    Beat(30, show = setOf("sbq", "vt", "pr"), light = setOf("vt", "pr"), card = BoardCard("No PeekLock here", "Hidden for the visibility timeout; delete it with the pop receipt.")),
                 ),
             ),
-            // 29: "So, the case summary for the exam?"
+            // 31: "So, the case summary for the exam?"
             Scene(
-                29, "Case closed",
+                31, "Case closed",
                 DiagramSpec(
                     "The exam's messaging questions, each as the phrase to listen for and the answer it points to.",
                     nodes = listOf(
@@ -708,8 +716,8 @@ internal object Az204StyledConnect2 {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(30, show = setOf("never", "order", "big", "many", "safe"), light = setOf("never"), card = BoardCard("Listen for the phrase", "Each exam phrase points straight to one answer.")),
-                    Beat(32, card = BoardCard("Today", "A topic, two subscriptions, a SQL rule; send two messages, then peek them.")),
+                    Beat(32, show = setOf("never", "order", "big", "many", "safe"), light = setOf("never"), card = BoardCard("Listen for the phrase", "Each exam phrase points straight to one answer.")),
+                    Beat(34, card = BoardCard("Today", "A topic, two subscriptions, a SQL rule; send two messages, then peek them.")),
                 ),
             ),
         ),
@@ -801,16 +809,16 @@ internal object Az204StyledConnect2 {
                     Beat(14, show = setOf("c", "a", "d", "f"), light = setOf("c"), card = BoardCard("Four ways to settle", "Complete, abandon, dead-letter or defer.")),
                 ),
             ),
-            // 15: "Week three?"
+            // 17: "Week three?"
             Scene(
-                15, "Lena's poodle",
+                17, "Lena's poodle",
                 DiagramSpec(
                     "Work that outlasts the lock lets the same message reach a second worker; renew the lock or lengthen it.",
                     nodes = listOf(
                         DNode("q", "Queue", 0.2f, 0.4f, w = 0.3f, h = 0.36f, kind = NodeKind.CYLINDER),
                         DNode("w1", "Worker 1", 0.78f, 0.2f, w = 0.36f, h = 0.22f, sub = "still busy"),
                         DNode("w2", "Worker 2", 0.78f, 0.6f, w = 0.36f, h = 0.22f, tone = 2, sub = "same booking"),
-                        DNode("lock", "Lock: 30 s, up to 5 min", 0.5f, 0.88f, w = 0.6f, h = 0.16f, kind = NodeKind.NOTE),
+                        DNode("lock", "Lock: 1 min, up to 5", 0.5f, 0.88f, w = 0.6f, h = 0.16f, kind = NodeKind.NOTE),
                     ),
                     edges = listOf(
                         DEdge("q", "w1"),
@@ -819,13 +827,13 @@ internal object Az204StyledConnect2 {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(16, show = setOf("q", "w1", "w2", "lock"), light = setOf("w2", "lock"), pulse = "q" to "w2", card = BoardCard("The lock ran out", "A minute of work, a 30 second lock: a second worker got it.")),
-                    Beat(18, light = setOf("w1"), card = BoardCard("Renew the lock", "Or set a longer lock duration. Sessions keep one owner in order.")),
+                    Beat(18, show = setOf("q", "w1", "w2", "lock"), light = setOf("w2", "lock"), pulse = "q" to "w2", card = BoardCard("The lock ran out", "Two minutes of work, a one minute lock: a second worker got it.")),
+                    Beat(20, light = setOf("w1"), card = BoardCard("Renew the lock", "Or set a longer lock duration. Sessions keep one owner in order.")),
                 ),
             ),
-            // 19: "And Marcus? I heard Marcus has a pile."
+            // 21: "And Marcus? I heard Marcus has a pile."
             Scene(
-                19, "Marcus's pile",
+                21, "Marcus's pile",
                 DiagramSpec(
                     "A message that can never work is dead-lettered; one that fails too often lands there after ten tries.",
                     nodes = listOf(
@@ -841,13 +849,13 @@ internal object Az204StyledConnect2 {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(20, show = setOf("q", "w", "dlq"), light = setOf("dlq"), pulse = "w" to "dlq", card = BoardCard("Dead-letter queue", "Right for messages that can never work. But nobody read the pile.")),
-                    Beat(22, pulse = "q" to "dlq", card = BoardCard("Max delivery count", "Ten tries by default, then dead-lettered anyway. Read the pile!")),
+                    Beat(22, show = setOf("q", "w", "dlq"), light = setOf("dlq"), pulse = "w" to "dlq", card = BoardCard("Dead-letter queue", "Right for messages that can never work. But nobody read the pile.")),
+                    Beat(24, pulse = "q" to "dlq", card = BoardCard("Max delivery count", "Ten tries by default, then dead-lettered anyway. Read the pile!")),
                 ),
             ),
-            // 23: "And the intern? There's always the intern."
+            // 25: "And the intern? There's always the intern."
             Scene(
-                23, "The intern's thumbnails",
+                25, "The intern's thumbnails",
                 DiagramSpec(
                     "Storage queues grow far past Service Bus's 80 GB, with a visibility timeout and a pop receipt instead of PeekLock.",
                     nodes = listOf(
@@ -859,13 +867,13 @@ internal object Az204StyledConnect2 {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(24, show = setOf("stq"), light = setOf("stq"), card = BoardCard("Base64", "The receiver expected Base64; the intern sent plain text.")),
-                    Beat(26, show = setOf("sbq", "vt", "pr"), light = setOf("vt", "pr"), card = BoardCard("No PeekLock here", "Hidden for the visibility timeout; delete it with the pop receipt.")),
+                    Beat(26, show = setOf("stq"), light = setOf("stq"), card = BoardCard("Base64", "The receiver expected Base64; the intern sent plain text.")),
+                    Beat(28, show = setOf("sbq", "vt", "pr"), light = setOf("vt", "pr"), card = BoardCard("No PeekLock here", "Hidden for the visibility timeout; delete it with the pop receipt.")),
                 ),
             ),
-            // 27: "Where else does Service Bus stop?"
+            // 29: "Where else does Service Bus stop?"
             Scene(
-                27, "Where it stops",
+                29, "Where it stops",
                 DiagramSpec(
                     "Service Bus carries jobs that must be handled; a stream is Event Hubs, a pushed note is Event Grid.",
                     nodes = listOf(
@@ -880,13 +888,13 @@ internal object Az204StyledConnect2 {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(27, show = setOf("sb")),
-                    Beat(28, show = setOf("eh", "eg", "fn"), light = setOf("eh", "eg"), pulse = "sb" to "fn", card = BoardCard("Not every job", "Readings in a flood: Event Hubs. A this-happened note: Event Grid.")),
+                    Beat(29, show = setOf("sb")),
+                    Beat(30, show = setOf("eh", "eg", "fn"), light = setOf("eh", "eg"), pulse = "sb" to "fn", card = BoardCard("Not every job", "Readings in a flood: Event Hubs. A this-happened note: Event Grid.")),
                 ),
             ),
-            // 29: "So, the gossip I should remember for the exam?"
+            // 31: "So, the gossip I should remember for the exam?"
             Scene(
-                29, "For the exam",
+                31, "For the exam",
                 DiagramSpec(
                     "The exam's messaging questions, each as the phrase to listen for and the answer it points to.",
                     nodes = listOf(
@@ -899,8 +907,8 @@ internal object Az204StyledConnect2 {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(30, show = setOf("never", "order", "big", "many", "sb"), light = setOf("sb"), card = BoardCard("Listen for the phrase", "Each exam phrase points straight to one answer.")),
-                    Beat(32, card = BoardCard("Today", "A topic, two subscriptions, a SQL rule; send two messages, then peek them.")),
+                    Beat(32, show = setOf("never", "order", "big", "many", "sb"), light = setOf("sb"), card = BoardCard("Listen for the phrase", "Each exam phrase points straight to one answer.")),
+                    Beat(34, card = BoardCard("Today", "A topic, two subscriptions, a SQL rule; send two messages, then peek them.")),
                 ),
             ),
         ),
