@@ -5,11 +5,11 @@ internal object Ai200EpisodesAks {
     private val classic = Podcast(
         "ai-aks",
         listOf(
-            maya("Hi, and welcome back. Today is Azure Kubernetes Service. First, the job it does. Say you're building the Two Tracks Coach, a study assistant for an Android app, with a Python backend on Azure. You want three copies of that backend running at all times, and a fresh one started whenever one falls over."),
+            maya("Hi, and welcome back. Today is Azure Kubernetes Service. Say you're building the Two Tracks Coach, a study assistant for an Android app, with a Python backend. You want three copies of that backend running at all times, and a fresh one started whenever one falls over."),
             leo("Three copies? I can barely keep one running. Where do I even start?"),
-            maya("With a container. That's your app packed in a box with everything it needs, so it runs the same anywhere. The ready-to-start copy of that box is called an image. Think of a frozen meal: cooked once, heated anywhere."),
-            leo("And where do the frozen meals live?"),
-            maya("On a private shelf called a registry. Azure's is called ACR, Azure Container Registry: your team's own shelf of images. Each image carries a tag, a version label such as v2."),
+            maya("With a container image: your code, its Python and libraries, and a slim copy of an operating system's files, packed like a lunchbox. No kernel inside, the core that drives the hardware; every container shares the machine's. A running container is one copy of that image."),
+            leo("So no installing Python on every server, and no more works on my machine. Where do the lunchboxes live?"),
+            maya("On a private shelf called a registry. Azure's is ACR, Azure Container Registry. Your build pushes images in, and the cluster's machines pull them out. Each image carries a tag, a version label such as v2."),
             leo("Okay. So what's Kubernetes, in plain words?"),
             maya("A system that runs lots of containers across lots of machines, and keeps them running. Picture a restaurant manager. You say, I want three cooks on the grill. If one goes home sick, the manager calls in another, without asking you."),
             leo("And AKS, the short name, is that manager, run by Azure?"),
@@ -17,23 +17,27 @@ internal object Ai200EpisodesAks {
             leo("Which half is Azure's?"),
             maya("The control plane, the brain. Think of head office, which remembers what should be running and gives the orders. Azure runs that half for you. That's what AKS is: Kubernetes with the brain looked after."),
             leo("And the other half?"),
-            maya("The nodes. Picture a network as dots joined by lines: a node is one dot. In a cluster, each dot is one computer, a virtual machine, which means a computer you rent in Azure's data centre by the hour. Your containers actually run on the nodes."),
+            maya("The nodes. Picture a network as dots joined by lines: a node is one dot. In a cluster, each dot is one computer, a virtual machine you rent by the hour. Your containers actually run on the nodes."),
             leo("And a node pool? Is that where the nodes swim?"),
             maya("[chuckle] No swimming. A node pool is a group of identical nodes, same size, same setup, like a row of identical rental cars."),
             leo("So how do I tell head office what I want? Click around a website?"),
-            maya("You write it down in a file called a manifest. Think of it as an order form: three copies of this image, please. You fill it in once, and the cluster follows it."),
+            maya("You write it down in a file called a manifest. Think of it as an order form: three copies of this image, please."),
             leo("What does the form actually look like?"),
-            maya("It's written in YAML, which is just plain text: one name and its value per line, like name, colon, coach api. Indents show what belongs to what, like items listed under a heading on a shopping list."),
+            maya("It's written in YAML, which is just plain text: one name and its value per line, like name, colon, coach api. Indents show what belongs to what."),
             leo("And how does the order form reach the cluster?"),
-            maya("With kubectl, the command-line tool that talks to the cluster, like a remote control you type into. You type kubectl apply and the file's name. From then on, Kubernetes keeps reality matching the file. That's called desired state. A thermostat works the same way: you set the temperature, it keeps it there."),
+            maya("With kubectl, the command-line tool that talks to the cluster, like a remote control you type into. You type kubectl apply and the file's name."),
+            leo("And then it's done?"),
+            maya("Then it's never done. Kubernetes keeps reality matching the file. That's called desired state, like a thermostat holding a temperature."),
             leo("What goes on the order form?"),
             maya("The smallest thing Kubernetes runs is a pod. Picture a pea pod: a little wrapper holding one or more containers, which share one network address. For the Coach, one pod is one running copy of the Python backend."),
             leo("And three copies means three pods. So I write three pods?"),
             maya("No, you write a Deployment. It's like a shift manager who always keeps the same number of cashiers at the tills. You tell it how many replicas you want, and it keeps that many identical pods running. One dies, it starts another."),
             leo("Replicas. Is that a fancy word for copies?"),
-            maya("Exactly that. A replica is one identical copy, like one photocopy of the same page. Replicas three means three photocopies of your pod, all running at once."),
+            maya("Exactly that. One identical copy, like a photocopy. Replicas three means three photocopies of your pod, all running at once."),
             leo("Nice. Then my phone app just calls one of those pods?"),
-            maya("Never directly. Pods come and go, and each new pod gets a new IP address, its street address on the network. So you put a Service in front. A Service is a stable name and address that never changes, like a shop's phone number that rings whichever cashier is on shift."),
+            maya("Never directly. Pods come and go, and each new pod gets a new IP address, its street address on the network."),
+            leo("So my app would be calling a number that's already gone."),
+            maya("Which is why you put a Service in front: a stable name and address, like a shop's phone number that rings whichever cashier is on shift."),
             leo("How does the Service know which pods are its cashiers?"),
             maya("By labels. A label is a name tag stuck on a pod, such as app equals coach api. Every pod the Deployment makes wears the same tag."),
             leo("And the Service reads the name tags?"),
@@ -45,7 +49,9 @@ internal object Ai200EpisodesAks {
             leo("Undo. My favourite button. Then I'm done?"),
             maya("One step people forget. Put the old tag back in the file too, because the file is the source of truth, or the next apply brings the broken version straight back. And never use the tag called latest, or no rollout can tell versions apart."),
             leo("Next problem. My pods won't start. They say ImagePullBackOff. What does that even mean?"),
-            maya("It's Kubernetes saying, I can't download the image, so I'm waiting before I try again. If the tag exists, the nodes probably aren't allowed to read your private registry. The fix is one command in az, the Azure command-line tool: az aks update, attach acr, and the registry's name."),
+            maya("It's Kubernetes saying, I can't download the image, so I'm waiting before I try again."),
+            leo("But I pushed it. It's right there in the registry."),
+            maya("Your push put it in. Now each node has to pull it out. If the tag exists, the nodes probably aren't allowed to read your private registry. The fix is one command in az, the Azure command-line tool: az aks update, attach acr, and the registry's name."),
             leo("What does attaching actually do?"),
             maya("It gives a role, a set of permissions, called AcrPull: permission to pull, which means download, images from your registry. And it gives that role to the cluster's kubelet identity."),
             leo("Kubelet. Sounds like a baby kettle."),
@@ -55,9 +61,11 @@ internal object Ai200EpisodesAks {
             leo("And then my code does some sign-in dance?"),
             maya("No dance. DefaultAzureCredential, a Python helper that finds whatever sign-in is around, picks up the badge by itself. No password, and no code change."),
             leo("So should every app go on AKS?"),
-            maya("No. Picture a small app with one simple backend. Azure Container Apps runs containers for you, even shrinking to zero copies when nobody calls, with no cluster to manage. Pick AKS when you need Kubernetes itself, or full control, like your own node pools with graphics chips."),
+            maya("No. For a small app with one simple backend, Azure Container Apps runs containers with no cluster to manage, even shrinking to zero copies when nobody calls. Pick AKS when you need Kubernetes itself, or full control, like node pools with graphics chips."),
             leo("So what do I remember for the exam?"),
-            maya("Five things. If the question says keep three copies running, the answer is a Deployment with replicas three. If pods keep getting new addresses, a Service that finds them by label. If a release is bad, kubectl rollout undo. If ImagePullBackOff from ACR and the tag exists, attach the registry for AcrPull. If you don't need Kubernetes itself, Container Apps."),
+            maya("Five things. If the question says keep three copies running, the answer is a Deployment with replicas three. If pods keep getting new addresses, a Service that finds them by label. If a release is bad, kubectl rollout undo."),
+            leo("And the pull error?"),
+            maya("If ImagePullBackOff from ACR and the tag exists, attach the registry for AcrPull. And if you don't need Kubernetes itself, Container Apps."),
             leo("And anything to try today?"),
             maya("Create a two-node AKS cluster, and get its credentials. Write a Deployment and a Service for a public sample image, and apply them. Change the image tag, apply again, and watch the rollout status. Run rollout undo, and check the old pods return. Then delete the resource group, the folder holding it all."),
             leo("Three cooks, one manager, and an undo button. See you next time."),
@@ -70,7 +78,9 @@ internal object Ai200EpisodesAks {
         listOf(
             maya("Welcome to Case Files. Today's case: The Phone That Rang and Rang. A small Android app called Flashcard Fox helps students drill their flashcards. Its Python backend has just moved onto Azure Kubernetes Service, AKS. Moving day went fine. Then the app asked the backend for cards, and nobody answered."),
             leo("[chuckle] Detective Leo, on the case. Before I suspect anyone, what is AKS, in plain words?"),
-            maya("Start with a container: your app packed in a box with everything it needs, so it runs the same anywhere. Kubernetes runs lots of those boxes across lots of machines, and keeps them running, like a restaurant manager who keeps enough cooks on shift."),
+            maya("Start with a container image: the backend's code, its Python and libraries, and a slim copy of Linux's files, packed like a lunchbox."),
+            leo("The whole operating system, in a box?"),
+            maya("Just its files. No kernel, the core that drives the hardware; every container shares the machine's. Kubernetes runs lots of those containers across lots of machines, and keeps them running, like a restaurant manager keeping enough cooks on shift."),
             leo("And where does Azure come in?"),
             maya("Kubernetes works on a cluster. A cluster is a group of computers working as one, like the whole staff of one restaurant. AKS is Kubernetes with Azure running half of that cluster for you."),
             leo("Which half?"),
@@ -96,7 +106,7 @@ internal object Ai200EpisodesAks {
             leo("[laugh] The phone rang in an empty shop."),
             maya("Under the picture, a Service keeps a list of the ready pods that match its selector, called its endpoints: the cashiers actually on shift right now. That list was empty. They fixed one label, applied the file again, and the cards came back. But a second case opened the same week."),
             leo("Go on."),
-            maya("Version three of the backend served the wrong cards. They had changed the image tag in the manifest from v2 to v3. An image is the ready-to-start copy of the app, like a frozen meal, and the tag is its version label."),
+            maya("Version three of the backend served the wrong cards. They had changed the image tag in the manifest from v2 to v3. The image, remember, is the packed lunchbox, and the tag is its version label."),
             leo("Kubernetes swapped all the pods at once, then? Big outage?"),
             maya("No. A rolling update: new pods start and old ones stop a few at a time, so the app never fully goes down. kubectl rollout status watches it finish. And kubectl rollout undo returns the Deployment to its previous version."),
             leo("Suspect: they should delete the Deployment and create it again. Clean slate."),
@@ -106,7 +116,7 @@ internal object Ai200EpisodesAks {
             leo("Any more crimes?"),
             maya("Two. The team added a node pool, a second group of identical nodes, and its pods showed ImagePullBackOff. That's Kubernetes saying, I can't download the image, so I'm waiting before I try again. And the tag existed."),
             leo("Then the image is somewhere private, and the nodes have no key."),
-            maya("Sharp. The image lives on a private shelf called ACR, Azure Container Registry, where the team keeps its images. The fix is one command in az, the Azure command-line tool: az aks update, attach acr, and the registry's name."),
+            maya("Sharp. The build had pushed the image into the team's private shelf, called ACR, Azure Container Registry. But the new nodes couldn't pull it out. The fix is one command in az, the Azure command-line tool: az aks update, attach acr, and the registry's name."),
             leo("What does attaching actually grant?"),
             maya("A role called AcrPull, permission to download images. It goes to the kubelet identity. The kubelet is the agent on each node that starts the containers, and its identity is a managed identity: a login Azure gives a resource, like a staff badge with no password."),
             leo("And the last crime?"),
@@ -118,9 +128,11 @@ internal object Ai200EpisodesAks {
             leo("Last question. Was AKS even the right home for Flashcard Fox?"),
             maya("Honestly, maybe not. For one simple backend, Azure Container Apps runs containers with no cluster to manage, and can shrink to zero copies when nobody calls. AKS earns its place when you need Kubernetes itself, or full control. The Container Apps episode compares the two."),
             leo("So, the case summary for the exam?"),
-            maya("Five rules. If the question says keep three copies running, the answer is a Deployment with replicas three. If pods keep getting new addresses, a Service that finds them by label. If a release is bad and you need the old one fast, kubectl rollout undo. If ImagePullBackOff from ACR and the tag exists, attach the registry for AcrPull. If you don't need Kubernetes itself, Container Apps."),
+            maya("Five rules. If the question says keep three copies running, the answer is a Deployment with replicas three. If pods keep getting new addresses, a Service that finds them by label. If a release is bad and you need the old one fast, kubectl rollout undo."),
+            leo("And the pods that couldn't pull?"),
+            maya("If ImagePullBackOff from ACR and the tag exists, attach the registry for AcrPull. If you don't need Kubernetes itself, Container Apps."),
             leo("Case closed. Anything to try today?"),
-            maya("Recreate the case, safely. Create a two-node AKS cluster and get its credentials. Write a Deployment and a Service for a public sample image, and apply them. Change the image tag, apply again, and watch the rollout status. Run rollout undo and check the old pods return. Then delete the resource group, the folder holding it all."),
+            maya("Create a two-node AKS cluster and get its credentials. Write a Deployment and a Service for a public sample image, and apply them. Change the image tag, apply again, and watch the rollout status. Run rollout undo and check the old pods return. Then delete the resource group, the folder holding it all."),
             leo("Match your labels, and fix your files. See you next time."),
         ),
         series = PodcastSeries.AI200,
@@ -132,7 +144,9 @@ internal object Ai200EpisodesAks {
         listOf(
             maya("Okay, did you hear what happened on the Coach team this week? Grab a coffee. They moved the Two Tracks Coach, the study assistant in the Android app, onto Azure Kubernetes Service. The Python backend, the lot. And let's just say, it was a week."),
             leo("[laugh] I heard someone cried in the kitchen. Start at the start. What is Azure Kubernetes Service?"),
-            maya("First, a container: your app packed in a box with everything it needs, so it runs the same anywhere. Kubernetes is a system that runs lots of containers across lots of machines and keeps them running, like a restaurant manager keeping enough cooks on shift."),
+            maya("First, a container image: the Coach's code, its Python and libraries, and a slim copy of Linux's files, packed like a lunchbox. Marcus kept calling it a mini virtual machine."),
+            leo("Isn't it?"),
+            maya("No kernel inside, the core that drives the hardware. Every container shares the machine's, which is why it starts in seconds. Kubernetes runs lots of those across lots of machines and keeps them running, like a restaurant manager keeping enough cooks on shift."),
             leo("And the Azure part? Everyone just says AKS."),
             maya("AKS is the short name. Kubernetes works on a cluster, which is a group of computers working as one, like the whole staff of a restaurant. AKS is Kubernetes with Azure running half of that cluster."),
             leo("Which half?"),
@@ -148,7 +162,9 @@ internal object Ai200EpisodesAks {
             leo("How many cashiers did Tom ask for?"),
             maya("Replicas three. A replica is one identical copy, like a photocopy, so three copies of the backend, all healthy. And the Android app got nothing."),
             leo("Nothing? Three healthy copies and nothing?"),
-            maya("Pods get a new IP address, a new street address on the network, every time they're replaced. So the app calls a Service, a stable address that never changes, like a shop's phone number. The Service finds its pods by labels, name tags on each pod. Tom's pods said coach api. His Service was looking for coach backend."),
+            maya("Pods get a new IP address, a new street address on the network, every time they're replaced. So the app calls a Service, a stable address that never changes, like a shop's phone number."),
+            leo("And how does the Service find its pods?"),
+            maya("By labels, name tags on each pod. Tom's pods said coach api. His Service was looking for coach backend."),
             leo("[sigh] Poor Tom. The phone rang in an empty shop."),
             maya("Exactly. Under the picture, a Service keeps a list of the matching ready pods, called its endpoints: the cashiers actually on shift. Tom's list was empty. One label fixed, and it worked. And his Service was a LoadBalancer, which asks Azure for an address outsiders can reach, like the phone app."),
             leo("And Tuesday?"),
@@ -156,7 +172,7 @@ internal object Ai200EpisodesAks {
             leo("Isn't a Secret, well, secret?"),
             maya("That's what Dana thought. A Kubernetes Secret is only base64 encoded, a scramble anyone can undo. Not a lock. Security had words with her before lunch. Real secrets go in Key Vault, Azure's safe. The Key Vault episode covers it."),
             leo("I sense a Wednesday."),
-            maya("[chuckle] Wednesday was Marcus. He shipped version three by changing the image in the manifest. An image is the ready-to-start copy of the app, like a frozen meal. But instead of a version tag, a label like v3, Marcus used the tag called latest."),
+            maya("[chuckle] Wednesday was Marcus. He shipped version three by changing the image in the manifest, the packed lunchbox. But instead of a version tag, a label like v3, Marcus used the tag called latest."),
             leo("What's wrong with latest? It's, well, the latest."),
             maya("Latest isn't a version, it's a moving target. So when v3 turned out broken, nobody could say which image was which, and rolling back was guesswork. Proper tags let Kubernetes tell versions apart."),
             leo("How does rolling back even work?"),
@@ -168,7 +184,9 @@ internal object Ai200EpisodesAks {
             leo("And Friday? There's always a Friday."),
             maya("Priya. A new node pool, a second group of identical nodes, came up, and every pod on it said ImagePullBackOff. That's Kubernetes for, I can't download the image, so I'm waiting before I try again. And the tag existed."),
             leo("So the nodes couldn't open the cupboard."),
-            maya("The cupboard is called ACR, Azure Container Registry, the team's private shelf of images. Priya ran one az command, the Azure command-line tool: az aks update, attach acr. That gives the AcrPull role, permission to download images, to the kubelet identity, the login the nodes use."),
+            maya("The cupboard is called ACR, Azure Container Registry, the team's private shelf. The build had pushed the image in fine. The new nodes just weren't allowed to pull it out."),
+            leo("And Priya's fix?"),
+            maya("One az command, the Azure command-line tool: az aks update, attach acr. That gives the AcrPull role, permission to download images, to the kubelet identity, the login the nodes use."),
             leo("Kubelet?"),
             maya("The agent on each node that starts the containers, like a site foreman. Its identity is a managed identity, a login Azure gives a resource, like a staff badge with no password."),
             leo("And the backend's own code? Does it borrow the foreman's badge?"),
@@ -176,7 +194,9 @@ internal object Ai200EpisodesAks {
             leo("So did anything go right?"),
             maya("The best gossip of all. Priya asked whether the Coach needed AKS at all. For one simple backend, Azure Container Apps runs containers with no cluster to manage, and can shrink to zero copies when nobody calls. AKS is for when you need Kubernetes itself, or full control. The Container Apps episode compares the two."),
             leo("So, the gossip I should remember for the exam?"),
-            maya("Five things. If the question says keep three copies running, a Deployment with replicas three. If pods keep changing address, a Service that finds them by label. If a release is bad, kubectl rollout undo, then fix the file. If ImagePullBackOff from ACR and the tag exists, attach the registry for AcrPull. If you don't need Kubernetes itself, Container Apps."),
+            maya("Five things. If the question says keep three copies running, a Deployment with replicas three. If pods keep changing address, a Service that finds them by label. If a release is bad, kubectl rollout undo, then fix the file."),
+            leo("And Priya's Friday?"),
+            maya("If ImagePullBackOff from ACR and the tag exists, attach the registry for AcrPull. If you don't need Kubernetes itself, Container Apps."),
             leo("And something to try today, so I'm not next week's story?"),
             maya("Create a two-node AKS cluster and get its credentials. Write a Deployment and a Service for a public sample image, and apply them. Change the image tag, apply again, and watch the rollout status. Run rollout undo and check the old pods return. Then delete the resource group, the folder holding it all."),
             leo("Real tags, matching labels. Got it, Marcus. See you next time."),
@@ -190,7 +210,9 @@ internal object Ai200EpisodesAks {
         listOf(
             nova("Hey, you. It's late, the house is quiet, and it's just the three of us. Me, Ivy, and you, still up, still learning. [pause] Tonight, let's talk about keeping things running while you sleep."),
             ivy("Mm. Something that stays up all night so I don't have to? Tell me more, Nova."),
-            nova("It's called Kubernetes. Start with a container: your app packed in a box with everything it needs, so it runs the same anywhere. Kubernetes runs lots of those boxes across lots of machines, and keeps them running. Picture a night manager who keeps the right number of staff on shift, and quietly calls in cover when someone leaves."),
+            nova("It's called Kubernetes. But start with what it runs. You know your code, and the server it lands on. A container image packs your code, its Python, its libraries, and a slim copy of Linux's files, like a lunchbox packed the night before."),
+            ivy("And the operating system's heart? Is that packed too?"),
+            nova("[pause] No. The kernel, the core that talks to the hardware, stays on the machine, and every container shares it. Kubernetes runs lots of those containers across lots of machines, and keeps them running. Like a night manager who quietly calls in cover when someone leaves."),
             ivy("A night manager. I like them already. And Azure's version?"),
             nova("Azure Kubernetes Service, AKS for short. Kubernetes works on a cluster, which is a group of computers working as one, [pause] like the whole night staff of one hotel."),
             ivy("And who's in charge of the hotel?"),
@@ -218,15 +240,19 @@ internal object Ai200EpisodesAks {
             ivy("Lonely phones. Again. And can strangers call?"),
             nova("Only if you let them. ClusterIP, the default, is for callers inside the cluster. LoadBalancer asks Azure for an address the outside world can reach, like the Coach's Android app."),
             ivy("Settings? Secrets? Where do I keep those?"),
-            nova("Plain settings go in a ConfigMap, handed to the pods as values a program reads when it wakes up. Sensitive ones go in a Secret. [pause] But a Kubernetes Secret is only base64 encoded, a scramble anyone can undo. Never commit one to Git, your code's history. Real secrets belong in Key Vault, and the Key Vault episode is a good night's listening."),
+            nova("Plain settings go in a ConfigMap, handed to the pods as values a program reads when it wakes up. Sensitive ones go in a Secret."),
+            ivy("A Secret. That sounds safe enough."),
+            nova("[pause] It isn't. A Kubernetes Secret is only base64 encoded, a scramble anyone can undo. Never commit one to Git, your code's history. Real secrets belong in Key Vault, and the Key Vault episode is a good night's listening."),
             ivy("Now. What happens when I change my mind? A new version?"),
-            nova("You put a new image tag in the file. An image is the ready-to-start copy of the app, and the tag is its version label, like v3. Apply it, and you get a rolling update: new pods start, old ones stop, a few at a time. The app never fully goes dark."),
+            nova("You put a new image tag in the file. The image is your packed lunchbox, and the tag is its version label, like v3. Apply it, and you get a rolling update: new pods start, old ones stop, a few at a time. The app never fully goes dark."),
             ivy("And if version three is a mistake? It happens. Late at night."),
             nova("It does. kubectl rollout status watches the update. If it's bad, kubectl rollout undo takes you back to the previous version. [pause] And then, the part everyone forgets: put the old tag back in the file too. The file is the source of truth, and the next apply believes it."),
             ivy("Mm. And where does all this stop working?"),
             nova("A few places. Kubernetes can't pull an image it isn't allowed to read. The pods sit there saying ImagePullBackOff, which means, I can't download the image, so I'm waiting before I try again."),
             ivy("And the cure?"),
-            nova("If the image lives on your team's private shelf, called ACR, Azure Container Registry, it's one command in az, the Azure command-line tool: az aks update, attach acr. It gives a role called AcrPull, permission to download, to the kubelet identity."),
+            nova("Your build pushed the image onto the team's private shelf, called ACR, Azure Container Registry. But pulling it out needs a permission of its own."),
+            ivy("And how does a node get that permission?"),
+            nova("One command in az, the Azure command-line tool: az aks update, attach acr. It gives a role called AcrPull, permission to download, to the kubelet identity."),
             ivy("Kubelet. Say it softly and it sounds like a pet."),
             nova("[chuckle] The kubelet is the agent on each node that starts the containers, like a night porter. Its identity is a managed identity: a login Azure gives a resource, like a staff badge with no password."),
             ivy("And my own code? Does it get a badge?"),
@@ -234,7 +260,9 @@ internal object Ai200EpisodesAks {
             ivy("And is AKS always the answer?"),
             nova("No. [pause] For one simple backend, Azure Container Apps runs containers with no cluster to manage, and can shrink to zero copies when nobody calls. AKS is for when you need Kubernetes itself, or full control. The Container Apps episode is your next late night."),
             ivy("[sigh] Mm. Before you send me off to bed. What do I remember for the exam?"),
-            nova("Five little things. If the question says keep three copies running, a Deployment with replicas three. If pods keep changing address, a Service that finds them by label. If a release is bad, kubectl rollout undo. If ImagePullBackOff from ACR and the tag exists, attach the registry for AcrPull. If you don't need Kubernetes itself, Container Apps."),
+            nova("Five little things. If the question says keep three copies running, a Deployment with replicas three. If pods keep changing address, a Service that finds them by label. If a release is bad, kubectl rollout undo."),
+            ivy("Two more. I'm still awake."),
+            nova("If ImagePullBackOff from ACR and the tag exists, attach the registry for AcrPull. If you don't need Kubernetes itself, Container Apps."),
             ivy("And something to try today, before I sleep?"),
             nova("Create a two-node AKS cluster and get its credentials. Write a Deployment and a Service for a public sample image, and apply them. [pause] Change the image tag, apply again, and watch the rollout status. Run rollout undo and see the old pods return. Then delete the resource group, the folder holding it all."),
             ivy("Something that keeps running, so I can rest. Goodnight, you. See you next time."),
@@ -250,7 +278,11 @@ internal object Ai200EpisodesAks {
             rafe("Me?"),
             nova("[laugh] Kubernetes. Something that keeps things running all night long, without being asked twice."),
             rafe("Then it is me. Go on, tell me what it really is."),
-            nova("Start with a container: your app packed in a box with everything it needs, so it runs the same anywhere. Kubernetes runs lots of those boxes across lots of machines, and keeps them running, like a restaurant manager who always keeps enough cooks on shift."),
+            nova("Start with what it runs. A container image packs your code, its Python, its libraries and a slim copy of Linux's files, like an overnight bag. Quiz, darling: does the bag carry its own kernel?"),
+            rafe("No. The kernel, the core that drives the hardware, stays with the machine, and every container shares it. That's why one is up in seconds."),
+            nova("Right answer. Light luggage, quick starts. [kiss]"),
+            rafe("And Kubernetes carries the bags?"),
+            nova("It runs lots of containers across lots of machines, and keeps them running, like a restaurant manager who always keeps enough cooks on shift."),
             rafe("And the Azure flavour? The one everyone calls AKS?"),
             nova("Azure Kubernetes Service. Kubernetes works on a cluster, which is a group of computers working as one, like a whole kitchen staff. AKS is Kubernetes with Azure doing half the work on that cluster."),
             rafe("Half the work. My kind of partner. Which half?"),
@@ -276,7 +308,7 @@ internal object Ai200EpisodesAks {
             rafe("So never commit a Secret. To Git, I mean, where the code's history lives."),
             nova("[chuckle] Never commit a Secret to Git. Commit to me instead. Real secrets go in Key Vault, Azure's safe; the Key Vault episode has the details."),
             rafe("Deal. Now the dangerous part. A new version. What happens?"),
-            nova("You change the image tag in the file. An image is the ready-to-start copy of the app, and the tag is its version label, like v3. Apply it, and you get a rolling update: new pods start and old ones stop, a few at a time, so the app never goes down."),
+            nova("You change the image tag in the file. The image is our overnight bag, and the tag is its version label, like v3. Apply it, and you get a rolling update: new pods start and old ones stop, a few at a time, so the app never goes down."),
             rafe("Slow and steady. And kubectl rollout status watches it finish. So, darling. Version three is broken and users are angry. Fastest way back?"),
             nova("kubectl rollout undo. It returns the Deployment to the previous version, with another rolling update."),
             rafe("Right answer. Everyone deserves a second chance. [kiss]"),
@@ -284,7 +316,9 @@ internal object Ai200EpisodesAks {
             rafe("Then I'm done. Back to the wine."),
             nova("No kiss for that one. You forgot the file. It's the source of truth, so put the old tag back in it, or the next apply brings version three straight back. And never use the tag called latest. Nobody can tell versions apart."),
             rafe("Fine, fine. Next question for you. The team's private image shelf is called ACR, Azure Container Registry. Pods say ImagePullBackOff from it, and the tag exists. What's the fix?"),
-            nova("ImagePullBackOff means, I can't download the image, so I'm waiting to try again. So attach the registry, with az, the Azure command-line tool: az aks update, attach acr. That gives the AcrPull role, permission to download, to the kubelet identity, the login of the agent on each node that starts the containers."),
+            nova("ImagePullBackOff means, I can't download the image, so I'm waiting to try again. The build pushed it in fine; the nodes just aren't allowed to pull it out."),
+            rafe("So how do you let them in?"),
+            nova("Attach the registry, with az, the Azure command-line tool: az aks update, attach acr. That gives the AcrPull role, permission to download, to the kubelet identity, the login of the agent on each node that starts the containers."),
             rafe("Right answer. Some cupboards need the right key. [kiss]"),
             nova("And where does it stop working, Rafe? Every romance has its limits."),
             rafe("The kubelet's badge is for the nodes, not your code. For the code there's workload identity: a pod's service account, its name on the Kubernetes staff list, is linked to a managed identity, which is a login Azure gives, like a staff badge with no password."),
@@ -437,17 +471,17 @@ internal object Ai200EpisodesAks {
     private fun classicBoard() = PodcastBoard(
         "ai-aks",
         listOf(
-            // 0: "Hi, and welcome back. Today is Azure Kubernetes Service..."
+            // 0: "Hi, and welcome back. Today is Azure Kubernetes Service. Say you're bu..."
             Scene(
                 0, "Why Kubernetes?", intro(),
                 beats = listOf(
                     Beat(0, show = setOf("app"), light = setOf("app"), card = BoardCard("Three copies, always", "The Coach's Python backend: three copies, a fresh one if one falls.")),
-                    Beat(2, show = setOf("image"), light = setOf("image"), pulse = "app" to "image", card = BoardCard("Container and image", "The app packed in a box; the image is the ready-to-start copy.")),
-                    Beat(4, show = setOf("acr"), light = setOf("acr"), pulse = "image" to "acr", card = BoardCard("ACR", "Azure Container Registry: the private shelf for images, each with a tag.")),
+                    Beat(2, show = setOf("image"), light = setOf("image"), pulse = "app" to "image", card = BoardCard("Image and container", "Code, Python, libraries, slim OS files, no kernel. Running: a container.")),
+                    Beat(4, show = setOf("acr"), light = setOf("acr"), pulse = "image" to "acr", card = BoardCard("ACR", "The private shelf: your build pushes images in, nodes pull them out.")),
                     Beat(6, show = setOf("k8s"), light = setOf("k8s"), pulse = "acr" to "k8s", card = BoardCard("Kubernetes", "Runs many containers on many machines, and keeps them running.")),
                 ),
             ),
-            // 8: "Half of it. Kubernetes works on a cluster..."
+            // 8: "Half of it. Kubernetes works on a cluster. A cluster is a group of com..."
             Scene(
                 8, "Inside a cluster", cluster(),
                 beats = listOf(
@@ -460,52 +494,52 @@ internal object Ai200EpisodesAks {
                     Beat(20, light = setOf("dev", "cp"), pulse = "dev" to "cp", card = applyCode),
                 ),
             ),
-            // 21: "What goes on the order form?"
+            // 23: "What goes on the order form?"
             Scene(
-                21, "Pods, Deployment, Service", objects(),
+                23, "Pods, Deployment, Service", objects(),
                 beats = listOf(
-                    Beat(22, show = setOf("pods"), light = setOf("pods"), card = BoardCard("Pod", "Like a pea pod: a wrapper round one or more containers, one address.")),
-                    Beat(24, show = setOf("deploy"), light = setOf("deploy"), pulse = "deploy" to "pods", card = BoardCard("Deployment", "A shift manager: keeps a set number of identical pods running.")),
-                    Beat(26, card = BoardCard("Replica", "One identical copy, like a photocopy. Replicas 3: three pods.")),
-                    Beat(28, show = setOf("app", "svc"), light = setOf("svc"), pulse = "app" to "svc", card = BoardCard("Service", "A stable name and address in front of pods that come and go.")),
-                    Beat(30, light = setOf("pods"), card = BoardCard("Label", "A name tag on a pod, such as app: coach-api.")),
-                    Beat(32, light = setOf("svc", "pods"), pulse = "svc" to "pods", card = BoardCard("Label selector", "The Service's rule: call every pod wearing this tag. No match, no pods.")),
+                    Beat(24, show = setOf("pods"), light = setOf("pods"), card = BoardCard("Pod", "Like a pea pod: a wrapper round one or more containers, one address.")),
+                    Beat(26, show = setOf("deploy"), light = setOf("deploy"), pulse = "deploy" to "pods", card = BoardCard("Deployment", "A shift manager: keeps a set number of identical pods running.")),
+                    Beat(28, card = BoardCard("Replica", "One identical copy, like a photocopy. Replicas 3: three pods.")),
+                    Beat(30, show = setOf("app", "svc"), light = setOf("svc"), pulse = "app" to "svc", card = BoardCard("Service", "A stable name and address in front of pods that come and go.")),
+                    Beat(34, light = setOf("pods"), card = BoardCard("Label", "A name tag on a pod, such as app: coach-api.")),
+                    Beat(36, light = setOf("svc", "pods"), pulse = "svc" to "pods", card = BoardCard("Label selector", "The Service's rule: call every pod wearing this tag. No match, no pods.")),
                 ),
             ),
-            // 33: "Name tags. Very office party. Now say I ship version three..."
+            // 37: "Name tags. Very office party. Now say I ship version three, and it's b..."
             Scene(
-                33, "Rolling out v3", rollout(),
+                37, "Rolling out v3", rollout(),
                 beats = listOf(
-                    Beat(34, show = setOf("file", "v2", "v3"), light = setOf("v2", "v3"), pulse = "v2" to "v3", card = BoardCard("Rolling update", "New pods start, old ones stop, a few at a time. Never fully down.")),
-                    Beat(36, show = setOf("undo"), light = setOf("undo"), pulse = "v3" to "undo", card = undoCode),
-                    Beat(38, light = setOf("file"), pulse = "file" to "v3", card = BoardCard("The file is the truth", "Put the old tag back in the file. And never use latest.")),
+                    Beat(38, show = setOf("file", "v2", "v3"), light = setOf("v2", "v3"), pulse = "v2" to "v3", card = BoardCard("Rolling update", "New pods start, old ones stop, a few at a time. Never fully down.")),
+                    Beat(40, show = setOf("undo"), light = setOf("undo"), pulse = "v3" to "undo", card = undoCode),
+                    Beat(42, light = setOf("file"), pulse = "file" to "v3", card = BoardCard("The file is the truth", "Put the old tag back in the file. And never use latest.")),
                 ),
             ),
-            // 39: "Next problem. My pods won't start. They say ImagePullBackOff."
+            // 43: "Next problem. My pods won't start. They say ImagePullBackOff. What doe..."
             Scene(
-                39, "Pulling from ACR", access(),
+                43, "Pulling from ACR", access(),
                 beats = listOf(
-                    Beat(39, show = setOf("acr"), light = setOf("acr"), card = BoardCard("ImagePullBackOff", "Can't download the image; waiting before trying again.")),
-                    Beat(40, show = setOf("kubelet"), light = setOf("kubelet", "acr"), card = attachCode),
-                    Beat(42, pulse = "kubelet" to "acr", card = BoardCard("AcrPull", "Permission to download images, given to the kubelet identity.")),
-                    Beat(44, light = setOf("kubelet"), card = BoardCard("Kubelet identity", "The agent on each node; its managed identity is a badge, no password.")),
-                    Beat(46, show = setOf("pod", "wi"), light = setOf("pod", "wi"), pulse = "pod" to "wi", card = BoardCard("Workload identity", "The pod's service account, its name on the staff list, gets a badge.")),
-                    Beat(48, card = BoardCard("DefaultAzureCredential", "Finds whatever sign-in is around. No password, no code change.")),
+                    Beat(43, show = setOf("acr"), light = setOf("acr"), card = BoardCard("ImagePullBackOff", "Can't download the image; waiting before trying again.")),
+                    Beat(44, show = setOf("kubelet"), light = setOf("kubelet", "acr"), card = attachCode),
+                    Beat(48, pulse = "kubelet" to "acr", card = BoardCard("AcrPull", "Permission to download images, given to the kubelet identity.")),
+                    Beat(50, light = setOf("kubelet"), card = BoardCard("Kubelet identity", "The agent on each node; its managed identity is a badge, no password.")),
+                    Beat(52, show = setOf("pod", "wi"), light = setOf("pod", "wi"), pulse = "pod" to "wi", card = BoardCard("Workload identity", "The pod's service account, its name on the staff list, gets a badge.")),
+                    Beat(54, card = BoardCard("DefaultAzureCredential", "Finds whatever sign-in is around. No password, no code change.")),
                 ),
             ),
-            // 49: "So should every app go on AKS?"
+            // 55: "So should every app go on AKS?"
             Scene(
-                49, "AKS or Container Apps?", choose(),
+                55, "AKS or Container Apps?", choose(),
                 beats = listOf(
-                    Beat(50, light = setOf("simple", "aca"), pulse = "simple" to "aca", card = BoardCard("Container Apps", "No cluster or nodes to manage; can shrink to zero copies.")),
+                    Beat(56, light = setOf("simple", "aca"), pulse = "simple" to "aca", card = BoardCard("Container Apps", "No cluster or nodes to manage; can shrink to zero copies.")),
                 ),
             ),
-            // 51: "So what do I remember for the exam?"
+            // 57: "So what do I remember for the exam?"
             Scene(
-                51, "For the exam", exam(),
+                57, "For the exam", exam(),
                 beats = listOf(
-                    Beat(52, show = all6, light = setOf("copies", "bad", "pull"), card = BoardCard("Listen for the phrase", "Each exam phrase points to one answer: Deployment, Service, undo, AcrPull.")),
-                    Beat(54, card = today),
+                    Beat(58, show = all6, light = setOf("copies", "bad", "pull"), card = BoardCard("Listen for the phrase", "Each exam phrase points to one answer: Deployment, Service, undo, AcrPull.")),
+                    Beat(62, card = today),
                 ),
             ),
         ),
@@ -514,75 +548,76 @@ internal object Ai200EpisodesAks {
     private fun caseFilesBoard() = PodcastBoard(
         "ai-aks--case-files",
         listOf(
-            // 0: "Welcome to Case Files. Today's case: The Phone That Rang and Rang..."
+            // 0: "Welcome to Case Files. Today's case: The Phone That Rang and Rang. A s..."
             Scene(
                 0, "The Phone That Rang and Rang", intro(),
                 beats = listOf(
                     Beat(0, show = setOf("app"), light = setOf("app"), card = BoardCard("The case", "Flashcard Fox moved to AKS. The app asked for cards; nobody answered.")),
-                    Beat(2, show = setOf("k8s"), light = setOf("k8s"), card = BoardCard("Kubernetes", "Runs many containers on many machines, and keeps them running.")),
-                    Beat(4, card = BoardCard("Cluster", "A group of computers working as one, like one restaurant's whole staff.")),
+                    Beat(2, show = setOf("image"), light = setOf("image"), pulse = "app" to "image", card = BoardCard("Container image", "Code, Python, libraries, slim Linux files. No kernel: hosts share theirs.")),
+                    Beat(4, show = setOf("k8s"), light = setOf("k8s"), card = BoardCard("Kubernetes", "Runs many containers on many machines, and keeps them running.")),
+                    Beat(6, card = BoardCard("Cluster", "A group of computers working as one, like one restaurant's whole staff.")),
                 ),
             ),
-            // 5: "Which half?"
+            // 7: "Which half?"
             Scene(
-                5, "Head office", cluster(),
+                7, "Head office", cluster(),
                 beats = listOf(
-                    Beat(6, show = setOf("cp"), light = setOf("cp"), card = BoardCard("Control plane", "The brain: remembers what should be running. Azure runs it.")),
-                    Beat(8, show = setOf("nodes"), light = setOf("nodes"), pulse = "cp" to "nodes", card = BoardCard("Node", "One dot in a network. In a cluster: one computer, a rented virtual machine.")),
-                    Beat(10, show = setOf("dev"), light = setOf("dev"), card = BoardCard("Manifest", "An order form in YAML: one name and value a line, with indents.")),
-                    Beat(12, light = setOf("dev", "cp"), pulse = "dev" to "cp", card = BoardCard("Desired state", "Like a thermostat: the cluster keeps reality matching the form.")),
+                    Beat(8, show = setOf("cp"), light = setOf("cp"), card = BoardCard("Control plane", "The brain: remembers what should be running. Azure runs it.")),
+                    Beat(10, show = setOf("nodes"), light = setOf("nodes"), pulse = "cp" to "nodes", card = BoardCard("Node", "One dot in a network. In a cluster: one computer, a rented virtual machine.")),
+                    Beat(12, show = setOf("dev"), light = setOf("dev"), card = BoardCard("Manifest", "An order form in YAML: one name and value a line, with indents.")),
+                    Beat(14, light = setOf("dev", "cp"), pulse = "dev" to "cp", card = BoardCard("Desired state", "Like a thermostat: the cluster keeps reality matching the form.")),
                 ),
             ),
-            // 13: "Fine. What was on the order form?"
+            // 15: "Fine. What was on the order form?"
             Scene(
-                13, "The suspects", objects(),
+                15, "The suspects", objects(),
                 beats = listOf(
-                    Beat(14, show = setOf("deploy", "pods"), light = setOf("deploy", "pods"), pulse = "deploy" to "pods", card = BoardCard("Deployment and pods", "A shift manager keeping cashiers; each cashier is a pod.")),
-                    Beat(16, card = BoardCard("Replica", "One identical copy, like a photocopy. Replicas 3, all healthy.")),
-                    Beat(17, light = setOf("pods"), card = BoardCard("Suspect: a readiness probe", "Cleared. The pods were ready; the clue is how the app reaches them.")),
-                    Beat(20, show = setOf("app", "svc"), light = setOf("svc"), pulse = "app" to "svc", card = BoardCard("Service", "A stable address, like a shop's phone number, in front of the pods.")),
-                    Beat(22, light = setOf("pods"), card = BoardCard("Label and selector", "A name tag on each pod; the Service's rule: call everyone wearing it.")),
-                    Beat(23, light = setOf("svc"), card = BoardCard("Suspect: the Service type", "Cleared. LoadBalancer was right; the type doesn't pick the pods.")),
-                    Beat(24, light = setOf("svc", "pods"), card = BoardCard("The labels", "Pods wore flashcards; the Service wanted flashcard api.")),
-                    Beat(26, pulse = "svc" to "pods", card = BoardCard("Endpoints", "The Service's list of matching ready pods. It was empty.")),
+                    Beat(16, show = setOf("deploy", "pods"), light = setOf("deploy", "pods"), pulse = "deploy" to "pods", card = BoardCard("Deployment and pods", "A shift manager keeping cashiers; each cashier is a pod.")),
+                    Beat(18, card = BoardCard("Replica", "One identical copy, like a photocopy. Replicas 3, all healthy.")),
+                    Beat(19, light = setOf("pods"), card = BoardCard("Suspect: a readiness probe", "Cleared. The pods were ready; the clue is how the app reaches them.")),
+                    Beat(22, show = setOf("app", "svc"), light = setOf("svc"), pulse = "app" to "svc", card = BoardCard("Service", "A stable address, like a shop's phone number, in front of the pods.")),
+                    Beat(24, light = setOf("pods"), card = BoardCard("Label and selector", "A name tag on each pod; the Service's rule: call everyone wearing it.")),
+                    Beat(25, light = setOf("svc"), card = BoardCard("Suspect: the Service type", "Cleared. LoadBalancer was right; the type doesn't pick the pods.")),
+                    Beat(26, light = setOf("svc", "pods"), card = BoardCard("The labels", "Pods wore flashcards; the Service wanted flashcard api.")),
+                    Beat(28, pulse = "svc" to "pods", card = BoardCard("Endpoints", "The Service's list of matching ready pods. It was empty.")),
                 ),
             ),
-            // 27: "Go on."
+            // 29: "Go on."
             Scene(
-                27, "The second case", rollout(),
+                29, "The second case", rollout(),
                 beats = listOf(
-                    Beat(28, show = setOf("file", "v3"), light = setOf("v3"), pulse = "file" to "v3", card = BoardCard("Image and tag", "The ready-to-start copy of the app; the tag is its version, v3.")),
-                    Beat(30, show = setOf("v2"), light = setOf("v2", "v3"), pulse = "v2" to "v3", card = BoardCard("Rolling update", "New pods start, old ones stop, a few at a time.")),
-                    Beat(31, light = setOf("v3"), card = BoardCard("Suspect: delete and recreate", "Takes the app offline, and the bad tag is still in the file.")),
-                    Beat(32, show = setOf("undo"), light = setOf("undo"), pulse = "v3" to "undo", card = undoCode),
-                    Beat(34, light = setOf("file"), card = BoardCard("The file is the truth", "After an undo, put the old tag back in the file. Never use latest.")),
+                    Beat(30, show = setOf("file", "v3"), light = setOf("v3"), pulse = "file" to "v3", card = BoardCard("Image and tag", "The ready-to-start copy of the app; the tag is its version, v3.")),
+                    Beat(32, show = setOf("v2"), light = setOf("v2", "v3"), pulse = "v2" to "v3", card = BoardCard("Rolling update", "New pods start, old ones stop, a few at a time.")),
+                    Beat(33, light = setOf("v3"), card = BoardCard("Suspect: delete and recreate", "Takes the app offline, and the bad tag is still in the file.")),
+                    Beat(34, show = setOf("undo"), light = setOf("undo"), pulse = "v3" to "undo", card = undoCode),
+                    Beat(36, light = setOf("file"), card = BoardCard("The file is the truth", "After an undo, put the old tag back in the file. Never use latest.")),
                 ),
             ),
-            // 35: "Any more crimes?"
+            // 37: "Any more crimes?"
             Scene(
-                35, "The locked cupboard", access(),
+                37, "The locked cupboard", access(),
                 beats = listOf(
-                    Beat(36, show = setOf("acr"), light = setOf("acr"), card = BoardCard("ImagePullBackOff", "Can't download the image; waiting before trying again.")),
-                    Beat(38, show = setOf("kubelet"), light = setOf("kubelet"), card = attachCode),
-                    Beat(40, pulse = "kubelet" to "acr", card = BoardCard("AcrPull", "Download permission for the kubelet identity, the nodes' badge.")),
-                    Beat(42, show = setOf("pod"), light = setOf("pod"), card = BoardCard("A Secret in Git", "Only base64, a scramble anyone can undo. Key Vault, or no password.")),
-                    Beat(44, show = setOf("wi"), light = setOf("pod", "wi"), pulse = "pod" to "wi", card = BoardCard("Workload identity", "The pod's service account, linked to a managed identity in Azure.")),
-                    Beat(46, card = BoardCard("Token", "A short-lived signed pass, like a festival wristband. Entra ID trusts it.")),
+                    Beat(38, show = setOf("acr"), light = setOf("acr"), card = BoardCard("ImagePullBackOff", "Can't download the image; waiting before trying again.")),
+                    Beat(40, show = setOf("kubelet"), light = setOf("kubelet"), card = attachCode),
+                    Beat(42, pulse = "kubelet" to "acr", card = BoardCard("AcrPull", "Download permission for the kubelet identity, the nodes' badge.")),
+                    Beat(44, show = setOf("pod"), light = setOf("pod"), card = BoardCard("A Secret in Git", "Only base64, a scramble anyone can undo. Key Vault, or no password.")),
+                    Beat(46, show = setOf("wi"), light = setOf("pod", "wi"), pulse = "pod" to "wi", card = BoardCard("Workload identity", "The pod's service account, linked to a managed identity in Azure.")),
+                    Beat(48, card = BoardCard("Token", "A short-lived signed pass, like a festival wristband. Entra ID trusts it.")),
                 ),
             ),
-            // 47: "Last question. Was AKS even the right home for Flashcard Fox?"
+            // 49: "Last question. Was AKS even the right home for Flashcard Fox?"
             Scene(
-                47, "The right home?", choose(),
+                49, "The right home?", choose(),
                 beats = listOf(
-                    Beat(48, light = setOf("simple", "aca"), pulse = "simple" to "aca", card = BoardCard("Maybe Container Apps", "One simple backend: no cluster to manage. AKS for Kubernetes itself.")),
+                    Beat(50, light = setOf("simple", "aca"), pulse = "simple" to "aca", card = BoardCard("Maybe Container Apps", "One simple backend: no cluster to manage. AKS for Kubernetes itself.")),
                 ),
             ),
-            // 49: "So, the case summary for the exam?"
+            // 51: "So, the case summary for the exam?"
             Scene(
-                49, "Case closed", exam(),
+                51, "Case closed", exam(),
                 beats = listOf(
-                    Beat(50, show = all6, light = setOf("addr", "bad", "pull"), card = BoardCard("Listen for the phrase", "Each exam phrase points to one answer. Match labels, fix files.")),
-                    Beat(52, card = today),
+                    Beat(52, show = all6, light = setOf("addr", "bad", "pull"), card = BoardCard("Listen for the phrase", "Each exam phrase points to one answer. Match labels, fix files.")),
+                    Beat(56, card = today),
                 ),
             ),
         ),
@@ -591,82 +626,83 @@ internal object Ai200EpisodesAks {
     private fun gossipBoard() = PodcastBoard(
         "ai-aks--gossip",
         listOf(
-            // 0: "Okay, did you hear what happened on the Coach team this week?..."
+            // 0: "Okay, did you hear what happened on the Coach team this week? Grab a c..."
             Scene(
                 0, "The Coach team's week", intro(),
                 beats = listOf(
                     Beat(0, show = setOf("app"), light = setOf("app"), card = BoardCard("Moving week", "The Coach's Python backend moved onto Azure Kubernetes Service.")),
-                    Beat(2, show = setOf("image", "acr", "k8s"), light = setOf("k8s"), card = BoardCard("Kubernetes", "Runs many containers on many machines, and keeps them running.")),
-                    Beat(4, card = BoardCard("Cluster", "A group of computers working as one, like a restaurant's whole staff.")),
+                    Beat(2, show = setOf("image"), light = setOf("image"), pulse = "app" to "image", card = BoardCard("Container image", "Code, Python, libraries and slim Linux files, packed: a lunchbox.")),
+                    Beat(4, show = setOf("acr", "k8s"), light = setOf("k8s"), card = BoardCard("Not a mini VM", "No kernel inside: containers share the host's. Kubernetes keeps them up.")),
+                    Beat(6, card = BoardCard("Cluster", "A group of computers working as one, like a restaurant's whole staff.")),
                 ),
             ),
-            // 6: "The brain, called the control plane..."
+            // 8: "The brain, called the control plane. That's head office, which remembe..."
             Scene(
-                6, "Head office", cluster(),
+                8, "Head office", cluster(),
                 beats = listOf(
-                    Beat(6, show = setOf("cp"), light = setOf("cp"), card = BoardCard("Control plane", "The brain, head office: remembers what should run. Azure runs it.")),
-                    Beat(8, show = setOf("nodes"), light = setOf("nodes"), pulse = "cp" to "nodes", card = BoardCard("Node", "One dot in a network. In a cluster: one computer, a rented virtual machine.")),
-                    Beat(10, show = setOf("dev"), light = setOf("dev"), card = BoardCard("Manifest", "An order form in YAML: one name and value a line, with indents.")),
-                    Beat(12, light = setOf("dev", "cp"), pulse = "dev" to "cp", card = BoardCard("Desired state", "Sent with kubectl; like a thermostat, the cluster keeps it true.")),
+                    Beat(8, show = setOf("cp"), light = setOf("cp"), card = BoardCard("Control plane", "The brain, head office: remembers what should run. Azure runs it.")),
+                    Beat(10, show = setOf("nodes"), light = setOf("nodes"), pulse = "cp" to "nodes", card = BoardCard("Node", "One dot in a network. In a cluster: one computer, a rented virtual machine.")),
+                    Beat(12, show = setOf("dev"), light = setOf("dev"), card = BoardCard("Manifest", "An order form in YAML: one name and value a line, with indents.")),
+                    Beat(14, light = setOf("dev", "cp"), pulse = "dev" to "cp", card = BoardCard("Desired state", "Sent with kubectl; like a thermostat, the cluster keeps it true.")),
                 ),
             ),
-            // 13: "Okay. So who went first?"
+            // 15: "Okay. So who went first?"
             Scene(
-                13, "Monday: Tom", objects(),
+                15, "Monday: Tom", objects(),
                 beats = listOf(
-                    Beat(14, show = setOf("deploy", "pods"), light = setOf("deploy"), pulse = "deploy" to "pods", card = BoardCard("Deployment and pods", "A shift manager keeping cashiers; each cashier is a pod.")),
-                    Beat(16, light = setOf("pods"), card = BoardCard("Replica", "One identical copy, like a photocopy. Three healthy, and the app got nothing.")),
-                    Beat(18, show = setOf("app", "svc"), light = setOf("svc", "pods"), pulse = "app" to "svc", card = BoardCard("Labels didn't match", "Pods said coach api; the Service looked for coach backend.")),
-                    Beat(20, pulse = "svc" to "pods", card = BoardCard("Empty endpoints", "The Service's list of matching ready pods was empty. One label fixed it.")),
+                    Beat(16, show = setOf("deploy", "pods"), light = setOf("deploy"), pulse = "deploy" to "pods", card = BoardCard("Deployment and pods", "A shift manager keeping cashiers; each cashier is a pod.")),
+                    Beat(18, light = setOf("pods"), card = BoardCard("Replica", "One identical copy, like a photocopy. Three healthy, and the app got nothing.")),
+                    Beat(20, show = setOf("app", "svc"), light = setOf("svc", "pods"), pulse = "app" to "svc", card = BoardCard("Labels didn't match", "Pods said coach api; the Service looked for coach backend.")),
+                    Beat(24, pulse = "svc" to "pods", card = BoardCard("Empty endpoints", "The Service's list of matching ready pods was empty. One label fixed it.")),
                 ),
             ),
-            // 21: "And Tuesday?"
+            // 25: "And Tuesday?"
             Scene(
-                21, "Tuesday: Dana", config(),
+                25, "Tuesday: Dana", config(),
                 beats = listOf(
-                    Beat(22, show = setOf("cm", "pods", "sec"), light = setOf("cm"), pulse = "cm" to "pods", card = BoardCard("ConfigMap", "Plain settings, handed to pods as environment variables.")),
-                    Beat(24, show = setOf("kv"), light = setOf("sec", "kv"), pulse = "sec" to "kv", card = BoardCard("A Secret in Git", "Only base64, a scramble anyone can undo. Real secrets: Key Vault.")),
+                    Beat(26, show = setOf("cm", "pods", "sec"), light = setOf("cm"), pulse = "cm" to "pods", card = BoardCard("ConfigMap", "Plain settings, handed to pods as environment variables.")),
+                    Beat(28, show = setOf("kv"), light = setOf("sec", "kv"), pulse = "sec" to "kv", card = BoardCard("A Secret in Git", "Only base64, a scramble anyone can undo. Real secrets: Key Vault.")),
                 ),
             ),
-            // 25: "I sense a Wednesday."
+            // 29: "I sense a Wednesday."
             Scene(
-                25, "Wednesday: Marcus", rollout(),
+                29, "Wednesday: Marcus", rollout(),
                 beats = listOf(
-                    Beat(26, show = setOf("file", "v3"), light = setOf("file"), pulse = "file" to "v3", card = BoardCard("The tag called latest", "Not a version, a moving target. Nobody could tell images apart.")),
-                    Beat(30, show = setOf("v2"), light = setOf("v2", "v3"), pulse = "v2" to "v3", card = BoardCard("Rolling update", "New pods start, old ones stop, a few at a time.")),
+                    Beat(30, show = setOf("file", "v3"), light = setOf("file"), pulse = "file" to "v3", card = BoardCard("The tag called latest", "Not a version, a moving target. Nobody could tell images apart.")),
+                    Beat(34, show = setOf("v2"), light = setOf("v2", "v3"), pulse = "v2" to "v3", card = BoardCard("Rolling update", "New pods start, old ones stop, a few at a time.")),
                 ),
             ),
-            // 31: "Thursday. Go."
+            // 35: "Thursday. Go."
             Scene(
-                31, "Thursday: the intern", rollout(),
+                35, "Thursday: the intern", rollout(),
                 beats = listOf(
-                    Beat(32, show = setOf("v2", "v3", "undo"), light = setOf("undo"), pulse = "v3" to "undo", card = undoCode),
-                    Beat(34, show = setOf("file"), light = setOf("file", "v3"), pulse = "file" to "v3", card = BoardCard("Friday, v4 was back", "The file still said v4. After an undo, fix the file too.")),
+                    Beat(36, show = setOf("v2", "v3", "undo"), light = setOf("undo"), pulse = "v3" to "undo", card = undoCode),
+                    Beat(38, show = setOf("file"), light = setOf("file", "v3"), pulse = "file" to "v3", card = BoardCard("Friday, v4 was back", "The file still said v4. After an undo, fix the file too.")),
                 ),
             ),
-            // 35: "And Friday? There's always a Friday."
+            // 39: "And Friday? There's always a Friday."
             Scene(
-                35, "Friday: Priya", access(),
+                39, "Friday: Priya", access(),
                 beats = listOf(
-                    Beat(36, show = setOf("acr"), light = setOf("acr"), card = BoardCard("ImagePullBackOff", "Can't download the image; waiting before trying again.")),
-                    Beat(38, show = setOf("kubelet"), light = setOf("kubelet", "acr"), pulse = "kubelet" to "acr", card = attachCode),
-                    Beat(40, light = setOf("kubelet"), card = BoardCard("Managed identity", "A login Azure gives a resource, like a staff badge with no password.")),
-                    Beat(42, show = setOf("pod", "wi"), light = setOf("pod", "wi"), pulse = "pod" to "wi", card = BoardCard("Two badges", "The kubelet identity for the nodes; workload identity for the code.")),
+                    Beat(40, show = setOf("acr"), light = setOf("acr"), card = BoardCard("ImagePullBackOff", "Can't download the image; waiting before trying again.")),
+                    Beat(42, show = setOf("kubelet"), light = setOf("kubelet", "acr"), pulse = "kubelet" to "acr", card = attachCode),
+                    Beat(46, light = setOf("kubelet"), card = BoardCard("Managed identity", "A login Azure gives a resource, like a staff badge with no password.")),
+                    Beat(48, show = setOf("pod", "wi"), light = setOf("pod", "wi"), pulse = "pod" to "wi", card = BoardCard("Two badges", "The kubelet identity for the nodes; workload identity for the code.")),
                 ),
             ),
-            // 43: "So did anything go right?"
+            // 49: "So did anything go right?"
             Scene(
-                43, "The best gossip", choose(),
+                49, "The best gossip", choose(),
                 beats = listOf(
-                    Beat(44, light = setOf("simple", "aca"), pulse = "simple" to "aca", card = BoardCard("Did it need AKS?", "One simple backend fits Container Apps. AKS for Kubernetes itself.")),
+                    Beat(50, light = setOf("simple", "aca"), pulse = "simple" to "aca", card = BoardCard("Did it need AKS?", "One simple backend fits Container Apps. AKS for Kubernetes itself.")),
                 ),
             ),
-            // 45: "So, the gossip I should remember for the exam?"
+            // 51: "So, the gossip I should remember for the exam?"
             Scene(
-                45, "For the exam", exam(),
+                51, "For the exam", exam(),
                 beats = listOf(
-                    Beat(46, show = all6, light = setOf("addr", "file", "pull"), card = BoardCard("Listen for the phrase", "Each exam phrase points to one answer. Nobody wants to be the story.")),
-                    Beat(48, card = today),
+                    Beat(52, show = all6, light = setOf("addr", "file", "pull"), card = BoardCard("Listen for the phrase", "Each exam phrase points to one answer. Nobody wants to be the story.")),
+                    Beat(56, card = today),
                 ),
             ),
         ),
@@ -675,77 +711,78 @@ internal object Ai200EpisodesAks {
     private fun lateNightBoard() = PodcastBoard(
         "ai-aks--late-night",
         listOf(
-            // 0: "Hey, you. It's late, the house is quiet..."
+            // 0: "Hey, you. It's late, the house is quiet, and it's just the three of us..."
             Scene(
                 0, "Something that stays up", intro(),
                 beats = listOf(
                     Beat(0, show = setOf("app"), card = BoardCard("Tonight", "Keeping things running while you sleep.")),
-                    Beat(2, show = setOf("k8s"), light = setOf("app", "k8s"), card = BoardCard("Kubernetes", "A night manager for containers: calls in cover when one leaves.")),
+                    Beat(2, show = setOf("image"), light = setOf("image"), pulse = "app" to "image", card = BoardCard("Container image", "Code, Python, libraries, slim Linux files: a lunchbox.")),
+                    Beat(4, show = setOf("k8s"), light = setOf("app", "k8s"), card = BoardCard("Kubernetes", "The kernel stays on the machine. A night manager keeps containers up.")),
                 ),
             ),
-            // 3: "A night manager. I like them already..."
+            // 5: "A night manager. I like them already. And Azure's version?"
             Scene(
-                3, "The brain", cluster(),
+                5, "The brain", cluster(),
                 beats = listOf(
-                    Beat(4, card = BoardCard("Cluster", "A group of computers working as one, like a hotel's whole night staff.")),
-                    Beat(6, show = setOf("cp"), light = setOf("cp"), card = BoardCard("Control plane", "The brain of the cluster. In AKS, Azure runs it for you.")),
-                    Beat(8, show = setOf("nodes"), light = setOf("nodes"), pulse = "cp" to "nodes", card = BoardCard("Node", "One dot in a network. In a cluster: one computer, a rented virtual machine.")),
-                    Beat(10, card = BoardCard("Node pool", "A group of identical nodes, like identical rooms on one floor.")),
-                    Beat(12, show = setOf("dev"), light = setOf("dev"), card = BoardCard("Manifest", "A wish list in YAML: one name and value a line, with indents.")),
-                    Beat(14, light = setOf("dev", "cp"), pulse = "dev" to "cp", card = BoardCard("Desired state", "Sent with kubectl apply; like a thermostat, the cluster keeps it true.")),
-                    Beat(16, light = setOf("cp", "nodes"), card = BoardCard("A loop all night", "Compare the file with what runs; fix any difference.")),
+                    Beat(6, card = BoardCard("Cluster", "A group of computers working as one, like a hotel's whole night staff.")),
+                    Beat(8, show = setOf("cp"), light = setOf("cp"), card = BoardCard("Control plane", "The brain of the cluster. In AKS, Azure runs it for you.")),
+                    Beat(10, show = setOf("nodes"), light = setOf("nodes"), pulse = "cp" to "nodes", card = BoardCard("Node", "One dot in a network. In a cluster: one computer, a rented virtual machine.")),
+                    Beat(12, card = BoardCard("Node pool", "A group of identical nodes, like identical rooms on one floor.")),
+                    Beat(14, show = setOf("dev"), light = setOf("dev"), card = BoardCard("Manifest", "A wish list in YAML: one name and value a line, with indents.")),
+                    Beat(16, light = setOf("dev", "cp"), pulse = "dev" to "cp", card = BoardCard("Desired state", "Sent with kubectl apply; like a thermostat, the cluster keeps it true.")),
+                    Beat(18, light = setOf("cp", "nodes"), card = BoardCard("A loop all night", "Compare the file with what runs; fix any difference.")),
                 ),
             ),
-            // 17: "Now that's devotion. What goes on the wish list?"
+            // 19: "Now that's devotion. What goes on the wish list?"
             Scene(
-                17, "The rota", objects(),
+                19, "The rota", objects(),
                 beats = listOf(
-                    Beat(18, show = setOf("pods"), light = setOf("pods"), card = BoardCard("Pod", "Like a pea pod: a wrapper round containers. One copy of the backend.")),
-                    Beat(20, show = setOf("deploy"), light = setOf("deploy"), pulse = "deploy" to "pods", card = BoardCard("Deployment and replicas", "Keeps identical pods running. A replica is one copy, like a photocopy.")),
-                    Beat(22, show = setOf("app", "svc"), light = setOf("svc"), pulse = "app" to "svc", card = BoardCard("Service", "One stable address that rings whoever is on shift.")),
-                    Beat(24, light = setOf("svc", "pods"), pulse = "svc" to "pods", card = BoardCard("Labels", "Name tags. The selector rings every pod wearing the tag.")),
-                    Beat(26, light = setOf("pods"), card = BoardCard("Endpoints", "The Service's list of ready, matching pods: who's on shift right now.")),
-                    Beat(28, light = setOf("svc"), card = BoardCard("ClusterIP or LoadBalancer", "Inside the cluster only, or an address the outside world can reach.")),
+                    Beat(20, show = setOf("pods"), light = setOf("pods"), card = BoardCard("Pod", "Like a pea pod: a wrapper round containers. One copy of the backend.")),
+                    Beat(22, show = setOf("deploy"), light = setOf("deploy"), pulse = "deploy" to "pods", card = BoardCard("Deployment and replicas", "Keeps identical pods running. A replica is one copy, like a photocopy.")),
+                    Beat(24, show = setOf("app", "svc"), light = setOf("svc"), pulse = "app" to "svc", card = BoardCard("Service", "One stable address that rings whoever is on shift.")),
+                    Beat(26, light = setOf("svc", "pods"), pulse = "svc" to "pods", card = BoardCard("Labels", "Name tags. The selector rings every pod wearing the tag.")),
+                    Beat(28, light = setOf("pods"), card = BoardCard("Endpoints", "The Service's list of ready, matching pods: who's on shift right now.")),
+                    Beat(30, light = setOf("svc"), card = BoardCard("ClusterIP or LoadBalancer", "Inside the cluster only, or an address the outside world can reach.")),
                 ),
             ),
-            // 29: "Settings? Secrets? Where do I keep those?"
+            // 31: "Settings? Secrets? Where do I keep those?"
             Scene(
-                29, "Settings and secrets", config(),
+                31, "Settings and secrets", config(),
                 beats = listOf(
-                    Beat(30, show = setOf("cm", "pods", "sec", "kv"), light = setOf("sec", "kv"), pulse = "sec" to "kv", card = BoardCard("Secret", "Only base64. Never commit it to Git; real secrets go in Key Vault.")),
+                    Beat(32, show = setOf("cm", "pods", "sec", "kv"), light = setOf("sec", "kv"), pulse = "sec" to "kv", card = BoardCard("Secret", "Only base64. Never commit it to Git; real secrets go in Key Vault.")),
                 ),
             ),
-            // 31: "Now. What happens when I change my mind?..."
+            // 35: "Now. What happens when I change my mind? A new version?"
             Scene(
-                31, "Changing your mind", rollout(),
+                35, "Changing your mind", rollout(),
                 beats = listOf(
-                    Beat(32, show = setOf("file", "v2", "v3"), light = setOf("v2", "v3"), pulse = "v2" to "v3", card = BoardCard("Rolling update", "A new tag in the file; pods change a few at a time. Never dark.")),
-                    Beat(34, show = setOf("undo"), light = setOf("undo", "file"), pulse = "v3" to "undo", card = undoCode),
+                    Beat(36, show = setOf("file", "v2", "v3"), light = setOf("v2", "v3"), pulse = "v2" to "v3", card = BoardCard("Rolling update", "A new tag in the file; pods change a few at a time. Never dark.")),
+                    Beat(38, show = setOf("undo"), light = setOf("undo", "file"), pulse = "v3" to "undo", card = undoCode),
                 ),
             ),
-            // 35: "Mm. And where does all this stop working?"
+            // 39: "Mm. And where does all this stop working?"
             Scene(
-                35, "Where it stops", access(),
+                39, "Where it stops", access(),
                 beats = listOf(
-                    Beat(36, show = setOf("acr"), light = setOf("acr"), card = BoardCard("ImagePullBackOff", "Can't download the image; waiting before trying again.")),
-                    Beat(38, show = setOf("kubelet"), light = setOf("kubelet", "acr"), pulse = "kubelet" to "acr", card = attachCode),
-                    Beat(40, light = setOf("kubelet"), card = BoardCard("Kubelet identity", "The night porter on each node; its badge is a managed identity.")),
-                    Beat(42, show = setOf("pod", "wi"), light = setOf("pod", "wi"), pulse = "pod" to "wi", card = BoardCard("Workload identity", "A token, a wristband from the cluster, swapped by Entra ID. No password.")),
+                    Beat(40, show = setOf("acr"), light = setOf("acr"), card = BoardCard("ImagePullBackOff", "Can't download the image; waiting before trying again.")),
+                    Beat(42, show = setOf("kubelet"), light = setOf("kubelet", "acr"), pulse = "kubelet" to "acr", card = attachCode),
+                    Beat(46, light = setOf("kubelet"), card = BoardCard("Kubelet identity", "The night porter on each node; its badge is a managed identity.")),
+                    Beat(48, show = setOf("pod", "wi"), light = setOf("pod", "wi"), pulse = "pod" to "wi", card = BoardCard("Workload identity", "A token, a wristband from the cluster, swapped by Entra ID. No password.")),
                 ),
             ),
-            // 43: "And is AKS always the answer?"
+            // 49: "And is AKS always the answer?"
             Scene(
-                43, "Not always AKS", choose(),
+                49, "Not always AKS", choose(),
                 beats = listOf(
-                    Beat(44, light = setOf("simple", "aca"), pulse = "simple" to "aca", card = BoardCard("Container Apps", "One simple backend, no cluster to manage. Your next late night.")),
+                    Beat(50, light = setOf("simple", "aca"), pulse = "simple" to "aca", card = BoardCard("Container Apps", "One simple backend, no cluster to manage. Your next late night.")),
                 ),
             ),
-            // 45: "Mm. Before you send me off to bed..."
+            // 51: "Mm. Before you send me off to bed. What do I remember for the exam?"
             Scene(
-                45, "For the exam", exam(),
+                51, "For the exam", exam(),
                 beats = listOf(
-                    Beat(46, show = all6, light = setOf("copies", "addr", "simple"), card = BoardCard("Listen for the phrase", "Each exam phrase points to one answer: five little things.")),
-                    Beat(48, card = today),
+                    Beat(52, show = all6, light = setOf("copies", "addr", "simple"), card = BoardCard("Listen for the phrase", "Each exam phrase points to one answer: five little things.")),
+                    Beat(56, card = today),
                 ),
             ),
         ),
@@ -754,77 +791,78 @@ internal object Ai200EpisodesAks {
     private fun couplesBoard() = PodcastBoard(
         "ai-aks--couples",
         listOf(
-            // 0: "Tonight is date night, darling..."
+            // 0: "Tonight is date night, darling. Candles, a little wine, and you and me..."
             Scene(
                 0, "Date night", intro(),
                 beats = listOf(
                     Beat(0, show = setOf("app"), card = BoardCard("Date night", "Something that never lets you down: Kubernetes.")),
-                    Beat(4, show = setOf("image", "acr", "k8s"), light = setOf("k8s"), card = BoardCard("Kubernetes", "Runs many containers on many machines, and keeps them running.")),
-                    Beat(6, card = BoardCard("Cluster", "A group of computers working as one, like a whole kitchen staff.")),
+                    Beat(4, show = setOf("image"), light = setOf("image"), pulse = "app" to "image", card = BoardCard("Quiz: its own kernel?", "No: containers share the host's kernel, so they start in seconds.")),
+                    Beat(8, show = setOf("acr", "k8s"), light = setOf("k8s"), card = BoardCard("Kubernetes", "Runs many containers on many machines, and keeps them running.")),
+                    Beat(10, card = BoardCard("Cluster", "A group of computers working as one, like a whole kitchen staff.")),
                 ),
             ),
-            // 7: "Half the work. My kind of partner. Which half?"
+            // 11: "Half the work. My kind of partner. Which half?"
             Scene(
-                7, "The brain", cluster(),
+                11, "The brain", cluster(),
                 beats = listOf(
-                    Beat(8, show = setOf("cp"), light = setOf("cp"), card = BoardCard("Control plane", "The brain: remembers what should be running. Azure runs it.")),
-                    Beat(10, show = setOf("nodes"), light = setOf("nodes"), pulse = "cp" to "nodes", card = BoardCard("Node", "One dot in a network. In a cluster: one computer, a rented virtual machine.")),
-                    Beat(12, show = setOf("dev"), light = setOf("dev"), card = BoardCard("Manifest", "An order form in YAML: one name and value a line, with indents.")),
-                    Beat(14, light = setOf("dev", "cp"), pulse = "dev" to "cp", card = BoardCard("Desired state", "Sent with kubectl; like a thermostat, the cluster keeps it true.")),
+                    Beat(12, show = setOf("cp"), light = setOf("cp"), card = BoardCard("Control plane", "The brain: remembers what should be running. Azure runs it.")),
+                    Beat(14, show = setOf("nodes"), light = setOf("nodes"), pulse = "cp" to "nodes", card = BoardCard("Node", "One dot in a network. In a cluster: one computer, a rented virtual machine.")),
+                    Beat(16, show = setOf("dev"), light = setOf("dev"), card = BoardCard("Manifest", "An order form in YAML: one name and value a line, with indents.")),
+                    Beat(18, light = setOf("dev", "cp"), pulse = "dev" to "cp", card = BoardCard("Desired state", "Sent with kubectl; like a thermostat, the cluster keeps it true.")),
                 ),
             ),
-            // 17: "Then let me test you, darling. Exam style..."
+            // 21: "Then let me test you, darling. Exam style. You want three copies of th..."
             Scene(
-                17, "Three copies of you", objects(),
+                21, "Three copies of you", objects(),
                 beats = listOf(
-                    Beat(17, show = setOf("pods"), card = BoardCard("Quiz: three copies", "Three copies of the Coach's backend, always running. What do you write?")),
-                    Beat(18, show = setOf("deploy"), light = setOf("deploy"), pulse = "deploy" to "pods", card = BoardCard("Right answer: a Deployment", "Replicas 3. One pod dies, it starts another.")),
-                    Beat(20, show = setOf("app", "svc"), light = setOf("app"), card = BoardCard("Quiz: new addresses", "Replaced pods get new IP addresses. How does the app reach them?")),
-                    Beat(21, light = setOf("svc", "pods"), pulse = "svc" to "pods", card = BoardCard("Right answer: a Service", "A stable address that finds pods by label.")),
-                    Beat(24, pulse = "app" to "svc", card = BoardCard("Endpoints", "The matching ready pods. Wrong tags, empty list.")),
+                    Beat(21, show = setOf("pods"), card = BoardCard("Quiz: three copies", "Three copies of the Coach's backend, always running. What do you write?")),
+                    Beat(22, show = setOf("deploy"), light = setOf("deploy"), pulse = "deploy" to "pods", card = BoardCard("Right answer: a Deployment", "Replicas 3. One pod dies, it starts another.")),
+                    Beat(24, show = setOf("app", "svc"), light = setOf("app"), card = BoardCard("Quiz: new addresses", "Replaced pods get new IP addresses. How does the app reach them?")),
+                    Beat(25, light = setOf("svc", "pods"), pulse = "svc" to "pods", card = BoardCard("Right answer: a Service", "A stable address that finds pods by label.")),
+                    Beat(28, pulse = "app" to "svc", card = BoardCard("Endpoints", "The matching ready pods. Wrong tags, empty list.")),
                 ),
             ),
-            // 25: "Inside only, or open to the world..."
+            // 29: "Inside only, or open to the world. Like some people I know. Now, secre..."
             Scene(
-                25, "Our secrets", config(),
+                29, "Our secrets", config(),
                 beats = listOf(
-                    Beat(26, show = setOf("cm", "pods", "sec"), light = setOf("cm"), pulse = "cm" to "pods", card = BoardCard("ConfigMap", "Plain settings, handed to pods as environment variables.")),
-                    Beat(28, show = setOf("kv"), light = setOf("sec", "kv"), pulse = "sec" to "kv", card = BoardCard("Never commit a Secret", "Only base64. Real secrets go in Key Vault.")),
+                    Beat(30, show = setOf("cm", "pods", "sec"), light = setOf("cm"), pulse = "cm" to "pods", card = BoardCard("ConfigMap", "Plain settings, handed to pods as environment variables.")),
+                    Beat(32, show = setOf("kv"), light = setOf("sec", "kv"), pulse = "sec" to "kv", card = BoardCard("Never commit a Secret", "Only base64. Real secrets go in Key Vault.")),
                 ),
             ),
-            // 29: "Deal. Now the dangerous part. A new version..."
+            // 33: "Deal. Now the dangerous part. A new version. What happens?"
             Scene(
-                29, "Second chances", rollout(),
+                33, "Second chances", rollout(),
                 beats = listOf(
-                    Beat(30, show = setOf("file", "v2", "v3"), light = setOf("v2", "v3"), pulse = "v2" to "v3", card = BoardCard("Rolling update", "A new tag; new pods start, old ones stop, a few at a time.")),
-                    Beat(31, light = setOf("v3"), card = BoardCard("Quiz: v3 is broken", "Users are angry. What is the fastest way back?")),
-                    Beat(32, show = setOf("undo"), light = setOf("undo"), pulse = "v3" to "undo", card = undoCode),
-                    Beat(36, light = setOf("file"), pulse = "file" to "v3", card = BoardCard("No kiss: fix the file", "The file is the truth. Put the old tag back. Never use latest.")),
+                    Beat(34, show = setOf("file", "v2", "v3"), light = setOf("v2", "v3"), pulse = "v2" to "v3", card = BoardCard("Rolling update", "A new tag; new pods start, old ones stop, a few at a time.")),
+                    Beat(35, light = setOf("v3"), card = BoardCard("Quiz: v3 is broken", "Users are angry. What is the fastest way back?")),
+                    Beat(36, show = setOf("undo"), light = setOf("undo"), pulse = "v3" to "undo", card = undoCode),
+                    Beat(40, light = setOf("file"), pulse = "file" to "v3", card = BoardCard("No kiss: fix the file", "The file is the truth. Put the old tag back. Never use latest.")),
                 ),
             ),
-            // 37: "Fine, fine. Next question for you..."
+            // 41: "Fine, fine. Next question for you. The team's private image shelf is c..."
             Scene(
-                37, "The right key", access(),
+                41, "The right key", access(),
                 beats = listOf(
-                    Beat(37, show = setOf("acr"), light = setOf("acr"), card = BoardCard("Quiz: ImagePullBackOff", "Pods can't download from ACR, and the tag exists. The fix?")),
-                    Beat(38, show = setOf("kubelet"), light = setOf("kubelet", "acr"), pulse = "kubelet" to "acr", card = attachCode),
-                    Beat(41, show = setOf("pod", "wi"), light = setOf("pod", "wi"), pulse = "pod" to "wi", card = BoardCard("Workload identity", "The nodes' badge isn't for your code. The pod signs in on its own.")),
-                    Beat(43, card = BoardCard("Token", "A short-lived signed pass, like a festival wristband. Entra ID trusts it.")),
+                    Beat(41, show = setOf("acr"), light = setOf("acr"), card = BoardCard("Quiz: ImagePullBackOff", "Pods can't download from ACR, and the tag exists. The fix?")),
+                    Beat(42, show = setOf("kubelet"), light = setOf("kubelet", "acr"), pulse = "kubelet" to "acr", card = attachCode),
+                    Beat(47, show = setOf("pod", "wi"), light = setOf("pod", "wi"), pulse = "pod" to "wi", card = BoardCard("Workload identity", "The nodes' badge isn't for your code. The pod signs in on its own.")),
+                    Beat(49, card = BoardCard("Token", "A short-lived signed pass, like a festival wristband. Entra ID trusts it.")),
                 ),
             ),
-            // 44: "Smooth. And when is AKS the wrong partner altogether?"
+            // 50: "Smooth. And when is AKS the wrong partner altogether?"
             Scene(
-                44, "The wrong partner", choose(),
+                50, "The wrong partner", choose(),
                 beats = listOf(
-                    Beat(45, light = setOf("simple", "aca"), pulse = "simple" to "aca", card = BoardCard("Container Apps", "One simple backend, no cluster to manage. AKS for Kubernetes itself.")),
+                    Beat(51, light = setOf("simple", "aca"), pulse = "simple" to "aca", card = BoardCard("Container Apps", "One simple backend, no cluster to manage. AKS for Kubernetes itself.")),
                 ),
             ),
-            // 46: "Last question, for the exam. What do we remember?"
+            // 52: "Last question, for the exam. What do we remember?"
             Scene(
-                46, "For the exam", exam(),
+                52, "For the exam", exam(),
                 beats = listOf(
-                    Beat(47, show = all6, light = setOf("copies", "bad", "simple"), card = BoardCard("Listen for the phrase", "Each exam phrase points to one answer. Five for five.")),
-                    Beat(50, card = today),
+                    Beat(53, show = all6, light = setOf("copies", "bad", "simple"), card = BoardCard("Listen for the phrase", "Each exam phrase points to one answer. Five for five.")),
+                    Beat(56, card = today),
                 ),
             ),
         ),
