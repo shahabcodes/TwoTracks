@@ -9,8 +9,10 @@ internal object Ai200EpisodesRedis {
             leo("Same note, same summary, same wait. [pause] Sounds wasteful."),
             maya("It is. So we keep a copy of the result somewhere very fast, close to the app. That copy is called a cache. Think of a sticky note on your desk, instead of walking to the filing cabinet down the hall every time."),
             leo("And where does the sticky note live?"),
-            maya("In Redis. Redis is a store that keeps everything in the computer's fast working memory, not on its slower disk. So a read takes well under a thousandth of a second. You store a value under a name, called a key, and ask for it back by that name."),
-            leo("A giant dictionary that lives in memory. And on Azure?"),
+            maya("In Redis. Redis keeps everything in the computer's fast working memory, not on its slower disk, so a read takes well under a thousandth of a second."),
+            leo("Like a HashMap in my Kotlin code, but on a server my whole backend shares?"),
+            maya("That's a good picture. You store a value under a name, called a key, and ask for it back by that name."),
+            leo("And on Azure?"),
             maya("Azure Managed Redis. It's Redis that Microsoft runs for you, built on Redis Enterprise, the paid edition from the company behind Redis. It's where Microsoft points all new work."),
             leo("Is there an older one I might bump into?"),
             maya("Yes, Azure Cache for Redis. The exam tells them apart by port. A port is like a door number on the server. The old service answers on door 6380. Azure Managed Redis answers on door 10000."),
@@ -19,7 +21,9 @@ internal object Ai200EpisodesRedis {
             leo("So the badge opens the door, and that's it?"),
             maya("One more step people miss. On the cache's Authentication page, you add your app's badge as a Redis user. A role on the Azure resource alone doesn't let it run commands. It's like having a staff badge, but not being on the list for that room."),
             leo("Okay, I'm in. How does the Coach actually use the cache?"),
-            maya("With a pattern called cache-aside. Look in the cache first. If the summary's there, that's a hit: return it. If not, that's a miss: build it from the database, store a copy in the cache, then return it. The app does the loading; the cache just sits aside."),
+            maya("With a pattern called cache-aside. Your server looks in the cache first. If the summary's there, that's a hit: return it."),
+            leo("And if it isn't? Does Redis go to the database for me?"),
+            maya("No, and that's where the name comes from. On a miss, your own code builds it from the database, stores a copy in Redis, then returns it. The cache just sits aside."),
             leo("And the copy stays forever?"),
             maya("It shouldn't. Every copy gets a TTL, which stands for time to live: an expiry, like the use-by date on milk. When it passes, Redis throws the copy away. For example, the Coach keeps summaries for one hour."),
             leo("But what if the learner edits the note five minutes in? The summary's wrong for 55 minutes."),
@@ -37,7 +41,9 @@ internal object Ai200EpisodesRedis {
             leo("And a question becomes a spot?"),
             maya("An AI model writes a list of numbers for each question, so questions that mean similar things get nearby spots. That list is called an embedding. Not two numbers, though: 1,536. Nobody can picture that, but the maths works the same."),
             leo("And Redis can search those spots?"),
-            maya("With an add-on, called a module. The one you need is RediSearch. It builds an index over Redis data, like the index at the back of a book, including vector fields that hold those lists. And the big exam fact: in Azure Managed Redis, modules are chosen when you create the cache. You can't add them later."),
+            maya("With an add-on, called a module. The one you need is RediSearch. It builds an index over Redis data, like the index at the back of a book, including fields that hold those lists."),
+            leo("So I switch it on whenever I need it?"),
+            maya("That's the big exam fact: you can't. In Azure Managed Redis, modules are chosen when you create the cache, never added later."),
             leo("So if I forgot to tick RediSearch last month?"),
             maya("You create a new cache with RediSearch, and move across. RediSearch also needs the NoEviction policy. Eviction is Redis throwing keys out to make room when memory is full. NoEviction says never do that."),
             leo("And how do I ask for the closest question?"),
@@ -47,7 +53,7 @@ internal object Ai200EpisodesRedis {
             leo("And when is close, close enough?"),
             maya("The Coach reuses a stored answer only when the distance is under 0.1: arrows pointing almost exactly the same way. Otherwise it's a miss, and the chat model answers. Start strict, and loosen only after testing, or a question about queues gets an answer about topics."),
             leo("And how does Redis search? Every stored vector?"),
-            maya("You choose, per vector field. FLAT is the simple one: it compares the question with every single stored vector, like measuring the distance to every cafe in the city. It never misses, and it's fine for small sets, but slow with many."),
+            maya("FLAT is the simple one: it compares the question with every single stored vector, like measuring the distance to every cafe in the city. It never misses, and it's fine for small sets, but slow with many."),
             leo("And for big sets?"),
             maya("HNSW. It's a graph: dots joined by lines, like a map of who knows whom."),
             leo("And each dot is a stored question?"),
@@ -59,7 +65,7 @@ internal object Ai200EpisodesRedis {
             leo("So what do I remember for the exam?"),
             maya("If vector search is needed on a cache made without modules, create a new one with RediSearch. If stale data could last forever, put a TTL on every key. On a write, update the database first, then delete the key. Exact, checking every vector, is FLAT; fast on large sets is HNSW. Same question in other words: a semantic cache with a KNN query, filtered per user."),
             leo("Perfect. Anything to try today?"),
-            maya("About fifteen minutes. Create a Managed Redis cache with RediSearch and add yourself as a Redis user. Connect from Python with redis-entraid, the library that handles the sign-in, and run PING, which just answers PONG. Write a key with a 60-second TTL and watch TTL count down. Then create a small vector index and run a KNN query with two stored answers."),
+            maya("Create a Managed Redis cache with RediSearch and add yourself as a Redis user. Connect from Python with redis-entraid, the library that handles the sign-in, and run PING, which just answers PONG. Write a key with a 60-second TTL and watch TTL count down. Then create a small vector index and run a KNN query with two stored answers."),
             leo("A sticky note that throws itself away. Finally. See you next time."),
         ),
         series = PodcastSeries.AI200,
@@ -76,7 +82,9 @@ internal object Ai200EpisodesRedis {
             leo("And under the picture? What is it really?"),
             maya("A giant dictionary held in memory: names, called keys, each pointing to a value. On Azure it runs on a cluster, which is a group of computers working as one, and Microsoft looks after it. The app asks for summary 42, and gets the text back by that key."),
             leo("Then my first suspect: the cache is broken. Restart it."),
-            maya("The cache did exactly what it was told. Look at how the app uses it. It's a pattern called cache-aside. Read the cache first. On a hit, return the copy. On a miss, build the summary from PostgreSQL, store a copy in Redis, and return it. The app does the loading."),
+            maya("The cache did exactly what it was told. Look at how the app uses it, a pattern called cache-aside. The server reads the cache first. On a hit, it returns the copy."),
+            leo("And on a miss, Redis fetches the note from PostgreSQL?"),
+            maya("Redis never talks to the database. On a miss, the server's own code builds the summary from PostgreSQL, stores a copy in Redis, and returns it."),
             leo("So where's the bug?"),
             maya("In the editing code. When the student saved her fix, the app first deleted the cached summary, then updated the database. Removing a stale copy is called invalidation. But in between those two steps, another request came in."),
             leo("[pause] Found nothing in the cache, read the old note, and put the old summary back."),
@@ -86,7 +94,9 @@ internal object Ai200EpisodesRedis {
             leo("So the TTL is the safety net when invalidation fails."),
             maya("Exactly. Quiz Quokka now keeps summaries for one hour. Even if one code path forgets to delete, the worst is an hour. And never cache secrets."),
             leo("Case closed?"),
-            maya("A second case, same app. Quiz Quokka pays a chat model for every answer. Students ask, what is a DLQ, and what is a dead-letter queue. Same question, different words. A normal cache looks up the exact words and misses. So the team wanted a semantic cache, one that matches by meaning."),
+            maya("A second case, same app. Quiz Quokka pays a chat model for every answer. Students ask, what is a DLQ, and what is a dead-letter queue."),
+            leo("Same question, different words."),
+            maya("And a normal cache looks up the exact words, so it misses. The team wanted a semantic cache, one that matches by meaning."),
             leo("How does a cache match by meaning?"),
             maya("With a map. Three steps east, four north: that spot is the list of numbers three, four. A list of numbers like that is called a vector. An AI model writes such a list for each question, so questions that mean similar things get nearby spots. That list is an embedding."),
             leo("Two numbers is a map. How many does a question get?"),
@@ -110,7 +120,9 @@ internal object Ai200EpisodesRedis {
             leo("Hops can miss the very closest, surely."),
             maya("Sometimes. Each dot is a node, one stored question, linked to only a few near ones, so a hop can skip past the best. It's approximate, which means very close, not guaranteed perfect. Much faster on large sets, and for a cache, very close is plenty."),
             leo("Any loose ends in the file?"),
-            maya("One, and it's where a semantic cache stops working. A student once got another student's answer. The cache was shared with no filter. Split it by user and course, with a filter on the search, and by chat model version. And keep the threshold strict, or it answers the wrong question. If you want vector search in the database itself, the pgvector episode covers that."),
+            maya("One, and it's where a semantic cache stops working. A student once got another student's answer. The cache was shared, with no filter."),
+            leo("So the fix is a separate cache per student?"),
+            maya("One cache, split by user and course with a filter on the search, and by chat model version. Keep the threshold strict, or it answers the wrong question. And for vector search in the database itself, the pgvector episode."),
             leo("So, the case summary for the exam?"),
             maya("On a write, update the database first, then delete the key. Stale for days means no TTL. Vector search on a cache without modules means a new cache with RediSearch. Exact by checking every vector is FLAT; large and fast is HNSW. Same question, other words, is a semantic cache with a KNN query, split per user."),
             leo("Case closed. Anything to try today?"),
@@ -148,7 +160,9 @@ internal object Ai200EpisodesRedis {
             leo("I sense a but."),
             maya("To search those vectors, Redis needs a module, an add-on, called RediSearch, which builds an index, like the one at the back of a book. Leila went to switch it on. And in Azure Managed Redis, modules are chosen when the cache is created. You can't add them later."),
             leo("[sigh] So, a whole new cache."),
-            maya("A whole new cache, with RediSearch ticked, and the NoEviction policy it needs. Eviction is Redis throwing keys out when memory is full. NoEviction says never; it refuses new writes instead. That's also where Redis stops working as a store. If memory fills, writes fail. So TTLs matter twice."),
+            maya("A whole new cache, with RediSearch ticked, and the NoEviction policy it needs. Eviction is Redis throwing keys out when memory is full. NoEviction says never; it refuses new writes instead."),
+            leo("Wait, so a full cache just says no to my server?"),
+            maya("Yes, and that's where Redis stops working as a store: writes fail. So TTLs matter twice."),
             leo("Thursday. Let me guess. The intern."),
             maya("The intern. Bless them. They couldn't connect, so they copied the cache's access key, a shared password, into the app settings. But Entra ID, Microsoft's sign-in system, like a staff badge, is the default on a new cache."),
             leo("Then why couldn't they connect?"),
@@ -164,7 +178,9 @@ internal object Ai200EpisodesRedis {
             leo("And does hopping ever miss?"),
             maya("Now and then. It's approximate, which means very close, not guaranteed perfect. Fast, and fine so far."),
             leo("So what went wrong?"),
-            maya("Two things. Sam set the closeness threshold very loose, so a question about queues got an answer about topics. Start strict, a distance under 0.1, arrows almost the same way. And the cache was shared across learners with no filter. One learner saw another's answer."),
+            maya("Two things. Sam set the closeness threshold very loose, so a question about queues got an answer about topics."),
+            leo("Too friendly with its matches."),
+            maya("Start strict: a distance under 0.1, arrows almost the same way. And the cache was shared across learners with no filter. One learner saw another's answer."),
             leo("Ouch. The fix?"),
             maya("Split the cache by user and course, with a filter on the search, and by chat model version, with a TTL on every entry. By Friday evening, a third of questions were cache hits. If you want vector search in the database itself, the pgvector episode does that."),
             leo("So, the gossip I should remember for the exam?"),
@@ -206,7 +222,9 @@ internal object Ai200EpisodesRedis {
             ivy("And Redis searches the spots?"),
             nova("With a module, an add-on, called RediSearch. It builds an index, like the one at the back of a book, over vector fields that hold those lists. But listen. In Azure Managed Redis, modules are chosen when you create the cache. You can't add them later."),
             ivy("No changing your mind afterwards. Strict."),
-            nova("Strict. Forget it, and you create a new cache and move across. RediSearch also needs the NoEviction policy. Eviction is Redis throwing keys out when memory is full. NoEviction says never, and refuses new writes instead. That's where it stops working: a full cache stops accepting. Another reason for TTLs."),
+            nova("Strict. Forget it, and you create a new cache and move across. RediSearch also needs the NoEviction policy. Eviction is Redis throwing keys out when memory is full."),
+            ivy("And NoEviction?"),
+            nova("It says never, and refuses new writes instead. [pause] That's where it stops working: a full cache stops accepting. Another reason for TTLs."),
             ivy("And how does it find the nearest spot?"),
             nova("A KNN query, short for k nearest neighbours: give me the k closest stored vectors. Ask for three, get three. For a cache, just one, the single closest question."),
             ivy("Closest how?"),
@@ -216,7 +234,9 @@ internal object Ai200EpisodesRedis {
             ivy("HNSW. Tell me slowly."),
             nova("It's a graph: dots joined by lines, like a map of who knows whom. Each dot is a node, one stored question, linked to a few near ones. A search hops from dot to closer dot, [pause] friends of friends, instead of knocking on every door."),
             ivy("Hopping in the dark. Does it ever miss?"),
-            nova("Now and then. It's approximate, which means very close, not guaranteed perfect. Much faster on large sets. And reuse an answer only when the distance is under 0.1, arrows almost the same way. Start strict. And split the cache by user and course, and by chat model version, so one person's answer never reaches another."),
+            nova("Now and then. It's approximate, which means very close, not guaranteed perfect. Much faster on large sets."),
+            ivy("And how close is close enough, before it hands me someone else's answer?"),
+            nova("A distance under 0.1, arrows almost the same way. Start strict. And split the cache by user and course, and by chat model version, so one person's answer never reaches another."),
             ivy("Mm. And how do I get in, at this hour?"),
             nova("With Entra ID, Microsoft's sign-in system, like a staff badge. It's on by default, so there's no shared password in your settings. But add your app's badge as a Redis user on the cache's Authentication page; a role on the Azure resource alone can't run commands."),
             ivy("And if I want vectors that stay, not ones that fade?"),
@@ -258,7 +278,9 @@ internal object Ai200EpisodesRedis {
             rafe("Whatever the words. So how does it know what I mean?"),
             nova("With a map. Three steps east, four north: that spot is the list of numbers three, four. A list like that is called a vector. An AI model writes one for each question, so questions that mean similar things get nearby spots. That's an embedding."),
             rafe("Nearby spots. My favourite place. Only two numbers?"),
-            nova("1,536. Nobody can picture that, but the maths works the same. To search them, Redis needs a module, an add-on, called RediSearch, which builds an index over them, like the one at the back of a book. So, my question, Rafe. You made a cache last month without modules. Now you want vector search. What do you do?"),
+            nova("1,536. Nobody can picture that, but the maths works the same. To search them, Redis needs a module, an add-on, called RediSearch, which builds an index over them, like the one at the back of a book."),
+            rafe("An index. Like the back of my recipe book."),
+            nova("So, my question, Rafe. You made a cache last month without modules. Now you want vector search. What do you do?"),
             rafe("Switch RediSearch on. Easy."),
             nova("No kiss for that one. In Azure Managed Redis, modules are chosen when you create the cache. You can't add them later. You create a new cache with RediSearch and move across. It also needs the NoEviction policy, so Redis never throws keys out to make room."),
             rafe("Commitment from the very start. I can respect that. My question, then. Which vector search method gives exact results by checking every stored vector?"),
@@ -500,93 +522,93 @@ internal object Ai200EpisodesRedis {
                     Beat(0, show = setOf("app", "cabinet"), light = setOf("cabinet"), pulse = "app" to "cabinet", card = BoardCard("Slow summaries", "Built from the database every time a note is opened.")),
                     Beat(2, show = setOf("note"), light = setOf("note"), pulse = "app" to "note", card = BoardCard("Cache", "A copy kept close and fast: the sticky note on your desk.")),
                     Beat(4, light = setOf("note"), card = BoardCard("Redis", "Everything in fast memory; values stored under names called keys.")),
-                    Beat(6, card = BoardCard("Azure Managed Redis", "Redis that Microsoft runs for you, built on Redis Enterprise.")),
+                    Beat(8, card = BoardCard("Azure Managed Redis", "Redis that Microsoft runs for you, built on Redis Enterprise.")),
                 ),
             ),
-            // 7: "Is there an older one I might bump into?"
+            // 9: "Is there an older one I might bump into?"
             Scene(
-                7, "Getting in", signin(),
+                9, "Getting in", signin(),
                 beats = listOf(
-                    Beat(8, show = setOf("cache"), light = setOf("cache"), card = BoardCard("Port 10000", "A port is a door number. The older Azure Cache for Redis uses 6380.")),
-                    Beat(10, show = setOf("app", "entra"), light = setOf("entra"), pulse = "app" to "entra", card = BoardCard("Entra ID", "Microsoft's sign-in, like a staff badge. No shared password.")),
-                    Beat(12, show = setOf("user"), light = setOf("user"), pulse = "user" to "cache", card = BoardCard("Redis user", "Add the app's badge on the Authentication page; a role alone can't.")),
+                    Beat(10, show = setOf("cache"), light = setOf("cache"), card = BoardCard("Port 10000", "A port is a door number. The older Azure Cache for Redis uses 6380.")),
+                    Beat(12, show = setOf("app", "entra"), light = setOf("entra"), pulse = "app" to "entra", card = BoardCard("Entra ID", "Microsoft's sign-in, like a staff badge. No shared password.")),
+                    Beat(14, show = setOf("user"), light = setOf("user"), pulse = "user" to "cache", card = BoardCard("Redis user", "Add the app's badge on the Authentication page; a role alone can't.")),
                 ),
             ),
-            // 13: "Okay, I'm in. How does the Coach actually use the cache?"
+            // 15: "Okay, I'm in. How does the Coach actually use the cache?"
             Scene(
-                13, "Cache-aside", cacheAside(),
+                15, "Cache-aside", cacheAside(),
                 beats = listOf(
-                    Beat(13, show = setOf("api", "redis", "db")),
-                    Beat(14, light = setOf("redis", "db"), pulse = "api" to "redis", card = asideCode),
-                    Beat(16, show = setOf("ttl"), light = setOf("ttl"), pulse = "ttl" to "redis", card = BoardCard("TTL", "Time to live: a use-by date. Redis throws the copy away after.")),
+                    Beat(15, show = setOf("api", "redis", "db")),
+                    Beat(16, light = setOf("redis", "db"), pulse = "api" to "redis", card = asideCode),
+                    Beat(20, show = setOf("ttl"), light = setOf("ttl"), pulse = "ttl" to "redis", card = BoardCard("TTL", "Time to live: a use-by date. Redis throws the copy away after.")),
                 ),
             ),
-            // 17: "But what if the learner edits the note five minutes in?..."
+            // 21: "But what if the learner edits the note five minutes in?..."
             Scene(
-                17, "Invalidation", invalidation(),
+                21, "Invalidation", invalidation(),
                 beats = listOf(
-                    Beat(17, show = setOf("write")),
-                    Beat(18, show = setOf("db", "del"), light = setOf("db", "del"), pulse = "db" to "del", card = writeCode),
-                    Beat(20, show = setOf("reader", "redis"), light = setOf("reader"), pulse = "reader" to "redis", card = BoardCard("The other order", "Delete first, and a reader slips in and caches the old summary.")),
-                    Beat(22, light = setOf("del"), card = BoardCard("TTL as safety net", "A missed delete is stale for an hour, not forever. Never cache secrets.")),
+                    Beat(21, show = setOf("write")),
+                    Beat(22, show = setOf("db", "del"), light = setOf("db", "del"), pulse = "db" to "del", card = writeCode),
+                    Beat(24, show = setOf("reader", "redis"), light = setOf("reader"), pulse = "reader" to "redis", card = BoardCard("The other order", "Delete first, and a reader slips in and caches the old summary.")),
+                    Beat(26, light = setOf("del"), card = BoardCard("TTL as safety net", "A missed delete is stale for an hour, not forever. Never cache secrets.")),
                 ),
             ),
-            // 23: "Got it. Now, you said this was an AI topic."
+            // 27: "Got it. Now, you said this was an AI topic."
             Scene(
-                23, "Same question, other words", meaningR(),
+                27, "Same question, other words", meaningR(),
                 beats = listOf(
-                    Beat(24, show = setOf("q", "q2"), light = setOf("q", "q2"), card = BoardCard("A DLQ? A dead-letter queue?", "Same question, other words. An exact-word cache misses.")),
-                    Beat(26, card = BoardCard("Semantic cache", "Reuse a stored answer when a new question means the same thing.")),
+                    Beat(28, show = setOf("q", "q2"), light = setOf("q", "q2"), card = BoardCard("A DLQ? A dead-letter queue?", "Same question, other words. An exact-word cache misses.")),
+                    Beat(30, card = BoardCard("Semantic cache", "Reuse a stored answer when a new question means the same thing.")),
                 ),
             ),
-            // 27: "But how can a cache tell what a question means?"
+            // 31: "But how can a cache tell what a question means?"
             Scene(
-                27, "A vector is a spot on a map", mapSpot(),
+                31, "A vector is a spot on a map", mapSpot(),
                 beats = listOf(
-                    Beat(28, show = setOf("mid", "p"), light = setOf("p"), card = vectorCard),
-                    Beat(30, show = setOf("r"), light = setOf("p", "r"), card = embeddingCard),
+                    Beat(32, show = setOf("mid", "p"), light = setOf("p"), card = vectorCard),
+                    Beat(34, show = setOf("r"), light = setOf("p", "r"), card = embeddingCard),
                 ),
             ),
-            // 31: "And Redis can search those spots?"
+            // 35: "And Redis can search those spots?"
             Scene(
-                31, "Chosen at creation", modules(),
+                35, "Chosen at creation", modules(),
                 beats = listOf(
-                    Beat(32, show = setOf("new", "rs"), light = setOf("rs"), pulse = "new" to "rs", card = BoardCard("RediSearch", "The module that builds an index over vector fields. Chosen at creation.")),
-                    Beat(34, show = setOf("old", "ne"), light = setOf("old", "ne"), pulse = "old" to "new", card = BoardCard("No switch later", "Forgot it? A new cache. NoEviction: never throw keys out.")),
+                    Beat(36, show = setOf("new", "rs"), light = setOf("rs"), pulse = "new" to "rs", card = BoardCard("RediSearch", "The module that builds an index over vector fields. Chosen at creation.")),
+                    Beat(40, show = setOf("old", "ne"), light = setOf("old", "ne"), pulse = "old" to "new", card = BoardCard("No switch later", "Forgot it? A new cache. NoEviction: never throw keys out.")),
                 ),
             ),
-            // 35: "And how do I ask for the closest question?"
+            // 41: "And how do I ask for the closest question?"
             Scene(
-                35, "The KNN query", knnSearch(),
+                41, "The KNN query", knnSearch(),
                 beats = listOf(
-                    Beat(36, show = setOf("qv", "knn", "idx"), light = setOf("knn"), pulse = "knn" to "idx", card = knnCard),
-                    Beat(38, light = setOf("qv"), card = cosineCard),
-                    Beat(40, show = setOf("hit", "miss"), light = setOf("hit", "miss"), pulse = "knn" to "hit", card = thresholdCard),
+                    Beat(42, show = setOf("qv", "knn", "idx"), light = setOf("knn"), pulse = "knn" to "idx", card = knnCard),
+                    Beat(44, light = setOf("qv"), card = cosineCard),
+                    Beat(46, show = setOf("hit", "miss"), light = setOf("hit", "miss"), pulse = "knn" to "hit", card = thresholdCard),
                 ),
             ),
-            // 41: "And how does Redis search? Every stored vector?"
+            // 47: "And how does Redis search? Every stored vector?"
             Scene(
-                41, "FLAT or HNSW", methods(),
+                47, "FLAT or HNSW", methods(),
                 beats = listOf(
-                    Beat(42, show = setOf("field", "flat"), light = setOf("flat"), pulse = "field" to "flat", card = flatCard),
+                    Beat(48, show = setOf("field", "flat"), light = setOf("flat"), pulse = "field" to "flat", card = flatCard),
                 ),
             ),
-            // 43: "And for big sets?"
+            // 49: "And for big sets?"
             Scene(
-                43, "HNSW: a web of questions", graphWeb(),
+                49, "HNSW: a web of questions", graphWeb(),
                 beats = listOf(
-                    Beat(44, show = setOf("start", "far", "a", "b", "best"), card = graphCard),
-                    Beat(46, show = setOf("q"), light = setOf("a", "b"), pulse = "a" to "b", card = nodeCard),
-                    Beat(48, light = setOf("best"), pulse = "b" to "best", card = approxCard),
-                    Beat(50, card = BoardCard("Split it", "By user, course and chat model version, each entry on a TTL.")),
+                    Beat(50, show = setOf("start", "far", "a", "b", "best"), card = graphCard),
+                    Beat(52, show = setOf("q"), light = setOf("a", "b"), pulse = "a" to "b", card = nodeCard),
+                    Beat(54, light = setOf("best"), pulse = "b" to "best", card = approxCard),
+                    Beat(56, card = BoardCard("Split it", "By user, course and chat model version, each entry on a TTL.")),
                 ),
             ),
-            // 51: "So what do I remember for the exam?"
+            // 57: "So what do I remember for the exam?"
             Scene(
-                51, "For the exam", exam(),
+                57, "For the exam", exam(),
                 beats = listOf(
-                    Beat(52, show = all6, light = setOf("mods", "ttl", "order", "flat", "fast", "sem"), card = BoardCard("Listen for the phrase", "Each exam phrase points to one answer: new cache, TTL, order, method, KNN.")),
-                    Beat(54, card = today),
+                    Beat(58, show = all6, light = setOf("mods", "ttl", "order", "flat", "fast", "sem"), card = BoardCard("Listen for the phrase", "Each exam phrase points to one answer: new cache, TTL, order, method, KNN.")),
+                    Beat(60, card = today),
                 ),
             ),
         ),
@@ -627,85 +649,85 @@ internal object Ai200EpisodesRedis {
                     Beat(8, show = setOf("cabinet"), light = setOf("note", "cabinet"), pulse = "app" to "cabinet", card = asideCode),
                 ),
             ),
-            // 9: "So where's the bug?"
+            // 11: "So where's the bug?"
             Scene(
-                9, "The editing code", invalidation(),
+                11, "The editing code", invalidation(),
                 beats = listOf(
-                    Beat(10, show = setOf("write", "del"), light = setOf("del"), card = BoardCard("Delete first", "The app deleted the cached copy, then updated the database.")),
-                    Beat(11, show = setOf("reader", "redis"), light = setOf("reader"), pulse = "reader" to "redis", card = BoardCard("The sneaky reader", "Found nothing, read the old note, cached the old summary.")),
-                    Beat(12, show = setOf("db"), light = setOf("db", "del"), pulse = "db" to "del", card = writeCode),
+                    Beat(12, show = setOf("write", "del"), light = setOf("del"), card = BoardCard("Delete first", "The app deleted the cached copy, then updated the database.")),
+                    Beat(13, show = setOf("reader", "redis"), light = setOf("reader"), pulse = "reader" to "redis", card = BoardCard("The sneaky reader", "Found nothing, read the old note, cached the old summary.")),
+                    Beat(14, show = setOf("db"), light = setOf("db", "del"), pulse = "db" to "del", card = writeCode),
                 ),
             ),
-            // 13: "But three days? Even a bad copy should go off eventually."
+            // 15: "But three days? Even a bad copy should go off eventually."
             Scene(
-                13, "The second clue", cacheAside(),
+                15, "The second clue", cacheAside(),
                 beats = listOf(
-                    Beat(14, show = setOf("ttl"), light = setOf("ttl"), pulse = "ttl" to "redis", card = BoardCard("No expiry", "Every key needs a TTL: Redis drops it once the time passes.")),
-                    Beat(16, light = setOf("ttl", "db"), card = BoardCard("One hour, at most", "A missed delete is stale for an hour. Never cache secrets.")),
+                    Beat(16, show = setOf("ttl"), light = setOf("ttl"), pulse = "ttl" to "redis", card = BoardCard("No expiry", "Every key needs a TTL: Redis drops it once the time passes.")),
+                    Beat(18, light = setOf("ttl", "db"), card = BoardCard("One hour, at most", "A missed delete is stale for an hour. Never cache secrets.")),
                 ),
             ),
-            // 17: "Case closed?"
+            // 19: "Case closed?"
             Scene(
-                17, "The second case", meaningR(),
+                19, "The second case", meaningR(),
                 beats = listOf(
-                    Beat(18, show = setOf("q", "q2"), light = setOf("q", "q2"), card = BoardCard("Semantic cache", "Same question, other words: match by meaning, not exact words.")),
+                    Beat(22, show = setOf("q", "q2"), light = setOf("q", "q2"), card = BoardCard("Semantic cache", "Same question, other words: match by meaning, not exact words.")),
                 ),
             ),
-            // 19: "How does a cache match by meaning?"
+            // 23: "How does a cache match by meaning?"
             Scene(
-                19, "A vector is a spot on a map", mapSpot(),
+                23, "A vector is a spot on a map", mapSpot(),
                 beats = listOf(
-                    Beat(20, show = setOf("mid", "p"), light = setOf("p"), card = vectorCard),
-                    Beat(22, show = setOf("r"), light = setOf("p", "r"), card = embeddingCard),
+                    Beat(24, show = setOf("mid", "p"), light = setOf("p"), card = vectorCard),
+                    Beat(26, show = setOf("r"), light = setOf("p", "r"), card = embeddingCard),
                 ),
             ),
-            // 23: "And Redis can do that?"
+            // 27: "And Redis can do that?"
             Scene(
-                23, "Suspect: the wrong port", modules(),
+                27, "Suspect: the wrong port", modules(),
                 beats = listOf(
-                    Beat(24, show = setOf("old"), light = setOf("old"), card = BoardCard("RediSearch", "A module that builds an index over vector fields. The old cache had none.")),
-                    Beat(26, card = BoardCard("Suspect: port 6380", "That's the older Azure Cache for Redis. Managed Redis uses 10000.")),
-                    Beat(28, show = setOf("new", "rs", "ne"), light = setOf("rs", "ne"), pulse = "old" to "new", card = BoardCard("The clue", "Modules and NoEviction are chosen at creation. A new cache it is.")),
+                    Beat(28, show = setOf("old"), light = setOf("old"), card = BoardCard("RediSearch", "A module that builds an index over vector fields. The old cache had none.")),
+                    Beat(30, card = BoardCard("Suspect: port 6380", "That's the older Azure Cache for Redis. Managed Redis uses 10000.")),
+                    Beat(32, show = setOf("new", "rs", "ne"), light = setOf("rs", "ne"), pulse = "old" to "new", card = BoardCard("The clue", "Modules and NoEviction are chosen at creation. A new cache it is.")),
                 ),
             ),
-            // 29: "And how did the app sign in to the new one?..."
+            // 33: "And how did the app sign in to the new one?..."
             Scene(
-                29, "Permission errors", signin(),
+                33, "Permission errors", signin(),
                 beats = listOf(
-                    Beat(29, show = setOf("app", "cache"), pulse = "app" to "cache"),
-                    Beat(30, show = setOf("entra", "user"), light = setOf("user"), pulse = "user" to "cache", card = BoardCard("Redis user", "Entra ID signs it in; the Authentication page lets it run commands.")),
+                    Beat(33, show = setOf("app", "cache"), pulse = "app" to "cache"),
+                    Beat(34, show = setOf("entra", "user"), light = setOf("user"), pulse = "user" to "cache", card = BoardCard("Redis user", "Entra ID signs it in; the Authentication page lets it run commands.")),
                 ),
             ),
-            // 31: "And the search itself? How does it find the closest question?"
+            // 35: "And the search itself? How does it find the closest question?"
             Scene(
-                31, "The KNN query", knnSearch(),
+                35, "The KNN query", knnSearch(),
                 beats = listOf(
-                    Beat(32, show = setOf("qv", "knn", "idx"), light = setOf("knn"), pulse = "knn" to "idx", card = knnCard),
-                    Beat(34, show = setOf("hit", "miss"), light = setOf("hit"), pulse = "knn" to "hit", card = cosineCard),
-                    Beat(36, card = flatCard),
+                    Beat(36, show = setOf("qv", "knn", "idx"), light = setOf("knn"), pulse = "knn" to "idx", card = knnCard),
+                    Beat(38, show = setOf("hit", "miss"), light = setOf("hit"), pulse = "knn" to "hit", card = cosineCard),
+                    Beat(40, card = flatCard),
                 ),
             ),
-            // 37: "And Quiz Quokka's choice?"
+            // 41: "And Quiz Quokka's choice?"
             Scene(
-                37, "HNSW: a web of questions", graphWeb(),
+                41, "HNSW: a web of questions", graphWeb(),
                 beats = listOf(
-                    Beat(38, show = setOf("start", "far", "a", "b", "best"), light = setOf("a", "b"), pulse = "a" to "b", card = graphCard),
-                    Beat(40, show = setOf("q"), light = setOf("best"), pulse = "b" to "best", card = BoardCard("Node, and approximate", "One dot, one stored question. A hop can skip the best: very close, not perfect.")),
+                    Beat(42, show = setOf("start", "far", "a", "b", "best"), light = setOf("a", "b"), pulse = "a" to "b", card = graphCard),
+                    Beat(44, show = setOf("q"), light = setOf("best"), pulse = "b" to "best", card = BoardCard("Node, and approximate", "One dot, one stored question. A hop can skip the best: very close, not perfect.")),
                 ),
             ),
-            // 41: "Any loose ends in the file?"
+            // 45: "Any loose ends in the file?"
             Scene(
-                41, "Loose ends", limits(),
+                45, "Loose ends", limits(),
                 beats = listOf(
-                    Beat(42, light = setOf("loose", "truth", "link"), card = BoardCard("Another student's answer", "Split by user, course and model version. Keep the threshold strict.")),
+                    Beat(46, light = setOf("loose", "truth", "link"), card = BoardCard("Another student's answer", "Split by user, course and model version. Keep the threshold strict.")),
                 ),
             ),
-            // 43: "So, the case summary for the exam?"
+            // 49: "So, the case summary for the exam?"
             Scene(
-                43, "Case closed", exam(),
+                49, "Case closed", exam(),
                 beats = listOf(
-                    Beat(44, show = all6, light = setOf("order", "ttl", "mods"), card = BoardCard("Listen for the phrase", "Each exam phrase points to one answer: order, TTL, new cache, method.")),
-                    Beat(46, card = today),
+                    Beat(50, show = all6, light = setOf("order", "ttl", "mods"), card = BoardCard("Listen for the phrase", "Each exam phrase points to one answer: order, TTL, new cache, method.")),
+                    Beat(52, card = today),
                 ),
             ),
         ),
@@ -760,48 +782,48 @@ internal object Ai200EpisodesRedis {
                 21, "A whole new cache", modules(),
                 beats = listOf(
                     Beat(22, show = setOf("old", "rs"), light = setOf("rs"), card = BoardCard("RediSearch", "The module for vectors. Chosen at creation; never added later.")),
-                    Beat(24, show = setOf("new", "ne"), light = setOf("new", "ne"), pulse = "old" to "new", card = BoardCard("Where it stops", "NoEviction: when memory is full, new writes are refused.")),
+                    Beat(26, show = setOf("new", "ne"), light = setOf("new", "ne"), pulse = "old" to "new", card = BoardCard("Where it stops", "NoEviction: when memory is full, new writes are refused.")),
                 ),
             ),
-            // 25: "Thursday. Let me guess. The intern."
+            // 27: "Thursday. Let me guess. The intern."
             Scene(
-                25, "Thursday: the intern", signin(),
+                27, "Thursday: the intern", signin(),
                 beats = listOf(
-                    Beat(26, show = setOf("app", "cache", "entra"), light = setOf("entra"), pulse = "app" to "entra", card = BoardCard("An access key", "A shared password pasted into settings. Entra ID is the default.")),
-                    Beat(28, show = setOf("user"), light = setOf("user"), pulse = "user" to "cache", card = BoardCard("Redis user", "Added on the Authentication page; redis-entraid signs in.")),
+                    Beat(28, show = setOf("app", "cache", "entra"), light = setOf("entra"), pulse = "app" to "entra", card = BoardCard("An access key", "A shared password pasted into settings. Entra ID is the default.")),
+                    Beat(30, show = setOf("user"), light = setOf("user"), pulse = "user" to "cache", card = BoardCard("Redis user", "Added on the Authentication page; redis-entraid signs in.")),
                 ),
             ),
-            // 29: "And Friday? There's always a Friday."
+            // 31: "And Friday? There's always a Friday."
             Scene(
-                29, "Friday: Sam", knnSearch(),
+                31, "Friday: Sam", knnSearch(),
                 beats = listOf(
-                    Beat(30, show = setOf("qv", "knn", "idx"), light = setOf("knn"), pulse = "knn" to "idx", card = knnCard),
-                    Beat(32, light = setOf("qv"), card = cosineCard),
-                    Beat(34, show = setOf("hit", "miss"), card = flatCard),
+                    Beat(32, show = setOf("qv", "knn", "idx"), light = setOf("knn"), pulse = "knn" to "idx", card = knnCard),
+                    Beat(34, light = setOf("qv"), card = cosineCard),
+                    Beat(36, show = setOf("hit", "miss"), card = flatCard),
                 ),
             ),
-            // 35: "HNSW. Sounds like a sneeze."
+            // 37: "HNSW. Sounds like a sneeze."
             Scene(
-                35, "HNSW: a web of questions", graphWeb(),
+                37, "HNSW: a web of questions", graphWeb(),
                 beats = listOf(
-                    Beat(36, light = setOf("a", "b"), pulse = "a" to "b", card = nodeCard),
-                    Beat(38, light = setOf("best"), pulse = "b" to "best", card = approxCard),
+                    Beat(38, light = setOf("a", "b"), pulse = "a" to "b", card = nodeCard),
+                    Beat(40, light = setOf("best"), pulse = "b" to "best", card = approxCard),
                 ),
             ),
-            // 39: "So what went wrong?"
+            // 41: "So what went wrong?"
             Scene(
-                39, "Too loose, too shared", knnSearch(),
+                41, "Too loose, too shared", knnSearch(),
                 beats = listOf(
-                    Beat(40, light = setOf("hit", "miss"), pulse = "knn" to "hit", card = BoardCard("Too loose, and shared", "Queues answered with topics; one learner saw another's answer.")),
-                    Beat(42, light = setOf("knn"), card = BoardCard("The fix", "Under 0.1, split by user, course and model; pgvector for the rest.")),
+                    Beat(42, light = setOf("hit", "miss"), pulse = "knn" to "hit", card = BoardCard("Too loose, and shared", "Queues answered with topics; one learner saw another's answer.")),
+                    Beat(46, light = setOf("knn"), card = BoardCard("The fix", "Under 0.1, split by user, course and model; pgvector for the rest.")),
                 ),
             ),
-            // 43: "So, the gossip I should remember for the exam?"
+            // 47: "So, the gossip I should remember for the exam?"
             Scene(
-                43, "For the exam", exam(),
+                47, "For the exam", exam(),
                 beats = listOf(
-                    Beat(44, show = all6, light = setOf("order", "ttl", "mods", "sem"), card = BoardCard("Listen for the phrase", "Each exam phrase points to one answer. Nobody wants to be next week's story.")),
-                    Beat(46, card = today),
+                    Beat(48, show = all6, light = setOf("order", "ttl", "mods", "sem"), card = BoardCard("Listen for the phrase", "Each exam phrase points to one answer. Nobody wants to be next week's story.")),
+                    Beat(50, card = today),
                 ),
             ),
         ),
@@ -859,46 +881,46 @@ internal object Ai200EpisodesRedis {
                 23, "Chosen at creation", modules(),
                 beats = listOf(
                     Beat(24, show = setOf("new", "rs"), light = setOf("rs"), pulse = "new" to "rs", card = BoardCard("RediSearch", "The module for vector fields. Chosen at creation; never added later.")),
-                    Beat(26, show = setOf("old", "ne"), light = setOf("ne"), pulse = "old" to "new", card = BoardCard("Where it stops", "NoEviction: a full cache refuses new writes. Another reason for TTLs.")),
+                    Beat(28, show = setOf("old", "ne"), light = setOf("ne"), pulse = "old" to "new", card = BoardCard("Where it stops", "NoEviction: a full cache refuses new writes. Another reason for TTLs.")),
                 ),
             ),
-            // 27: "And how does it find the nearest spot?"
+            // 29: "And how does it find the nearest spot?"
             Scene(
-                27, "The nearest spot", knnSearch(),
+                29, "The nearest spot", knnSearch(),
                 beats = listOf(
-                    Beat(28, show = setOf("qv", "knn", "idx"), light = setOf("knn"), pulse = "knn" to "idx", card = knnCard),
-                    Beat(30, light = setOf("qv"), card = cosineCard),
-                    Beat(32, show = setOf("hit", "miss"), card = flatCard),
+                    Beat(30, show = setOf("qv", "knn", "idx"), light = setOf("knn"), pulse = "knn" to "idx", card = knnCard),
+                    Beat(32, light = setOf("qv"), card = cosineCard),
+                    Beat(34, show = setOf("hit", "miss"), card = flatCard),
                 ),
             ),
-            // 33: "HNSW. Tell me slowly."
+            // 35: "HNSW. Tell me slowly."
             Scene(
-                33, "HNSW: a web of questions", graphWeb(),
+                35, "HNSW: a web of questions", graphWeb(),
                 beats = listOf(
-                    Beat(34, light = setOf("a", "b"), pulse = "a" to "b", card = nodeCard),
-                    Beat(36, light = setOf("best"), pulse = "b" to "best", card = BoardCard("Approximate, and strict", "Very close, not perfect. Reuse only under 0.1; split per user.")),
+                    Beat(36, light = setOf("a", "b"), pulse = "a" to "b", card = nodeCard),
+                    Beat(38, light = setOf("best"), pulse = "b" to "best", card = BoardCard("Approximate, and strict", "Very close, not perfect. Reuse only under 0.1; split per user.")),
                 ),
             ),
-            // 37: "Mm. And how do I get in, at this hour?"
+            // 41: "Mm. And how do I get in, at this hour?"
             Scene(
-                37, "Getting in", signin(),
+                41, "Getting in", signin(),
                 beats = listOf(
-                    Beat(38, show = setOf("app", "entra", "cache", "user"), light = setOf("entra", "user"), pulse = "app" to "entra", card = BoardCard("Entra ID, and a Redis user", "A staff badge, on by default; add it on the Authentication page.")),
+                    Beat(42, show = setOf("app", "entra", "cache", "user"), light = setOf("entra", "user"), pulse = "app" to "entra", card = BoardCard("Entra ID, and a Redis user", "A staff badge, on by default; add it on the Authentication page.")),
                 ),
             ),
-            // 39: "And if I want vectors that stay, not ones that fade?"
+            // 43: "And if I want vectors that stay, not ones that fade?"
             Scene(
-                39, "Vectors that stay", limits(),
+                43, "Vectors that stay", limits(),
                 beats = listOf(
-                    Beat(40, light = setOf("link", "truth"), card = BoardCard("Your next late night", "The pgvector episode: vector search in the database itself.")),
+                    Beat(44, light = setOf("link", "truth"), card = BoardCard("Your next late night", "The pgvector episode: vector search in the database itself.")),
                 ),
             ),
-            // 41: "Before you send me to bed. What do I remember for the exam?"
+            // 45: "Before you send me to bed. What do I remember for the exam?"
             Scene(
-                41, "For the exam", exam(),
+                45, "For the exam", exam(),
                 beats = listOf(
-                    Beat(42, show = all6, light = setOf("order", "ttl", "mods", "sem"), card = BoardCard("Listen for the phrase", "Each exam phrase points to one answer: order, TTL, new cache, KNN.")),
-                    Beat(44, card = today),
+                    Beat(46, show = all6, light = setOf("order", "ttl", "mods", "sem"), card = BoardCard("Listen for the phrase", "Each exam phrase points to one answer: order, TTL, new cache, KNN.")),
+                    Beat(48, card = today),
                 ),
             ),
         ),
@@ -957,52 +979,52 @@ internal object Ai200EpisodesRedis {
             Scene(
                 24, "Commitment", modules(),
                 beats = listOf(
-                    Beat(24, show = setOf("old"), light = setOf("old"), card = BoardCard("Quiz: no modules", "A cache made without modules now needs vector search. What then?")),
-                    Beat(26, show = setOf("new", "rs", "ne"), light = setOf("new", "rs"), pulse = "old" to "new", card = BoardCard("No kiss: a new cache", "Modules are chosen at creation. RediSearch, with NoEviction.")),
+                    Beat(26, show = setOf("old"), light = setOf("old"), card = BoardCard("Quiz: no modules", "A cache made without modules now needs vector search. What then?")),
+                    Beat(28, show = setOf("new", "rs", "ne"), light = setOf("new", "rs"), pulse = "old" to "new", card = BoardCard("No kiss: a new cache", "Modules are chosen at creation. RediSearch, with NoEviction.")),
                 ),
             ),
-            // 27: "Commitment from the very start..."
+            // 29: "Commitment from the very start..."
             Scene(
-                27, "Search methods", methods(),
+                29, "Search methods", methods(),
                 beats = listOf(
-                    Beat(27, show = setOf("field"), card = BoardCard("Quiz: exact search", "Which method checks every stored vector?")),
-                    Beat(28, show = setOf("flat"), light = setOf("flat"), pulse = "field" to "flat", card = flatCard),
-                    Beat(29, card = BoardCard("Right answer: FLAT", "Exact, every vector, fine for small sets.")),
+                    Beat(29, show = setOf("field"), card = BoardCard("Quiz: exact search", "Which method checks every stored vector?")),
+                    Beat(30, show = setOf("flat"), light = setOf("flat"), pulse = "field" to "flat", card = flatCard),
+                    Beat(31, card = BoardCard("Right answer: FLAT", "Exact, every vector, fine for small sets.")),
                 ),
             ),
-            // 30: "And for big sets, HNSW..."
+            // 32: "And for big sets, HNSW..."
             Scene(
-                30, "HNSW: a web of questions", graphWeb(),
+                32, "HNSW: a web of questions", graphWeb(),
                 beats = listOf(
-                    Beat(30, light = setOf("a", "b"), pulse = "a" to "b", card = graphCard),
-                    Beat(32, light = setOf("best"), pulse = "b" to "best", card = BoardCard("Node, and approximate", "One dot, one stored question. A hop can skip the best: very close, not perfect.")),
+                    Beat(32, light = setOf("a", "b"), pulse = "a" to "b", card = graphCard),
+                    Beat(34, light = setOf("best"), pulse = "b" to "best", card = BoardCard("Node, and approximate", "One dot, one stored question. A hop can skip the best: very close, not perfect.")),
                 ),
             ),
-            // 33: "And how do you ask it for the nearest question?"
+            // 35: "And how do you ask it for the nearest question?"
             Scene(
-                33, "Just between us", knnSearch(),
+                35, "Just between us", knnSearch(),
                 beats = listOf(
-                    Beat(34, show = setOf("qv", "knn", "idx"), light = setOf("knn"), pulse = "knn" to "idx", card = knnCard),
-                    Beat(36, show = setOf("hit", "miss"), light = setOf("hit"), pulse = "knn" to "hit", card = cosineCard),
-                    Beat(37, light = setOf("hit"), card = BoardCard("Quiz: shared answers", "Learners see each other's answers. What's missing?")),
-                    Beat(38, light = setOf("knn"), card = BoardCard("Right answer", "Split by user, course and chat model version; a TTL on each.")),
+                    Beat(36, show = setOf("qv", "knn", "idx"), light = setOf("knn"), pulse = "knn" to "idx", card = knnCard),
+                    Beat(38, show = setOf("hit", "miss"), light = setOf("hit"), pulse = "knn" to "hit", card = cosineCard),
+                    Beat(39, light = setOf("hit"), card = BoardCard("Quiz: shared answers", "Learners see each other's answers. What's missing?")),
+                    Beat(40, light = setOf("knn"), card = BoardCard("Right answer", "Split by user, course and chat model version; a TTL on each.")),
                 ),
             ),
-            // 40: "Last practical one. How does your server sign in..."
+            // 42: "Last practical one. How does your server sign in..."
             Scene(
-                40, "No password", signin(),
+                42, "No password", signin(),
                 beats = listOf(
-                    Beat(40, show = setOf("app", "cache"), card = BoardCard("Quiz: no password", "How does the server sign in, with nothing in its settings?")),
-                    Beat(41, show = setOf("entra", "user"), light = setOf("entra", "user"), pulse = "app" to "entra", card = BoardCard("Entra ID, and a Redis user", "A staff badge, on by default; add it on the Authentication page.")),
-                    Beat(42, light = setOf("cache"), card = BoardCard("Every romance has limits", "Not the truth; full means refused writes; loose means wrong answers.")),
+                    Beat(42, show = setOf("app", "cache"), card = BoardCard("Quiz: no password", "How does the server sign in, with nothing in its settings?")),
+                    Beat(43, show = setOf("entra", "user"), light = setOf("entra", "user"), pulse = "app" to "entra", card = BoardCard("Entra ID, and a Redis user", "A staff badge, on by default; add it on the Authentication page.")),
+                    Beat(44, light = setOf("cache"), card = BoardCard("Every romance has limits", "Not the truth; full means refused writes; loose means wrong answers.")),
                 ),
             ),
-            // 44: "Then the last question, for the exam. What do we remember?"
+            // 46: "Then the last question, for the exam. What do we remember?"
             Scene(
-                44, "For the exam", exam(),
+                46, "For the exam", exam(),
                 beats = listOf(
-                    Beat(45, show = all6, light = setOf("order", "ttl", "mods", "flat", "sem"), card = BoardCard("Listen for the phrase", "Each exam phrase points to one answer. Five for five.")),
-                    Beat(48, card = today),
+                    Beat(47, show = all6, light = setOf("order", "ttl", "mods", "flat", "sem"), card = BoardCard("Listen for the phrase", "Each exam phrase points to one answer. Five for five.")),
+                    Beat(50, card = today),
                 ),
             ),
         ),

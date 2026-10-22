@@ -7,23 +7,31 @@ internal object Ai200EpisodesServiceBus {
         listOf(
             maya("Hi, and welcome back. Today is about letting slow work wait its turn. Say you're building the Two Tracks Coach, a study helper in an Android app, with a small Python server on Azure, Microsoft's cloud. When a learner saves a note, the server turns it into numbers an AI search can use. That takes seconds, and sometimes the AI service is busy."),
             leo("And the learner just stares at a spinner? [pause] Not great."),
-            maya("So the server writes a small job ticket instead: embed note 42. Those numbers are called an embedding: a list the AI writes for the note, like a spot on a map, so notes that mean similar things land close together. The ticket is called a message. The server drops it off and answers the learner at once."),
+            maya("So the server writes a small job ticket instead: embed note 42. That ticket is called a message. The server drops it off and answers the learner at once."),
+            leo("Embed. That's the AI turning the note into numbers?"),
+            maya("Yes. Those numbers are called an embedding: a list the AI writes for the note, like a spot on a map, so notes that mean similar things land close together."),
             leo("And who does the slow part?"),
             maya("A separate program, called a worker. It picks the ticket up and does the slow part later, when it's ready. The server and the worker never have to wait for each other."),
             leo("And the server drops the ticket off where?"),
             maya("At Azure Service Bus. Think of it as a post office between the parts of your app. The sender doesn't wait, and the worker doesn't even need to be running yet. The message waits safely until someone collects it."),
+            leo("Hang on. Does the post office ring my worker when a ticket arrives? Like a push notification on my phone?"),
+            maya("No. Service Bus never calls your code. Your worker connects and asks: anything for me? It waits on that connection and pulls each message off. That's why it's called receiving. Service Bus can't post to a web address of yours."),
             leo("And the post office has, what, pigeonholes?"),
             maya("Queues. A queue is one line of messages, and each message is handled by exactly one receiver. Like a bakery queue with three cashiers: add a cashier and the line moves faster, but nobody is served twice. The Coach's queue is called embed-jobs."),
             leo("Where do I create a queue?"),
             maya("Inside a namespace. That's your own post office building, with its own address, holding your queues. It comes in tiers, like sizes. Basic has queues only. Standard and Premium add topics, which we'll get to."),
             leo("And how does the server get in? A password?"),
-            maya("Better than that. The Python package has a helper called DefaultAzureCredential. It finds a sign-in by itself: your own login on your laptop, the app's own identity in the cloud, a badge Azure gives the app. No secret to copy anywhere."),
+            maya("Better than a password. The Python package has a helper called DefaultAzureCredential. It finds a sign-in by itself, so there's no secret to copy anywhere."),
+            leo("Finds it where? My laptop isn't the cloud."),
+            maya("On your laptop it uses your own Azure sign-in. In the cloud it uses the app's managed identity, a badge Azure gives the app. Same code in both places."),
             leo("So anyone with an identity can send?"),
             maya("Only if you allow it. You give the app's identity a role, a named permission. Azure Service Bus Data Sender lets the server send. Azure Service Bus Data Receiver lets the worker receive."),
             leo("Okay. The worker takes the message. Is it gone from the queue?"),
             maya("Not yet, and that's the clever part. The default way to receive is PeekLock. Think of a library hold: the book is put aside for you and hidden from everyone else, but it's not yours until you check it out. The message is locked, not removed."),
             leo("Why not just take it?"),
-            maya("Because workers crash. If the worker dies halfway, the lock runs out, and the message shows up in the queue again for another try. Nothing lost. The other mode, ReceiveAndDelete, removes it the moment it's handed over. Faster, but a crash loses it."),
+            maya("Because workers crash. If the worker dies halfway, the lock runs out, and the message shows up in the queue again for another try. Nothing lost."),
+            leo("And if I just want it gone the moment I take it? Surely that's faster."),
+            maya("That's the other mode, ReceiveAndDelete. The message is removed the moment it's handed over. Faster, yes. But if the worker crashes mid-job, that note is simply lost."),
             leo("So with PeekLock, how does the worker say it's done?"),
             maya("It settles the message, which just means it says what happened. Complete means finished: delete it. Abandon means give the lock back, so the message can be tried again soon. Those two you'll use most."),
             leo("There are more?"),
@@ -33,7 +41,9 @@ internal object Ai200EpisodesServiceBus {
             leo("So when do I abandon, and when do I dead-letter?"),
             maya("For example, the AI service answers 429, which means too many requests, slow down. That's temporary, so the worker abandons, and the message comes back for another try. But if the note is empty, no retry will ever fix it. Dead-letter it, with a reason like EmptyNote."),
             leo("And the lock. How long does it last?"),
-            maya("That's the lock duration: one minute by default, five at most. Here's a classic trap. A worker takes three minutes per job, and jobs get done twice. Why? The lock ran out after one minute, the message reappeared, and a second worker started it too."),
+            maya("That's the lock duration: one minute by default, five at most. Now a classic trap. A worker takes three minutes per job, and jobs get done twice. Why?"),
+            leo("The worker has a bug, and calls the AI twice?"),
+            maya("That's what everyone suspects. But the lock ran out after one minute, the message showed up again, and a second worker pulled it and started it too."),
             leo("[sigh] So the fix is a longer lock?"),
             maya("Raise the lock duration, up to five minutes, or renew the lock while the work runs. The Python package has a helper for that, AutoLockRenewer, which keeps topping it up. The Coach set its queue to two minutes."),
             leo("What about a message that fails every single time?"),
@@ -45,11 +55,15 @@ internal object Ai200EpisodesServiceBus {
             leo("Okay. Now, what if two services both need every saved note?"),
             maya("Picture a second service, a progress tracker, that also wants to know when a note is saved. On a queue, the worker and the tracker would compete: each message goes to one of them, never both. You need a topic."),
             leo("What's a topic, in plain words?"),
-            maya("A newsletter. You publish once, and every subscriber gets their own copy. Each subscriber is a subscription, which is really a private queue on the topic. The Coach publishes to a topic called note-events, with one subscription for search and one for progress."),
+            maya("A newsletter. You publish once, and every subscriber gets their own copy. The Coach publishes to a topic called note-events."),
+            leo("So the topic pushes a copy out to my tracker?"),
+            maya("Still no pushing. Each reader has a subscription, which is really a private queue on the topic. Service Bus drops a copy into each one, and each service pulls from its own. The Coach has one for search and one for progress."),
             leo("Can a subscription pick only some messages?"),
-            maya("Yes, with filter rules. A SQL filter is a short test on a message's labels, written like a database query: track equals german. One catch: a new subscription starts with a default rule that accepts everything. Add your filter but leave that rule, and you still get everything."),
+            maya("Yes, with filter rules. A SQL filter is a short test on a message's labels, written like a database query: track equals german."),
+            leo("Easy. I add that, and only German notes come through."),
+            maya("Here's the catch. A new subscription starts with a default rule that accepts everything. Add your filter but leave that rule, and you still get everything. Remove the default."),
             leo("And if one learner's messages must stay in order?"),
-            maya("That's a session. Each message carries a session id, say the learner's id, and Service Bus hands each session to one receiver at a time, in order. First in, first out, per learner."),
+            maya("That's a session. Each message carries a session id, say the learner's id. One receiver at a time locks that session and pulls its messages in order. First in, first out, per learner."),
             leo("So what do I remember for the exam?"),
             maya("If each consumer needs every message, it's a topic with a subscription each. If the work must not be lost when a worker crashes, PeekLock. If one user's messages must stay in order, sessions. If a message keeps failing, it lands in the dead-letter queue after the max delivery count."),
             leo("And the jobs done twice?"),
@@ -66,9 +80,13 @@ internal object Ai200EpisodesServiceBus {
         listOf(
             maya("Welcome to Case Files. Today's case: The Notes Done Twice. A small Android app called Lingo Lark helps people learn languages, with a Python server on Azure, Microsoft's cloud. Every saved note goes to an AI service that turns it into numbers for search. This month, the AI bill doubled. And some notes were never processed at all."),
             leo("[pause] Detective Leo is on the case. How was the work meant to flow, in plain words?"),
-            maya("When a note is saved, the server writes a job ticket: embed note 42. Those numbers are called an embedding: a list the AI writes for the note, like a spot on a map, so notes that mean similar things land close together. The ticket is called a message."),
+            maya("When a note is saved, the server writes a job ticket: embed note 42. The ticket is called a message."),
+            leo("Embed meaning the AI turns the note into numbers?"),
+            maya("Right. Those numbers are called an embedding: a list the AI writes for the note, like a spot on a map, so notes that mean similar things land close together."),
             leo("And it hands the ticket to whom?"),
             maya("To Azure Service Bus, a post office between the parts of the app. The server answers the user at once. A separate program, called a worker, collects the ticket later and does the slow AI call."),
+            leo("So Service Bus calls the worker when a ticket arrives?"),
+            maya("No. Service Bus never calls your code. The worker connects, asks for the next message, and waits on that connection. The worker pulls. Remember that; it matters in this case."),
             leo("And the ticket waits where?"),
             maya("In a queue: one line of messages, where each message is handled by exactly one receiver. Like a bakery queue with several cashiers. More cashiers, faster line, nobody served twice."),
             leo("And where does the queue live?"),
@@ -78,7 +96,9 @@ internal object Ai200EpisodesServiceBus {
             leo("Then my first suspect for the double bill: the server sends every message twice."),
             maya("Good instinct. Service Bus even has duplicate detection for that, on Standard and Premium: give each message an id, and a resend with the same id inside a time window is dropped. But the logs show one send per note. Wrong suspect."),
             leo("Then the worker is buggy and calls the AI twice."),
-            maya("Closer. Here's the clue. Each job takes about three minutes. The worker receives in PeekLock mode, the default. Think of a library hold: the book is put aside and hidden from everyone else, but it isn't yours until you check it out. The message is locked, not removed."),
+            maya("Closer. Here's the clue. Each job takes about three minutes. And the worker receives in PeekLock mode, the default."),
+            leo("PeekLock. Peek, so it only looks at the message?"),
+            maya("Looks, and locks. Think of a library hold: the book is put aside and hidden from everyone else, but it isn't yours until you check it out. The message is locked, not removed."),
             leo("And the lock lasts how long?"),
             maya("That's the lock duration. One minute by default. Under the hood, Service Bus gives the worker a lock with a timer. When the timer runs out, the message becomes visible again, and its delivery count, the number of tries, goes up by one."),
             leo("[pause] So after one minute, a second worker grabs the same note. Three-minute job, two workers. Double bill."),
@@ -86,25 +106,29 @@ internal object Ai200EpisodesServiceBus {
             leo("And the notes that were never processed? Same thing?"),
             maya("Second witness. Last month, someone switched the receive mode to ReceiveAndDelete to make it faster. That mode removes the message the moment it's handed over. Then a worker crashed mid-job, and those messages were simply gone."),
             leo("So PeekLock is there exactly so a crash loses nothing."),
-            maya("Exactly. With PeekLock, the worker settles each message, saying what happened. Complete when done: delete it. Abandon on a temporary failure: give the lock back, so it's tried again. Like when the AI service sends back 429, the code that means too many requests, slow down."),
+            maya("Exactly. With PeekLock, the worker settles each message, saying what happened. Complete when it's done: delete it."),
+            leo("And if the AI service is just busy for a moment?"),
+            maya("Abandon: give the lock back, so it's tried again. Like when the AI service sends back 429, the code that means too many requests, slow down."),
             leo("And when it fails for good?"),
             maya("Third clue, and it's in a place nobody looked. Every queue has a built-in dead-letter queue, the returned-mail shelf, for messages that can't be processed."),
             leo("And how does a message end up on the shelf?"),
             maya("Each failed try raises its delivery count. Once it passes the max delivery count, ten by default, Service Bus moves it there by itself. Lingo Lark's shelf had three thousand messages on it."),
             leo("Three thousand! Suspect: Service Bus is broken."),
-            maya("[sigh] Service Bus did its job. Most were poison messages: empty notes that fail every time. Each one was tried ten times, paid for ten times, then dead-lettered. The worker should dead-letter those itself, at once, with a reason like EmptyNote. No retry will ever fix an empty note."),
+            maya("[sigh] Service Bus did its job. Most were poison messages: empty notes that fail every time. Each one was tried ten times, and paid for ten times."),
+            leo("Ten AI calls for an empty note. So what should the worker have done?"),
+            maya("Dead-letter it itself, at once, with a reason like EmptyNote. No retry will ever fix an empty note."),
             leo("And who reads the dead-letter queue?"),
             maya("Nobody, unless you do. Nothing reads it for you. Lingo Lark now runs a small repair script every morning: it reads each dead letter, checks the reason, fixes the cause, and sends a fresh copy to the main queue."),
             leo("Any loose ends in the file?"),
             maya("One. The progress tracker never saw new notes. It read from the same queue as the worker. On a queue, they compete: each message goes to one of them, never both. When two services each need every message, you need a topic."),
             leo("A topic being?"),
-            maya("A newsletter. You publish once, and every subscription gets its own copy. A subscription is really a private queue on the topic. Topics need the Standard or Premium tier; Basic has queues only."),
+            maya("A newsletter. You publish once, and every subscription gets its own copy. A subscription is really a private queue on the topic, and each service pulls from its own. Topics need the Standard or Premium tier; Basic has queues only."),
             leo("And the german-only subscription in the file? It still got everything."),
             maya("Last clue. A subscription can have a filter rule, a test on a message's labels, like track equals german. But a new subscription starts with a default rule that accepts everything. They added their filter and left the default in place. Remove it, and only German notes arrive."),
             leo("So where does Service Bus stop helping?"),
             maya("It delivers at least once, so now and then a message can arrive twice. Make the work safe to repeat: embedding the same note twice should just overwrite the same numbers."),
             leo("And if one learner's messages must stay in order?"),
-            maya("Use a session: messages share a session id, say the learner's id, and go, in order, to one receiver at a time. And if you only need to announce that something happened, the Event Grid episode covers that."),
+            maya("Use a session: messages share a session id, say the learner's id. One receiver at a time locks that session and pulls its messages in order. And if you only need to announce that something happened, the Event Grid episode covers that."),
             leo("So, the case summary for the exam?"),
             maya("Jobs done twice with long work: the lock expired, so renew it or raise the lock duration. Must not lose a job if the worker crashes: PeekLock. Keeps failing: the dead-letter queue, after the max delivery count. Each consumer needs every message: a topic. One user's messages in order: sessions."),
             leo("Case closed. Anything to try today?"),
@@ -123,6 +147,8 @@ internal object Ai200EpisodesServiceBus {
             maya("Service Bus. A post office between the parts of your app. When a learner saves a note, the Python server writes a job ticket: embed note 42, meaning turn it into numbers for AI search, like a spot on a map for its meaning. That ticket is called a message."),
             leo("And then?"),
             maya("The server drops it off and answers the learner at once. A worker, a separate program, collects it later and calls the AI service. Nobody waits on anybody."),
+            leo("Collects? The post office doesn't deliver?"),
+            maya("Nope. Service Bus never knocks on your code's door. The worker connects and asks for the next message. It pulls. Keep that in mind for Omar."),
             leo("And the message waits in what?"),
             maya("A queue. One line of messages, and each message is handled by exactly one receiver. Like a bakery queue with three cashiers. More cashiers, faster line, nobody served twice."),
             leo("And the queue lives where?"),
@@ -160,7 +186,7 @@ internal object Ai200EpisodesServiceBus {
             leo("So nothing reads the dead-letter queue by itself?"),
             maya("Nothing. And that's where Service Bus stops helping. It delivers at least once, so a message can now and then arrive twice. Make the work safe to repeat."),
             leo("Anything else nobody did this week?"),
-            maya("If one learner's messages must stay in order, use a session, which hands each learner's messages, in order, to one receiver at a time. Nobody needed it yet. Give it time. And the Event Grid episode covers simple announcements."),
+            maya("If one learner's messages must stay in order, use a session: one receiver at a time locks a learner's session and pulls their messages in order. Nobody needed it yet. Give it time. And the Event Grid episode covers simple announcements."),
             leo("So, the gossip I should remember for the exam?"),
             maya("Must not lose a job if the worker crashes: PeekLock. Jobs done twice with long work: renew the lock or raise the lock duration. Each service needs every message: a topic. Keeps failing: the dead-letter queue, after the max delivery count. One user's messages in order: sessions."),
             leo("And something to try today, so I'm not next week's story?"),
@@ -178,11 +204,15 @@ internal object Ai200EpisodesServiceBus {
             ivy("Letters, at this hour. How old-fashioned of you, Nova."),
             nova("Picture the Two Tracks Coach, the study helper in the Android app, with a Python server on Azure, Microsoft's cloud. A learner saves a note. Turning it into numbers for AI search takes seconds. [pause] Nobody should wait that long for anything."),
             ivy("So what does the server do instead?"),
-            nova("It writes a small job ticket, embed note 42. Those numbers are called an embedding: a list the AI writes for the note, like a spot on a map, so notes that mean similar things land close together. The ticket is a message. It drops the message off and answers the learner at once."),
+            nova("It writes a small job ticket, embed note 42. The ticket is a message. It drops the message off, and answers the learner at once."),
+            ivy("Embed. Say that one slowly for me."),
+            nova("[pause] Those numbers are called an embedding: a list the AI writes for the note, like a spot on a map, so notes that mean similar things land close together."),
             ivy("And who does the slow part, while I sleep?"),
             nova("A separate program, called a worker. It picks the message up later, when it's ready. [pause] The server and the worker never have to wait for each other."),
             ivy("Drops it off where, though?"),
             nova("At Azure Service Bus. A post office between the parts of your app. The sender doesn't wait. The worker doesn't even have to be awake yet. The message waits for it, safely."),
+            ivy("And when a letter comes, does it wake the worker up?"),
+            nova("No. It never knocks. [pause] The worker comes to the counter and asks, anything for me? It keeps the line open, waits, and pulls each message off. Service Bus can't call your code."),
             ivy("Waiting for someone who isn't awake yet. I know the feeling."),
             nova("Mm. It waits in a queue. One line of messages, and each one handled by exactly one receiver. Like a bakery queue with a few cashiers. More cashiers, faster line, nobody served twice."),
             ivy("And the queue lives where?"),
@@ -194,7 +224,9 @@ internal object Ai200EpisodesServiceBus {
             ivy("Why not just take it home?"),
             nova("Because workers fall over, at the worst moments. If the worker dies halfway, the lock runs out, and the message comes back for another try. ReceiveAndDelete would hand it over and forget it at once. Faster. [pause] But a crash loses it forever."),
             ivy("So how does the worker say it's finished?"),
-            nova("It settles the message, saying what happened. Complete: done, delete it. Abandon: give the lock back, so it's tried again, say when the AI service sends back 429, the code that means too many requests, slow down. Dead-letter: set it aside for good, with a reason."),
+            nova("It settles the message, saying what happened. Complete: done, delete it. Abandon: give the lock back, so it's tried again."),
+            ivy("When would I give it back?"),
+            nova("Say the AI service sends back 429, the code that means too many requests, slow down. That passes. And if it never will, dead-letter: set it aside for good, with a reason."),
             ivy("And how long does the hold last?"),
             nova("That's the lock duration, one minute by default, five at most. Under the hood, Service Bus gives the worker a lock with a timer. When it runs out, the message is visible again, and its delivery count, the number of tries, goes up by one."),
             ivy("So if my job takes three minutes?"),
@@ -204,15 +236,17 @@ internal object Ai200EpisodesServiceBus {
             ivy("What stops it?"),
             nova("The max delivery count, ten by default. Past it, Service Bus moves the message to the dead-letter queue. The returned-mail shelf. [pause] Every queue has one, built in."),
             ivy("And who reads the returned mail?"),
-            nova("No one, unless you do. That's where it stops helping. Read the shelf, check each reason, fix the cause, send a fresh copy back. And it delivers at least once, so now and then a message arrives twice. Make the work safe to repeat."),
+            nova("No one, unless you do. That's where it stops helping. You read the shelf, check each reason, fix the cause, and send a fresh copy back."),
+            ivy("And can a letter ever come twice?"),
+            nova("Now and then. It delivers at least once, so make the work safe to repeat: embedding the same note twice just overwrites the same numbers."),
             ivy("Now, what if two services both want every note?"),
-            nova("Then a queue would make them compete; each message goes to only one. You want a topic. A newsletter: publish once, and every subscription gets its own copy. A subscription is really a private queue on the topic."),
+            nova("Then a queue would make them compete; each message goes to only one. You want a topic. A newsletter: publish once, and every subscription gets its own copy. A subscription is really a private queue on the topic, and each service pulls from its own."),
             ivy("Any catch?"),
             nova("Topics need the Standard or Premium tier, the bigger plans. Basic has queues only."),
             ivy("And can a subscription be choosy?"),
             nova("With a filter rule, like track equals german. But a new subscription starts with a default rule that accepts everything. [pause] Add your filter, and remove that default, or you still get it all."),
             ivy("And if my messages must arrive in order? I like things in order."),
-            nova("Then a session. Messages share a session id, say your learner id, and go to one receiver at a time, in order. First in, first out."),
+            nova("Then a session. Messages share a session id, say your learner id. One receiver at a time locks that session and pulls its messages in order. First in, first out."),
             ivy("And if I only want to whisper that something happened?"),
             nova("Then the Event Grid episode is your next late night. Announcements, not job tickets."),
             ivy("[chuckle] Noted. Before I sleep. What do I remember for the exam?"),
@@ -237,7 +271,9 @@ internal object Ai200EpisodesServiceBus {
             nova("With Service Bus, a post office between the parts of your app. A worker, a separate program, picks the message up later and does the slow part."),
             rafe("A note left on the pillow, to be read in the morning."),
             nova("Exactly. It waits in a queue, one line of messages, each handled by exactly one receiver. Under the picture, a queue is a store Service Bus keeps on disk, on Microsoft's servers. The message stays until a receiver says it's done with it."),
-            rafe("And the queue lives in a namespace, our own little post office, with its own address. Then let me test you, darling. Exam style. The worker must not lose a job, even if it crashes halfway. Which receive mode?"),
+            rafe("And the queue lives in a namespace, our own little post office, with its own address. Does it ring the worker when a letter comes?"),
+            nova("Never. Service Bus doesn't call your code. The worker comes and asks for the next message, and pulls it. Patience, remember?"),
+            rafe("Then let me test you, darling. Exam style. The worker must not lose a job, even if it crashes halfway. Which receive mode?"),
             nova("PeekLock, the default. Like a library hold: the message is locked and hidden, not removed. If the worker crashes, the lock runs out, and the message comes back. ReceiveAndDelete would hand it over and forget it."),
             rafe("Right answer. Hold on, but don't let go too soon. [kiss]"),
             nova("Mm. And when the worker's done, it settles the message, saying what happened. Complete: delete it. Abandon: give the lock back, so it's tried again, say when the AI service sends back 429, the code that means too many requests."),
@@ -260,7 +296,7 @@ internal object Ai200EpisodesServiceBus {
             rafe("Because a new subscription starts with a default rule that accepts everything. Add your filter and remove the default, or it's still open to all."),
             nova("Right answer. Some doors should only open for one. [kiss]"),
             rafe("Last quiz. One learner's messages must arrive in order. What do you use?"),
-            nova("A session. Messages share a session id, the learner's id, and go to one receiver at a time, in order. First in, first out."),
+            nova("A session. Messages share a session id, the learner's id. One receiver at a time locks that session and pulls its messages in order. First in, first out."),
             rafe("Right answer. One at a time, and in the right order. [kiss]"),
             nova("And where does it all stop working, Rafe? Every romance has its limits."),
             rafe("It delivers at least once, so a message can now and then arrive twice: make the work safe to repeat. It doesn't fix poison messages; you do. And if you only want to announce that something happened, the Event Grid episode covers that."),
@@ -433,66 +469,68 @@ internal object Ai200EpisodesServiceBus {
                 beats = listOf(
                     Beat(0, show = setOf("api"), light = setOf("api"), card = BoardCard("Slow AI work", "Turning a note into numbers for search takes seconds.")),
                     Beat(2, show = setOf("msg"), light = setOf("msg"), pulse = "api" to "msg", card = BoardCard("Message", "A job ticket: embed note 42. Embedding: numbers like a spot on a map for meaning.")),
-                    Beat(4, show = setOf("worker"), light = setOf("worker"), card = BoardCard("Worker", "A separate program that does the slow part later.")),
-                    Beat(6, show = setOf("bus"), light = setOf("bus"), pulse = "msg" to "bus", card = BoardCard("Azure Service Bus", "A post office between the parts of your app. Nobody waits.")),
+                    Beat(6, show = setOf("worker"), light = setOf("worker"), card = BoardCard("Worker", "A separate program that does the slow part later.")),
+                    Beat(8, show = setOf("bus"), light = setOf("bus"), pulse = "msg" to "bus", card = BoardCard("Azure Service Bus", "A post office between the parts of your app. Nobody waits.")),
+                    Beat(10, light = setOf("worker"), pulse = "bus" to "worker", card = BoardCard("Pull, not push", "The worker asks for the next message; Service Bus never calls it.")),
                 ),
             ),
-            // 7: "And the post office has, what, pigeonholes?"
+            // 11: "And the post office has, what, pigeonholes?"
             Scene(
-                7, "Queues and namespaces", ns(),
+                11, "Queues and namespaces", ns(),
                 beats = listOf(
-                    Beat(8, show = setOf("ns", "q"), light = setOf("q"), pulse = "ns" to "q", card = BoardCard("Queue", "One line of messages; each handled by exactly one receiver.")),
-                    Beat(10, show = setOf("t", "basic"), light = setOf("ns", "basic"), card = BoardCard("Namespace", "Your own post office, in tiers. Basic has queues only.")),
-                    Beat(12, light = setOf("ns"), card = BoardCard("DefaultAzureCredential", "Finds a sign-in by itself: your login, or the app's identity.")),
-                    Beat(14, card = BoardCard("Roles, not secrets", "Data Sender for the server, Data Receiver for the worker.")),
+                    Beat(12, show = setOf("ns", "q"), light = setOf("q"), pulse = "ns" to "q", card = BoardCard("Queue", "One line of messages; each handled by exactly one receiver.")),
+                    Beat(14, show = setOf("t", "basic"), light = setOf("ns", "basic"), card = BoardCard("Namespace", "Your own post office, in tiers. Basic has queues only.")),
+                    Beat(16, light = setOf("ns"), card = BoardCard("DefaultAzureCredential", "Finds a sign-in by itself: your login, or the app's identity.")),
+                    Beat(20, card = BoardCard("Roles, not secrets", "Data Sender for the server, Data Receiver for the worker.")),
                 ),
             ),
-            // 15: "Okay. The worker takes the message. Is it gone from the queue?"
+            // 21: "Okay. The worker takes the message. Is it gone from the queue?"
             Scene(
-                15, "The library hold", settle(),
+                21, "The library hold", settle(),
                 beats = listOf(
-                    Beat(16, show = setOf("msg"), light = setOf("msg"), card = BoardCard("PeekLock", "Locked and hidden, not removed. A crash means another try.")),
-                    Beat(18, card = BoardCard("ReceiveAndDelete", "Removed the moment it's handed over. A crash loses it.")),
-                    Beat(20, show = setOf("complete", "abandon"), light = setOf("complete", "abandon"), pulse = "msg" to "complete", card = settleCode),
-                    Beat(22, show = setOf("defer"), light = setOf("defer"), pulse = "msg" to "defer", card = BoardCard("Defer", "Set aside, fetched later by its number.")),
-                    Beat(24, show = setOf("dl"), light = setOf("dl"), pulse = "msg" to "dl", card = BoardCard("Dead-letter", "Moved to a side queue, with a reason attached.")),
-                    Beat(26, light = setOf("abandon", "dl"), card = BoardCard("429 or empty?", "429, slow down: abandon. An empty note: dead-letter it.")),
+                    Beat(22, show = setOf("msg"), light = setOf("msg"), card = BoardCard("PeekLock", "Locked and hidden, not removed. A crash means another try.")),
+                    Beat(26, card = BoardCard("ReceiveAndDelete", "Removed the moment it's handed over. A crash loses it.")),
+                    Beat(28, show = setOf("complete", "abandon"), light = setOf("complete", "abandon"), pulse = "msg" to "complete", card = settleCode),
+                    Beat(30, show = setOf("defer"), light = setOf("defer"), pulse = "msg" to "defer", card = BoardCard("Defer", "Set aside, fetched later by its number.")),
+                    Beat(32, show = setOf("dl"), light = setOf("dl"), pulse = "msg" to "dl", card = BoardCard("Dead-letter", "Moved to a side queue, with a reason attached.")),
+                    Beat(34, light = setOf("abandon", "dl"), card = BoardCard("429 or empty?", "429, slow down: abandon. An empty note: dead-letter it.")),
                 ),
             ),
-            // 27: "And the lock. How long does it last?"
+            // 35: "And the lock. How long does it last?"
             Scene(
-                27, "The lock duration", lock(),
+                35, "The lock duration", lock(),
                 beats = listOf(
-                    Beat(28, show = setOf("w1", "lockN", "again", "w2"), light = setOf("again", "w2"), pulse = "lockN" to "again", card = BoardCard("One minute by default", "A three-minute job: the lock expires, a second worker starts.")),
-                    Beat(30, show = setOf("fix"), light = setOf("fix"), pulse = "lockN" to "fix", card = BoardCard("Renew or raise", "AutoLockRenewer, or up to five minutes. The Coach uses two.")),
+                    Beat(38, show = setOf("w1", "lockN", "again", "w2"), light = setOf("again", "w2"), pulse = "lockN" to "again", card = BoardCard("One minute by default", "A three-minute job: the lock expires, a second worker starts.")),
+                    Beat(40, show = setOf("fix"), light = setOf("fix"), pulse = "lockN" to "fix", card = BoardCard("Renew or raise", "AutoLockRenewer, or up to five minutes. The Coach uses two.")),
                 ),
             ),
-            // 31: "What about a message that fails every single time?"
+            // 41: "What about a message that fails every single time?"
             Scene(
-                31, "Poison messages", dlq(),
+                41, "Poison messages", dlq(),
                 beats = listOf(
-                    Beat(32, show = setOf("poison", "count"), light = setOf("count"), pulse = "poison" to "count", card = BoardCard("Delivery count", "The number of tries so far: one more each time it comes back.")),
-                    Beat(34, show = setOf("max", "shelf"), light = setOf("shelf"), pulse = "max" to "shelf", card = BoardCard("Max delivery count", "Ten by default; then it moves to the dead-letter queue.")),
-                    Beat(36, show = setOf("repair"), light = setOf("repair"), pulse = "shelf" to "repair", card = dlqCode),
+                    Beat(42, show = setOf("poison", "count"), light = setOf("count"), pulse = "poison" to "count", card = BoardCard("Delivery count", "The number of tries so far: one more each time it comes back.")),
+                    Beat(44, show = setOf("max", "shelf"), light = setOf("shelf"), pulse = "max" to "shelf", card = BoardCard("Max delivery count", "Ten by default; then it moves to the dead-letter queue.")),
+                    Beat(46, show = setOf("repair"), light = setOf("repair"), pulse = "shelf" to "repair", card = dlqCode),
                 ),
             ),
-            // 37: "Okay. Now, what if two services both need every saved note?"
+            // 47: "Okay. Now, what if two services both need every saved note?"
             Scene(
-                37, "Every service, every message", topic(),
+                47, "Every service, every message", topic(),
                 beats = listOf(
-                    Beat(38, show = setOf("pub"), light = setOf("pub"), card = BoardCard("Two services, one queue?", "They'd compete: each message goes to one of them, never both.")),
-                    Beat(40, show = setOf("topic", "s1", "s2"), light = setOf("topic"), pulse = "pub" to "topic", card = BoardCard("Topic", "A newsletter: each subscription gets its own copy.")),
-                    Beat(42, show = setOf("s3"), light = setOf("s3"), pulse = "topic" to "s3", card = BoardCard("Filter rules", "A SQL filter on labels. Remove the default rule, which takes all.")),
-                    Beat(44, light = setOf("s1"), card = BoardCard("Session", "One session id per learner: in order, one receiver at a time.")),
+                    Beat(48, show = setOf("pub"), light = setOf("pub"), card = BoardCard("Two services, one queue?", "They'd compete: each message goes to one of them, never both.")),
+                    Beat(50, show = setOf("topic", "s1", "s2"), light = setOf("topic"), pulse = "pub" to "topic", card = BoardCard("Topic", "A newsletter: each subscription gets its own copy.")),
+                    Beat(52, light = setOf("s1", "s2"), card = BoardCard("Each pulls its own copy", "A subscription is a private queue; each service receives from it.")),
+                    Beat(54, show = setOf("s3"), light = setOf("s3"), pulse = "topic" to "s3", card = BoardCard("Filter rules", "A SQL filter on labels. Remove the default rule, which takes all.")),
+                    Beat(58, light = setOf("s1"), card = BoardCard("Session", "One session id per learner: in order, one receiver at a time.")),
                 ),
             ),
-            // 45: "So what do I remember for the exam?"
+            // 59: "So what do I remember for the exam?"
             Scene(
-                45, "For the exam", exam(),
+                59, "For the exam", exam(),
                 beats = listOf(
-                    Beat(46, show = all6, light = setOf("every", "crash", "order", "fails"), card = BoardCard("Listen for the phrase", "Every consumer, a crash, in order, keeps failing: one answer each.")),
-                    Beat(48, light = setOf("twice", "temp"), card = BoardCard("Done twice, or temporary", "Renew or raise the lock. A temporary failure: abandon.")),
-                    Beat(50, card = today),
+                    Beat(60, show = all6, light = setOf("every", "crash", "order", "fails"), card = BoardCard("Listen for the phrase", "Every consumer, a crash, in order, keeps failing: one answer each.")),
+                    Beat(62, light = setOf("twice", "temp"), card = BoardCard("Done twice, or temporary", "Renew or raise the lock. A temporary failure: abandon.")),
+                    Beat(64, card = today),
                 ),
             ),
         ),
@@ -529,70 +567,71 @@ internal object Ai200EpisodesServiceBus {
                 2, "How it should flow", post(),
                 beats = listOf(
                     Beat(2, show = setOf("api", "msg"), light = setOf("msg"), pulse = "api" to "msg", card = BoardCard("Message", "A job ticket: embed note 42. Embedding: numbers like a spot on a map for meaning.")),
-                    Beat(4, show = setOf("bus", "worker"), light = setOf("bus"), pulse = "msg" to "bus", card = BoardCard("Service Bus", "A post office; a worker collects the ticket later.")),
+                    Beat(6, show = setOf("bus", "worker"), light = setOf("bus"), pulse = "msg" to "bus", card = BoardCard("Service Bus", "A post office; a worker collects the ticket later.")),
+                    Beat(8, light = setOf("worker"), pulse = "bus" to "worker", card = BoardCard("Pull, not push", "The worker asks for the next message; Service Bus never calls it.")),
                 ),
             ),
-            // 5: "And the ticket waits where?"
+            // 9: "And the ticket waits where?"
             Scene(
-                5, "Under the picture", ns(),
+                9, "Under the picture", ns(),
                 beats = listOf(
-                    Beat(6, show = setOf("ns", "q"), light = setOf("q"), pulse = "ns" to "q", card = BoardCard("Queue", "One line of messages; each handled by exactly one receiver.")),
-                    Beat(8, show = setOf("t", "basic"), light = setOf("ns"), card = BoardCard("Namespace", "Lingo Lark's own post office, on the Standard tier.")),
-                    Beat(10, light = setOf("q"), card = BoardCard("Under the picture", "A store on Microsoft's servers: messages on disk until settled.")),
+                    Beat(10, show = setOf("ns", "q"), light = setOf("q"), pulse = "ns" to "q", card = BoardCard("Queue", "One line of messages; each handled by exactly one receiver.")),
+                    Beat(12, show = setOf("t", "basic"), light = setOf("ns"), card = BoardCard("Namespace", "Lingo Lark's own post office, on the Standard tier.")),
+                    Beat(14, light = setOf("q"), card = BoardCard("Under the picture", "A store on Microsoft's servers: messages on disk until settled.")),
                 ),
             ),
-            // 11: "Then my first suspect for the double bill..."
+            // 15: "Then my first suspect for the double bill..."
             Scene(
-                11, "The double bill", lock(),
+                15, "The double bill", lock(),
                 beats = listOf(
-                    Beat(12, show = setOf("w1"), light = setOf("w1"), card = BoardCard("Suspect: sent twice", "Duplicate detection drops a resent id. But one send per note.")),
-                    Beat(14, show = setOf("lockN"), light = setOf("lockN"), pulse = "w1" to "lockN", card = BoardCard("PeekLock", "A library hold: locked and hidden, not removed.")),
-                    Beat(16, show = setOf("again"), light = setOf("again"), pulse = "lockN" to "again", card = BoardCard("Lock duration", "One minute by default; then visible again, delivery count + 1.")),
-                    Beat(17, show = setOf("w2"), light = setOf("w2"), pulse = "again" to "w2", card = BoardCard("Two workers", "A three-minute job, a second worker after one minute.")),
-                    Beat(18, show = setOf("fix"), light = setOf("fix"), pulse = "lockN" to "fix", card = BoardCard("Renew or raise", "AutoLockRenewer, or a lock duration of up to five minutes.")),
+                    Beat(16, show = setOf("w1"), light = setOf("w1"), card = BoardCard("Suspect: sent twice", "Duplicate detection drops a resent id. But one send per note.")),
+                    Beat(18, show = setOf("lockN"), light = setOf("lockN"), pulse = "w1" to "lockN", card = BoardCard("PeekLock", "A library hold: locked and hidden, not removed.")),
+                    Beat(22, show = setOf("again"), light = setOf("again"), pulse = "lockN" to "again", card = BoardCard("Lock duration", "One minute by default; then visible again, delivery count + 1.")),
+                    Beat(23, show = setOf("w2"), light = setOf("w2"), pulse = "again" to "w2", card = BoardCard("Two workers", "A three-minute job, a second worker after one minute.")),
+                    Beat(24, show = setOf("fix"), light = setOf("fix"), pulse = "lockN" to "fix", card = BoardCard("Renew or raise", "AutoLockRenewer, or a lock duration of up to five minutes.")),
                 ),
             ),
-            // 19: "And the notes that were never processed? Same thing?"
+            // 25: "And the notes that were never processed? Same thing?"
             Scene(
-                19, "The missing notes", settle(),
+                25, "The missing notes", settle(),
                 beats = listOf(
-                    Beat(20, show = setOf("msg"), light = setOf("msg"), card = BoardCard("ReceiveAndDelete", "Removed on hand-over. A worker crashed; the notes were gone.")),
-                    Beat(22, show = setOf("complete", "abandon", "defer", "dl"), light = setOf("complete", "abandon"), pulse = "msg" to "abandon", card = settleCode),
+                    Beat(26, show = setOf("msg"), light = setOf("msg"), card = BoardCard("ReceiveAndDelete", "Removed on hand-over. A worker crashed; the notes were gone.")),
+                    Beat(28, show = setOf("complete", "abandon", "defer", "dl"), light = setOf("complete", "abandon"), pulse = "msg" to "abandon", card = settleCode),
                 ),
             ),
-            // 23: "And when it fails for good?"
+            // 31: "And when it fails for good?"
             Scene(
-                23, "Three thousand letters", dlq(),
+                31, "Three thousand letters", dlq(),
                 beats = listOf(
-                    Beat(24, show = setOf("shelf"), light = setOf("shelf"), card = BoardCard("Dead-letter queue", "Built into every queue: the returned-mail shelf.")),
-                    Beat(26, show = setOf("poison", "count", "max"), light = setOf("max"), pulse = "max" to "shelf", card = BoardCard("Max delivery count", "Ten by default. Three thousand messages on the shelf.")),
-                    Beat(28, light = setOf("poison"), pulse = "poison" to "count", card = BoardCard("Poison messages", "Empty notes, tried ten times. Dead-letter them at once.")),
-                    Beat(30, show = setOf("repair"), light = setOf("repair"), pulse = "shelf" to "repair", card = dlqCode),
+                    Beat(32, show = setOf("shelf"), light = setOf("shelf"), card = BoardCard("Dead-letter queue", "Built into every queue: the returned-mail shelf.")),
+                    Beat(34, show = setOf("poison", "count", "max"), light = setOf("max"), pulse = "max" to "shelf", card = BoardCard("Max delivery count", "Ten by default. Three thousand messages on the shelf.")),
+                    Beat(36, light = setOf("poison"), pulse = "poison" to "count", card = BoardCard("Poison messages", "Empty notes, tried ten times. Dead-letter them at once.")),
+                    Beat(40, show = setOf("repair"), light = setOf("repair"), pulse = "shelf" to "repair", card = dlqCode),
                 ),
             ),
-            // 31: "Any loose ends in the file?"
+            // 41: "Any loose ends in the file?"
             Scene(
-                31, "Loose ends", topic(),
+                41, "Loose ends", topic(),
                 beats = listOf(
-                    Beat(32, show = setOf("pub"), light = setOf("pub"), card = BoardCard("Competing on one queue", "The tracker and the worker each got only some notes.")),
-                    Beat(34, show = setOf("topic", "s1", "s2"), light = setOf("topic"), pulse = "pub" to "topic", card = BoardCard("Topic", "A newsletter: each subscription gets its own copy.")),
-                    Beat(36, show = setOf("s3"), light = setOf("s3"), pulse = "topic" to "s3", card = BoardCard("The default rule", "It accepts everything. Remove it, and only German notes arrive.")),
+                    Beat(42, show = setOf("pub"), light = setOf("pub"), card = BoardCard("Competing on one queue", "The tracker and the worker each got only some notes.")),
+                    Beat(44, show = setOf("topic", "s1", "s2"), light = setOf("topic"), pulse = "pub" to "topic", card = BoardCard("Topic", "A newsletter: each subscription gets its own copy.")),
+                    Beat(46, show = setOf("s3"), light = setOf("s3"), pulse = "topic" to "s3", card = BoardCard("The default rule", "It accepts everything. Remove it, and only German notes arrive.")),
                 ),
             ),
-            // 37: "So where does Service Bus stop helping?"
+            // 47: "So where does Service Bus stop helping?"
             Scene(
-                37, "Where it stops", limits(),
+                47, "Where it stops", limits(),
                 beats = listOf(
-                    Beat(38, show = setOf("once", "basic"), light = setOf("once"), card = BoardCard("At least once", "A message can arrive twice. Make the work safe to repeat.")),
-                    Beat(40, show = setOf("sess", "link"), light = setOf("sess", "link"), card = BoardCard("Sessions, and Event Grid", "In order per learner; announcements go to Event Grid.")),
+                    Beat(48, show = setOf("once", "basic"), light = setOf("once"), card = BoardCard("At least once", "A message can arrive twice. Make the work safe to repeat.")),
+                    Beat(50, show = setOf("sess", "link"), light = setOf("sess", "link"), card = BoardCard("Sessions, and Event Grid", "In order per learner; announcements go to Event Grid.")),
                 ),
             ),
-            // 41: "So, the case summary for the exam?"
+            // 51: "So, the case summary for the exam?"
             Scene(
-                41, "Case closed", exam(),
+                51, "Case closed", exam(),
                 beats = listOf(
-                    Beat(42, show = all6, light = setOf("twice", "crash", "fails", "every", "order"), card = BoardCard("Listen for the phrase", "Each exam phrase points to one answer: lock, PeekLock, shelf, topic.")),
-                    Beat(44, card = today),
+                    Beat(52, show = all6, light = setOf("twice", "crash", "fails", "every", "order"), card = BoardCard("Listen for the phrase", "Each exam phrase points to one answer: lock, PeekLock, shelf, topic.")),
+                    Beat(54, card = today),
                 ),
             ),
         ),
@@ -608,75 +647,76 @@ internal object Ai200EpisodesServiceBus {
                     Beat(0, show = setOf("api"), card = BoardCard("A week at the post office", "The Coach's slow AI work moved onto Azure Service Bus.")),
                     Beat(2, show = setOf("msg", "bus"), light = setOf("msg"), pulse = "api" to "msg", card = BoardCard("Message", "A job ticket: embed note 42, dropped off at the post office.")),
                     Beat(4, show = setOf("worker"), light = setOf("worker"), pulse = "bus" to "worker", card = BoardCard("Worker", "A separate program collects it later and calls the AI.")),
+                    Beat(6, light = setOf("bus", "worker"), card = BoardCard("Pull, not push", "The worker asks for the next message; Service Bus never calls it.")),
                 ),
             ),
-            // 5: "And the message waits in what?"
+            // 7: "And the message waits in what?"
             Scene(
-                5, "Queues", ns(),
+                7, "Queues", ns(),
                 beats = listOf(
-                    Beat(6, show = setOf("ns", "q"), light = setOf("q"), pulse = "ns" to "q", card = BoardCard("Queue", "One line of messages; each handled by exactly one receiver.")),
-                    Beat(8, light = setOf("ns"), card = BoardCard("Namespace", "The team's own post office building, with its own address.")),
-                    Beat(10, light = setOf("q"), card = BoardCard("Under the picture", "Messages on disk until settled. A worker can be down an hour.")),
+                    Beat(8, show = setOf("ns", "q"), light = setOf("q"), pulse = "ns" to "q", card = BoardCard("Queue", "One line of messages; each handled by exactly one receiver.")),
+                    Beat(10, light = setOf("ns"), card = BoardCard("Namespace", "The team's own post office building, with its own address.")),
+                    Beat(12, light = setOf("q"), card = BoardCard("Under the picture", "Messages on disk until settled. A worker can be down an hour.")),
                 ),
             ),
-            // 11: "What did Omar do?"
+            // 13: "What did Omar do?"
             Scene(
-                11, "Monday: Omar", settle(),
+                13, "Monday: Omar", settle(),
                 beats = listOf(
-                    Beat(12, show = setOf("msg"), light = setOf("msg"), card = BoardCard("ReceiveAndDelete", "Removed on hand-over. The worker crashed; the notes were gone.")),
-                    Beat(14, card = BoardCard("PeekLock", "A library hold: locked and hidden, not removed.")),
-                    Beat(16, show = setOf("complete", "abandon"), light = setOf("complete", "abandon"), pulse = "msg" to "complete", card = settleCode),
+                    Beat(14, show = setOf("msg"), light = setOf("msg"), card = BoardCard("ReceiveAndDelete", "Removed on hand-over. The worker crashed; the notes were gone.")),
+                    Beat(16, card = BoardCard("PeekLock", "A library hold: locked and hidden, not removed.")),
+                    Beat(18, show = setOf("complete", "abandon"), light = setOf("complete", "abandon"), pulse = "msg" to "complete", card = settleCode),
                 ),
             ),
-            // 17: "Go."
+            // 19: "Go."
             Scene(
-                17, "Tuesday: Dana", lock(),
+                19, "Tuesday: Dana", lock(),
                 beats = listOf(
-                    Beat(18, show = setOf("w1", "lockN"), light = setOf("lockN"), pulse = "w1" to "lockN", card = BoardCard("Lock duration", "How long the hold lasts: one minute by default.")),
-                    Beat(20, show = setOf("again", "w2"), light = setOf("again", "w2"), pulse = "lockN" to "again", card = BoardCard("Under the hood", "A lock with a timer. It runs out; the message is visible again.")),
-                    Beat(22, show = setOf("fix"), light = setOf("fix"), pulse = "lockN" to "fix", card = BoardCard("Renew or raise", "Two minutes, five at most, and AutoLockRenewer for long calls.")),
+                    Beat(20, show = setOf("w1", "lockN"), light = setOf("lockN"), pulse = "w1" to "lockN", card = BoardCard("Lock duration", "How long the hold lasts: one minute by default.")),
+                    Beat(22, show = setOf("again", "w2"), light = setOf("again", "w2"), pulse = "lockN" to "again", card = BoardCard("Under the hood", "A lock with a timer. It runs out; the message is visible again.")),
+                    Beat(24, show = setOf("fix"), light = setOf("fix"), pulse = "lockN" to "fix", card = BoardCard("Renew or raise", "Two minutes, five at most, and AutoLockRenewer for long calls.")),
                 ),
             ),
-            // 23: "Wednesday. Let me guess, someone else's turn."
+            // 25: "Wednesday. Let me guess, someone else's turn."
             Scene(
-                23, "Wednesday: Marcus", topic(),
+                25, "Wednesday: Marcus", topic(),
                 beats = listOf(
-                    Beat(24, show = setOf("pub"), light = setOf("pub"), card = BoardCard("One queue, two services", "The progress tracker read the same queue as the worker.")),
-                    Beat(26, card = BoardCard("They compete", "Each message went to one of them, never both.")),
-                    Beat(28, show = setOf("topic", "s1", "s2", "s3"), light = setOf("topic"), pulse = "pub" to "topic", card = BoardCard("Topic", "A newsletter: each subscription gets its own copy.")),
+                    Beat(26, show = setOf("pub"), light = setOf("pub"), card = BoardCard("One queue, two services", "The progress tracker read the same queue as the worker.")),
+                    Beat(28, card = BoardCard("They compete", "Each message went to one of them, never both.")),
+                    Beat(30, show = setOf("topic", "s1", "s2", "s3"), light = setOf("topic"), pulse = "pub" to "topic", card = BoardCard("Topic", "A newsletter: each subscription gets its own copy.")),
                 ),
             ),
-            // 29: "Thursday. The intern?"
+            // 31: "Thursday. The intern?"
             Scene(
-                29, "Thursday: the intern", rules(),
+                31, "Thursday: the intern", rules(),
                 beats = listOf(
-                    Beat(30, show = setOf("sub", "sql"), light = setOf("sql"), pulse = "sub" to "sql", card = BoardCard("SQL filter", "A short test on the message's labels: track equals german.")),
-                    Beat(32, show = setOf("def", "only"), light = setOf("def"), pulse = "sub" to "def", card = BoardCard("The default rule", "Accepts everything. Remove it, and only German notes arrive.")),
+                    Beat(32, show = setOf("sub", "sql"), light = setOf("sql"), pulse = "sub" to "sql", card = BoardCard("SQL filter", "A short test on the message's labels: track equals german.")),
+                    Beat(34, show = setOf("def", "only"), light = setOf("def"), pulse = "sub" to "def", card = BoardCard("The default rule", "Accepts everything. Remove it, and only German notes arrive.")),
                 ),
             ),
-            // 33: "And Friday? There's always a Friday."
+            // 35: "And Friday? There's always a Friday."
             Scene(
-                33, "Friday: Priya", dlq(),
+                35, "Friday: Priya", dlq(),
                 beats = listOf(
-                    Beat(34, show = setOf("shelf"), light = setOf("shelf"), card = BoardCard("Dead-letter queue", "Built into every queue: the returned-mail shelf.")),
-                    Beat(36, show = setOf("poison", "count", "max"), light = setOf("max"), pulse = "max" to "shelf", card = BoardCard("Max delivery count", "Ten by default. Three thousand messages on the shelf.")),
-                    Beat(38, show = setOf("repair"), light = setOf("repair"), pulse = "shelf" to "repair", card = BoardCard("Poison messages", "Dead-letter empty notes at once; a script reads the shelf daily.")),
+                    Beat(36, show = setOf("shelf"), light = setOf("shelf"), card = BoardCard("Dead-letter queue", "Built into every queue: the returned-mail shelf.")),
+                    Beat(38, show = setOf("poison", "count", "max"), light = setOf("max"), pulse = "max" to "shelf", card = BoardCard("Max delivery count", "Ten by default. Three thousand messages on the shelf.")),
+                    Beat(40, show = setOf("repair"), light = setOf("repair"), pulse = "shelf" to "repair", card = BoardCard("Poison messages", "Dead-letter empty notes at once; a script reads the shelf daily.")),
                 ),
             ),
-            // 39: "So nothing reads the dead-letter queue by itself?"
+            // 41: "So nothing reads the dead-letter queue by itself?"
             Scene(
-                39, "Where it stops", limits(),
+                41, "Where it stops", limits(),
                 beats = listOf(
-                    Beat(40, show = setOf("once", "basic"), light = setOf("once"), card = BoardCard("At least once", "A message can arrive twice. Make the work safe to repeat.")),
-                    Beat(42, show = setOf("sess", "link"), light = setOf("sess", "link"), card = BoardCard("Sessions, and Event Grid", "In order per learner; announcements go to Event Grid.")),
+                    Beat(42, show = setOf("once", "basic"), light = setOf("once"), card = BoardCard("At least once", "A message can arrive twice. Make the work safe to repeat.")),
+                    Beat(44, show = setOf("sess", "link"), light = setOf("sess", "link"), card = BoardCard("Sessions, and Event Grid", "In order per learner; announcements go to Event Grid.")),
                 ),
             ),
-            // 43: "So, the gossip I should remember for the exam?"
+            // 45: "So, the gossip I should remember for the exam?"
             Scene(
-                43, "For the exam", exam(),
+                45, "For the exam", exam(),
                 beats = listOf(
-                    Beat(44, show = all6, light = setOf("crash", "twice", "every", "fails"), card = BoardCard("Listen for the phrase", "Each exam phrase points to one answer. Nobody wants to be next week's story.")),
-                    Beat(46, card = today),
+                    Beat(46, show = all6, light = setOf("crash", "twice", "every", "fails"), card = BoardCard("Listen for the phrase", "Each exam phrase points to one answer. Nobody wants to be next week's story.")),
+                    Beat(48, card = today),
                 ),
             ),
         ),
@@ -691,68 +731,69 @@ internal object Ai200EpisodesServiceBus {
                 beats = listOf(
                     Beat(0, show = setOf("api"), card = BoardCard("Tonight", "Letters: the kind that wait patiently for you.")),
                     Beat(4, show = setOf("msg"), light = setOf("msg"), pulse = "api" to "msg", card = BoardCard("Message", "A job ticket: embed note 42. Embedding: numbers like a spot on a map for meaning.")),
-                    Beat(6, show = setOf("worker"), light = setOf("worker"), card = BoardCard("Worker", "A separate program that picks it up later, when it's ready.")),
-                    Beat(8, show = setOf("bus"), light = setOf("bus"), pulse = "msg" to "bus", card = BoardCard("Azure Service Bus", "A post office between the parts of your app.")),
+                    Beat(8, show = setOf("worker"), light = setOf("worker"), card = BoardCard("Worker", "A separate program that picks it up later, when it's ready.")),
+                    Beat(10, show = setOf("bus"), light = setOf("bus"), pulse = "msg" to "bus", card = BoardCard("Azure Service Bus", "A post office between the parts of your app.")),
+                    Beat(12, light = setOf("worker"), pulse = "bus" to "worker", card = BoardCard("Pull, not push", "The worker asks for the next message; Service Bus never calls it.")),
                 ),
             ),
-            // 9: "Waiting for someone who isn't awake yet..."
+            // 13: "Waiting for someone who isn't awake yet..."
             Scene(
-                9, "A queue", ns(),
+                13, "A queue", ns(),
                 beats = listOf(
-                    Beat(10, show = setOf("ns", "q"), light = setOf("q"), pulse = "ns" to "q", card = BoardCard("Queue", "One line of messages; each handled by exactly one receiver.")),
-                    Beat(12, light = setOf("ns"), card = BoardCard("Namespace", "Your own post office building, with its own address.")),
-                    Beat(14, light = setOf("q"), card = BoardCard("Under the picture", "Messages on disk until a receiver is done with them.")),
+                    Beat(14, show = setOf("ns", "q"), light = setOf("q"), pulse = "ns" to "q", card = BoardCard("Queue", "One line of messages; each handled by exactly one receiver.")),
+                    Beat(16, light = setOf("ns"), card = BoardCard("Namespace", "Your own post office building, with its own address.")),
+                    Beat(18, light = setOf("q"), card = BoardCard("Under the picture", "Messages on disk until a receiver is done with them.")),
                 ),
             ),
-            // 15: "And when the worker finally comes for it?"
+            // 19: "And when the worker finally comes for it?"
             Scene(
-                15, "The library hold", settle(),
+                19, "The library hold", settle(),
                 beats = listOf(
-                    Beat(16, show = setOf("msg"), light = setOf("msg"), card = BoardCard("PeekLock", "A library hold: locked and hidden, not yet yours.")),
-                    Beat(18, card = BoardCard("ReceiveAndDelete", "Handed over and forgotten. A crash loses it forever.")),
-                    Beat(20, show = setOf("complete", "abandon", "dl"), light = setOf("complete", "abandon", "dl"), pulse = "msg" to "abandon", card = settleCode),
+                    Beat(20, show = setOf("msg"), light = setOf("msg"), card = BoardCard("PeekLock", "A library hold: locked and hidden, not yet yours.")),
+                    Beat(22, card = BoardCard("ReceiveAndDelete", "Handed over and forgotten. A crash loses it forever.")),
+                    Beat(24, show = setOf("complete", "abandon", "dl"), light = setOf("complete", "abandon", "dl"), pulse = "msg" to "abandon", card = settleCode),
                 ),
             ),
-            // 21: "And how long does the hold last?"
+            // 27: "And how long does the hold last?"
             Scene(
-                21, "How long the hold lasts", lock(),
+                27, "How long the hold lasts", lock(),
                 beats = listOf(
-                    Beat(22, show = setOf("w1", "lockN", "again"), light = setOf("again"), pulse = "lockN" to "again", card = BoardCard("Lock duration", "One minute by default; then visible again, delivery count + 1.")),
-                    Beat(24, show = setOf("w2", "fix"), light = setOf("w2", "fix"), pulse = "lockN" to "fix", card = BoardCard("Done twice, paid twice", "Raise the lock duration, or renew it with AutoLockRenewer.")),
+                    Beat(28, show = setOf("w1", "lockN", "again"), light = setOf("again"), pulse = "lockN" to "again", card = BoardCard("Lock duration", "One minute by default; then visible again, delivery count + 1.")),
+                    Beat(30, show = setOf("w2", "fix"), light = setOf("w2", "fix"), pulse = "lockN" to "fix", card = BoardCard("Done twice, paid twice", "Raise the lock duration, or renew it with AutoLockRenewer.")),
                 ),
             ),
-            // 25: "And a message that fails, again and again, all night?"
+            // 31: "And a message that fails, again and again, all night?"
             Scene(
-                25, "All night", dlq(),
+                31, "All night", dlq(),
                 beats = listOf(
-                    Beat(26, show = setOf("poison", "count"), light = setOf("count"), pulse = "poison" to "count", card = BoardCard("Poison message", "Each failure raises its delivery count, the number of tries.")),
-                    Beat(28, show = setOf("max", "shelf"), light = setOf("shelf"), pulse = "max" to "shelf", card = BoardCard("Max delivery count", "Ten by default; then the dead-letter queue, the returned mail.")),
-                    Beat(30, show = setOf("repair"), light = setOf("repair"), pulse = "shelf" to "repair", card = BoardCard("Where it stops", "Nobody reads the shelf for you. At least once: safe to repeat.")),
+                    Beat(32, show = setOf("poison", "count"), light = setOf("count"), pulse = "poison" to "count", card = BoardCard("Poison message", "Each failure raises its delivery count, the number of tries.")),
+                    Beat(34, show = setOf("max", "shelf"), light = setOf("shelf"), pulse = "max" to "shelf", card = BoardCard("Max delivery count", "Ten by default; then the dead-letter queue, the returned mail.")),
+                    Beat(36, show = setOf("repair"), light = setOf("repair"), pulse = "shelf" to "repair", card = BoardCard("Where it stops", "Nobody reads the shelf for you. At least once: safe to repeat.")),
                 ),
             ),
-            // 31: "Now, what if two services both want every note?"
+            // 39: "Now, what if two services both want every note?"
             Scene(
-                31, "Every note, for both", topic(),
+                39, "Every note, for both", topic(),
                 beats = listOf(
-                    Beat(32, show = setOf("pub", "topic", "s1", "s2"), light = setOf("topic"), pulse = "pub" to "topic", card = BoardCard("Topic", "A newsletter: each subscription gets its own copy.")),
-                    Beat(34, card = BoardCard("Standard or Premium", "Topics need the bigger tiers. Basic has queues only.")),
-                    Beat(36, show = setOf("s3"), light = setOf("s3"), pulse = "topic" to "s3", card = BoardCard("Filter rule", "Remove the default rule, or you still get it all.")),
+                    Beat(40, show = setOf("pub", "topic", "s1", "s2"), light = setOf("topic"), pulse = "pub" to "topic", card = BoardCard("Topic", "A newsletter: each subscription gets its own copy.")),
+                    Beat(42, card = BoardCard("Standard or Premium", "Topics need the bigger tiers. Basic has queues only.")),
+                    Beat(44, show = setOf("s3"), light = setOf("s3"), pulse = "topic" to "s3", card = BoardCard("Filter rule", "Remove the default rule, or you still get it all.")),
                 ),
             ),
-            // 37: "And if my messages must arrive in order?..."
+            // 45: "And if my messages must arrive in order?..."
             Scene(
-                37, "In order", limits(),
+                45, "In order", limits(),
                 beats = listOf(
-                    Beat(38, show = setOf("sess"), light = setOf("sess"), card = BoardCard("Session", "One session id per learner: in order, one receiver at a time.")),
-                    Beat(40, show = setOf("link"), light = setOf("link"), card = BoardCard("Your next late night", "The Event Grid episode: announcements, not job tickets.")),
+                    Beat(46, show = setOf("sess"), light = setOf("sess"), card = BoardCard("Session", "One session id per learner: in order, one receiver at a time.")),
+                    Beat(48, show = setOf("link"), light = setOf("link"), card = BoardCard("Your next late night", "The Event Grid episode: announcements, not job tickets.")),
                 ),
             ),
-            // 41: "Noted. Before I sleep. What do I remember for the exam?"
+            // 49: "Noted. Before I sleep. What do I remember for the exam?"
             Scene(
-                41, "For the exam", exam(),
+                49, "For the exam", exam(),
                 beats = listOf(
-                    Beat(42, show = all6, light = setOf("crash", "every", "order", "fails", "twice"), card = BoardCard("Listen for the phrase", "Each exam phrase points to one answer: PeekLock, topic, sessions.")),
-                    Beat(44, card = today),
+                    Beat(50, show = all6, light = setOf("crash", "every", "order", "fails", "twice"), card = BoardCard("Listen for the phrase", "Each exam phrase points to one answer: PeekLock, topic, sessions.")),
+                    Beat(52, card = today),
                 ),
             ),
         ),
@@ -775,62 +816,63 @@ internal object Ai200EpisodesServiceBus {
                 8, "A queue", ns(),
                 beats = listOf(
                     Beat(8, show = setOf("ns", "q"), light = setOf("q"), pulse = "ns" to "q", card = BoardCard("Queue", "One line, one receiver each; kept on disk until settled.")),
-                    Beat(9, light = setOf("ns"), card = BoardCard("Quiz: never lose a job", "The worker may crash halfway. Which receive mode?")),
+                    Beat(10, light = setOf("ns"), card = BoardCard("Pull, not push", "The worker asks for the next message; Service Bus never calls it.")),
+                    Beat(11, card = BoardCard("Quiz: never lose a job", "The worker may crash halfway. Which receive mode?")),
                 ),
             ),
-            // 10: "PeekLock, the default..."
+            // 12: "PeekLock, the default..."
             Scene(
-                10, "Hold on", settle(),
+                12, "Hold on", settle(),
                 beats = listOf(
-                    Beat(10, show = setOf("msg"), light = setOf("msg"), card = BoardCard("PeekLock", "A library hold: locked and hidden. ReceiveAndDelete forgets it.")),
-                    Beat(11, card = BoardCard("Right answer", "PeekLock: a crash loses nothing.")),
-                    Beat(12, show = setOf("complete", "abandon"), light = setOf("complete", "abandon"), pulse = "msg" to "complete", card = settleCode),
+                    Beat(12, show = setOf("msg"), light = setOf("msg"), card = BoardCard("PeekLock", "A library hold: locked and hidden. ReceiveAndDelete forgets it.")),
+                    Beat(13, card = BoardCard("Right answer", "PeekLock: a crash loses nothing.")),
+                    Beat(14, show = setOf("complete", "abandon"), light = setOf("complete", "abandon"), pulse = "msg" to "complete", card = settleCode),
                 ),
             ),
-            // 13: "And the hold lasts how long?"
+            // 15: "And the hold lasts how long?"
             Scene(
-                13, "Don't rush", lock(),
+                15, "Don't rush", lock(),
                 beats = listOf(
-                    Beat(14, show = setOf("w1", "lockN"), light = setOf("lockN"), pulse = "w1" to "lockN", card = BoardCard("Lock duration", "One minute by default: a lock with a timer.")),
-                    Beat(16, show = setOf("again", "w2"), light = setOf("again", "w2"), pulse = "lockN" to "again", card = BoardCard("Quiz: done twice", "A three-minute job, the default lock. Why twice?")),
-                    Beat(17, show = setOf("fix"), light = setOf("fix"), pulse = "lockN" to "fix", card = BoardCard("Right answer", "The lock expired. Renew it, or raise it to five minutes at most.")),
+                    Beat(16, show = setOf("w1", "lockN"), light = setOf("lockN"), pulse = "w1" to "lockN", card = BoardCard("Lock duration", "One minute by default: a lock with a timer.")),
+                    Beat(18, show = setOf("again", "w2"), light = setOf("again", "w2"), pulse = "lockN" to "again", card = BoardCard("Quiz: done twice", "A three-minute job, the default lock. Why twice?")),
+                    Beat(19, show = setOf("fix"), light = setOf("fix"), pulse = "lockN" to "fix", card = BoardCard("Right answer", "The lock expired. Renew it, or raise it to five minutes at most.")),
                 ),
             ),
-            // 19: "My question, then. A malformed job fails every single time..."
+            // 21: "My question, then. A malformed job fails every single time..."
             Scene(
-                19, "Somewhere quiet", dlq(),
+                21, "Somewhere quiet", dlq(),
                 beats = listOf(
-                    Beat(19, show = setOf("poison"), light = setOf("poison"), card = BoardCard("Quiz: fails every time", "With default settings, where does it end up?")),
-                    Beat(21, show = setOf("count", "max", "shelf"), light = setOf("shelf"), pulse = "max" to "shelf", card = BoardCard("No kiss: the shelf", "Past the max delivery count, ten: the dead-letter queue.")),
-                    Beat(22, show = setOf("repair"), light = setOf("repair"), pulse = "shelf" to "repair", card = dlqCode),
-                    Beat(24, light = setOf("poison"), card = BoardCard("Poison message", "An empty note: dead-letter it at once, with a reason.")),
+                    Beat(21, show = setOf("poison"), light = setOf("poison"), card = BoardCard("Quiz: fails every time", "With default settings, where does it end up?")),
+                    Beat(23, show = setOf("count", "max", "shelf"), light = setOf("shelf"), pulse = "max" to "shelf", card = BoardCard("No kiss: the shelf", "Past the max delivery count, ten: the dead-letter queue.")),
+                    Beat(24, show = setOf("repair"), light = setOf("repair"), pulse = "shelf" to "repair", card = dlqCode),
+                    Beat(26, light = setOf("poison"), card = BoardCard("Poison message", "An empty note: dead-letter it at once, with a reason.")),
                 ),
             ),
-            // 25: "A topic with two subscriptions..."
+            // 27: "A topic with two subscriptions..."
             Scene(
-                25, "Never shared", topic(),
+                27, "Never shared", topic(),
                 beats = listOf(
-                    Beat(25, show = setOf("pub", "topic", "s1", "s2"), light = setOf("topic"), pulse = "pub" to "topic", card = BoardCard("Right answer: a topic", "A newsletter: every subscription gets its own copy.")),
-                    Beat(27, show = setOf("s3"), light = setOf("s3"), pulse = "topic" to "s3", card = BoardCard("Standard or Premium", "Basic has queues only. A subscription can filter.")),
-                    Beat(28, card = BoardCard("Quiz: the filter ignored", "The filter is added, yet every message arrives. Why?")),
-                    Beat(29, card = BoardCard("Right answer", "A default rule accepts everything. Remove it.")),
+                    Beat(27, show = setOf("pub", "topic", "s1", "s2"), light = setOf("topic"), pulse = "pub" to "topic", card = BoardCard("Right answer: a topic", "A newsletter: every subscription gets its own copy.")),
+                    Beat(29, show = setOf("s3"), light = setOf("s3"), pulse = "topic" to "s3", card = BoardCard("Standard or Premium", "Basic has queues only. A subscription can filter.")),
+                    Beat(30, card = BoardCard("Quiz: the filter ignored", "The filter is added, yet every message arrives. Why?")),
+                    Beat(31, card = BoardCard("Right answer", "A default rule accepts everything. Remove it.")),
                 ),
             ),
-            // 31: "Last quiz. One learner's messages must arrive in order..."
+            // 33: "Last quiz. One learner's messages must arrive in order..."
             Scene(
-                31, "In order", limits(),
+                33, "In order", limits(),
                 beats = listOf(
-                    Beat(31, show = setOf("sess"), light = setOf("sess"), card = BoardCard("Quiz: in order", "One learner's messages must arrive in order. What then?")),
-                    Beat(32, card = BoardCard("Right answer: a session", "A shared session id: in order, one receiver at a time.")),
-                    Beat(35, show = setOf("once", "basic", "link"), light = setOf("once", "link"), card = BoardCard("Where it stops", "At least once: safe to repeat. Event Grid for announcements.")),
+                    Beat(33, show = setOf("sess"), light = setOf("sess"), card = BoardCard("Quiz: in order", "One learner's messages must arrive in order. What then?")),
+                    Beat(34, card = BoardCard("Right answer: a session", "A shared session id: in order, one receiver at a time.")),
+                    Beat(37, show = setOf("once", "basic", "link"), light = setOf("once", "link"), card = BoardCard("Where it stops", "At least once: safe to repeat. Event Grid for announcements.")),
                 ),
             ),
-            // 36: "Then the last question, for the exam. What do we remember?"
+            // 38: "Then the last question, for the exam. What do we remember?"
             Scene(
-                36, "For the exam", exam(),
+                38, "For the exam", exam(),
                 beats = listOf(
-                    Beat(37, show = all6, light = setOf("crash", "every", "order", "fails", "twice"), card = BoardCard("Listen for the phrase", "Each exam phrase points to one answer. Five for five.")),
-                    Beat(40, card = today),
+                    Beat(39, show = all6, light = setOf("crash", "every", "order", "fails", "twice"), card = BoardCard("Listen for the phrase", "Each exam phrase points to one answer. Five for five.")),
+                    Beat(42, card = today),
                 ),
             ),
         ),

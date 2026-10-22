@@ -3,6 +3,10 @@
 All notable changes to Two Tracks. Versions follow `version.properties`; the
 build number is appended by CI (for example `0.1.0 (build 12)`).
 
+## [0.91.10] - 2026-10-23
+### Changed
+- AI-200: 15 episodes re-recorded with the corrected scripts (push and pull, conversation, acronyms said letter by letter, Rafe in his new voice).
+
 ## [0.91.9] - 2026-10-23
 ### Changed
 - AI-200: 20 episodes re-recorded with the corrected scripts (push and pull, conversation, acronyms said letter by letter, Rafe in his new voice).
