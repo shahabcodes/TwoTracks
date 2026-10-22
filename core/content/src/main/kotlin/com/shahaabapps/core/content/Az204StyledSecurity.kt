@@ -13,7 +13,7 @@ internal object Az204StyledSecurity {
             leo("Then my first suspect is obvious. The password is wrong. Someone typed it badly."),
             maya("[pause] Good instinct, wrong suspect. A wrong password would fail later, at the database, with a different error. This failed at the safe itself. The backend never even saw the password."),
             leo("Suspect two, then. The vault's firewall is blocking the backend."),
-            maya("Closer, but a blocked network looks different too. You'd get a timeout, not a polite forbidden. Here the backend got all the way to the guard. Which tells us the guard knew who it was."),
+            maya("Closer, and a firewall block is a 403 too. But read the error's own words. A firewall block says the client address isn't allowed. This one says the caller isn't allowed to read secrets. So the backend got past the network, all the way to the guard. Which tells us the guard knew who it was."),
             leo("Wait. How does the guard know who the backend is? Does it have its own password for the safe?"),
             maya("That's the clue that cracks it. In the new version, the developer moved the database password out of the settings file and into Key Vault. And to get in, the backend doesn't use a password at all. It uses a managed identity."),
             leo("Which is what, in plain words?"),
@@ -282,11 +282,11 @@ internal object Az204StyledSecurity {
             Scene(
                 5, "The suspects",
                 DiagramSpec(
-                    "Each wrong cause fails a different way; a polite 403 from the vault means the guard knew who knocked.",
+                    "Each wrong cause fails a different way; this 403 named the caller, not the address, so the guard knew who knocked.",
                     nodes = listOf(
                         DNode("pw", "Wrong password", 0.26f, 0.2f, w = 0.44f, h = 0.2f, kind = NodeKind.NOTE, sub = "fails at the database"),
-                        DNode("fw", "Firewall", 0.76f, 0.2f, w = 0.42f, h = 0.2f, kind = NodeKind.NOTE, sub = "a timeout"),
-                        DNode("known", "The guard knew the backend", 0.5f, 0.74f, w = 0.66f, h = 0.22f, sub = "a polite 403"),
+                        DNode("fw", "Firewall", 0.76f, 0.2f, w = 0.42f, h = 0.2f, kind = NodeKind.NOTE, sub = "address not allowed"),
+                        DNode("known", "The guard knew the backend", 0.5f, 0.74f, w = 0.66f, h = 0.22f, sub = "caller not allowed"),
                     ),
                     aspect = 0.8f,
                 ),
@@ -294,7 +294,7 @@ internal object Az204StyledSecurity {
                     Beat(5, show = setOf("pw"), light = setOf("pw")),
                     Beat(6, card = BoardCard("Suspect one: cleared", "A wrong password fails later, at the database, with another error.")),
                     Beat(7, show = setOf("fw"), light = setOf("fw")),
-                    Beat(8, show = setOf("known"), light = setOf("known"), card = BoardCard("Suspect two: cleared", "A blocked network times out. This backend reached the guard.")),
+                    Beat(8, show = setOf("known"), light = setOf("known"), card = BoardCard("Suspect two: cleared", "A firewall 403 names the address. This one names the caller.")),
                 ),
             ),
             // 9: "Wait. How does the guard know who the backend is?..."
@@ -332,7 +332,7 @@ internal object Az204StyledSecurity {
             ),
             // 20: "Not quite. There's a second witness..."
             phone(20, 22, BoardCard("The second witness", "One in the morning: a client secret inside the Android app.")),
-            // 23: "So a managed identity only works on Azure. What about my laptop?..."
+            // 23: "So a managed identity only works on Azure. What about my laptop, while..."
             everywhere(23, 24, "Your laptop"),
             // 25: "And if the bakery wants no vault code at all?"
             reference(25, 26, then = 28),

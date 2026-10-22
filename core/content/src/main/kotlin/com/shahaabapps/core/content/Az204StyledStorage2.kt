@@ -17,7 +17,9 @@ internal object Az204StyledStorage2 {
             leo("Suspect three, then. Something slows every request down. Somebody set the strictest consistency."),
             maya("Wrong suspect again, but let's look. Cosmos keeps several copies of your data, called replicas. A consistency level is the promise about how fresh a read is. Picture a news board copied to many towns. How quickly does every town see the latest news?"),
             leo("And the strictest one is Strong?"),
-            maya("Strong means every read sees the very latest write. It costs the most, and using it everywhere roughly doubles the RU of reads. Then bounded staleness, behind by at most a set number of versions or seconds. Session, where you always see your own writes. Consistent prefix, maybe late but never out of order. And eventual, the cheapest, which catches up in any order."),
+            maya("Strong means every read sees the very latest write. It costs the most, and using it everywhere roughly doubles the RU of reads. Then bounded staleness, behind by at most a set number of versions or seconds."),
+            leo("And at the relaxed end? Where you'd trade freshness for speed?"),
+            maya("Session, where you always see your own writes. Consistent prefix, maybe late but never out of order. And eventual, the cheapest, which catches up in any order."),
             leo("So which did the plant app use?"),
             maya("Session, the default. And here's the clue that rules it out. Consistency is about reads. At eight in the morning, it's the writes that fail. Everyone taps watered at once. So the question isn't how many tokens. It's where the writes land."),
             leo("Where they land? Isn't it just one big container?"),
@@ -37,7 +39,9 @@ internal object Az204StyledStorage2 {
             leo("Case nearly closed. Any other evidence in the file?"),
             maya("Two loose ends. The team wants to bring over an old companion website written for MongoDB. You pick the API when you create the account, the language your code speaks to the database, and it can't be changed. Minimal code changes from MongoDB means the MongoDB API. A brand-new app means NoSQL, the exam's default."),
             leo("And the second?"),
-            maya("The bill. The app is busy at eight and nearly silent at noon. Provisioned throughput is a fixed RU per second, paid whether used or not, which suits steady, busy traffic. Autoscale sets a top limit and drops to ten percent when it's quiet. Serverless charges only for what you use, ideal for a small, spiky app. The team moved to autoscale."),
+            maya("The bill. The app is busy at eight and nearly silent at noon. Provisioned throughput is a fixed RU per second, paid whether used or not, which suits steady, busy traffic."),
+            leo("So they were paying for the eight o'clock rush all day long. What else is there?"),
+            maya("Autoscale sets a top limit and drops to ten percent when it's quiet. Serverless charges only for what you use, ideal for a small, spiky app. The team moved to autoscale."),
             leo("So, the case summary for the exam?"),
             maya("Five rules. If more RU doesn't stop the 429s, suspect a hot partition from a key with few values. A wrong key means a new container, never a change. The default consistency is Session, and late but never out of order is consistent prefix. Unpredictable traffic means serverless or autoscale. And a 429 means retry with backoff, or more RU."),
             leo("Case closed. Anything to try today?"),
@@ -71,8 +75,8 @@ internal object Az204StyledStorage2 {
             maya("Ben. Ben read about consistency levels, and decided the safest choice was the strictest one. Strong, everywhere."),
             leo("Okay, consistency level. Plain words, please."),
             maya("Cosmos keeps copies of the data, called replicas. The consistency level is the promise about how fresh a read is. Picture a news board copied to many towns: how fast does each town see the news? Strong means always the very latest write. Bounded staleness means behind by at most a set number of versions or seconds."),
-            leo("And the rest?"),
-            maya("Session, the default, where you always see your own writes. Consistent prefix, maybe late but never out of order. And eventual, which catches up in any order, cheapest and fastest. Ben's Strong roughly doubled the RU of every read, and added delay across regions. Dana switched it back to Session. A member sees their own booking at once, and others soon after."),
+            leo("And the rest? Ben's argument was that anything weaker than Strong is just wrong data."),
+            maya("Not wrong, just possibly a moment late. Session, the default, means you always see your own writes. Consistent prefix, maybe late but never out of order. And eventual catches up in any order, cheapest and fastest. Ben's Strong roughly doubled the RU of every read, and added delay across regions. Dana switched it back to Session."),
             leo("Wait, RU. You keep saying RU."),
             maya("Request units. Think of arcade tokens. Every action costs some. Reading one small item, about a kilobyte, by its id is about one RU. A query costs more, and a write about five per kilobyte. You buy tokens per second, and when you run out, Cosmos answers with a 429. Too many requests, slow down."),
             leo("Let me guess. Somebody ignored those."),
@@ -241,12 +245,12 @@ internal object Az204StyledStorage2 {
                 beats = listOf(
                     Beat(10, show = setOf("towns"), light = setOf("towns"), card = BoardCard("Consistency level", "The promise about how fresh a read is, across the replicas.")),
                     Beat(12, show = setOf("strong", "bounded", "session", "prefix", "eventual"), light = setOf("strong"), card = BoardCard("Strong everywhere?", "Roughly doubles the RU of reads, and adds delay across regions.")),
-                    Beat(14, light = setOf("session"), card = BoardCard("Session, the default", "Consistency is about reads. At eight, it's the writes that fail.")),
+                    Beat(16, light = setOf("session"), card = BoardCard("Session, the default", "Consistency is about reads. At eight, it's the writes that fail.")),
                 ),
             ),
-            // 15: "Where they land? Isn't it just one big container?"
+            // 17: "Where they land? Isn't it just one big container?"
             Scene(
-                15, "Shelves by one label",
+                17, "Shelves by one label",
                 DiagramSpec(
                     "Items with the same partition key value share a logical partition; keyed on country, every tap lands on one shelf.",
                     nodes = listOf(
@@ -262,14 +266,14 @@ internal object Az204StyledStorage2 {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(16, show = setOf("p1", "p2", "p3", "cap"), light = setOf("p1"), card = BoardCard("Partition key", "The shelf label. Same value, same shelf: a logical partition.")),
-                    Beat(18, show = setOf("q"), light = setOf("q", "p1"), pulse = "q" to "p1", card = BoardCard("The label: country", "Almost every user of the plant app lives in the same country.")),
-                    Beat(19, light = setOf("p1"), card = BoardCard("Hot partition", "Every eight o'clock tap lands on the same shelf.")),
+                    Beat(18, show = setOf("p1", "p2", "p3", "cap"), light = setOf("p1"), card = BoardCard("Partition key", "The shelf label. Same value, same shelf: a logical partition.")),
+                    Beat(20, show = setOf("q"), light = setOf("q", "p1"), pulse = "q" to "p1", card = BoardCard("The label: country", "Almost every user of the plant app lives in the same country.")),
+                    Beat(21, light = setOf("p1"), card = BoardCard("Hot partition", "Every eight o'clock tap lands on the same shelf.")),
                 ),
             ),
-            // 20: "Exactly. A hot partition. Here's how it really works..."
+            // 22: "Exactly. A hot partition. Here's how it really works..."
             Scene(
-                20, "Under the shelves",
+                22, "Under the shelves",
                 DiagramSpec(
                     "A hash of the key value picks a physical partition, and the RU is shared evenly between the physical partitions.",
                     nodes = listOf(
@@ -289,13 +293,13 @@ internal object Az204StyledStorage2 {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(20, show = setOf("key", "hash", "pp1", "pp2", "pp3"), light = setOf("pp1"), pulse = "hash" to "pp1", card = BoardCard("Under the picture", "A hash of the key picks a physical partition. The RU is shared evenly.")),
-                    Beat(22, show = setOf("fixed"), light = setOf("fixed"), card = BoardCard("Change it in the portal?", "No. Create a new container with a better key, and move the items.")),
+                    Beat(22, show = setOf("key", "hash", "pp1", "pp2", "pp3"), light = setOf("pp1"), pulse = "hash" to "pp1", card = BoardCard("Under the picture", "A hash of the key picks a physical partition. The RU is shared evenly.")),
+                    Beat(24, show = setOf("fixed"), light = setOf("fixed"), card = BoardCard("Change it in the portal?", "No. Create a new container with a better key, and move the items.")),
                 ),
             ),
-            // 23: "Which key, then?"
+            // 25: "Which key, then?"
             Scene(
-                23, "Choosing a key",
+                25, "Choosing a key",
                 DiagramSpec(
                     "A good key has many values, spreads writes evenly, and is in the query you run most; one shelf still caps at 20 GB.",
                     nodes = listOf(
@@ -312,14 +316,14 @@ internal object Az204StyledStorage2 {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(24, show = setOf("owner"), light = setOf("owner"), card = BoardCard("Many, even, in the query", "Show me my plants and my logs: the owner id is the key.")),
-                    Beat(26, show = setOf("date", "country", "hot"), light = setOf("hot"), pulse = "country" to "hot", card = BoardCard("Date?", "Today's shelf takes every new write: the eight o'clock problem again.")),
-                    Beat(28, show = setOf("cap", "blob"), light = setOf("cap", "blob"), card = BoardCard("The edge", "One shelf caps at 20 GB. Plant photos go to blobs instead.")),
+                    Beat(26, show = setOf("owner"), light = setOf("owner"), card = BoardCard("Many, even, in the query", "Show me my plants and my logs: the owner id is the key.")),
+                    Beat(28, show = setOf("date", "country", "hot"), light = setOf("hot"), pulse = "country" to "hot", card = BoardCard("Date?", "Today's shelf takes every new write: the eight o'clock problem again.")),
+                    Beat(30, show = setOf("cap", "blob"), light = setOf("cap", "blob"), card = BoardCard("The edge", "One shelf caps at 20 GB. Plant photos go to blobs instead.")),
                 ),
             ),
-            // 29: "Case nearly closed. Any other evidence in the file?"
+            // 31: "Case nearly closed. Any other evidence in the file?"
             Scene(
-                29, "Pick the API",
+                31, "Pick the API",
                 DiagramSpec(
                     "The API is the language your code speaks to Cosmos, chosen once when the account is created.",
                     nodes = listOf(
@@ -337,13 +341,13 @@ internal object Az204StyledStorage2 {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(29, show = setOf("acct")),
-                    Beat(30, show = setOf("nosql", "mongo", "other", "fixed"), light = setOf("mongo", "fixed"), pulse = "acct" to "mongo", card = BoardCard("The old MongoDB website", "Minimal code changes: the MongoDB API. A brand-new app: NoSQL.")),
+                    Beat(31, show = setOf("acct")),
+                    Beat(32, show = setOf("nosql", "mongo", "other", "fixed"), light = setOf("mongo", "fixed"), pulse = "acct" to "mongo", card = BoardCard("The old MongoDB website", "Minimal code changes: the MongoDB API. A brand-new app: NoSQL.")),
                 ),
             ),
-            // 31: "And the second?"
+            // 33: "And the second?"
             Scene(
-                31, "Buying the tokens",
+                33, "Buying the tokens",
                 DiagramSpec(
                     "Provisioned for steady load, autoscale for a ceiling, serverless to pay per use; a 429 means you ran out.",
                     nodes = listOf(
@@ -359,13 +363,13 @@ internal object Az204StyledStorage2 {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(31, show = setOf("app", "err"), light = setOf("err"), pulse = "err" to "app"),
-                    Beat(32, show = setOf("prov", "auto", "serv"), light = setOf("auto"), card = BoardCard("Busy at eight, quiet at noon", "Autoscale: a top limit, down to ten percent. Small and spiky: serverless.")),
+                    Beat(33, show = setOf("app", "err"), light = setOf("err"), pulse = "err" to "app"),
+                    Beat(34, show = setOf("prov", "auto", "serv"), light = setOf("auto"), card = BoardCard("Busy at eight, quiet at noon", "Autoscale: a top limit, down to ten percent. Small and spiky: serverless.")),
                 ),
             ),
-            // 33: "So, the case summary for the exam?"
+            // 37: "So, the case summary for the exam?"
             Scene(
-                33, "Case closed",
+                37, "Case closed",
                 DiagramSpec(
                     "The exam's Cosmos DB model questions, each as the phrase to listen for and the answer it points to.",
                     nodes = listOf(
@@ -380,8 +384,8 @@ internal object Az204StyledStorage2 {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(34, show = setOf("hot", "newc", "session", "prefix", "serv", "err", "key"), light = setOf("key"), card = BoardCard("Listen for the phrase", "Each exam phrase points straight to one answer.")),
-                    Beat(36, card = BoardCard("Today", "Free tier, a container keyed on owner, two items, one query's RU charge.")),
+                    Beat(38, show = setOf("hot", "newc", "session", "prefix", "serv", "err", "key"), light = setOf("key"), card = BoardCard("Listen for the phrase", "Each exam phrase points straight to one answer.")),
+                    Beat(40, card = BoardCard("Today", "Free tier, a container keyed on owner, two items, one query's RU charge.")),
                 ),
             ),
         ),

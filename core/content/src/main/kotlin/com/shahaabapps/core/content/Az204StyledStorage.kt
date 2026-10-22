@@ -19,7 +19,9 @@ internal object Az204StyledStorage {
             leo("So a dead disk can't be it. Suspect three. The file is old and slow, and I just have to wait longer."),
             maya("Now you're warm, but wrong in an important way. Look at the clue on the receipt's details page. Its access tier says Archive."),
             leo("Access tier. Which is what, in plain words?"),
-            maya("A price plan on each blob. You pay either for keeping a file or for reading it, never cheaply for both. Hot costs the most to keep and the least to read. Cool is cheaper to keep and dearer to read, with a thirty day minimum. Cold is cheaper again, ninety days. Archive is the cheapest to keep, with a hundred and eighty days."),
+            maya("A price plan on each blob. You pay either for keeping a file or for reading it, never cheaply for both. Hot costs the most to keep and the least to read."),
+            leo("And for a two year old receipt nobody reads? Something cheaper to keep, surely."),
+            maya("Cool is cheaper to keep and dearer to read, with a thirty day minimum. Cold is cheaper again, ninety days. Archive is the cheapest to keep, with a hundred and eighty days."),
             leo("And the receipt is in Archive. So it's just slow to read?"),
             maya("No, and that's the twist. An Archive blob is offline. Not slow, not dearer. A read simply fails, however long you wait. Under the hood, its bytes sit in offline storage, so Azure has to copy them back to an online tier before anything can read them."),
             leo("So how does support get the receipt back?"),
@@ -58,7 +60,9 @@ internal object Az204StyledStorage {
             leo("And how is it organised? For those of us who are not Sam."),
             maya("Three layers. The storage account is the building. A container is a room in it, a folder-like group with its own access level, like private. The blob is the file. The gym app has one account with two containers, videos and receipts. And under the picture, every blob is just a name and its bytes, with its own web address. Folders are only slashes in names."),
             leo("So why didn't Sam's video play?"),
-            maya("Because it was in the Archive tier. Every blob has an access tier, a price plan. Hot costs the most to keep and the least to read. Cool is cheaper to keep and dearer to read, with a thirty day minimum stay. Cold is cheaper again, ninety days. Archive is the cheapest of all, a hundred and eighty days."),
+            maya("Because it was in the Archive tier. Every blob has an access tier, a price plan. Hot costs the most to keep and the least to read."),
+            leo("So Archive is the cheap end. What sits in between?"),
+            maya("Cool is cheaper to keep and dearer to read, with a thirty day minimum stay. Cold is cheaper again, ninety days. Archive is the cheapest of all, a hundred and eighty days."),
             leo("So Archive is slow. Sam should have waited."),
             maya("That's what Sam thought, for ten long minutes. But Archive isn't slow, it's offline. The bytes sit in offline storage, and a read simply fails. Priya rescued the demo with a newer video, then started a rehydrate on the old one. You set its tier back to Hot or Cool, and Azure copies it back online. Up to fifteen hours on standard priority."),
             leo("[sigh] Fifteen hours. And how did the video end up in Archive? Did Sam move it?"),
@@ -107,7 +111,9 @@ internal object Az204StyledStorage {
             leo("So what stops me changing the expiry to next year?"),
             maya("The signature. Storage recomputes it from the settings in the link. Change one letter, and the codes no longer match, so storage answers 403, forbidden. But note the edge. A SAS is like cash: whoever holds the link can use it. So keep it short."),
             leo("Which secret key signs it, though? Not the account key again?"),
-            maya("There are three kinds. A service SAS covers one service, like blobs. An account SAS covers several. Both are signed with the account key, and the only way to cancel them is to rotate that key for everything, unless a service SAS uses a stored access policy. The third is the user delegation SAS. It covers blobs, and it's signed with a user delegation key."),
+            maya("There are three kinds. A service SAS covers one service, like blobs. An account SAS covers several. Both are signed with the account key."),
+            leo("The same key that leaked? So cancelling one means rotating it again?"),
+            maya("For everything, yes, unless a service SAS uses a stored access policy. The third is the user delegation SAS. It covers blobs, and it's signed with a user delegation key."),
             leo("Which is what?"),
             maya("A key the backend gets from storage by signing in with Entra ID, using its managed identity. No account key anywhere. It lasts at most seven days, and revoking it cancels every link it signed. The code uses DefaultAzureCredential, the same helper as in the Key Vault episode."),
             leo("So the backend issues user delegation links. Case closed?"),
@@ -150,7 +156,9 @@ internal object Az204StyledStorage {
             leo("Which is what, in plain words?"),
             maya("A shared access signature. A link with limits, like a hotel key card: one door, only what it allows, and it stops at checkout time. Under the picture, it's the blob's address plus the permissions, the expiry, and a signature, a code computed from those settings with a secret key. Change one letter, and storage says 403, forbidden."),
             leo("Which secret key, though? Not the account key again?"),
-            maya("That's exactly what the intern asked. A service SAS and an account SAS are both signed with the account key, and you can only cancel them by rotating it, unless a service SAS sits on a stored access policy. The better one is a user delegation SAS. The backend signs in with Entra ID, using its managed identity, and gets a user delegation key from storage."),
+            maya("That's exactly what the intern asked. A service SAS and an account SAS are both signed with the account key, and you can only cancel them by rotating it, unless a service SAS sits on a stored access policy."),
+            leo("The very key the intern leaked. So what's the better one?"),
+            maya("A user delegation SAS. The backend signs in with Entra ID, using its managed identity, and gets a user delegation key from storage."),
             leo("So no account key anywhere."),
             maya("None. The user delegation key lasts at most seven days, and revoking it cancels every link it signed. The backend uses DefaultAzureCredential, same as in the Key Vault episode. And the phone side, signing the player in, is the MSAL episode."),
             leo("Week three?"),
@@ -262,12 +270,12 @@ internal object Az204StyledStorage {
                 beats = listOf(
                     Beat(12, show = setOf("arch"), light = setOf("arch"), card = BoardCard("The clue", "The receipt's access tier says Archive.")),
                     Beat(14, show = setOf("hot", "cool", "cold"), light = setOf("hot", "cool", "cold"), card = BoardCard("Access tier", "Pay to keep or pay to read, never cheaply for both.")),
-                    Beat(16, light = setOf("arch"), card = BoardCard("Archive is offline", "Not slow. A read fails, however long you wait.")),
+                    Beat(18, light = setOf("arch"), card = BoardCard("Archive is offline", "Not slow. A read fails, however long you wait.")),
                 ),
             ),
-            // 17: "So how does support get the receipt back?"
+            // 19: "So how does support get the receipt back?"
             Scene(
-                17, "Rehydrate first",
+                19, "Rehydrate first",
                 DiagramSpec(
                     "An Archive blob must be rehydrated to Hot or Cool, which can take hours, before anything reads it.",
                     nodes = listOf(
@@ -281,13 +289,13 @@ internal object Az204StyledStorage {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(17, show = setOf("arch")),
-                    Beat(18, show = setOf("hot", "time"), light = setOf("time"), pulse = "arch" to "hot", card = BoardCard("Rehydrate", "Set the tier back to Hot or Cool, and Azure brings the blob online.")),
+                    Beat(19, show = setOf("arch")),
+                    Beat(20, show = setOf("hot", "time"), light = setOf("time"), pulse = "arch" to "hot", card = BoardCard("Rehydrate", "Set the tier back to Hot or Cool, and Azure brings the blob online.")),
                 ),
             ),
-            // 19: "Fifteen hours. But who put it in Archive?..."
+            // 21: "Fifteen hours. But who put it in Archive?..."
             Scene(
-                19, "Who moved it?",
+                21, "Who moved it?",
                 DiagramSpec(
                     "A lifecycle rule moves each receipt from Hot to Cool to Archive by age, then deletes it, with nobody involved.",
                     nodes = listOf(
@@ -305,13 +313,13 @@ internal object Az204StyledStorage {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(19, show = setOf("hot", "cool", "arch"), light = setOf("arch")),
-                    Beat(20, show = setOf("gone", "rule"), light = setOf("rule"), pulse = "cool" to "arch", card = BoardCard("Lifecycle rule", "A policy on the account. Once a day it moves or deletes blobs by age.")),
+                    Beat(21, show = setOf("hot", "cool", "arch"), light = setOf("arch")),
+                    Beat(22, show = setOf("gone", "rule"), light = setOf("rule"), pulse = "cool" to "arch", card = BoardCard("Lifecycle rule", "A policy on the account. Once a day it moves or deletes blobs by age.")),
                 ),
             ),
-            // 22: "Mystery solved. But the file has more clues..."
+            // 24: "Mystery solved. But the file has more clues..."
             Scene(
-                22, "More clues",
+                24, "More clues",
                 DiagramSpec(
                     "Three more mistakes in the file: an early deletion fee, a classic account, and GRS where RA-GRS was needed.",
                     nodes = listOf(
@@ -322,14 +330,14 @@ internal object Az204StyledStorage {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(22, show = setOf("fee"), light = setOf("fee"), card = BoardCard("Early deletion fee", "Cool wants 30 days. Leave after 7, and you pay for 30.")),
-                    Beat(26, show = setOf("v1"), light = setOf("v1"), card = BoardCard("Where are the tiers?", "Tiers need a general-purpose v2 account: StorageV2.")),
-                    Beat(28, show = setOf("grs"), light = setOf("grs"), card = BoardCard("Read the far copy any time", "Plain GRS reads only after failover. Any time is RA-GRS.")),
+                    Beat(24, show = setOf("fee"), light = setOf("fee"), card = BoardCard("Early deletion fee", "Cool wants 30 days. Leave after 7, and you pay for 30.")),
+                    Beat(28, show = setOf("v1"), light = setOf("v1"), card = BoardCard("Where are the tiers?", "Tiers need a general-purpose v2 account: StorageV2.")),
+                    Beat(30, show = setOf("grs"), light = setOf("grs"), card = BoardCard("Read the far copy any time", "Plain GRS reads only after failover. Any time is RA-GRS.")),
                 ),
             ),
-            // 29: "What about the ride logs? Same kind of blob as the receipts?"
+            // 31: "What about the ride logs? Same kind of blob as the receipts?"
             Scene(
-                29, "Three kinds of blob",
+                31, "Three kinds of blob",
                 DiagramSpec(
                     "Block blobs for whole files, append blobs for add-only logs, page blobs for disks.",
                     nodes = listOf(
@@ -340,13 +348,13 @@ internal object Az204StyledStorage {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(29, show = setOf("block"), light = setOf("block")),
-                    Beat(30, show = setOf("append", "page"), light = setOf("append"), card = BoardCard("A line every second", "Add to the end, never edit: an append blob, a diary in pen.")),
+                    Beat(31, show = setOf("block"), light = setOf("block")),
+                    Beat(32, show = setOf("append", "page"), light = setOf("append"), card = BoardCard("A line every second", "Add to the end, never edit: an append blob, a diary in pen.")),
                 ),
             ),
-            // 31: "Where does Blob Storage stop being the right tool?"
+            // 33: "Where does Blob Storage stop being the right tool?"
             Scene(
-                31, "Where it stops",
+                33, "Where it stops",
                 DiagramSpec(
                     "Blob Storage keeps files: it cannot search inside them, redundancy does not undo a delete, and it is not a CDN.",
                     nodes = listOf(
@@ -363,14 +371,14 @@ internal object Az204StyledStorage {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(31, show = setOf("blob")),
-                    Beat(32, show = setOf("search", "del", "world"), light = setOf("search", "world"), card = BoardCard("Past the edge", "Every ride by one customer: Cosmos DB. Fast worldwide: Front Door and CDN.")),
-                    Beat(34, light = setOf("blob"), card = BoardCard("Next: Blobs in code", "The SDK, metadata, and links with limits.")),
+                    Beat(33, show = setOf("blob")),
+                    Beat(34, show = setOf("search", "del", "world"), light = setOf("search", "world"), card = BoardCard("Past the edge", "Every ride by one customer: Cosmos DB. Fast worldwide: Front Door and CDN.")),
+                    Beat(36, light = setOf("blob"), card = BoardCard("Next: Blobs in code", "The SDK, metadata, and links with limits.")),
                 ),
             ),
-            // 35: "So, case closed. What goes in the file for the exam?"
+            // 37: "So, case closed. What goes in the file for the exam?"
             Scene(
-                35, "Case closed",
+                37, "Case closed",
                 DiagramSpec(
                     "The exam's Blob Storage questions, each as the phrase to listen for and the answer it points to.",
                     nodes = listOf(
@@ -383,8 +391,8 @@ internal object Az204StyledStorage {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(36, show = setOf("arch", "region", "ra", "zone", "age"), light = setOf("arch"), card = BoardCard("Listen for the phrase", "Each exam phrase points to one answer. Archive is offline, not slow.")),
-                    Beat(38, card = BoardCard("Today", "StorageV2 with LRS, a private container, Cool tier, a one-day lifecycle rule.")),
+                    Beat(38, show = setOf("arch", "region", "ra", "zone", "age"), light = setOf("arch"), card = BoardCard("Listen for the phrase", "Each exam phrase points to one answer. Archive is offline, not slow.")),
+                    Beat(40, card = BoardCard("Today", "StorageV2 with LRS, a private container, Cool tier, a one-day lifecycle rule.")),
                 ),
             ),
         ),
@@ -458,9 +466,9 @@ internal object Az204StyledStorage {
                     Beat(6, show = setOf("hot", "cool", "cold", "arch"), light = setOf("arch"), card = BoardCard("Access tier", "Pay to keep or pay to read, never cheaply for both.")),
                 ),
             ),
-            // 7: "So Archive is slow. Sam should have waited."
+            // 9: "So Archive is slow. Sam should have waited."
             Scene(
-                7, "Offline, not slow",
+                9, "Offline, not slow",
                 DiagramSpec(
                     "An Archive blob must be rehydrated to Hot or Cool, which can take hours, before anything reads it.",
                     nodes = listOf(
@@ -474,13 +482,13 @@ internal object Az204StyledStorage {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(7, show = setOf("arch"), light = setOf("arch")),
-                    Beat(8, show = setOf("hot", "time"), light = setOf("time"), pulse = "arch" to "hot", card = BoardCard("Priya's rehydrate", "Set the tier back to Hot or Cool, and Azure copies it back online.")),
+                    Beat(9, show = setOf("arch"), light = setOf("arch")),
+                    Beat(10, show = setOf("hot", "time"), light = setOf("time"), pulse = "arch" to "hot", card = BoardCard("Priya's rehydrate", "Set the tier back to Hot or Cool, and Azure copies it back online.")),
                 ),
             ),
-            // 9: "Fifteen hours. And how did the video end up in Archive?..."
+            // 11: "Fifteen hours. And how did the video end up in Archive?..."
             Scene(
-                9, "Who moved it?",
+                11, "Who moved it?",
                 DiagramSpec(
                     "A lifecycle rule moves each video from Hot to Cool to Archive by age, with nobody involved.",
                     nodes = listOf(
@@ -496,13 +504,13 @@ internal object Az204StyledStorage {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(9, show = setOf("hot", "cool", "arch"), light = setOf("arch")),
-                    Beat(10, show = setOf("rule"), light = setOf("rule"), pulse = "cool" to "arch", card = BoardCard("Lifecycle rule", "A policy that moves or deletes blobs by age. Nobody does it by hand.")),
+                    Beat(11, show = setOf("hot", "cool", "arch"), light = setOf("arch")),
+                    Beat(12, show = setOf("rule"), light = setOf("rule"), pulse = "cool" to "arch", card = BoardCard("Lifecycle rule", "A policy that moves or deletes blobs by age. Nobody does it by hand.")),
                 ),
             ),
-            // 11: "Poor Sam. Who's next?"
+            // 13: "Poor Sam. Who's next?"
             Scene(
-                11, "Aisha's tidy week",
+                13, "Aisha's tidy week",
                 DiagramSpec(
                     "Cool has a thirty day minimum stay, so deleting after a week brings an early deletion fee.",
                     nodes = listOf(
@@ -516,13 +524,13 @@ internal object Az204StyledStorage {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(12, show = setOf("cool", "week"), light = setOf("week"), pulse = "cool" to "week", card = BoardCard("Aisha's clean-up", "Test videos moved to Cool, then deleted a week later.")),
-                    Beat(14, show = setOf("hot"), light = setOf("hot"), card = BoardCard("Early deletion fee", "You pay as if they stayed 30 days. Short stays belong in Hot.")),
+                    Beat(14, show = setOf("cool", "week"), light = setOf("week"), pulse = "cool" to "week", card = BoardCard("Aisha's clean-up", "Test videos moved to Cool, then deleted a week later.")),
+                    Beat(16, show = setOf("hot"), light = setOf("hot"), card = BoardCard("Early deletion fee", "You pay as if they stayed 30 days. Short stays belong in Hot.")),
                 ),
             ),
-            // 15: "Noted. Hot for short stays. Week three?"
+            // 17: "Noted. Hot for short stays. Week three?"
             Scene(
-                15, "Ben's copies",
+                17, "Ben's copies",
                 DiagramSpec(
                     "LRS keeps copies in one building, ZRS across zones in a region, GRS in a second region too.",
                     nodes = listOf(
@@ -540,14 +548,14 @@ internal object Az204StyledStorage {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(16, show = setOf("grs"), light = setOf("grs"), card = BoardCard("Ben's pick: GRS", "Survive a region, and read the far copy any time?")),
-                    Beat(18, show = setOf("lrs", "zrs", "ra"), light = setOf("grs", "ra"), pulse = "grs" to "ra", card = BoardCard("RA-GRS", "Plain GRS reads the far copy only after failover. Any time is RA-GRS.")),
-                    Beat(20, show = setOf("gz"), light = setOf("zrs", "gz"), card = BoardCard("Cheapest zone-safe", "ZRS. Survive a region: GRS. Read it without failover: RA-GRS.")),
+                    Beat(18, show = setOf("grs"), light = setOf("grs"), card = BoardCard("Ben's pick: GRS", "Survive a region, and read the far copy any time?")),
+                    Beat(20, show = setOf("lrs", "zrs", "ra"), light = setOf("grs", "ra"), pulse = "grs" to "ra", card = BoardCard("RA-GRS", "Plain GRS reads the far copy only after failover. Any time is RA-GRS.")),
+                    Beat(22, show = setOf("gz"), light = setOf("zrs", "gz"), card = BoardCard("Cheapest zone-safe", "ZRS. Survive a region: GRS. Read it without failover: RA-GRS.")),
                 ),
             ),
-            // 21: "And the intern? There's always the intern."
+            // 23: "And the intern? There's always the intern."
             Scene(
-                21, "The intern's account",
+                23, "The intern's account",
                 DiagramSpec(
                     "A classic account has no tiers; a general-purpose v2 account, StorageV2, has them.",
                     nodes = listOf(
@@ -560,13 +568,13 @@ internal object Az204StyledStorage {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(21, show = setOf("v1"), light = setOf("v1")),
-                    Beat(22, show = setOf("v2"), light = setOf("v2"), pulse = "v1" to "v2", card = BoardCard("Priya's fix", "Tiers need a general-purpose v2 account: StorageV2.")),
+                    Beat(23, show = setOf("v1"), light = setOf("v1")),
+                    Beat(24, show = setOf("v2"), light = setOf("v2"), pulse = "v1" to "v2", card = BoardCard("Priya's fix", "Tiers need a general-purpose v2 account: StorageV2.")),
                 ),
             ),
-            // 23: "Did the gym's logs survive all this?"
+            // 25: "Did the gym's logs survive all this?"
             Scene(
-                23, "Three kinds of blob",
+                25, "Three kinds of blob",
                 DiagramSpec(
                     "Block blobs for whole files, append blobs for add-only logs, page blobs for disks.",
                     nodes = listOf(
@@ -577,12 +585,12 @@ internal object Az204StyledStorage {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(24, show = setOf("block", "append", "page"), light = setOf("append"), card = BoardCard("A line every second", "Old lines never change: an append blob, a diary in pen.")),
+                    Beat(26, show = setOf("block", "append", "page"), light = setOf("append"), card = BoardCard("A line every second", "Old lines never change: an append blob, a diary in pen.")),
                 ),
             ),
-            // 25: "So could the gym keep everything in Blob Storage?..."
+            // 27: "So could the gym keep everything in Blob Storage?..."
             Scene(
-                25, "Where it stops",
+                27, "Where it stops",
                 DiagramSpec(
                     "Blob Storage keeps files: it cannot search inside them, redundancy does not undo a delete, and it is not a CDN.",
                     nodes = listOf(
@@ -599,14 +607,14 @@ internal object Az204StyledStorage {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(25, show = setOf("blob")),
-                    Beat(26, show = setOf("search", "del", "world"), light = setOf("search", "del", "world"), card = BoardCard("Past the edge", "Bookings by member: Cosmos DB. Fast worldwide: Front Door and CDN.")),
-                    Beat(28, light = setOf("blob"), card = BoardCard("Next: Blobs in code", "Never the account key in the app. Short links instead.")),
+                    Beat(27, show = setOf("blob")),
+                    Beat(28, show = setOf("search", "del", "world"), light = setOf("search", "del", "world"), card = BoardCard("Past the edge", "Bookings by member: Cosmos DB. Fast worldwide: Front Door and CDN.")),
+                    Beat(30, light = setOf("blob"), card = BoardCard("Next: Blobs in code", "Never the account key in the app. Short links instead.")),
                 ),
             ),
-            // 29: "Okay, the office has taught me a lot. What do I remember for the exam?"
+            // 31: "Okay, the office has taught me a lot. What do I remember for the exam?"
             Scene(
-                29, "For the exam",
+                31, "For the exam",
                 DiagramSpec(
                     "The exam's Blob Storage questions, each as the phrase to listen for and the answer it points to.",
                     nodes = listOf(
@@ -619,8 +627,8 @@ internal object Az204StyledStorage {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(30, show = setOf("arch", "region", "ra", "logs", "age"), light = setOf("arch"), card = BoardCard("Listen for the phrase", "Each exam phrase points to one answer. Archive is offline, not slow.")),
-                    Beat(32, card = BoardCard("Today", "StorageV2 with LRS, a private container, Cool tier, a one-day lifecycle rule.")),
+                    Beat(32, show = setOf("arch", "region", "ra", "logs", "age"), light = setOf("arch"), card = BoardCard("Listen for the phrase", "Each exam phrase points to one answer. Archive is offline, not slow.")),
+                    Beat(34, card = BoardCard("Today", "StorageV2 with LRS, a private container, Cool tier, a one-day lifecycle rule.")),
                 ),
             ),
         ),
@@ -747,12 +755,12 @@ internal object Az204StyledStorage {
                 beats = listOf(
                     Beat(13, show = setOf("sas")),
                     Beat(14, show = setOf("ud", "svc", "acct", "pol"), light = setOf("svc", "acct", "pol"), pulse = "pol" to "svc", card = BoardCard("Service and account SAS", "Signed with the account key. Cancel by rotating it, or a stored access policy.")),
-                    Beat(16, light = setOf("ud"), pulse = "sas" to "ud", card = BoardCard("User delegation key", "From Entra ID via the managed identity. Seven days at most. Revoke to cancel.")),
+                    Beat(18, light = setOf("ud"), pulse = "sas" to "ud", card = BoardCard("User delegation key", "From Entra ID via the managed identity. Seven days at most. Revoke to cancel.")),
                 ),
             ),
-            // 17: "So the backend issues user delegation links. Case closed?"
+            // 19: "So the backend issues user delegation links. Case closed?"
             Scene(
-                17, "Too many permissions",
+                19, "Too many permissions",
                 DiagramSpec(
                     "Wednesday's link allowed read, write and delete; viewing a photo only ever needs read.",
                     nodes = listOf(
@@ -770,13 +778,13 @@ internal object Az204StyledStorage {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(18, show = setOf("link", "r", "w", "d"), light = setOf("w", "d"), card = BoardCard("Wednesday's link", "Read, write and delete. Only read was needed.")),
-                    Beat(20, show = setOf("short"), light = setOf("r", "short"), pulse = "link" to "r", card = BoardCard("Smallest permissions", "Read only, short expiry. Then a 403, and the app asks for a fresh link.")),
+                    Beat(20, show = setOf("link", "r", "w", "d"), light = setOf("w", "d"), card = BoardCard("Wednesday's link", "Read, write and delete. Only read was needed.")),
+                    Beat(22, show = setOf("short"), light = setOf("r", "short"), pulse = "link" to "r", card = BoardCard("Smallest permissions", "Read only, short expiry. Then a 403, and the app asks for a fresh link.")),
                 ),
             ),
-            // 21: "Any more clues?"
+            // 23: "Any more clues?"
             Scene(
-                21, "Labels on a photo",
+                23, "Labels on a photo",
                 DiagramSpec(
                     "Metadata travels with one blob and cannot be searched; index tags can be searched across the account.",
                     nodes = listOf(
@@ -794,13 +802,13 @@ internal object Az204StyledStorage {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(22, show = setOf("blob", "props", "meta"), light = setOf("meta"), pulse = "blob" to "meta", card = BoardCard("Metadata", "Who uploaded the photo. Up to 8 KB, read one blob at a time.")),
-                    Beat(24, show = setOf("query", "tags"), light = setOf("tags"), pulse = "query" to "tags", card = BoardCard("Index tags", "Searchable across the account. Richer questions: Cosmos DB.")),
+                    Beat(24, show = setOf("blob", "props", "meta"), light = setOf("meta"), pulse = "blob" to "meta", card = BoardCard("Metadata", "Who uploaded the photo. Up to 8 KB, read one blob at a time.")),
+                    Beat(26, show = setOf("query", "tags"), light = setOf("tags"), pulse = "query" to "tags", card = BoardCard("Index tags", "Searchable across the account. Richer questions: Cosmos DB.")),
                 ),
             ),
-            // 25: "Last clue?"
+            // 27: "Last clue?"
             Scene(
-                25, "One writer at a time",
+                27, "One writer at a time",
                 DiagramSpec(
                     "A lease locks the schedule file for writes, so the backend copies take turns, and each write carries the lease id.",
                     nodes = listOf(
@@ -819,13 +827,13 @@ internal object Az204StyledStorage {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(26, show = setOf("s1", "s2", "s3", "file", "lease"), light = setOf("lease"), card = BoardCard("Lease", "A write lock on one blob: 15 to 60 seconds, or until released.")),
-                    Beat(28, light = setOf("s1", "file"), pulse = "s1" to "file", card = BoardCard("Pass the lease id", "Every write needs it, even yours. Sharing out work: Service Bus.")),
+                    Beat(28, show = setOf("s1", "s2", "s3", "file", "lease"), light = setOf("lease"), card = BoardCard("Lease", "A write lock on one blob: 15 to 60 seconds, or until released.")),
+                    Beat(30, light = setOf("s1", "file"), pulse = "s1" to "file", card = BoardCard("Pass the lease id", "Every write needs it, even yours. Sharing out work: Service Bus.")),
                 ),
             ),
-            // 29: "And the code itself? Is there a lot of it?"
+            // 31: "And the code itself? Is there a lot of it?"
             Scene(
-                29, "Building, room, box",
+                31, "Building, room, box",
                 DiagramSpec(
                     "The SDK has three client objects: the account, one container in it, and one blob in that.",
                     nodes = listOf(
@@ -841,12 +849,12 @@ internal object Az204StyledStorage {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(30, show = setOf("svc", "cont", "blob", "sdk"), light = setOf("svc", "cont", "blob"), pulse = "svc" to "cont", card = BoardCard("C#", "service.GetBlobContainerClient(\"photos\").GetBlobClient(\"fern.jpg\")", code = true)),
+                    Beat(32, show = setOf("svc", "cont", "blob", "sdk"), light = setOf("svc", "cont", "blob"), pulse = "svc" to "cont", card = BoardCard("C#", "service.GetBlobContainerClient(\"photos\").GetBlobClient(\"fern.jpg\")", code = true)),
                 ),
             ),
-            // 31: "So, case closed. What's the summary for the exam?"
+            // 33: "So, case closed. What's the summary for the exam?"
             Scene(
-                31, "Case closed",
+                33, "Case closed",
                 DiagramSpec(
                     "The exam's blob code questions, each as the phrase to listen for and the answer it points to.",
                     nodes = listOf(
@@ -859,8 +867,8 @@ internal object Az204StyledStorage {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(32, show = setOf("meta", "tags", "sas", "lease", "none"), light = setOf("none"), card = BoardCard("Listen for the phrase", "Each exam phrase points to one answer. Never an account key in an app.")),
-                    Beat(34, card = BoardCard("Today", "Upload a blob, set metadata, make a 10-minute user SAS, open it twice.")),
+                    Beat(34, show = setOf("meta", "tags", "sas", "lease", "none"), light = setOf("none"), card = BoardCard("Listen for the phrase", "Each exam phrase points to one answer. Never an account key in an app.")),
+                    Beat(36, card = BoardCard("Today", "Upload a blob, set metadata, make a 10-minute user SAS, open it twice.")),
                 ),
             ),
         ),
@@ -982,13 +990,14 @@ internal object Az204StyledStorage {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(14, show = setOf("sas", "ud", "svc", "acct", "pol"), light = setOf("ud"), pulse = "sas" to "ud", card = BoardCard("User delegation key", "From Entra ID via the managed identity. No account key anywhere.")),
-                    Beat(16, light = setOf("ud", "sas"), card = BoardCard("Seven days at most", "Revoke the key to cancel every link it signed. MSAL: the phone side.")),
+                    Beat(14, show = setOf("sas", "svc", "acct", "pol"), light = setOf("svc", "acct"), pulse = "sas" to "svc", card = BoardCard("Service and account SAS", "Both signed with the account key. Cancel by rotating it, or a stored policy.")),
+                    Beat(16, show = setOf("ud"), light = setOf("ud"), pulse = "sas" to "ud", card = BoardCard("User delegation key", "From Entra ID via the managed identity. No account key anywhere.")),
+                    Beat(18, light = setOf("ud", "sas"), card = BoardCard("Seven days at most", "Revoke the key to cancel every link it signed. MSAL: the phone side.")),
                 ),
             ),
-            // 17: "Week three?"
+            // 19: "Week three?"
             Scene(
-                17, "Marcus's links",
+                19, "Marcus's links",
                 DiagramSpec(
                     "Marcus's share links allowed read, write and delete for a month; a viewer only ever needs read.",
                     nodes = listOf(
@@ -1006,13 +1015,13 @@ internal object Az204StyledStorage {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(18, show = setOf("link", "r", "w", "d"), light = setOf("w", "d"), card = BoardCard("Week three: Marcus", "Share-your-score links with read, write and delete, for a month.")),
-                    Beat(20, show = setOf("short"), light = setOf("r", "short"), pulse = "link" to "r", card = BoardCard("A SAS is like cash", "Whoever holds it can spend it. Read only, 30 minutes, then a fresh link.")),
+                    Beat(20, show = setOf("link", "r", "w", "d"), light = setOf("w", "d"), card = BoardCard("Week three: Marcus", "Share-your-score links with read, write and delete, for a month.")),
+                    Beat(22, show = setOf("short"), light = setOf("r", "short"), pulse = "link" to "r", card = BoardCard("A SAS is like cash", "Whoever holds it can spend it. Read only, 30 minutes, then a fresh link.")),
                 ),
             ),
-            // 21: "Dana is having a busy month. Anyone else?"
+            // 23: "Dana is having a busy month. Anyone else?"
             Scene(
-                21, "Aisha's labels",
+                23, "Aisha's labels",
                 DiagramSpec(
                     "Metadata travels with one blob and cannot be searched; index tags can be searched across the account.",
                     nodes = listOf(
@@ -1030,13 +1039,13 @@ internal object Az204StyledStorage {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(22, show = setOf("blob", "props", "meta"), light = setOf("meta"), pulse = "blob" to "meta", card = BoardCard("Metadata", "The author's name on each pack. Up to 8 KB, read one blob at a time.")),
-                    Beat(24, show = setOf("query", "tags"), light = setOf("tags"), pulse = "query" to "tags", card = BoardCard("Index tags", "Searchable across the account. Richer questions: Cosmos DB.")),
+                    Beat(24, show = setOf("blob", "props", "meta"), light = setOf("meta"), pulse = "blob" to "meta", card = BoardCard("Metadata", "The author's name on each pack. Up to 8 KB, read one blob at a time.")),
+                    Beat(26, show = setOf("query", "tags"), light = setOf("tags"), pulse = "query" to "tags", card = BoardCard("Index tags", "Searchable across the account. Richer questions: Cosmos DB.")),
                 ),
             ),
-            // 25: "And the code under all this? Is it complicated?"
+            // 27: "And the code under all this? Is it complicated?"
             Scene(
-                25, "Building, room, box",
+                27, "Building, room, box",
                 DiagramSpec(
                     "The SDK has three client objects: the account, one container in it, and one blob in that.",
                     nodes = listOf(
@@ -1052,12 +1061,12 @@ internal object Az204StyledStorage {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(26, show = setOf("svc", "cont", "blob", "sdk"), light = setOf("svc", "cont", "blob"), pulse = "cont" to "blob", card = BoardCard("C#", "new BlobServiceClient(uri, new DefaultAzureCredential())", code = true)),
+                    Beat(28, show = setOf("svc", "cont", "blob", "sdk"), light = setOf("svc", "cont", "blob"), pulse = "cont" to "blob", card = BoardCard("C#", "new BlobServiceClient(uri, new DefaultAzureCredential())", code = true)),
                 ),
             ),
-            // 27: "So, the gossip I should remember for the exam?"
+            // 29: "So, the gossip I should remember for the exam?"
             Scene(
-                27, "For the exam",
+                29, "For the exam",
                 DiagramSpec(
                     "The exam's blob code questions, each as the phrase to listen for and the answer it points to.",
                     nodes = listOf(
@@ -1070,8 +1079,8 @@ internal object Az204StyledStorage {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(28, show = setOf("meta", "tags", "sas", "lease", "none"), light = setOf("none"), card = BoardCard("Listen for the phrase", "Each exam phrase points to one answer. Never an account key in an app.")),
-                    Beat(30, card = BoardCard("Today", "Upload a blob, set metadata, make a 10-minute user SAS, open it twice.")),
+                    Beat(30, show = setOf("meta", "tags", "sas", "lease", "none"), light = setOf("none"), card = BoardCard("Listen for the phrase", "Each exam phrase points to one answer. Never an account key in an app.")),
+                    Beat(32, card = BoardCard("Today", "Upload a blob, set metadata, make a 10-minute user SAS, open it twice.")),
                 ),
             ),
         ),

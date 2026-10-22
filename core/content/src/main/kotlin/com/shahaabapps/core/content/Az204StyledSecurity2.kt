@@ -27,7 +27,9 @@ internal object Az204StyledSecurity2 {
             leo("[sigh] And that's wrong because the access token isn't for the app."),
             maya("Right. The access token is for the API, and the app should treat it as sealed. The app reads the ID token for the member's name, and asks the API what the member may do. The phone shows, the server decides. And the third kind, the refresh token, just gets new tokens quietly later."),
             leo("Let's back up. How does Microsoft even know about the gym app?"),
-            maya("You register it, once. That creates an application object, the single record of your app in its home tenant. A tenant is one organisation's own space in Entra ID. It holds the client id, who may sign in, the redirect URI where tokens come back, and the API permissions it wants. The API's own registration lists its scopes under Expose an API, like a Bookings read-write scope."),
+            maya("You register it, once. That creates an application object, the single record of your app in its home tenant. A tenant is one organisation's own space in Entra ID."),
+            leo("I've seen that registration form. It has a lot of boxes. Which ones matter?"),
+            maya("Four. The client id, the app's own id. Who may sign in. The redirect URI, where tokens come back. And the API permissions it wants. The API's own registration lists its scopes under Expose an API, like a Bookings read-write scope."),
             leo("And when another gym chain wants to use the app?"),
             maya("Make it multitenant. When their admin consents, their tenant gets a service principal, your app's visitor pass inside their building. Permissions and roles attach to the service principal, not the application object. So, one application object, and one service principal in each tenant that uses it."),
             leo("Where does this idea stop working? Like the gym's TV screen with the class list?"),
@@ -107,7 +109,9 @@ internal object Az204StyledSecurity2 {
             leo("Mostly? [sigh] There's more, isn't there."),
             maya("Two more witnesses. The developer behind the update had a theory. If the app were a confidential client, with a client secret inside, it could get tokens without bothering the user at all."),
             leo("Is that not a good idea?"),
-            maya("It's the classic mistake. MSAL has two builders, the starting point in code. The public client builder is for apps on a user's device: mobile, desktop, command line. The confidential client builder is for servers: web apps, APIs and background jobs. A phone can be taken apart, so a phone app is a public client, with no secret in it. Ever."),
+            maya("It's the classic mistake. MSAL has two builders, the starting point in code. The public client builder is for apps on a user's device: mobile, desktop, command line."),
+            leo("And the confidential one? Why can't my Android app be one of those?"),
+            maya("The confidential client builder is for servers: web apps, APIs and background jobs. A phone can be taken apart, so a phone app is a public client, with no secret in it. Ever."),
             leo("So where does a secret belong?"),
             maya("On a server, and even then, in Key Vault. The Key Vault episode covers that side. Say the plant app has a nightly job that emails watering reports. No user is there, so it's client credentials, the app signing in as itself. On a confidential client it calls AcquireTokenForClient, with the resource's address and slash dot default as the scope."),
             leo("Dot default, meaning what?"),
@@ -150,7 +154,9 @@ internal object Az204StyledSecurity2 {
             leo("Okay, who's next?"),
             maya("The intern, bless them. They read that confidential clients get tokens without any prompt, which is true, on a server. So they switched the Android app to the confidential client builder, and put a client secret inside it."),
             leo("Inside the app on everyone's phone. Even I know that one."),
-            maya("Priya caught it in review. MSAL has two builders. The public client builder is for apps on a user's device: mobile, desktop and command line. The confidential client builder is for servers: web apps, APIs and background jobs. A phone app can be taken apart, so it's always public, and never holds a secret. Server secrets live in Key Vault, which has its own episode."),
+            maya("Priya caught it in review. MSAL has two builders. The public client builder is for apps on a user's device: mobile, desktop and command line."),
+            leo("So the intern picked the wrong one. What's the confidential builder for, then?"),
+            maya("Servers: web apps, APIs and background jobs. A phone app can be taken apart, so it's always public, and never holds a secret. Server secrets live in Key Vault, which has its own episode."),
             leo("Who's next?"),
             maya("Aisha. She wanted each player's Microsoft profile photo on the leaderboard. So in one call she asked for Graph's User Read scope and the quiz API's scope together."),
             leo("Efficient. Did it work?"),
@@ -316,12 +322,12 @@ internal object Az204StyledSecurity2 {
                 ),
                 beats = listOf(
                     Beat(22, show = setOf("obj"), light = setOf("obj"), card = BoardCard("Application object", "The single record of your app: client id, redirect URI, permissions.")),
-                    Beat(24, show = setOf("sp1", "sp2", "note"), light = setOf("sp2", "note"), pulse = "obj" to "sp2", card = BoardCard("Service principal", "Each tenant's visitor pass for your app. Permissions attach to it.")),
+                    Beat(26, show = setOf("sp1", "sp2", "note"), light = setOf("sp2", "note"), pulse = "obj" to "sp2", card = BoardCard("Service principal", "Each tenant's visitor pass for your app. Permissions attach to it.")),
                 ),
             ),
-            // 25: "Where does this idea stop working? Like the gym's TV screen..."
+            // 27: "Where does this idea stop working? Like the gym's TV screen..."
             Scene(
-                25, "Where it stops",
+                27, "Where it stops",
                 DiagramSpec(
                     "Each scenario has its own flow: a user in a browser, no user, API to API, no browser, and the deprecated implicit flow.",
                     nodes = listOf(
@@ -334,13 +340,13 @@ internal object Az204StyledSecurity2 {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(25, show = setOf("dev"), light = setOf("dev")),
-                    Beat(26, show = setOf("code", "cc", "obo", "imp"), light = setOf("dev", "obo", "imp"), card = BoardCard("The gym's TV", "No browser: device code. Implicit is deprecated. MSAL: the code.")),
+                    Beat(27, show = setOf("dev"), light = setOf("dev")),
+                    Beat(28, show = setOf("code", "cc", "obo", "imp"), light = setOf("dev", "obo", "imp"), card = BoardCard("The gym's TV", "No browser: device code. Implicit is deprecated. MSAL: the code.")),
                 ),
             ),
-            // 27: "So, the case summary for the exam?"
+            // 29: "So, the case summary for the exam?"
             Scene(
-                27, "Case closed",
+                29, "Case closed",
                 DiagramSpec(
                     "The exam's identity questions, each as the phrase to listen for and the answer it points to.",
                     nodes = listOf(
@@ -353,9 +359,9 @@ internal object Az204StyledSecurity2 {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(28, show = setOf("nouser", "own", "spa"), card = BoardCard("Listen for the phrase", "Each exam phrase points straight to one answer. Never a secret on a phone.")),
-                    Beat(30, show = setOf("tenant", "aud"), light = setOf("tenant", "aud"), card = BoardCard("What cracked the case", "The API checks the audience of every access token.")),
-                    Beat(32, card = BoardCard("Today", "Register an app, note its ids, add User Read, compare platform settings.")),
+                    Beat(30, show = setOf("nouser", "own", "spa"), card = BoardCard("Listen for the phrase", "Each exam phrase points straight to one answer. Never a secret on a phone.")),
+                    Beat(32, show = setOf("tenant", "aud"), light = setOf("tenant", "aud"), card = BoardCard("What cracked the case", "The API checks the audience of every access token.")),
+                    Beat(34, card = BoardCard("Today", "Register an app, note its ids, add User Read, compare platform settings.")),
                 ),
             ),
         ),
@@ -653,13 +659,13 @@ internal object Az204StyledSecurity2 {
                 beats = listOf(
                     Beat(18, show = setOf("phone"), light = setOf("phone"), card = BoardCard("The theory", "Make the app confidential, with a secret inside? Never.")),
                     Beat(20, show = setOf("pub", "conf"), light = setOf("pub", "conf"), pulse = "pub" to "phone", card = BoardCard("Two builders", "Public: apps on a device. Confidential: web apps, APIs and jobs.")),
-                    Beat(22, show = setOf("server"), light = setOf("server"), pulse = "conf" to "server", card = BoardCard("C#", "AcquireTokenForClient(new[] { \"api://plants/.default\" })", code = true)),
-                    Beat(24, show = setOf("def"), light = setOf("def"), pulse = "server" to "def", card = BoardCard("/.default", "Every permission already consented on that resource. No user to ask.")),
+                    Beat(24, show = setOf("server"), light = setOf("server"), pulse = "conf" to "server", card = BoardCard("C#", "AcquireTokenForClient(new[] { \"api://plants/.default\" })", code = true)),
+                    Beat(26, show = setOf("def"), light = setOf("def"), pulse = "server" to "def", card = BoardCard("/.default", "Every permission already consented on that resource. No user to ask.")),
                 ),
             ),
-            // 25: "And the second witness?"
+            // 27: "And the second witness?"
             Scene(
-                25, "One token, one audience",
+                27, "One token, one audience",
                 DiagramSpec(
                     "Each access token has a single audience, so ask for Graph scopes and your API's scopes in separate calls.",
                     nodes = listOf(
@@ -679,14 +685,14 @@ internal object Az204StyledSecurity2 {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(26, show = setOf("app", "graph", "api"), light = setOf("app"), card = BoardCard("The second witness", "Graph's User Read and the plant API's scope in one call. It failed.")),
-                    Beat(28, show = setOf("t1", "t2"), light = setOf("t1", "t2"), pulse = "t1" to "graph", card = BoardCard("A train ticket for one line", "One audience per token: Graph and your API in two separate calls.")),
-                    Beat(30, show = setOf("oa"), light = setOf("oa"), card = BoardCard("Sign-in scopes", "openid and profile come from OpenID Connect. offline_access: a refresh token.")),
+                    Beat(28, show = setOf("app", "graph", "api"), light = setOf("app"), card = BoardCard("The second witness", "Graph's User Read and the plant API's scope in one call. It failed.")),
+                    Beat(30, show = setOf("t1", "t2"), light = setOf("t1", "t2"), pulse = "t1" to "graph", card = BoardCard("A train ticket for one line", "One audience per token: Graph and your API in two separate calls.")),
+                    Beat(32, show = setOf("oa"), light = setOf("oa"), card = BoardCard("Sign-in scopes", "openid and profile come from OpenID Connect. offline_access: a refresh token.")),
                 ),
             ),
-            // 31: "Where does all this stop working? Like the plant shop's web dashboard?"
+            // 33: "Where does all this stop working? Like the plant shop's web dashboard?"
             Scene(
-                31, "Where it stops",
+                33, "Where it stops",
                 DiagramSpec(
                     "The other MSAL calls, each for its own scenario, and a shared token cache for web apps on many servers.",
                     nodes = listOf(
@@ -702,13 +708,13 @@ internal object Az204StyledSecurity2 {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(32, show = setOf("web", "redis"), light = setOf("redis"), pulse = "web" to "redis", card = BoardCard("Three servers", "Tokens in each server's memory vanish. Use a shared cache: Redis or SQL.")),
-                    Beat(34, show = setOf("obo", "dev", "code"), light = setOf("obo", "dev", "code"), card = BoardCard("AcquireToken...", "...WithDeviceCode, OnBehalfOf, ByAuthorizationCode")),
+                    Beat(34, show = setOf("web", "redis"), light = setOf("redis"), pulse = "web" to "redis", card = BoardCard("Three servers", "Tokens in each server's memory vanish. Use a shared cache: Redis or SQL.")),
+                    Beat(36, show = setOf("obo", "dev", "code"), light = setOf("obo", "dev", "code"), card = BoardCard("AcquireToken...", "...WithDeviceCode, OnBehalfOf, ByAuthorizationCode")),
                 ),
             ),
-            // 35: "So, the case summary for the exam?"
+            // 37: "So, the case summary for the exam?"
             Scene(
-                35, "Case closed",
+                37, "Case closed",
                 DiagramSpec(
                     "The exam's MSAL questions, each as the phrase to listen for and the answer it points to.",
                     nodes = listOf(
@@ -721,8 +727,8 @@ internal object Az204StyledSecurity2 {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(36, show = setOf("prompts", "daemon", "mix", "nobrowser", "builders"), light = setOf("prompts"), card = BoardCard("Listen for the phrase", "Each exam phrase points straight to one answer. Silent first cracked it.")),
-                    Beat(38, card = BoardCard("Today", "Console app, a token interactively, decode aud and scp, then the silent path.")),
+                    Beat(38, show = setOf("prompts", "daemon", "mix", "nobrowser", "builders"), light = setOf("prompts"), card = BoardCard("Listen for the phrase", "Each exam phrase points straight to one answer. Silent first cracked it.")),
+                    Beat(40, card = BoardCard("Today", "Console app, a token interactively, decode aud and scp, then the silent path.")),
                 ),
             ),
         ),
@@ -800,9 +806,9 @@ internal object Az204StyledSecurity2 {
                     Beat(16, show = setOf("pub", "server"), light = setOf("pub", "phone"), pulse = "pub" to "phone", card = BoardCard("Two builders", "Public: apps on a device. Confidential: web apps, APIs and jobs.")),
                 ),
             ),
-            // 17: "Who's next?"
+            // 19: "Who's next?"
             Scene(
-                17, "Aisha's two scopes",
+                19, "Aisha's two scopes",
                 DiagramSpec(
                     "Each access token has a single audience, so ask for Graph scopes and your API's scopes in separate calls.",
                     nodes = listOf(
@@ -822,14 +828,14 @@ internal object Az204StyledSecurity2 {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(18, show = setOf("app", "graph", "api"), light = setOf("app"), card = BoardCard("Aisha's leaderboard", "Graph's User Read and the quiz API's scope in one call.")),
-                    Beat(20, show = setOf("t1", "t2"), light = setOf("t1", "t2"), pulse = "t1" to "graph", card = BoardCard("A train ticket for one line", "One audience per token: Graph and your API in two separate calls.")),
-                    Beat(22, show = setOf("oa"), light = setOf("oa"), card = BoardCard("Sign-in scopes", "openid and profile come from OpenID Connect. offline_access: a refresh token.")),
+                    Beat(20, show = setOf("app", "graph", "api"), light = setOf("app"), card = BoardCard("Aisha's leaderboard", "Graph's User Read and the quiz API's scope in one call.")),
+                    Beat(22, show = setOf("t1", "t2"), light = setOf("t1", "t2"), pulse = "t1" to "graph", card = BoardCard("A train ticket for one line", "One audience per token: Graph and your API in two separate calls.")),
+                    Beat(24, show = setOf("oa"), light = setOf("oa"), card = BoardCard("Sign-in scopes", "openid and profile come from OpenID Connect. offline_access: a refresh token.")),
                 ),
             ),
-            // 23: "Noted. And I heard about a leaderboard job?"
+            // 25: "Noted. And I heard about a leaderboard job?"
             Scene(
-                23, "Felix's Sunday job",
+                25, "Felix's Sunday job",
                 DiagramSpec(
                     "A job with no user uses client credentials: AcquireTokenForClient with the resource's /.default scope.",
                     nodes = listOf(
@@ -845,13 +851,13 @@ internal object Az204StyledSecurity2 {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(24, show = setOf("job", "nope"), light = setOf("nope"), card = BoardCard("Felix's first try", "Silent, then User Read. With no player signed in, neither works.")),
-                    Beat(26, show = setOf("for", "def"), light = setOf("for", "def"), pulse = "job" to "for", card = BoardCard("C#", "AcquireTokenForClient(new[] { \"api://quiz/.default\" })", code = true)),
+                    Beat(26, show = setOf("job", "nope"), light = setOf("nope"), card = BoardCard("Felix's first try", "Silent, then User Read. With no player signed in, neither works.")),
+                    Beat(28, show = setOf("for", "def"), light = setOf("for", "def"), pulse = "job" to "for", card = BoardCard("C#", "AcquireTokenForClient(new[] { \"api://quiz/.default\" })", code = true)),
                 ),
             ),
-            // 27: "And the last one? There's always a last one."
+            // 29: "And the last one? There's always a last one."
             Scene(
-                27, "Tess's three servers",
+                29, "Tess's three servers",
                 DiagramSpec(
                     "Tokens kept in each server's memory vanish when the next request lands elsewhere; a shared cache serves them all.",
                     nodes = listOf(
@@ -868,13 +874,13 @@ internal object Az204StyledSecurity2 {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(28, show = setOf("s1", "s2", "s3"), light = setOf("s1", "s2", "s3"), card = BoardCard("Signed out at random", "Tokens in each server's memory vanish when the next request moves.")),
-                    Beat(30, show = setOf("redis"), light = setOf("redis"), pulse = "s2" to "redis", card = BoardCard("Microsoft Identity Web", "Wraps MSAL for dot NET web apps; tokens go in a shared cache.")),
+                    Beat(30, show = setOf("s1", "s2", "s3"), light = setOf("s1", "s2", "s3"), card = BoardCard("Signed out at random", "Tokens in each server's memory vanish when the next request moves.")),
+                    Beat(32, show = setOf("redis"), light = setOf("redis"), pulse = "s2" to "redis", card = BoardCard("Microsoft Identity Web", "Wraps MSAL for dot NET web apps; tokens go in a shared cache.")),
                 ),
             ),
-            // 31: "Where does all this stop working? Like the quiz night screen at the pub?"
+            // 33: "Where does all this stop working? Like the quiz night screen at the pub?"
             Scene(
-                31, "Where it stops",
+                33, "Where it stops",
                 DiagramSpec(
                     "No browser means device code; an API calling another API as the user means on-behalf-of.",
                     nodes = listOf(
@@ -888,12 +894,12 @@ internal object Az204StyledSecurity2 {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(32, show = setOf("dev", "obo", "phone"), light = setOf("dev", "phone"), pulse = "dev" to "phone", card = BoardCard("Quiz night screen", "No browser: device code, typed on your phone.")),
+                    Beat(34, show = setOf("dev", "obo", "phone"), light = setOf("dev", "phone"), pulse = "dev" to "phone", card = BoardCard("Quiz night screen", "No browser: device code, typed on your phone.")),
                 ),
             ),
-            // 33: "So, the gossip I should remember for the exam?"
+            // 35: "So, the gossip I should remember for the exam?"
             Scene(
-                33, "For the exam",
+                35, "For the exam",
                 DiagramSpec(
                     "The exam's MSAL questions, each as the phrase to listen for and the answer it points to.",
                     nodes = listOf(
@@ -906,8 +912,8 @@ internal object Az204StyledSecurity2 {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(34, show = setOf("prompts", "daemon", "mix", "nobrowser", "builders"), light = setOf("prompts"), card = BoardCard("Listen for the phrase", "Each exam phrase points straight to one answer.")),
-                    Beat(36, card = BoardCard("Today", "Console app, a token interactively, decode aud and scp, then the silent path.")),
+                    Beat(36, show = setOf("prompts", "daemon", "mix", "nobrowser", "builders"), light = setOf("prompts"), card = BoardCard("Listen for the phrase", "Each exam phrase points straight to one answer.")),
+                    Beat(38, card = BoardCard("Today", "Console app, a token interactively, decode aud and scp, then the silent path.")),
                 ),
             ),
         ),
