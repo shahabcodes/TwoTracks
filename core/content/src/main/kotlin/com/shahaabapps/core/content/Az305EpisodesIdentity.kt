@@ -7,7 +7,9 @@ internal object Az305EpisodesIdentity {
         listOf(
             maya("Hi, and welcome back. Today is identity: who you are, and how you prove it. Our running story: Two Tracks goes global. The Android app is now a company, with office staff, a backend on Azure, a partner agency in Australia, and app users everywhere. And every one of them needs to sign in to something."),
             leo("And I bet everyone has a different password for everything. [sigh]"),
-            maya("That's what we fix. At the centre sits Microsoft Entra ID. Picture the company's ID-card office in the cloud: it holds every person and every app, checks who they are when they sign in, and hands out passes that apps and Azure accept."),
+            maya("That's what we fix. At the centre sits Microsoft Entra ID. Picture the company's ID-card office in the cloud: it holds every person and every app, and checks who they are when they sign in."),
+            leo("In my own app I keep a users table, with passwords, and a login page that checks them. Is this the same thing, only bigger?"),
+            maya("Same idea, but you stop writing it yourself. Entra ID keeps the accounts, checks the passwords, and hands out passes that apps and Azure accept. Your code just checks the pass."),
             leo("Passes? What kind of pass?"),
             maya("A token. That's a short-lived signed pass, like a festival wristband: proof you were checked at the gate, and it runs out within hours. One identity, one sign-in, and the wristband gets you into email, internal apps and the Azure portal, Azure's website for managing everything."),
             leo("And where do all these people live?"),
@@ -27,11 +29,15 @@ internal object Az305EpisodesIdentity {
             leo("Okay. Now the office. They already sign in to something."),
             maya("Active Directory. It's the directory Windows offices have used for decades, on their own servers in their own building. That's on-premises: in the building, not in the cloud. Hybrid identity means the same people exist there and in Entra ID."),
             leo("How do they get from there to there?"),
-            maya("A sync tool copies users and groups across, like a clerk copying the staff list every few minutes. Entra Connect Sync is a full server you install and look after. Cloud Sync uses small agents, little programs that only call out, with the settings kept in the cloud. Less to run."),
+            maya("A sync tool copies users and groups from Active Directory in the office up to Entra ID, like a clerk copying the staff list every few minutes."),
+            leo("Which tool? Something I have to run on a server?"),
+            maya("Entra Connect Sync is: a full server you install and look after. Cloud Sync uses small agents, little programs that only call out, with the settings kept in the cloud. Less to run."),
             leo("And the password? Where's it checked?"),
             maya("Three choices. The default is password hash sync. A hash is a fingerprint of the password: the same password always gives the same fingerprint, but the fingerprint can't be turned back into the password. A fingerprint of that fingerprint is copied to the cloud, and Entra ID checks sign-ins itself."),
             leo("Why is that the default?"),
-            maya("Least to run, and it works even if the office is down. It also lets Entra spot leaked passwords. Second choice: pass-through authentication. Agents in the office check each cloud sign-in against Active Directory, live. Pick it when office rules, like a locked-out account, must apply at once."),
+            maya("Least to run, and it works even if the office is down. And because Entra holds those fingerprints, it can spot leaked passwords."),
+            leo("But say the office locks someone's account. The cloud still has their old fingerprint. Can they still get in?"),
+            maya("[pause] Good doubt. With hash sync, the cloud doesn't see that lockout at once. If office rules like that must apply at once, pick the second choice, pass-through authentication: agents in the office check each cloud sign-in against Active Directory, live."),
             leo("And the third?"),
             maya("Federation, with AD FS, Active Directory Federation Services: every sign-in is handed to your own servers. It's the most effort and the most to fail, with servers facing the internet. Only when Entra can't do something itself, like a third-party MFA system you must keep."),
             leo("Now outsiders. Two Tracks hires that translation agency in Australia."),
@@ -39,7 +45,9 @@ internal object Az305EpisodesIdentity {
             leo("And the millions of app users signing up with email or Google?"),
             maya("That's Microsoft Entra External ID, in an external tenant: a separate address book just for customers, with your app's own branded sign-up page. Azure AD B2C is the older product for this, not sold to new customers since May 2025, so new designs use External ID."),
             leo("Last piece. The backend itself has to read storage. Does it get a password?"),
-            maya("No. It gets a managed identity. Picture an employee badge that Azure issues and renews for your app. No secret exists, so none can leak. The old way is a service principal, an app's own account, which needs a secret or a certificate that someone must store and renew."),
+            maya("No. It gets a managed identity. Picture an employee badge that Azure issues and renews for your app. No secret exists, so none can leak."),
+            leo("Right now my API keeps a storage key in its config file. That's what the badge replaces?"),
+            maya("Exactly that. The old way is a service principal, an app's own account, which needs a secret or a certificate that someone must store and renew. The badge needs neither: your code asks Azure for a token, and Azure answers."),
             leo("And there are two kinds of badge, right?"),
             maya("Two. A system-assigned one lives and dies with one resource. A user-assigned one is its own resource that several apps can share. Either way, give it one narrow role, such as reading files in storage, and nothing more."),
             leo("So what do I remember for the exam?"),
@@ -72,7 +80,7 @@ internal object Az305EpisodesIdentity {
             leo("Suspect: Azure was down."),
             maya("Azure was fine. Two Tracks had chosen federation, with AD FS, Active Directory Federation Services. That hands every sign-in to your own servers. It sounded enterprise. But when those servers fell over, everyone was locked out."),
             leo("Active Directory being the office one?"),
-            maya("Yes. It's the directory Windows offices have used for decades, on their own servers in their own building. That's on-premises. Hybrid identity means the same people exist there and in Entra ID. A sync tool copies them across, like a clerk copying the staff list every few minutes."),
+            maya("Yes. It's the directory Windows offices have used for decades, on their own servers in their own building. That's on-premises. Hybrid identity means the same people exist there and in Entra ID. A sync tool copies them from the office up to Entra ID, like a clerk copying the staff list every few minutes."),
             leo("So what should they have picked instead of federation?"),
             maya("Password hash sync, the default. A hash is a fingerprint of the password: same password, same fingerprint, but you can't turn the fingerprint back into the password. A fingerprint of that fingerprint goes to the cloud, and Entra ID checks sign-ins itself. Office down? Sign-in still works."),
             leo("And it can spot leaked passwords too?"),
@@ -84,13 +92,17 @@ internal object Az305EpisodesIdentity {
             leo("Suspect: the designer."),
             maya("Maybe. But the real culprit is the design. Partners should be B2B guests. B2B means business to business: the guest signs in with their own company's account. When they leave their company, that account dies, and so does their way in. You never hold their password."),
             leo("And Two Tracks' millions of app users? Guest accounts too?"),
-            maya("No. Customers signing up with email or Google go to Microsoft Entra External ID. A tenant is one organisation's own copy of Entra ID; External ID gives customers a separate tenant of their own, with your branded sign-up page. Azure AD B2C is the older product; new designs use External ID."),
+            maya("No. Customers signing up with email or Google go to Microsoft Entra External ID."),
+            leo("Why not the same place as the staff? One user list sounds simpler."),
+            maya("A tenant is one organisation's own copy of Entra ID. Millions of customers mixed in with your staff would be a mess, so External ID gives customers a separate tenant of their own, with your branded sign-up page. Azure AD B2C is the older product; new designs use External ID."),
             leo("Fourth witness?"),
             maya("The backend. It reads files from storage, and it signed in as a service principal: an app's own account, with a secret, a password for the app, pasted into its settings. That secret ended up in a screenshot."),
             leo("Suspect: whoever took the screenshot."),
             maya("[chuckle] The screenshot is innocent. The fix is a managed identity: an employee badge Azure issues and renews for your app. Under the picture, it's an account in Entra ID with no secret at all. Azure started your app, so it answers the app's request for a token on a private local address nobody outside can reach."),
             leo("And where does that stop working?"),
-            maya("On your laptop there's no badge, so you sign in with az login, the Azure command line's sign-in. A pipeline outside Azure, like GitHub Actions, uses workload identity federation: Entra trusts the pass GitHub gives it. And the Android app never gets a managed identity; it calls the backend, which does."),
+            maya("On your laptop there's no badge, so you sign in with az login, the Azure command line's sign-in. A pipeline outside Azure, like GitHub Actions, uses workload identity federation: Entra trusts the pass GitHub gives it."),
+            leo("And my Android app? Can the phone get a badge, and read storage directly?"),
+            maya("Never. The phone isn't an Azure resource, so it never gets a managed identity, and anything shipped on it can be pulled apart. It calls the backend, and the backend uses its badge."),
             leo("Any last witness?"),
             maya("One. Every permission was given to people one by one. When Sam left, twenty separate permissions had to be hunted down. Give access to groups, never to single people: change the group, not twenty assignments."),
             leo("So, the case summary for the exam?"),
@@ -114,11 +126,13 @@ internal object Az305EpisodesIdentity {
             leo("Okay. So who went first?"),
             maya("Tom. Monday. The office already signs in with Active Directory, the directory Windows offices have used for decades, on their own servers in the building. That's called on-premises. Tom had to bring those same people into the cloud."),
             leo("Sounds reasonable."),
-            maya("It is. A sync tool copies users and groups across, like a clerk copying the staff list every few minutes. Tom picked Cloud Sync, with small agents, little programs that only call out. Good choice. Then he picked federation, with AD FS, because it sounded enterprise."),
+            maya("It is. A sync tool copies users and groups from the office up to Entra ID, like a clerk copying the staff list every few minutes. Tom picked Cloud Sync, with small agents, little programs that only call out. Good choice. Then he picked federation, with AD FS, because it sounded enterprise."),
             leo("And federation means?"),
             maya("Every sign-in is handed to your own servers in the office. So when those servers crashed on Monday afternoon, nobody could sign in to anything. Not email, not the portal. That's the lockout you heard about."),
             leo("Ouch. What should he have picked?"),
-            maya("Password hash sync, the default. A hash is a fingerprint of the password: same password, same fingerprint, but it can't be turned back. A fingerprint of that fingerprint goes to the cloud, and Entra ID checks sign-ins itself. Office down? Still works. Federation only when Entra can't do something itself."),
+            maya("Password hash sync, the default. A hash is a fingerprint of the password: same password, same fingerprint, but it can't be turned back."),
+            leo("Wait, so the office sends our passwords to Microsoft? Tom would hate that."),
+            maya("Not the passwords. A fingerprint of that fingerprint goes up to the cloud, and Entra ID checks sign-ins itself. Office down? Still works. Federation only when Entra can't do something itself."),
             leo("Tuesday?"),
             maya("Dana. Dana's rule: a locked-out office account must be refused in the cloud immediately. So she chose pass-through authentication. Agents in the office check each cloud sign-in against Active Directory, live. Correct, so far."),
             leo("Then what went wrong?"),
@@ -132,7 +146,7 @@ internal object Az305EpisodesIdentity {
             leo("Thursday, I'm guessing, the intern."),
             maya("[chuckle] The intern. The backend reads files from storage. So the intern made a service principal, an app's own account, and pasted its secret, a password for the app, straight into the app settings."),
             leo("Where anyone with access can read it."),
-            maya("Exactly. The fix is a managed identity. Picture an employee badge that Azure issues and renews for your app. Under the picture, it's an account in Entra ID with no secret at all, so nothing can leak. Azure started the app, so it hands the app tokens on a private local address."),
+            maya("Exactly. The fix is a managed identity. Picture an employee badge that Azure issues and renews for your app. Under the picture, it's an account in Entra ID with no secret at all, so nothing can leak. Azure started the app, so the app asks a private local address for tokens, and Azure answers."),
             leo("And there are two kinds, I heard."),
             maya("A system-assigned one lives and dies with one resource. A user-assigned one is its own resource that several apps can share. The intern now gives it one narrow role, reading storage, and nothing more."),
             leo("And Friday? There's always a Friday."),
@@ -174,17 +188,19 @@ internal object Az305EpisodesIdentity {
             ivy("Now the office people. They already sign in to something."),
             nova("Active Directory. It's the directory Windows offices have used for decades, on their own servers in the building. On-premises, we say. Hybrid identity means the same people live there and in Entra ID."),
             ivy("How do they cross over?"),
-            nova("A sync tool copies them, like a clerk copying the staff list every few minutes. Entra Connect Sync is a full server you look after. Cloud Sync uses small agents, little programs that only call out, with its settings in the cloud. Less to run, at three in the morning or any time."),
+            nova("A sync tool copies them from the office up to Entra ID, like a clerk copying the staff list every few minutes. Entra Connect Sync is a full server you look after. Cloud Sync uses small agents, little programs that only call out, with its settings in the cloud. Less to run, at three in the morning or any time."),
             ivy("And the password? Who checks it?"),
             nova("The default is password hash sync. A hash is a fingerprint of the password: same password, same fingerprint, but it can't be turned back into the password. [pause] A fingerprint of that fingerprint goes to the cloud, and Entra ID checks sign-ins itself, even when the office is dark."),
             ivy("And if the office rules must apply at once? A locked-out account, refused right now?"),
-            nova("Pass-through authentication. Agents in the office check each cloud sign-in against Active Directory, live, calling out only. Keep hash sync on beside it, as the backup. And federation, with AD FS, hands sign-in to your own servers: most effort, most to fail. Only when Entra can't do it itself."),
+            nova("Pass-through authentication. Agents in the office check each cloud sign-in against Active Directory, live, calling out only. Keep hash sync on beside it, as the backup."),
+            ivy("Calling out only? So nothing from the internet knocks on the office door?"),
+            nova("Nothing. The agents reach out to Entra and collect the sign-ins waiting for them. [pause] Federation, with AD FS, is the opposite: it hands sign-in to your own servers, facing the internet. Most effort, most to fail. Only when Entra can't do it itself."),
             ivy("Now the visitors. A translation agency in Australia, working late with us."),
             nova("They come in as B2B guests. B2B means business to business: they sign in with their own company's account, so you never hold their password. And your Conditional Access rules still apply to them."),
             ivy("And the strangers? Millions of app users, signing up with email or Google?"),
             nova("Microsoft Entra External ID, in an external tenant: a separate address book just for customers, with your own branded sign-up page. Azure AD B2C is the older product; new designs use External ID."),
             ivy("And the backend itself? It reads storage. Does it whisper a password?"),
-            nova("No password at all. A managed identity. Picture an employee badge that Azure issues and renews for your app. Under the picture, it's an account in Entra ID with no secret. Azure started your app, so it hands it tokens on a private local address nobody outside can reach."),
+            nova("No password at all. A managed identity. Picture an employee badge that Azure issues and renews for your app. Under the picture, it's an account in Entra ID with no secret. Azure started your app, so your app asks a private local address for tokens, one nobody outside can reach, and Azure answers."),
             ivy("And the old way?"),
             nova("A service principal, an app's own account, signing in with a secret or a certificate, a password-like file someone must store and renew. [pause] Secrets get pasted into settings. Badges don't."),
             ivy("Where does all of this stop working, Nova?"),
@@ -204,7 +220,9 @@ internal object Az305EpisodesIdentity {
         listOf(
             nova("Tonight is date night, darling. Candles, a little wine, and you and me, Rafe, talking about identity. Who you are, and how you prove it."),
             rafe("I can prove who I am. Ask me anything."),
-            nova("[laugh] Then let's start with who checks. Microsoft Entra ID. Picture the company's ID-card office in the cloud: it holds every person and app, checks who they are, and hands out passes. Two Tracks has gone global: office staff, a backend on Azure, a partner agency in Australia, and app users everywhere. All of them sign in there."),
+            nova("[laugh] Then let's start with who checks. Microsoft Entra ID. Picture the company's ID-card office in the cloud: it holds every person and app, checks who they are, and hands out passes."),
+            rafe("Like the login code I wrote for my first app? A users table and a password check?"),
+            nova("The same job, darling, done for you. Two Tracks has gone global: office staff, a backend on Azure, a partner agency in Australia, and app users everywhere. All of them sign in there."),
             rafe("And the pass it hands out?"),
             nova("A token. That's a short-lived signed pass, like a festival wristband: proof you were checked at the gate. It fades within hours."),
             rafe("A token that doesn't last the night. I'll try not to take that personally. Where do we all live, inside Entra?"),
@@ -228,7 +246,7 @@ internal object Az305EpisodesIdentity {
             rafe("Microsoft Entra External ID, in an external tenant: a separate address book for customers, with our own branded sign-up page. Not Azure AD B2C, the older product, no longer sold to new customers."),
             nova("Right answer. And branded beautifully. [kiss]"),
             rafe("Last quiz. The backend reads storage. Requirement: no credentials to store or rotate. What do you recommend?"),
-            nova("A managed identity. Picture an employee badge that Azure issues and renews for the app. Under the picture, it's an account in Entra ID with no secret at all. Azure started the app, so it hands it tokens on a private local address. Then grant it one narrow storage role."),
+            nova("A managed identity. Picture an employee badge that Azure issues and renews for the app. Under the picture, it's an account in Entra ID with no secret at all. Azure started the app, so the app asks a private local address for tokens, and Azure answers. Then grant it one narrow storage role."),
             rafe("Right answer. No secrets between us. [kiss]"),
             nova("Unlike a service principal, an app's own account with a secret that someone pastes into settings and forgets to renew."),
             rafe("And where does it all stop working? Every romance has its limits."),
@@ -376,7 +394,7 @@ internal object Az305EpisodesIdentity {
     private val caCard = BoardCard("Conditional Access", "If-then rules, like a doorman with a checklist. Needs P1.")
     private val idpCard = BoardCard("ID Protection", "Spots risky sign-ins, like Sydney then Paris in an hour. Needs P2.")
     private val adCard = BoardCard("Active Directory", "The office's own directory, on its own servers: on-premises.")
-    private val syncCard = BoardCard("A sync tool", "Cloud Sync or Entra Connect Sync copies the staff list across.")
+    private val syncCard = BoardCard("A sync tool", "Cloud Sync or Connect Sync copies staff from the office up to Entra.")
     private val phsCard = BoardCard("Password hash sync", "The default: a fingerprint of the fingerprint goes to the cloud.")
     private val ptaCard = BoardCard("Pass-through", "Office agents check each sign-in live: lockout applies at once.")
     private val b2bCard = BoardCard("B2B guest", "Signs in with their own company's account. No password to hold.")
@@ -395,55 +413,55 @@ internal object Az305EpisodesIdentity {
                 beats = listOf(
                     Beat(0, show = setOf("user"), light = setOf("user"), card = BoardCard("Two Tracks goes global", "Staff, partners, app users and apps: all need to sign in.")),
                     Beat(2, show = setOf("entra", "apps"), light = setOf("entra"), card = entraCard),
-                    Beat(4, light = setOf("apps"), pulse = "ca" to "apps", card = tokenCard),
-                    Beat(6, light = setOf("entra"), card = tenantCard),
-                    Beat(8, card = groupsCard),
+                    Beat(6, light = setOf("apps"), pulse = "ca" to "apps", card = tokenCard),
+                    Beat(8, light = setOf("entra"), card = tenantCard),
+                    Beat(10, card = groupsCard),
                 ),
             ),
-            // 9: "Okay. Now proving it's really me. A password?"
+            // 11: "Okay. Now proving it's really me. A password?"
             Scene(
-                9, "Proving it's you", doorman(),
+                11, "Proving it's you", doorman(),
                 beats = listOf(
-                    Beat(10, show = setOf("signin", "mfa"), light = setOf("mfa"), card = mfaCard),
-                    Beat(12, show = setOf("ca", "allow", "block"), light = setOf("ca"), pulse = "signin" to "ca", card = caCard),
-                    Beat(14, show = setOf("defaults"), light = setOf("defaults"), card = BoardCard("Security defaults", "One free switch: basic protection for all. No exceptions.")),
-                    Beat(16, show = setOf("idp"), light = setOf("idp"), card = idpCard),
-                    Beat(18, light = setOf("allow"), card = BoardCard("Passwordless", "A face, a fingerprint or a phone prompt. Nothing to type.")),
+                    Beat(12, show = setOf("signin", "mfa"), light = setOf("mfa"), card = mfaCard),
+                    Beat(14, show = setOf("ca", "allow", "block"), light = setOf("ca"), pulse = "signin" to "ca", card = caCard),
+                    Beat(16, show = setOf("defaults"), light = setOf("defaults"), card = BoardCard("Security defaults", "One free switch: basic protection for all. No exceptions.")),
+                    Beat(18, show = setOf("idp"), light = setOf("idp"), card = idpCard),
+                    Beat(20, light = setOf("allow"), card = BoardCard("Passwordless", "A face, a fingerprint or a phone prompt. Nothing to type.")),
                 ),
             ),
-            // 19: "Okay. Now the office. They already sign in to something."
+            // 21: "Okay. Now the office. They already sign in to something."
             Scene(
-                19, "The office", hashSync(),
+                21, "The office", hashSync(),
                 beats = listOf(
-                    Beat(20, show = setOf("ad"), light = setOf("ad"), card = adCard),
-                    Beat(22, show = setOf("entra"), light = setOf("entra"), pulse = "ad" to "entra", card = syncCard),
-                    Beat(24, show = setOf("phs", "note"), light = setOf("phs"), card = phsCard),
-                    Beat(26, show = setOf("pta"), light = setOf("pta"), card = ptaCard),
-                    Beat(28, show = setOf("fed"), light = setOf("fed"), card = BoardCard("Federation (AD FS)", "Sign-in on your own servers. Only when Entra can't do it.")),
+                    Beat(22, show = setOf("ad"), light = setOf("ad"), card = adCard),
+                    Beat(24, show = setOf("entra"), light = setOf("entra"), pulse = "ad" to "entra", card = syncCard),
+                    Beat(28, show = setOf("phs", "note"), light = setOf("phs"), card = phsCard),
+                    Beat(32, show = setOf("pta"), light = setOf("pta"), card = ptaCard),
+                    Beat(34, show = setOf("fed"), light = setOf("fed"), card = BoardCard("Federation (AD FS)", "Sign-in on your own servers. Only when Entra can't do it.")),
                 ),
             ),
-            // 29: "Now outsiders. Two Tracks hires that translation agency..."
+            // 35: "Now outsiders. Two Tracks hires that translation agency..."
             Scene(
-                29, "Outsiders", guests(),
+                35, "Outsiders", guests(),
                 beats = listOf(
-                    Beat(30, show = setOf("guest"), light = setOf("guest"), pulse = "guest" to "tt", card = b2bCard),
-                    Beat(32, show = setOf("ext", "users", "b2c"), light = setOf("ext"), pulse = "users" to "ext", card = extCard),
+                    Beat(36, show = setOf("guest"), light = setOf("guest"), pulse = "guest" to "tt", card = b2bCard),
+                    Beat(38, show = setOf("ext", "users", "b2c"), light = setOf("ext"), pulse = "users" to "ext", card = extCard),
                 ),
             ),
-            // 33: "Last piece. The backend itself has to read storage..."
+            // 39: "Last piece. The backend itself has to read storage..."
             Scene(
-                33, "Apps sign in too", badge(),
+                39, "Apps sign in too", badge(),
                 beats = listOf(
-                    Beat(34, show = setOf("mi", "sp"), light = setOf("mi"), pulse = "api" to "mi", card = miCard),
-                    Beat(36, show = setOf("sys", "ua"), light = setOf("sys", "ua"), pulse = "api" to "st", card = badgesCard),
+                    Beat(40, show = setOf("mi", "sp"), light = setOf("mi"), pulse = "api" to "mi", card = miCard),
+                    Beat(44, show = setOf("sys", "ua"), light = setOf("sys", "ua"), pulse = "api" to "st", card = badgesCard),
                 ),
             ),
-            // 37: "So what do I remember for the exam?"
+            // 45: "So what do I remember for the exam?"
             Scene(
-                37, "For the exam", exam(),
+                45, "For the exam", exam(),
                 beats = listOf(
-                    Beat(38, show = all6, light = setOf("phs", "pta", "ca", "b2b", "mi"), card = BoardCard("Listen for the phrase", "Effort, lockout, location, partners, secrets: one answer each.")),
-                    Beat(40, card = today),
+                    Beat(46, show = all6, light = setOf("phs", "pta", "ca", "b2b", "mi"), card = BoardCard("Listen for the phrase", "Effort, lockout, location, partners, secrets: one answer each.")),
+                    Beat(48, card = today),
                 ),
             ),
         ),
@@ -491,34 +509,34 @@ internal object Az305EpisodesIdentity {
                     Beat(30, show = setOf("ext", "users", "b2c"), light = setOf("ext"), pulse = "users" to "ext", card = extCard),
                 ),
             ),
-            // 31: "Fourth witness?"
+            // 33: "Fourth witness?"
             Scene(
-                31, "The fourth witness", badge(),
+                33, "The fourth witness", badge(),
                 beats = listOf(
-                    Beat(32, show = setOf("sp"), light = setOf("sp"), card = BoardCard("Service principal", "An app's own account, its secret pasted into settings.")),
-                    Beat(34, show = setOf("mi", "sys", "ua"), light = setOf("mi"), pulse = "api" to "mi", card = miCard),
+                    Beat(34, show = setOf("sp"), light = setOf("sp"), card = BoardCard("Service principal", "An app's own account, its secret pasted into settings.")),
+                    Beat(36, show = setOf("mi", "sys", "ua"), light = setOf("mi"), pulse = "api" to "mi", card = miCard),
                 ),
             ),
-            // 35: "And where does that stop working?"
+            // 37: "And where does that stop working?"
             Scene(
-                35, "Where it stops", limits(),
+                37, "Where it stops", limits(),
                 beats = listOf(
-                    Beat(36, light = setOf("laptop", "gh", "phone"), pulse = "phone" to "api", card = stopsCard),
+                    Beat(38, light = setOf("laptop", "gh", "phone"), pulse = "phone" to "api", card = stopsCard),
                 ),
             ),
-            // 37: "Any last witness?"
+            // 41: "Any last witness?"
             Scene(
-                37, "The last witness", overview(),
+                41, "The last witness", overview(),
                 beats = listOf(
-                    Beat(38, light = setOf("user"), card = groupsCard),
+                    Beat(42, light = setOf("user"), card = groupsCard),
                 ),
             ),
-            // 39: "So, the case summary for the exam?"
+            // 43: "So, the case summary for the exam?"
             Scene(
-                39, "Case closed", exam(),
+                43, "Case closed", exam(),
                 beats = listOf(
-                    Beat(40, show = all6, light = setOf("phs", "pta", "ca", "b2b", "mi"), card = BoardCard("Listen for the phrase", "Location, effort, lockout, partners, secrets: one answer each.")),
-                    Beat(42, card = today),
+                    Beat(44, show = all6, light = setOf("phs", "pta", "ca", "b2b", "mi"), card = BoardCard("Listen for the phrase", "Location, effort, lockout, partners, secrets: one answer each.")),
+                    Beat(46, card = today),
                 ),
             ),
         ),
@@ -546,54 +564,54 @@ internal object Az305EpisodesIdentity {
                     Beat(12, show = setOf("phs", "note"), light = setOf("phs"), card = phsCard),
                 ),
             ),
-            // 13: "Tuesday?"
+            // 15: "Tuesday?"
             Scene(
-                13, "Tuesday: Dana", hashSync(),
+                15, "Tuesday: Dana", hashSync(),
                 beats = listOf(
-                    Beat(14, light = setOf("pta"), card = ptaCard),
-                    Beat(16, light = setOf("phs", "pta"), card = BoardCard("Keep hash sync on", "The backup, and the way Entra spots leaked passwords.")),
+                    Beat(16, light = setOf("pta"), card = ptaCard),
+                    Beat(18, light = setOf("phs", "pta"), card = BoardCard("Keep hash sync on", "The backup, and the way Entra spots leaked passwords.")),
                 ),
             ),
-            // 17: "Wednesday?"
+            // 19: "Wednesday?"
             Scene(
-                17, "Wednesday: Marcus", guests(),
+                19, "Wednesday: Marcus", guests(),
                 beats = listOf(
-                    Beat(18, card = BoardCard("Wednesday: Marcus", "New accounts for translators, passwords sent by email.")),
-                    Beat(20, show = setOf("guest"), light = setOf("guest"), pulse = "guest" to "tt", card = b2bCard),
-                    Beat(22, show = setOf("ext", "users", "b2c"), light = setOf("ext"), pulse = "users" to "ext", card = extCard),
+                    Beat(20, card = BoardCard("Wednesday: Marcus", "New accounts for translators, passwords sent by email.")),
+                    Beat(22, show = setOf("guest"), light = setOf("guest"), pulse = "guest" to "tt", card = b2bCard),
+                    Beat(24, show = setOf("ext", "users", "b2c"), light = setOf("ext"), pulse = "users" to "ext", card = extCard),
                 ),
             ),
-            // 23: "Thursday, I'm guessing, the intern."
+            // 25: "Thursday, I'm guessing, the intern."
             Scene(
-                23, "Thursday: the intern", badge(),
+                25, "Thursday: the intern", badge(),
                 beats = listOf(
-                    Beat(24, show = setOf("sp"), light = setOf("sp"), card = BoardCard("Thursday: the intern", "A service principal's secret, pasted into app settings.")),
-                    Beat(26, show = setOf("mi"), light = setOf("mi"), pulse = "api" to "mi", card = miCard),
-                    Beat(28, show = setOf("sys", "ua"), light = setOf("sys", "ua"), pulse = "api" to "st", card = badgesCard),
+                    Beat(26, show = setOf("sp"), light = setOf("sp"), card = BoardCard("Thursday: the intern", "A service principal's secret, pasted into app settings.")),
+                    Beat(28, show = setOf("mi"), light = setOf("mi"), pulse = "api" to "mi", card = miCard),
+                    Beat(30, show = setOf("sys", "ua"), light = setOf("sys", "ua"), pulse = "api" to "st", card = badgesCard),
                 ),
             ),
-            // 29: "And Friday? There's always a Friday."
+            // 31: "And Friday? There's always a Friday."
             Scene(
-                29, "Friday: Priya", doorman(),
+                31, "Friday: Priya", doorman(),
                 beats = listOf(
-                    Beat(30, show = setOf("signin", "mfa"), light = setOf("mfa"), card = mfaCard),
-                    Beat(32, show = setOf("ca", "allow", "block"), light = setOf("ca"), pulse = "signin" to "ca", card = caCard),
-                    Beat(34, card = groupsCard),
+                    Beat(32, show = setOf("signin", "mfa"), light = setOf("mfa"), card = mfaCard),
+                    Beat(34, show = setOf("ca", "allow", "block"), light = setOf("ca"), pulse = "signin" to "ca", card = caCard),
+                    Beat(36, card = groupsCard),
                 ),
             ),
-            // 35: "And where does all this stop working?"
+            // 37: "And where does all this stop working?"
             Scene(
-                35, "Where it stops", limits(),
+                37, "Where it stops", limits(),
                 beats = listOf(
-                    Beat(36, light = setOf("laptop", "gh", "phone"), pulse = "phone" to "api", card = stopsCard),
+                    Beat(38, light = setOf("laptop", "gh", "phone"), pulse = "phone" to "api", card = stopsCard),
                 ),
             ),
-            // 37: "So, the gossip I should remember for the exam?"
+            // 39: "So, the gossip I should remember for the exam?"
             Scene(
-                37, "For the exam", exam(),
+                39, "For the exam", exam(),
                 beats = listOf(
-                    Beat(38, show = all6, light = setOf("phs", "pta", "ca", "b2b", "mi"), card = BoardCard("Listen for the phrase", "One colleague, one lesson, one answer.")),
-                    Beat(40, card = today),
+                    Beat(40, show = all6, light = setOf("phs", "pta", "ca", "b2b", "mi"), card = BoardCard("Listen for the phrase", "One colleague, one lesson, one answer.")),
+                    Beat(42, card = today),
                 ),
             ),
         ),
@@ -632,35 +650,35 @@ internal object Az305EpisodesIdentity {
                     Beat(22, show = setOf("pta", "fed"), light = setOf("pta"), card = BoardCard("Pass-through", "Live checks, so lockout applies at once. Federation only when forced.")),
                 ),
             ),
-            // 23: "Now the visitors..."
+            // 25: "Now the visitors..."
             Scene(
-                23, "The visitors", guests(),
+                25, "The visitors", guests(),
                 beats = listOf(
-                    Beat(24, show = setOf("guest"), light = setOf("guest"), pulse = "guest" to "tt", card = b2bCard),
-                    Beat(26, show = setOf("ext", "users", "b2c"), light = setOf("ext"), pulse = "users" to "ext", card = extCard),
+                    Beat(26, show = setOf("guest"), light = setOf("guest"), pulse = "guest" to "tt", card = b2bCard),
+                    Beat(28, show = setOf("ext", "users", "b2c"), light = setOf("ext"), pulse = "users" to "ext", card = extCard),
                 ),
             ),
-            // 27: "And the backend itself? It reads storage..."
+            // 29: "And the backend itself? It reads storage..."
             Scene(
-                27, "No whispered passwords", badge(),
+                29, "No whispered passwords", badge(),
                 beats = listOf(
-                    Beat(28, show = setOf("mi"), light = setOf("mi"), pulse = "api" to "mi", card = miCard),
-                    Beat(30, show = setOf("sp", "sys", "ua"), light = setOf("sp"), card = BoardCard("Service principal", "An app's own account, with a secret someone must store and renew.")),
+                    Beat(30, show = setOf("mi"), light = setOf("mi"), pulse = "api" to "mi", card = miCard),
+                    Beat(32, show = setOf("sp", "sys", "ua"), light = setOf("sp"), card = BoardCard("Service principal", "An app's own account, with a secret someone must store and renew.")),
                 ),
             ),
-            // 31: "Where does all of this stop working, Nova?"
+            // 33: "Where does all of this stop working, Nova?"
             Scene(
-                31, "Where it stops", limits(),
+                33, "Where it stops", limits(),
                 beats = listOf(
-                    Beat(32, light = setOf("laptop", "gh", "phone"), pulse = "phone" to "api", card = stopsCard),
+                    Beat(34, light = setOf("laptop", "gh", "phone"), pulse = "phone" to "api", card = stopsCard),
                 ),
             ),
-            // 33: "Before you send me off to bed. What do I remember for the exam?"
+            // 35: "Before you send me off to bed. What do I remember for the exam?"
             Scene(
-                33, "For the exam", exam(),
+                35, "For the exam", exam(),
                 beats = listOf(
-                    Beat(34, show = all6, light = setOf("phs", "pta", "ca", "b2b", "mi"), card = BoardCard("Listen for the phrase", "Five little things, one answer each.")),
-                    Beat(36, card = today),
+                    Beat(36, show = all6, light = setOf("phs", "pta", "ca", "b2b", "mi"), card = BoardCard("Listen for the phrase", "Five little things, one answer each.")),
+                    Beat(38, card = today),
                 ),
             ),
         ),
@@ -675,62 +693,62 @@ internal object Az305EpisodesIdentity {
                 beats = listOf(
                     Beat(0, card = BoardCard("Date night", "Who you are, and how you prove it.")),
                     Beat(2, show = setOf("entra", "user"), light = setOf("entra"), card = entraCard),
-                    Beat(4, show = setOf("apps"), light = setOf("apps"), pulse = "ca" to "apps", card = tokenCard),
-                    Beat(6, light = setOf("entra"), card = tenantCard),
+                    Beat(6, show = setOf("apps"), light = setOf("apps"), pulse = "ca" to "apps", card = tokenCard),
+                    Beat(8, light = setOf("entra"), card = tenantCard),
                 ),
             ),
-            // 8: "Now, my first question, exam style..."
+            // 10: "Now, my first question, exam style..."
             Scene(
-                8, "First question", hashSync(),
+                10, "First question", hashSync(),
                 beats = listOf(
-                    Beat(8, show = setOf("ad", "entra"), light = setOf("ad"), pulse = "ad" to "entra", card = BoardCard("Quiz: the default", "The same password in the cloud: Microsoft's default?")),
-                    Beat(9, show = setOf("phs", "note"), light = setOf("phs"), card = BoardCard("Right answer", "Password hash sync: least to run, works when the office is down.")),
-                    Beat(11, card = BoardCard("Quiz: lockout at once", "Refused at once, and no servers facing the internet. Which?")),
-                    Beat(12, show = setOf("fed"), light = setOf("fed"), card = BoardCard("Federation? No kiss", "It needs servers the internet can reach; most to fail.")),
-                    Beat(13, show = setOf("pta"), light = setOf("pta"), card = ptaCard),
+                    Beat(10, show = setOf("ad", "entra"), light = setOf("ad"), pulse = "ad" to "entra", card = BoardCard("Quiz: the default", "The same password in the cloud: Microsoft's default?")),
+                    Beat(11, show = setOf("phs", "note"), light = setOf("phs"), card = BoardCard("Right answer", "Password hash sync: least to run, works when the office is down.")),
+                    Beat(13, card = BoardCard("Quiz: lockout at once", "Refused at once, and no servers facing the internet. Which?")),
+                    Beat(14, show = setOf("fed"), light = setOf("fed"), card = BoardCard("Federation? No kiss", "It needs servers the internet can reach; most to fail.")),
+                    Beat(15, show = setOf("pta"), light = setOf("pta"), card = ptaCard),
                 ),
             ),
-            // 14: "Mm. Fair. Then here's mine. Two Tracks wants MFA..."
+            // 16: "Mm. Fair. Then here's mine. Two Tracks wants MFA..."
             Scene(
-                14, "Knowing when to ask", doorman(),
+                16, "Knowing when to ask", doorman(),
                 beats = listOf(
-                    Beat(14, show = setOf("signin", "mfa"), light = setOf("mfa"), card = BoardCard("Quiz: MFA outside", "MFA for the portal from outside the office, not inside.")),
-                    Beat(15, show = setOf("ca", "allow", "block"), light = setOf("ca"), pulse = "signin" to "ca", card = BoardCard("Right answer", "Conditional Access, the office as a named location. Needs P1.")),
-                    Beat(18, show = setOf("defaults", "idp"), light = setOf("defaults", "idp"), card = BoardCard("Defaults and risk", "Defaults: free, all or nothing. Risky sign-ins: ID Protection, P2.")),
+                    Beat(16, show = setOf("signin", "mfa"), light = setOf("mfa"), card = BoardCard("Quiz: MFA outside", "MFA for the portal from outside the office, not inside.")),
+                    Beat(17, show = setOf("ca", "allow", "block"), light = setOf("ca"), pulse = "signin" to "ca", card = BoardCard("Right answer", "Conditional Access, the office as a named location. Needs P1.")),
+                    Beat(20, show = setOf("defaults", "idp"), light = setOf("defaults", "idp"), card = BoardCard("Defaults and risk", "Defaults: free, all or nothing. Risky sign-ins: ID Protection, P2.")),
                 ),
             ),
-            // 19: "My question. A translation agency in Australia..."
+            // 21: "My question. A translation agency in Australia..."
             Scene(
-                19, "Guests and strangers", guests(),
+                21, "Guests and strangers", guests(),
                 beats = listOf(
-                    Beat(19, card = BoardCard("Quiz: the translators", "Each has a work account at the agency. How do they get in?")),
-                    Beat(20, show = setOf("guest"), light = setOf("guest"), pulse = "guest" to "tt", card = BoardCard("Right answer", "B2B guests: their own accounts, never our passwords.")),
-                    Beat(22, show = setOf("users"), light = setOf("users"), card = BoardCard("Quiz: app users", "Millions, signing up with email or Google. Where?")),
-                    Beat(23, show = setOf("ext", "b2c"), light = setOf("ext"), pulse = "users" to "ext", card = BoardCard("Right answer", "External ID, a customer tenant. B2C is the older product.")),
+                    Beat(21, card = BoardCard("Quiz: the translators", "Each has a work account at the agency. How do they get in?")),
+                    Beat(22, show = setOf("guest"), light = setOf("guest"), pulse = "guest" to "tt", card = BoardCard("Right answer", "B2B guests: their own accounts, never our passwords.")),
+                    Beat(24, show = setOf("users"), light = setOf("users"), card = BoardCard("Quiz: app users", "Millions, signing up with email or Google. Where?")),
+                    Beat(25, show = setOf("ext", "b2c"), light = setOf("ext"), pulse = "users" to "ext", card = BoardCard("Right answer", "External ID, a customer tenant. B2C is the older product.")),
                 ),
             ),
-            // 25: "Last quiz. The backend reads storage..."
+            // 27: "Last quiz. The backend reads storage..."
             Scene(
-                25, "No secrets between us", badge(),
+                27, "No secrets between us", badge(),
                 beats = listOf(
-                    Beat(25, card = BoardCard("Quiz: no credentials", "The backend reads storage; nothing to store or rotate.")),
-                    Beat(26, show = setOf("mi"), light = setOf("mi"), pulse = "api" to "mi", card = BoardCard("Right answer", "A managed identity, with one narrow storage role.")),
-                    Beat(28, show = setOf("sp", "sys", "ua"), light = setOf("sp"), card = BoardCard("Service principal", "A secret someone pastes into settings and forgets to renew.")),
+                    Beat(27, card = BoardCard("Quiz: no credentials", "The backend reads storage; nothing to store or rotate.")),
+                    Beat(28, show = setOf("mi"), light = setOf("mi"), pulse = "api" to "mi", card = BoardCard("Right answer", "A managed identity, with one narrow storage role.")),
+                    Beat(30, show = setOf("sp", "sys", "ua"), light = setOf("sp"), card = BoardCard("Service principal", "A secret someone pastes into settings and forgets to renew.")),
                 ),
             ),
-            // 29: "And where does it all stop working? Every romance has its limits."
+            // 31: "And where does it all stop working? Every romance has its limits."
             Scene(
-                29, "Every romance has limits", limits(),
+                31, "Every romance has limits", limits(),
                 beats = listOf(
-                    Beat(30, light = setOf("laptop", "gh", "phone"), pulse = "phone" to "api", card = stopsCard),
+                    Beat(32, light = setOf("laptop", "gh", "phone"), pulse = "phone" to "api", card = stopsCard),
                 ),
             ),
-            // 31: "Last question, for the exam. What do we remember?"
+            // 33: "Last question, for the exam. What do we remember?"
             Scene(
-                31, "For the exam", exam(),
+                33, "For the exam", exam(),
                 beats = listOf(
-                    Beat(32, show = all6, light = all6, card = BoardCard("Listen for the phrase", "Six for six: one answer each.")),
-                    Beat(35, card = today),
+                    Beat(34, show = all6, light = all6, card = BoardCard("Listen for the phrase", "Six for six: one answer each.")),
+                    Beat(37, card = today),
                 ),
             ),
         ),
