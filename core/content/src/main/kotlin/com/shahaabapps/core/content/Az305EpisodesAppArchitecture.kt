@@ -5,7 +5,7 @@ internal object Az305EpisodesAppArchitecture {
     private val classic = Podcast(
         "sa-app-architecture",
         listOf(
-            maya("Hi, and welcome back. Today is application architecture, for AZ-305, the design exam. Our story: Two Tracks goes global. The Android app has become a company, with a backend on Azure, the server code the phones talk to, and users in Europe and Australia. Today we choose how its parts talk to each other."),
+            maya("Hi, and welcome back. Today is application architecture. Our story: Two Tracks goes global. The Android app has become a company, with a backend on Azure, the server code the phones talk to, and users in Europe and Australia. Today we choose how its parts talk to each other."),
             leo("Its parts? I thought an app was one thing."),
             maya("A small app is, for example a to-do list saving to one database. A bigger one is several parts: the Tracks API, a billing worker, a leaderboard. Instead of calling each other and waiting, they pass notes through a go-between. Then one part can be busy, or down, without breaking the rest."),
             leo("Hang on. The API. What's that, in plain words?"),
@@ -17,17 +17,19 @@ internal object Az305EpisodesAppArchitecture {
             leo("Parcel, doorbell, till roll. A service for each?"),
             maya("One for each, plus a very simple queue. A queue is a line of waiting notes, like the queue at a post office. Service Bus carries messages. Event Grid carries single events. Event Hubs takes streams. And Storage queues are the plain, cheap option."),
             leo("Start with Service Bus. When do I pick it?"),
-            maya("When you hear orders, payments, in order, exactly once. Picture a paid Two Tracks subscription. It must make one invoice, in order for each user, and nothing may be lost if billing is down for an hour. Service Bus holds the message safely until billing comes back."),
+            maya("When you hear orders, payments, in order, exactly once. Picture a paid Two Tracks subscription. It must make one invoice, in order for each user, and nothing may be lost if billing is down for an hour."),
+            leo("So Service Bus calls my billing code when a payment comes in, like a push notification?"),
+            maya("The other way round. Billing pulls: it asks the queue for the next message, and Service Bus holds it until billing says done. If billing is down, the message just waits."),
             leo("How does it keep the order?"),
             maya("FIFO, first in, first out: served in the order you arrived, like that post office queue. Service Bus does it with sessions, which are groups that keep one user's messages in line together. And duplicate detection drops a message sent twice, so nobody pays twice."),
             leo("And if a message keeps failing?"),
             maya("It's moved to the dead-letter queue, a side shelf like a lost-property office, so a person can look at it. Nothing just vanishes. And a topic is a queue with several readers, so one order can reach billing and the welcome email both."),
             leo("Now Event Grid. The doorbell."),
-            maya("Event Grid pushes each event to whoever subscribed. Say a user uploads a profile photo to Blob Storage, Azure's store for files. Storage tells Event Grid, a blob was created, and Event Grid pushes that to a small function that makes a thumbnail. Nobody polls."),
+            maya("Event Grid is the opposite: it pushes each event to whoever subscribed. Say a user uploads a profile photo to Blob Storage, Azure's store for files. Storage tells Event Grid, a blob was created, and Event Grid pushes that to a small function that makes a thumbnail. Nobody polls."),
             leo("Polls?"),
             maya("[chuckle] Asks again and again, is anything new? Like a child on a car trip: are we there yet? An event-driven design reacts instead. So when you hear react when a file arrives, or when an Azure resource changes, think Event Grid."),
             leo("And Event Hubs, the till roll?"),
-            maya("Event Hubs takes millions of events a second, and keeps them for a while so they can be read again. That's for telemetry, the little reports every phone sends home: screens opened, taps, errors. Analysts can replay yesterday."),
+            maya("Event Hubs takes millions of events a second, and keeps them for a while so they can be read again. That's for telemetry, the little reports every phone sends home: screens opened, taps, errors."),
             leo("Millions a second. How?"),
             maya("It splits the stream into partitions. A partition is like one lane of a motorway: events in a lane keep their order, and many lanes run side by side. Order holds only inside a lane. And if you hear huge simple backlog, lowest cost, that's Storage queues."),
             leo("Okay. So the phone calls the API directly?"),
@@ -35,7 +37,9 @@ internal object Az305EpisodesAppArchitecture {
             leo("What kind of rules?"),
             maya("Rate limits, for example, like a limit of two cakes per customer, so no caller uses everything. It can check each caller's token, a short-lived signed pass like a festival wristband. And callers only know the desk, so the APIs behind it can move without breaking them."),
             leo("Does it come in sizes?"),
-            maya("In tiers, which are size and price levels, like economy and business class. Developer is for testing and has no SLA, a service level agreement: Microsoft's written promise of how much of the time it stays up. Basic and Standard serve production. Classic Premium is the one that stretches across several regions."),
+            maya("In tiers, which are size and price levels, like economy and business class. Developer is for testing and has no SLA, a service level agreement: Microsoft's written promise of how much of the time it stays up."),
+            leo("So my test gateway could go down, and nobody owes me anything?"),
+            maya("Exactly. Basic and Standard serve production. Classic Premium is the one that stretches across several regions."),
             leo("Regions, as in places on the map?"),
             maya("Yes. A region is a group of Azure data centres in one area, like West Europe or Australia East. Two Tracks has users in both, so a gateway standing in several regions means Premium."),
             leo("Next. The leaderboard is slow."),
@@ -49,9 +53,13 @@ internal object Az305EpisodesAppArchitecture {
             leo("And passwords? Same store?"),
             maya("Never. Secrets go in Key Vault, a locked safe for keys and passwords. App Configuration may hold a Key Vault reference, a pointer that says fetch this from the safe, but never the secret itself."),
             leo("Last piece. Shipping new versions."),
-            maya("Infrastructure as code: your Azure resources written down in files kept with the app, like a recipe card, so every environment is cooked the same way. Bicep is the short language for those files. A pipeline is the automatic line that tests and deploys each change: GitHub Actions, or Azure Pipelines."),
+            maya("Infrastructure as code: your Azure resources written down in files kept with the app, like a recipe card, so every environment is cooked the same way. Bicep is the short language for those files."),
+            leo("Instead of clicking around the portal, like I do now?"),
+            maya("Yes. Clicks can't be reviewed. A pipeline is the automatic line that tests and deploys each change, like the build server for your Android app: GitHub Actions, or Azure Pipelines."),
             leo("And releasing without downtime?"),
-            maya("[pause] Blue-green. Two copies, like two stages in a theatre: the live show and the next one. In App Service, deployment slots do it, on the Standard tier and above. Deploy to the staging slot, let it warm up, then swap. Something wrong? Swap back, in seconds. In Container Apps, revisions, the saved versions of your app, do the same."),
+            maya("[pause] Blue-green. Two copies, like two stages in a theatre: the live show and the next one. In App Service, deployment slots do it, on the Standard tier and above."),
+            leo("So I deploy to the second stage first?"),
+            maya("To the staging slot, yes. Let it warm up, then swap. Something wrong? Swap back, in seconds. In Container Apps, revisions, the saved versions of your app, do the same."),
             leo("So what do I remember for the exam?"),
             maya("Five things. If the question says in order, exactly once, the answer is Service Bus. If it says react when a file arrives, Event Grid. Millions of telemetry events, Event Hubs. Rate limits in front of APIs, API Management. No downtime and a rollback in seconds, a staging slot and a swap."),
             leo("And anything to try today?"),
@@ -66,19 +74,25 @@ internal object Az305EpisodesAppArchitecture {
         listOf(
             maya("Welcome to Case Files. Today's case: The Customer Who Paid Twice. TrailMate is a small Android hiking app that went global, with a backend on Azure, the server code the phones talk to. Last month, some walkers were charged twice for one subscription, and a few got their invoices in the wrong order."),
             leo("Detective Leo, on the case. My first suspect: the bank."),
-            maya("[pause] Wrong suspect. The bank charged exactly what it was asked to. Clue one: when someone pays, the TrailMate API, the menu of requests the backend accepts, like a waiter's order pad, sends a note to the billing worker. And that note travelled through Event Grid."),
+            maya("[pause] Wrong suspect. The bank charged exactly what it was asked to. Clue one: when someone pays, the TrailMate API sends a note to the billing worker."),
+            leo("The API, that's the backend code the phone calls when you tap Subscribe?"),
+            maya("That's it: the menu of requests the backend accepts, like a waiter's order pad. And that payment note travelled through Event Grid."),
             leo("Event Grid being, in plain words?"),
             maya("A doorbell service. It carries events, short notices that something happened, and pushes each one to whoever subscribed. Great for a file arrived. But a payment isn't a doorbell. It's a parcel with a delivery note: a message, and the sender cares that it's handled once."),
             leo("And Event Grid doesn't care?"),
             maya("It doesn't promise order, and it doesn't drop duplicates. If it isn't sure a delivery landed, it tries again, so billing heard the same payment twice. The design failed the requirement: processed exactly once, in order, never lost."),
             leo("So which service carries parcels?"),
-            maya("Service Bus. It's a message broker, a post office between the parts. Messages wait safely in a queue, a line of waiting notes, even if billing is down for an hour. Under the picture, it's a store that holds each message until a reader confirms it's done, and only then deletes it."),
+            maya("Service Bus. It's a message broker, a post office between the parts. Messages wait safely in a queue, a line of waiting notes, even if billing is down for an hour."),
+            leo("So does Service Bus call the billing worker when a payment lands?"),
+            maya("No, and that's the difference. Event Grid pushes; with Service Bus, the worker pulls. It asks for the next message, Service Bus locks it, and deletes it only when the worker confirms it's done."),
             leo("And the order? And the twice?"),
             maya("Sessions keep order: a session is a group, so one walker's messages stay in line together, first in, first out. Duplicate detection drops a message sent twice within a time window. And a message that keeps failing moves to the dead-letter queue, a lost-property shelf a person checks."),
             leo("Case closed, then?"),
             maya("Not yet. Clue two: the Azure bill. TrailMate sends telemetry, the little reports every phone sends home, screens and taps and errors, thousands a second. Someone sent all of it through Service Bus queues."),
             leo("Suspect: too many phones."),
-            maya("[chuckle] Suspect: the wrong service. Telemetry is a stream, a long run of events in time order, like a till roll. It wants Event Hubs, which takes millions of events a second and keeps them so analysts can replay them. Service Bus charges for care a stream never uses."),
+            maya("[chuckle] Suspect: the wrong service. Telemetry is a stream, a long run of events in time order, like a till roll. It wants Event Hubs, which takes millions of events a second."),
+            leo("Hang on. Service Bus is a queue too. Why can't it carry the till roll?"),
+            maya("It can, at a price. Service Bus spends care on every message: locks, retries, deleting once read. A stream needs none of that. Event Hubs keeps the events instead, and each reader pulls them at its own pace, from its own bookmark, so analysts can replay them."),
             leo("How does Event Hubs take millions?"),
             maya("It splits the stream into partitions. A partition is like one lane of a motorway: order holds inside a lane, and many lanes run side by side. Where it stops working: there's no order across lanes, and no dead-lettering. Payments still belong on Service Bus."),
             leo("Clue three?"),
@@ -88,15 +102,21 @@ internal object Az305EpisodesAppArchitecture {
             leo("Clue four. I can feel it."),
             maya("The settings. TrailMate keeps its settings in App Configuration, one central store for many apps, with feature flags, light switches for features. And there, as a plain value, sat the database password."),
             leo("Suspect: whoever can read the settings. Which is everyone."),
-            maya("Now you're detecting. Secrets go in Key Vault, a locked safe. App Configuration holds only a Key Vault reference, a pointer that says fetch it from the safe, and the app opens the safe with its managed identity, a badge Azure gives the app. The Authorizing access episode covers the safe."),
+            maya("Now you're detecting. Secrets go in Key Vault, a locked safe. App Configuration holds only a Key Vault reference, a pointer that says fetch it from the safe."),
+            leo("But then the API needs a password to open the safe. Haven't they just moved the problem?"),
+            maya("No password at all. The app opens the safe with its managed identity, a badge Azure gives the app, so no secret sits in the code or the settings. The Authorizing access episode covers the safe."),
             leo("And the last clue?"),
             maya("The fix itself went out badly. They deployed straight to production, the live app. The new version crashed, the app was down, and rolling back meant deploying the old version again."),
             leo("What should they have done?"),
-            maya("Blue-green: two copies, like two stages in a theatre. In App Service, a deployment slot is that second stage, on the Standard tier and above. The pipeline, the automatic line that ships each change, deploys to the staging slot. It warms up, then a swap makes it live. Swap back, and you've rolled back, in seconds."),
+            maya("Blue-green: two copies, like two stages in a theatre. In App Service, a deployment slot is that second stage, on the Standard tier and above."),
+            leo("So the new version never lands on the live stage directly?"),
+            maya("Never. The pipeline, the automatic line that ships each change, deploys to the staging slot. It warms up, then a swap makes it live. Swap back, and you've rolled back, in seconds."),
             leo("And the front door? Did they have one?"),
             maya("They do now. API Management, a gateway: one reception desk in front of all the APIs, with policies, the desk's rules, like a rate limit, two cakes per customer. It checks each caller's token, a short-lived signed pass like a festival wristband. Where it stops: it's a front door, not a queue. It never holds parcels."),
             leo("Last suspect, then. Which size of desk did they buy?"),
-            maya("[pause] The Developer tier. A tier is a size and price level, like economy or business class, and Developer is for testing, with no SLA, a service level agreement, Microsoft's written promise of how much of the time it stays up. Production wants Basic or Standard. And if the desk must stand in several regions, Azure's areas like West Europe and Australia East, classic Premium."),
+            maya("[pause] The Developer tier. A tier is a size and price level, like economy or business class. Developer is for testing, with no SLA, a service level agreement, Microsoft's written promise of how much of the time it stays up."),
+            leo("So a testing desk was guarding real payments. What should it have been?"),
+            maya("Basic or Standard, for production. And if the desk must stand in several regions, Azure's areas like West Europe and Australia East, classic Premium."),
             leo("So, the case summary for the exam?"),
             maya("Five rules. In order, exactly once, never lost: Service Bus. React when a file arrives: Event Grid. Millions of telemetry events: Event Hubs. Repeat reads: Managed Redis with cache-aside and an expiry time. No downtime, rollback in seconds: a staging slot and a swap."),
             leo("Case closed. Anything to try today?"),
@@ -116,9 +136,13 @@ internal object Az305EpisodesAppArchitecture {
             leo("And that's wrong because?"),
             maya("A payment isn't a doorbell. It's a parcel with a delivery note, a message: it must be handled exactly once, in order, never lost. Event Grid keeps no order and drops no duplicates. Two invoices for one walker, by Monday lunch."),
             leo("So what should carry the payments?"),
-            maya("Service Bus, the office post room. Messages wait in a queue, a line of notes like the post office queue, until billing says done. Sessions keep one user's messages in order, first in, first out. Duplicate detection drops repeats. And failures go to the dead-letter queue, the lost-property shelf."),
+            maya("Service Bus, the office post room. Messages wait in a queue, a line of notes like the post office queue, until billing collects them and says done."),
+            leo("Collects them? So billing goes and fetches, and nobody delivers?"),
+            maya("Exactly: with Service Bus the reader pulls. Sessions keep one user's messages in order, first in, first out. Duplicate detection drops repeats. And failures go to the dead-letter queue, the lost-property shelf."),
             leo("And Event Grid? Is it useless, then?"),
-            maya("Not at all. Priya used it the right way. When a walker uploads a profile photo, Blob Storage, Azure's store for files, tells Event Grid a blob was created, and Event Grid pushes that to a function that makes a thumbnail. Under the picture, Event Grid keeps a list of subscribers and calls each one, retrying if they miss it. Nobody polls, asking again and again, anything new?"),
+            maya("Not at all. Priya used it the right way. When a walker uploads a profile photo, Blob Storage, Azure's store for files, tells Event Grid a blob was created, and Event Grid pushes that to a function that makes a thumbnail."),
+            leo("Pushes. So Priya's function doesn't sit there asking, anything new?"),
+            maya("Never. Nobody polls, asking again and again. Under the picture, Event Grid keeps a list of subscribers and calls each one, retrying if they miss it."),
             leo("Poor Tom. Tuesday?"),
             maya("Tuesday was Dana. Dana took the telemetry, the little reports every phone sends home, taps and screens and errors, and pushed it all through Service Bus. Thousands of reports a second, through the careful post room."),
             leo("Expensive?"),
@@ -140,7 +164,9 @@ internal object Az305EpisodesAppArchitecture {
             leo("And which size did she buy?"),
             maya("Developer, at first. Then someone noticed it has no SLA, a service level agreement, Microsoft's written promise of uptime. So, Standard for production. And Premium, the classic one, only if the gateway must stand in several regions, Azure's areas like West Europe and Australia East."),
             leo("And then everyone went home?"),
-            maya("Tom released the fix straight to production. On a Friday. It crashed, and the rollback was a full redeploy. So now there's a pipeline, an automatic line that tests and deploys every change, with GitHub Actions, and Bicep files describing every resource, like recipe cards."),
+            maya("Tom released the fix straight to production. On a Friday. It crashed, and the rollback was a full redeploy."),
+            leo("Classic Tom. So what did they change?"),
+            maya("Now there's a pipeline, an automatic line that tests and deploys every change, with GitHub Actions. And Bicep files describing every resource, like recipe cards, instead of clicks in the portal."),
             leo("And the crash next time?"),
             maya("A deployment slot. In App Service, on Standard and above, the pipeline deploys to the staging slot, it warms up, then a swap makes it production. That's blue-green: two stages in a theatre. Swap back to roll back, in seconds. The Choosing compute episode has more on App Service."),
             leo("So, the gossip I should remember for the exam?"),
@@ -162,7 +188,9 @@ internal object Az305EpisodesAppArchitecture {
             ivy("And these notes. Are they all the same?"),
             nova("Three kinds. A message is a parcel with a delivery note: someone cares that it's handled. An event is a doorbell: a short notice that something happened. And a stream is a long run of events, like a till roll, printing all night."),
             ivy("Start with the parcel. The one that matters."),
-            nova("A paid subscription. It must make one invoice, in order for each user, and nothing may be lost if billing is asleep for an hour. That's Service Bus. A post room that holds each message in a queue, a line of waiting notes, until a reader says done."),
+            nova("A paid subscription. It must make one invoice, in order for each user, and nothing may be lost if billing is asleep for an hour. That's Service Bus. A post room that holds each message in a queue, a line of waiting notes."),
+            ivy("And does it go and wake billing up?"),
+            nova("No. Billing comes to it. The reader pulls the next message, and Service Bus keeps it until the reader says done. [pause] Patient, like a night porter."),
             ivy("In order, you said. How does it keep its promises?"),
             nova("Sessions. A session is a group, so one user's messages stay in line together: first in, first out. Duplicate detection drops a note sent twice. [pause] And a message that keeps failing goes to the dead-letter queue, a quiet shelf, like lost property, where a person finds it in the morning."),
             ivy("And the doorbell?"),
@@ -212,7 +240,9 @@ internal object Az305EpisodesAppArchitecture {
             rafe("Then my question. A user uploads a profile photo to Blob Storage, Azure's store for files. A thumbnail must be made, and nobody should keep asking is there anything new. Which service?"),
             nova("Event Grid. Storage rings the doorbell, a blob was created, and Event Grid pushes it to a function that makes the thumbnail. Nobody polls."),
             rafe("Right answer. You never have to ask twice. [kiss]"),
-            nova("Under the picture, Event Grid keeps the list of who subscribed, with filters, and calls each one, retrying if they don't pick up. But it keeps no order. So never for payments. Next. Every phone sends telemetry, little reports home, every second, and analysts must replay yesterday. Which service?"),
+            nova("Under the picture, Event Grid keeps the list of who subscribed, with filters, and calls each one, retrying if they don't pick up. It pushes; nobody has to come and ask."),
+            rafe("A partner who calls first. But no promises about order?"),
+            nova("None. So never for payments. Next. Every phone sends telemetry, which is little reports home, every second, and analysts must replay yesterday. Which service?"),
             rafe("Service Bus again. It's never let me down."),
             nova("No kiss for that one. Service Bus removes each message once it's handled, so there's nothing to replay. It's Event Hubs: millions of events a second, kept for replay. It splits the stream into partitions; a partition is like one lane of a motorway, with order only inside its lane."),
             rafe("Lanes. I can stay in my lane. And the cheapest, simplest queue of all?"),
@@ -440,61 +470,61 @@ internal object Az305EpisodesAppArchitecture {
                 11, "Service Bus", serviceBus(),
                 beats = listOf(
                     Beat(12, show = setOf("api", "queue", "fn", "note"), light = setOf("queue"), pulse = "api" to "queue", card = BoardCard("In order, exactly once", "A paid order waits safely until billing comes back.")),
-                    Beat(14, show = setOf("dup"), light = setOf("queue", "dup"), pulse = "dup" to "queue", card = BoardCard("Sessions and duplicates", "Sessions keep one user's messages in line; repeats are dropped.")),
-                    Beat(16, show = setOf("dlq", "topic"), light = setOf("dlq", "topic"), pulse = "queue" to "dlq", card = BoardCard("Dead-letter queue", "A lost-property shelf for messages that keep failing.")),
+                    Beat(16, show = setOf("dup"), light = setOf("queue", "dup"), pulse = "dup" to "queue", card = BoardCard("Sessions and duplicates", "Sessions keep one user's messages in line; repeats are dropped.")),
+                    Beat(18, show = setOf("dlq", "topic"), light = setOf("dlq", "topic"), pulse = "queue" to "dlq", card = BoardCard("Dead-letter queue", "A lost-property shelf for messages that keep failing.")),
                 ),
             ),
-            // 17: "Now Event Grid. The doorbell."
+            // 19: "Now Event Grid. The doorbell."
             Scene(
-                17, "Doorbells and till rolls", events(),
+                19, "Doorbells and till rolls", events(),
                 beats = listOf(
-                    Beat(18, show = setOf("blob", "eg", "thumb"), light = setOf("eg"), pulse = "blob" to "eg", card = BoardCard("Event Grid", "Pushes each event to whoever subscribed: a blob was created.")),
-                    Beat(20, show = setOf("note"), light = setOf("note"), pulse = "eg" to "thumb", card = BoardCard("Nobody polls", "Event-driven parts react, instead of asking again and again.")),
-                    Beat(22, show = setOf("phones", "eh"), light = setOf("eh"), pulse = "phones" to "eh", card = BoardCard("Event Hubs", "Millions of telemetry events a second, kept for replay.")),
-                    Beat(24, show = setOf("lanes"), light = setOf("lanes"), pulse = "eh" to "lanes", card = BoardCard("Partitions", "Lanes of a motorway: order holds only inside a lane.")),
+                    Beat(20, show = setOf("blob", "eg", "thumb"), light = setOf("eg"), pulse = "blob" to "eg", card = BoardCard("Event Grid", "Pushes each event to whoever subscribed: a blob was created.")),
+                    Beat(22, show = setOf("note"), light = setOf("note"), pulse = "eg" to "thumb", card = BoardCard("Nobody polls", "Event-driven parts react, instead of asking again and again.")),
+                    Beat(24, show = setOf("phones", "eh"), light = setOf("eh"), pulse = "phones" to "eh", card = BoardCard("Event Hubs", "Millions of telemetry events a second, kept for replay.")),
+                    Beat(26, show = setOf("lanes"), light = setOf("lanes"), pulse = "eh" to "lanes", card = BoardCard("Partitions", "Lanes of a motorway: order holds only inside a lane.")),
                 ),
             ),
-            // 25: "Okay. So the phone calls the API directly?"
+            // 27: "Okay. So the phone calls the API directly?"
             Scene(
-                25, "The front desk", gateway(),
+                27, "The front desk", gateway(),
                 beats = listOf(
-                    Beat(26, show = setOf("phone", "apim", "api"), light = setOf("apim"), pulse = "phone" to "apim", card = BoardCard("API Management", "A gateway: one reception desk in front of all your APIs.")),
-                    Beat(28, show = setOf("pol"), light = setOf("pol"), pulse = "apim" to "pol", card = BoardCard("Policies", "Rules on every call: rate limits, checking each caller's token.")),
-                    Beat(30, show = setOf("tiers"), light = setOf("tiers"), card = BoardCard("Tiers and the SLA", "Developer: testing, no SLA. Basic and Standard: production.")),
-                    Beat(32, show = setOf("prem"), light = setOf("prem"), card = BoardCard("A region", "A group of Azure data centres in one area, like West Europe.")),
+                    Beat(28, show = setOf("phone", "apim", "api"), light = setOf("apim"), pulse = "phone" to "apim", card = BoardCard("API Management", "A gateway: one reception desk in front of all your APIs.")),
+                    Beat(30, show = setOf("pol"), light = setOf("pol"), pulse = "apim" to "pol", card = BoardCard("Policies", "Rules on every call: rate limits, checking each caller's token.")),
+                    Beat(32, show = setOf("tiers"), light = setOf("tiers"), card = BoardCard("Tiers and the SLA", "Developer: testing, no SLA. Basic and Standard: production.")),
+                    Beat(36, show = setOf("prem"), light = setOf("prem"), card = BoardCard("A region", "A group of Azure data centres in one area, like West Europe.")),
                 ),
             ),
-            // 33: "Next. The leaderboard is slow."
+            // 37: "Next. The leaderboard is slow."
             Scene(
-                33, "The timetable on the fridge", cache(),
+                37, "The timetable on the fridge", cache(),
                 beats = listOf(
-                    Beat(34, show = setOf("api", "redis"), light = setOf("redis"), pulse = "api" to "redis", card = BoardCard("A cache", "A fast memory for repeat answers: Azure Managed Redis.")),
-                    Beat(36, show = setOf("db"), light = setOf("db"), pulse = "api" to "db", card = BoardCard("Cache-aside", "Cache first; on a miss, the database, then fill the cache.")),
-                    Beat(38, show = setOf("note"), light = setOf("note"), pulse = "db" to "redis", card = BoardCard("An expiry time", "Without one, users see old scores. A bigger tier is not the fix.")),
+                    Beat(38, show = setOf("api", "redis"), light = setOf("redis"), pulse = "api" to "redis", card = BoardCard("A cache", "A fast memory for repeat answers: Azure Managed Redis.")),
+                    Beat(40, show = setOf("db"), light = setOf("db"), pulse = "api" to "db", card = BoardCard("Cache-aside", "Cache first; on a miss, the database, then fill the cache.")),
+                    Beat(42, show = setOf("note"), light = setOf("note"), pulse = "db" to "redis", card = BoardCard("An expiry time", "Without one, users see old scores. A bigger tier is not the fix.")),
                 ),
             ),
-            // 39: "Settings next. Where do they live?"
+            // 43: "Settings next. Where do they live?"
             Scene(
-                39, "Settings and secrets", config(),
+                43, "Settings and secrets", config(),
                 beats = listOf(
-                    Beat(40, show = setOf("api", "cfg", "flag", "label"), light = setOf("cfg", "flag"), pulse = "cfg" to "api", card = BoardCard("App Configuration", "One store of settings and feature flags for many apps.")),
-                    Beat(42, show = setOf("kv"), light = setOf("kv"), pulse = "cfg" to "kv", card = BoardCard("Key Vault reference", "A pointer to the safe. Never a secret's value in the settings.")),
+                    Beat(44, show = setOf("api", "cfg", "flag", "label"), light = setOf("cfg", "flag"), pulse = "cfg" to "api", card = BoardCard("App Configuration", "One store of settings and feature flags for many apps.")),
+                    Beat(46, show = setOf("kv"), light = setOf("kv"), pulse = "cfg" to "kv", card = BoardCard("Key Vault reference", "A pointer to the safe. Never a secret's value in the settings.")),
                 ),
             ),
-            // 43: "Last piece. Shipping new versions."
+            // 47: "Last piece. Shipping new versions."
             Scene(
-                43, "Shipping safely", deploy(),
+                47, "Shipping safely", deploy(),
                 beats = listOf(
-                    Beat(44, show = setOf("code", "pipe"), light = setOf("code", "pipe"), pulse = "code" to "pipe", card = bicep),
-                    Beat(46, show = setOf("stage", "prod", "note"), light = setOf("stage", "prod"), pulse = "stage" to "prod", card = BoardCard("Blue-green", "Deploy to staging, warm up, swap. Swap back to roll back.")),
+                    Beat(48, show = setOf("code", "pipe"), light = setOf("code", "pipe"), pulse = "code" to "pipe", card = bicep),
+                    Beat(52, show = setOf("stage", "prod", "note"), light = setOf("stage", "prod"), pulse = "stage" to "prod", card = BoardCard("Blue-green", "Deploy to staging, warm up, swap. Swap back to roll back.")),
                 ),
             ),
-            // 47: "So what do I remember for the exam?"
+            // 55: "So what do I remember for the exam?"
             Scene(
-                47, "For the exam", exam(),
+                55, "For the exam", exam(),
                 beats = listOf(
-                    Beat(48, show = all6, light = all6, card = BoardCard("Listen for the words", "Each requirement in the question points to one service.")),
-                    Beat(50, card = today),
+                    Beat(56, show = all6, light = all6, card = BoardCard("Listen for the words", "Each requirement in the question points to one service.")),
+                    Beat(58, card = today),
                 ),
             ),
         ),
@@ -511,69 +541,69 @@ internal object Az305EpisodesAppArchitecture {
                     Beat(2, light = setOf("api"), card = BoardCard("Clue one", "The payment note travelled through Event Grid.")),
                 ),
             ),
-            // 3: "Event Grid being, in plain words?"
+            // 5: "Event Grid being, in plain words?"
             Scene(
-                3, "Doorbell or parcel?", messages(),
+                5, "Doorbell or parcel?", messages(),
                 beats = listOf(
-                    Beat(4, show = setOf("evt", "eg"), light = setOf("eg"), pulse = "evt" to "eg", card = BoardCard("Event Grid", "A doorbell: pushes short notices to whoever subscribed.")),
-                    Beat(6, show = setOf("msg"), light = setOf("msg"), card = BoardCard("The requirement", "Exactly once, in order, never lost: that's a message.")),
+                    Beat(6, show = setOf("evt", "eg"), light = setOf("eg"), pulse = "evt" to "eg", card = BoardCard("Event Grid", "A doorbell: pushes short notices to whoever subscribed.")),
+                    Beat(8, show = setOf("msg"), light = setOf("msg"), card = BoardCard("The requirement", "Exactly once, in order, never lost: that's a message.")),
                 ),
             ),
-            // 7: "So which service carries parcels?"
+            // 9: "So which service carries parcels?"
             Scene(
-                7, "The post office", serviceBus(),
+                9, "The post office", serviceBus(),
                 beats = listOf(
-                    Beat(8, show = setOf("api", "queue", "fn"), light = setOf("queue"), pulse = "api" to "queue", card = BoardCard("Service Bus", "Messages wait in a queue until a reader confirms they're done.")),
-                    Beat(10, show = setOf("dup", "dlq", "note"), light = setOf("dup", "dlq"), pulse = "queue" to "dlq", card = BoardCard("Sessions, duplicates, dead-letter", "Order per user, repeats dropped, failures on a side shelf.")),
+                    Beat(10, show = setOf("api", "queue", "fn"), light = setOf("queue"), pulse = "api" to "queue", card = BoardCard("Service Bus", "Messages wait in a queue until a reader confirms they're done.")),
+                    Beat(14, show = setOf("dup", "dlq", "note"), light = setOf("dup", "dlq"), pulse = "queue" to "dlq", card = BoardCard("Sessions, duplicates, dead-letter", "Order per user, repeats dropped, failures on a side shelf.")),
                 ),
             ),
-            // 11: "Case closed, then?"
+            // 15: "Case closed, then?"
             Scene(
-                11, "Clue two: the bill", events(),
+                15, "Clue two: the bill", events(),
                 beats = listOf(
-                    Beat(12, show = setOf("phones", "eh"), light = setOf("phones"), card = BoardCard("Clue two", "Telemetry, thousands a second, sent through Service Bus.")),
-                    Beat(14, light = setOf("eh"), pulse = "phones" to "eh", card = BoardCard("Event Hubs", "A till roll: millions of events a second, kept for replay.")),
-                    Beat(16, show = setOf("lanes"), light = setOf("lanes"), pulse = "eh" to "lanes", card = BoardCard("Partitions", "Lanes: order only inside one. No dead-letter shelf.")),
+                    Beat(16, show = setOf("phones", "eh"), light = setOf("phones"), card = BoardCard("Clue two", "Telemetry, thousands a second, sent through Service Bus.")),
+                    Beat(18, light = setOf("eh"), pulse = "phones" to "eh", card = BoardCard("Event Hubs", "A till roll: millions of events a second, kept for replay.")),
+                    Beat(22, show = setOf("lanes"), light = setOf("lanes"), pulse = "eh" to "lanes", card = BoardCard("Partitions", "Lanes: order only inside one. No dead-letter shelf.")),
                 ),
             ),
-            // 17: "Clue three?"
+            // 23: "Clue three?"
             Scene(
-                17, "Clue three: old winners", cache(),
+                23, "Clue three: old winners", cache(),
                 beats = listOf(
-                    Beat(18, show = setOf("api", "redis"), light = setOf("redis"), pulse = "api" to "redis", card = BoardCard("A cache", "Azure Managed Redis: a fast memory for repeat answers.")),
-                    Beat(20, show = setOf("db", "note"), light = setOf("note"), pulse = "api" to "db", card = BoardCard("No expiry time", "Cache-aside needs one, or old answers never come down.")),
+                    Beat(24, show = setOf("api", "redis"), light = setOf("redis"), pulse = "api" to "redis", card = BoardCard("A cache", "Azure Managed Redis: a fast memory for repeat answers.")),
+                    Beat(26, show = setOf("db", "note"), light = setOf("note"), pulse = "api" to "db", card = BoardCard("No expiry time", "Cache-aside needs one, or old answers never come down.")),
                 ),
             ),
-            // 21: "Clue four. I can feel it."
+            // 27: "Clue four. I can feel it."
             Scene(
-                21, "Clue four: the settings", config(),
+                27, "Clue four: the settings", config(),
                 beats = listOf(
-                    Beat(22, show = setOf("api", "cfg", "flag", "label"), light = setOf("cfg"), card = BoardCard("A password in plain sight", "Stored as a plain value in App Configuration.")),
-                    Beat(24, show = setOf("kv"), light = setOf("kv"), pulse = "cfg" to "kv", card = BoardCard("Key Vault reference", "The settings point to the safe; the app opens it with its badge.")),
+                    Beat(28, show = setOf("api", "cfg", "flag", "label"), light = setOf("cfg"), card = BoardCard("A password in plain sight", "Stored as a plain value in App Configuration.")),
+                    Beat(30, show = setOf("kv"), light = setOf("kv"), pulse = "cfg" to "kv", card = BoardCard("Key Vault reference", "The settings point to the safe; the app opens it with its badge.")),
                 ),
             ),
-            // 25: "And the last clue?"
+            // 33: "And the last clue?"
             Scene(
-                25, "The last clue", deploy(),
+                33, "The last clue", deploy(),
                 beats = listOf(
-                    Beat(26, show = setOf("prod"), light = setOf("prod"), card = BoardCard("Straight to production", "The new version crashed; rolling back meant a redeploy.")),
-                    Beat(28, show = setOf("code", "pipe", "stage", "note"), light = setOf("stage"), pulse = "stage" to "prod", card = BoardCard("A deployment slot", "Staging warms up, then a swap. Swap back to roll back.")),
+                    Beat(34, show = setOf("prod"), light = setOf("prod"), card = BoardCard("Straight to production", "The new version crashed; rolling back meant a redeploy.")),
+                    Beat(36, show = setOf("code", "pipe", "stage", "note"), light = setOf("stage"), pulse = "stage" to "prod", card = BoardCard("A deployment slot", "Staging warms up, then a swap. Swap back to roll back.")),
                 ),
             ),
-            // 29: "And the front door? Did they have one?"
+            // 39: "And the front door? Did they have one?"
             Scene(
-                29, "The front door", gateway(),
+                39, "The front door", gateway(),
                 beats = listOf(
-                    Beat(30, show = setOf("phone", "apim", "api", "pol"), light = setOf("apim", "pol"), pulse = "phone" to "apim", card = BoardCard("API Management", "A gateway with policies: rate limits, token checks.")),
-                    Beat(32, show = setOf("tiers", "prem"), light = setOf("tiers"), card = BoardCard("The Developer tier", "No SLA: for testing. Several regions: classic Premium.")),
+                    Beat(40, show = setOf("phone", "apim", "api", "pol"), light = setOf("apim", "pol"), pulse = "phone" to "apim", card = BoardCard("API Management", "A gateway with policies: rate limits, token checks.")),
+                    Beat(42, show = setOf("tiers", "prem"), light = setOf("tiers"), card = BoardCard("The Developer tier", "No SLA: for testing. Several regions: classic Premium.")),
                 ),
             ),
-            // 33: "So, the case summary for the exam?"
+            // 45: "So, the case summary for the exam?"
             Scene(
-                33, "Case closed", exam(),
+                45, "Case closed", exam(),
                 beats = listOf(
-                    Beat(34, show = all6, light = setOf("sb", "eg", "eh", "redis", "slot"), card = BoardCard("Five rules", "Each requirement in the case points to one service.")),
-                    Beat(36, card = today),
+                    Beat(46, show = all6, light = setOf("sb", "eg", "eh", "redis", "slot"), card = BoardCard("Five rules", "Each requirement in the case points to one service.")),
+                    Beat(48, card = today),
                 ),
             ),
         ),
@@ -604,55 +634,55 @@ internal object Az305EpisodesAppArchitecture {
                     Beat(6, show = setOf("api", "queue", "fn", "dup", "dlq"), light = setOf("queue"), pulse = "api" to "queue", card = BoardCard("Service Bus", "Sessions keep order, repeats dropped, failures dead-lettered.")),
                 ),
             ),
-            // 7: "And Event Grid? Is it useless, then?"
+            // 9: "And Event Grid? Is it useless, then?"
             Scene(
-                7, "Doorbells and till rolls", events(),
+                9, "Doorbells and till rolls", events(),
                 beats = listOf(
-                    Beat(8, show = setOf("blob", "eg", "thumb", "note"), light = setOf("eg"), pulse = "blob" to "eg", card = BoardCard("A blob was created", "Event Grid pushes it to a thumbnail function. Nobody polls.")),
-                    Beat(10, show = setOf("phones", "eh"), light = setOf("phones"), card = BoardCard("Tuesday: Dana", "Telemetry pushed through the careful post room.")),
-                    Beat(12, light = setOf("eh"), pulse = "phones" to "eh", card = BoardCard("Event Hubs", "A till roll: millions of events a second, kept for replay.")),
-                    Beat(14, show = setOf("lanes"), light = setOf("lanes"), pulse = "eh" to "lanes", card = BoardCard("Where it stops", "No order across lanes, no dead-letter. Cheapest: Storage queues.")),
+                    Beat(10, show = setOf("blob", "eg", "thumb", "note"), light = setOf("eg"), pulse = "blob" to "eg", card = BoardCard("A blob was created", "Event Grid pushes it to a thumbnail function. Nobody polls.")),
+                    Beat(14, show = setOf("phones", "eh"), light = setOf("phones"), card = BoardCard("Tuesday: Dana", "Telemetry pushed through the careful post room.")),
+                    Beat(16, light = setOf("eh"), pulse = "phones" to "eh", card = BoardCard("Event Hubs", "A till roll: millions of events a second, kept for replay.")),
+                    Beat(18, show = setOf("lanes"), light = setOf("lanes"), pulse = "eh" to "lanes", card = BoardCard("Where it stops", "No order across lanes, no dead-letter. Cheapest: Storage queues.")),
                 ),
             ),
-            // 15: "Wednesday?"
+            // 19: "Wednesday?"
             Scene(
-                15, "Wednesday: Marcus", cache(),
+                19, "Wednesday: Marcus", cache(),
                 beats = listOf(
-                    Beat(16, show = setOf("api", "db"), light = setOf("db"), pulse = "api" to "db", card = BoardCard("A bigger tier", "It pays more to do the same repeated work.")),
-                    Beat(18, show = setOf("redis"), light = setOf("redis"), pulse = "api" to "redis", card = BoardCard("A cache", "Azure Managed Redis: the timetable on the fridge.")),
-                    Beat(20, show = setOf("note"), light = setOf("note"), pulse = "db" to "redis", card = BoardCard("Cache-aside", "Cache first; on a miss, the database, then fill with an expiry.")),
+                    Beat(20, show = setOf("api", "db"), light = setOf("db"), pulse = "api" to "db", card = BoardCard("A bigger tier", "It pays more to do the same repeated work.")),
+                    Beat(22, show = setOf("redis"), light = setOf("redis"), pulse = "api" to "redis", card = BoardCard("A cache", "Azure Managed Redis: the timetable on the fridge.")),
+                    Beat(24, show = setOf("note"), light = setOf("note"), pulse = "db" to "redis", card = BoardCard("Cache-aside", "Cache first; on a miss, the database, then fill with an expiry.")),
                 ),
             ),
-            // 21: "Thursday, I'm guessing, the intern."
+            // 25: "Thursday, I'm guessing, the intern."
             Scene(
-                21, "Thursday: the intern", config(),
+                25, "Thursday: the intern", config(),
                 beats = listOf(
-                    Beat(22, show = setOf("api", "cfg", "flag", "label"), light = setOf("cfg"), card = BoardCard("A password as a setting", "Anyone who reads the settings reads the password.")),
-                    Beat(24, show = setOf("kv"), light = setOf("kv"), pulse = "cfg" to "kv", card = BoardCard("Key Vault reference", "Settings point to the safe. Secrets live only in Key Vault.")),
+                    Beat(26, show = setOf("api", "cfg", "flag", "label"), light = setOf("cfg"), card = BoardCard("A password as a setting", "Anyone who reads the settings reads the password.")),
+                    Beat(28, show = setOf("kv"), light = setOf("kv"), pulse = "cfg" to "kv", card = BoardCard("Key Vault reference", "Settings point to the safe. Secrets live only in Key Vault.")),
                 ),
             ),
-            // 25: "And Friday? There's always a Friday."
+            // 29: "And Friday? There's always a Friday."
             Scene(
-                25, "Friday: Priya", gateway(),
+                29, "Friday: Priya", gateway(),
                 beats = listOf(
-                    Beat(26, show = setOf("phone", "apim", "api", "pol"), light = setOf("apim", "pol"), pulse = "phone" to "apim", card = BoardCard("API Management", "One reception desk: rate limits and token checks on every call.")),
-                    Beat(28, show = setOf("tiers", "prem"), light = setOf("tiers", "prem"), card = BoardCard("The Developer tier", "No SLA, so Standard for production; classic Premium for regions.")),
+                    Beat(30, show = setOf("phone", "apim", "api", "pol"), light = setOf("apim", "pol"), pulse = "phone" to "apim", card = BoardCard("API Management", "One reception desk: rate limits and token checks on every call.")),
+                    Beat(32, show = setOf("tiers", "prem"), light = setOf("tiers", "prem"), card = BoardCard("The Developer tier", "No SLA, so Standard for production; classic Premium for regions.")),
                 ),
             ),
-            // 29: "And then everyone went home?"
+            // 33: "And then everyone went home?"
             Scene(
-                29, "Friday, later: Tom", deploy(),
+                33, "Friday, later: Tom", deploy(),
                 beats = listOf(
-                    Beat(30, show = setOf("prod", "code", "pipe"), light = setOf("prod"), card = BoardCard("Straight to production", "On a Friday. A crash, and a full redeploy to roll back.")),
-                    Beat(32, show = setOf("stage", "note"), light = setOf("stage"), pulse = "stage" to "prod", card = BoardCard("A deployment slot", "Deploy to staging, then swap. Swap back in seconds.")),
+                    Beat(34, show = setOf("prod", "code", "pipe"), light = setOf("prod"), card = BoardCard("Straight to production", "On a Friday. A crash, and a full redeploy to roll back.")),
+                    Beat(38, show = setOf("stage", "note"), light = setOf("stage"), pulse = "stage" to "prod", card = BoardCard("A deployment slot", "Deploy to staging, then swap. Swap back in seconds.")),
                 ),
             ),
-            // 33: "So, the gossip I should remember for the exam?"
+            // 39: "So, the gossip I should remember for the exam?"
             Scene(
-                33, "For the exam", exam(),
+                39, "For the exam", exam(),
                 beats = listOf(
-                    Beat(34, show = all6, light = all6, card = BoardCard("Listen for the words", "Each requirement points to one service.")),
-                    Beat(36, card = today),
+                    Beat(40, show = all6, light = all6, card = BoardCard("Listen for the words", "Each requirement points to one service.")),
+                    Beat(42, card = today),
                 ),
             ),
         ),
@@ -681,56 +711,56 @@ internal object Az305EpisodesAppArchitecture {
                 5, "The parcel", serviceBus(),
                 beats = listOf(
                     Beat(6, show = setOf("api", "queue", "fn", "note"), light = setOf("queue"), pulse = "api" to "queue", card = BoardCard("Service Bus", "Holds each message in a queue until a reader says done.")),
-                    Beat(8, show = setOf("dup", "dlq"), light = setOf("dup", "dlq"), pulse = "queue" to "dlq", card = BoardCard("Sessions and dead-letter", "Order per user; failing messages wait on a quiet shelf.")),
+                    Beat(10, show = setOf("dup", "dlq"), light = setOf("dup", "dlq"), pulse = "queue" to "dlq", card = BoardCard("Sessions and dead-letter", "Order per user; failing messages wait on a quiet shelf.")),
                 ),
             ),
-            // 9: "And the doorbell?"
+            // 11: "And the doorbell?"
             Scene(
-                9, "Doorbell and till roll", events(),
+                11, "Doorbell and till roll", events(),
                 beats = listOf(
-                    Beat(10, show = setOf("blob", "eg", "thumb"), light = setOf("eg"), pulse = "blob" to "eg", card = BoardCard("Event Grid", "A blob was created: pushed to a thumbnail function.")),
-                    Beat(12, show = setOf("note"), light = setOf("eg"), pulse = "eg" to "thumb", card = BoardCard("Under the picture", "Subscribers called one by one, with retries. No order kept.")),
-                    Beat(14, show = setOf("phones", "eh"), light = setOf("eh"), pulse = "phones" to "eh", card = BoardCard("Event Hubs", "Telemetry, millions a second, kept for replay.")),
-                    Beat(16, show = setOf("lanes"), light = setOf("lanes"), pulse = "eh" to "lanes", card = BoardCard("Partitions", "Lanes of a motorway: order holds only inside one.")),
+                    Beat(12, show = setOf("blob", "eg", "thumb"), light = setOf("eg"), pulse = "blob" to "eg", card = BoardCard("Event Grid", "A blob was created: pushed to a thumbnail function.")),
+                    Beat(14, show = setOf("note"), light = setOf("eg"), pulse = "eg" to "thumb", card = BoardCard("Under the picture", "Subscribers called one by one, with retries. No order kept.")),
+                    Beat(16, show = setOf("phones", "eh"), light = setOf("eh"), pulse = "phones" to "eh", card = BoardCard("Event Hubs", "Telemetry, millions a second, kept for replay.")),
+                    Beat(18, show = setOf("lanes"), light = setOf("lanes"), pulse = "eh" to "lanes", card = BoardCard("Partitions", "Lanes of a motorway: order holds only inside one.")),
                 ),
             ),
-            // 17: "Now the phone. Does it knock on the API's door directly?"
+            // 19: "Now the phone. Does it knock on the API's door directly?"
             Scene(
-                17, "The front desk", gateway(),
+                19, "The front desk", gateway(),
                 beats = listOf(
-                    Beat(18, show = setOf("phone", "apim", "api", "pol"), light = setOf("apim"), pulse = "phone" to "apim", card = BoardCard("API Management", "A gateway in front of every API, with policies.")),
-                    Beat(20, show = setOf("tiers", "prem"), light = setOf("prem"), card = BoardCard("A token", "A short-lived signed pass. Several regions: classic Premium.")),
+                    Beat(20, show = setOf("phone", "apim", "api", "pol"), light = setOf("apim"), pulse = "phone" to "apim", card = BoardCard("API Management", "A gateway in front of every API, with policies.")),
+                    Beat(22, show = setOf("tiers", "prem"), light = setOf("prem"), card = BoardCard("A token", "A short-lived signed pass. Several regions: classic Premium.")),
                 ),
             ),
-            // 21: "Mm. And the leaderboard, at this hour?"
+            // 23: "Mm. And the leaderboard, at this hour?"
             Scene(
-                21, "The fridge", cache(),
+                23, "The fridge", cache(),
                 beats = listOf(
-                    Beat(22, show = setOf("api", "redis", "db", "note"), light = setOf("redis"), pulse = "api" to "redis", card = BoardCard("Cache-aside", "Cache first; on a miss, the database, then an expiry time.")),
-                    Beat(24, light = setOf("redis"), pulse = "db" to "redis", card = BoardCard("In memory", "About a millisecond. Azure Cache for Redis is being retired.")),
+                    Beat(24, show = setOf("api", "redis", "db", "note"), light = setOf("redis"), pulse = "api" to "redis", card = BoardCard("Cache-aside", "Cache first; on a miss, the database, then an expiry time.")),
+                    Beat(26, light = setOf("redis"), pulse = "db" to "redis", card = BoardCard("In memory", "About a millisecond. Azure Cache for Redis is being retired.")),
                 ),
             ),
-            // 25: "And the settings? Where does an app keep its little preferences?"
+            // 27: "And the settings? Where does an app keep its little preferences?"
             Scene(
-                25, "Little preferences", config(),
+                27, "Little preferences", config(),
                 beats = listOf(
-                    Beat(26, show = setOf("api", "cfg", "kv", "flag", "label"), light = setOf("cfg", "kv"), pulse = "cfg" to "kv", card = BoardCard("App Configuration", "Settings and feature flags; secrets only by Key Vault reference.")),
+                    Beat(28, show = setOf("api", "cfg", "kv", "flag", "label"), light = setOf("cfg", "kv"), pulse = "cfg" to "kv", card = BoardCard("App Configuration", "Settings and feature flags; secrets only by Key Vault reference.")),
                 ),
             ),
-            // 27: "Last thing. How does a new version arrive, without waking anyone?"
+            // 29: "Last thing. How does a new version arrive, without waking anyone?"
             Scene(
-                27, "Arriving quietly", deploy(),
+                29, "Arriving quietly", deploy(),
                 beats = listOf(
-                    Beat(28, show = setOf("code", "pipe"), light = setOf("code", "pipe"), pulse = "code" to "pipe", card = BoardCard("Infrastructure as code", "Bicep files and a pipeline: every environment the same.")),
-                    Beat(30, show = setOf("stage", "prod", "note"), light = setOf("stage", "prod"), pulse = "stage" to "prod", card = BoardCard("A deployment slot", "Warm up in staging, then swap. Swap back in seconds.")),
+                    Beat(30, show = setOf("code", "pipe"), light = setOf("code", "pipe"), pulse = "code" to "pipe", card = BoardCard("Infrastructure as code", "Bicep files and a pipeline: every environment the same.")),
+                    Beat(32, show = setOf("stage", "prod", "note"), light = setOf("stage", "prod"), pulse = "stage" to "prod", card = BoardCard("A deployment slot", "Warm up in staging, then swap. Swap back in seconds.")),
                 ),
             ),
-            // 31: "Mm. Before you send me off to bed. What do I remember for the exam?"
+            // 33: "Mm. Before you send me off to bed. What do I remember for the exam?"
             Scene(
-                31, "For the exam", exam(),
+                33, "For the exam", exam(),
                 beats = listOf(
-                    Beat(32, show = all6, light = setOf("sb", "eg", "eh", "apim", "slot"), card = BoardCard("Five little things", "Each requirement points to one service.")),
-                    Beat(34, card = today),
+                    Beat(34, show = all6, light = setOf("sb", "eg", "eh", "apim", "slot"), card = BoardCard("Five little things", "Each requirement points to one service.")),
+                    Beat(36, card = today),
                 ),
             ),
         ),
@@ -768,46 +798,46 @@ internal object Az305EpisodesAppArchitecture {
                 beats = listOf(
                     Beat(10, show = setOf("blob", "eg", "thumb"), light = setOf("eg"), pulse = "blob" to "eg", card = BoardCard("Event Grid", "A blob was created: pushed to a function that makes a thumbnail.")),
                     Beat(12, show = setOf("note"), light = setOf("eg", "note"), pulse = "eg" to "thumb", card = BoardCard("Under the picture", "Subscribers called one by one, with retries. Never payments.")),
-                    Beat(14, show = setOf("phones", "eh", "lanes"), light = setOf("eh", "lanes"), pulse = "phones" to "eh", card = BoardCard("Event Hubs", "Telemetry kept for replay, split into partitions: lanes.")),
+                    Beat(16, show = setOf("phones", "eh", "lanes"), light = setOf("eh", "lanes"), pulse = "phones" to "eh", card = BoardCard("Event Hubs", "Telemetry kept for replay, split into partitions: lanes.")),
                 ),
             ),
-            // 16: "Storage queues. Plain, cheap, huge backlogs. Now, the phone..."
+            // 18: "Storage queues. Plain, cheap, huge backlogs. Now, the phone..."
             Scene(
-                16, "Who stands at the door", gateway(),
+                18, "Who stands at the door", gateway(),
                 beats = listOf(
-                    Beat(17, show = setOf("phone", "apim", "api", "pol"), light = setOf("apim", "pol"), pulse = "phone" to "apim", card = BoardCard("API Management", "A gateway with policies: rate limits and token checks.")),
-                    Beat(19, show = setOf("tiers", "prem"), light = setOf("tiers", "prem"), card = BoardCard("Where it stops", "Not a post room. Developer: no SLA. Several regions: Premium.")),
+                    Beat(19, show = setOf("phone", "apim", "api", "pol"), light = setOf("apim", "pol"), pulse = "phone" to "apim", card = BoardCard("API Management", "A gateway with policies: rate limits and token checks.")),
+                    Beat(21, show = setOf("tiers", "prem"), light = setOf("tiers", "prem"), card = BoardCard("Where it stops", "Not a post room. Developer: no SLA. Several regions: Premium.")),
                 ),
             ),
-            // 20: "Mm. Then my question, darling. The leaderboard query..."
+            // 22: "Mm. Then my question, darling. The leaderboard query..."
             Scene(
-                20, "Two thousand a minute", cache(),
+                22, "Two thousand a minute", cache(),
                 beats = listOf(
-                    Beat(20, show = setOf("api", "db"), light = setOf("db"), pulse = "api" to "db", card = BoardCard("The question", "The same leaderboard query, two thousand times a minute.")),
-                    Beat(22, show = setOf("redis", "note"), light = setOf("redis"), pulse = "api" to "redis", card = BoardCard("Cache-aside", "Azure Managed Redis first; the database only on a miss.")),
-                    Beat(24, light = setOf("redis"), card = BoardCard("In memory", "About a millisecond. Azure Cache for Redis is being retired.")),
+                    Beat(22, show = setOf("api", "db"), light = setOf("db"), pulse = "api" to "db", card = BoardCard("The question", "The same leaderboard query, two thousand times a minute.")),
+                    Beat(24, show = setOf("redis", "note"), light = setOf("redis"), pulse = "api" to "redis", card = BoardCard("Cache-aside", "Azure Managed Redis first; the database only on a miss.")),
+                    Beat(26, light = setOf("redis"), card = BoardCard("In memory", "About a millisecond. Azure Cache for Redis is being retired.")),
                 ),
             ),
-            // 25: "An expiry time, though... My question. Where do settings..."
+            // 27: "An expiry time, though... My question. Where do settings..."
             Scene(
-                25, "Settings and secrets", config(),
+                27, "Settings and secrets", config(),
                 beats = listOf(
-                    Beat(26, show = setOf("api", "cfg", "kv", "flag", "label"), light = setOf("cfg", "kv"), pulse = "cfg" to "kv", card = BoardCard("App Configuration", "Settings and flags; secrets by Key Vault reference only.")),
+                    Beat(28, show = setOf("api", "cfg", "kv", "flag", "label"), light = setOf("cfg", "kv"), pulse = "cfg" to "kv", card = BoardCard("App Configuration", "Settings and flags; secrets by Key Vault reference only.")),
                 ),
             ),
-            // 28: "Last one, love. ... Releases must have no downtime..."
+            // 30: "Last one, love. ... Releases must have no downtime..."
             Scene(
-                28, "No downtime", deploy(),
+                30, "No downtime", deploy(),
                 beats = listOf(
-                    Beat(29, show = setOf("code", "pipe", "stage", "prod", "note"), light = setOf("stage", "prod"), pulse = "stage" to "prod", card = BoardCard("A deployment slot", "Warm up in staging, then swap; swap back to undo.")),
+                    Beat(31, show = setOf("code", "pipe", "stage", "prod", "note"), light = setOf("stage", "prod"), pulse = "stage" to "prod", card = BoardCard("A deployment slot", "Warm up in staging, then swap; swap back to undo.")),
                 ),
             ),
-            // 31: "Then for the exam. What do we remember?"
+            // 33: "Then for the exam. What do we remember?"
             Scene(
-                31, "For the exam", exam(),
+                33, "For the exam", exam(),
                 beats = listOf(
-                    Beat(32, show = all6, light = all6, card = BoardCard("Six for six", "Each requirement points to one service.")),
-                    Beat(35, card = today),
+                    Beat(34, show = all6, light = all6, card = BoardCard("Six for six", "Each requirement points to one service.")),
+                    Beat(37, card = today),
                 ),
             ),
         ),

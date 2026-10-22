@@ -13,7 +13,9 @@ internal object Az305EpisodesAuthorization {
             leo("Let's go one at a time. Who?"),
             maya("Anyone or anything that can sign in. A user, like you. A group, like the mobile team. Or an app. An app's neatest option is a managed identity, a badge Azure makes for the app and looks after itself, so no password is ever stored."),
             leo("And what?"),
-            maya("The role: a named list of allowed actions, like a job description. Owner can do everything, including giving access to others. Contributor can build and change everything, but can't give access. Reader looks and changes nothing. User Access Administrator only manages who has access."),
+            maya("The role: a named list of allowed actions, like a job description. Owner can do everything, including giving access. Contributor can build and change everything, but can't give access."),
+            leo("So my developers get Contributor, and only the lead gets Owner?"),
+            maya("Often, yes. Reader looks and changes nothing. And User Access Administrator only manages who has access."),
             leo("Are there smaller roles than those?"),
             maya("Yes, service roles, for one kind of thing. For example, Virtual Machine Contributor manages virtual machines and nothing else. A virtual machine, a VM, is a computer you rent in Azure by the hour."),
             leo("Okay. And where?"),
@@ -29,7 +31,9 @@ internal object Az305EpisodesAuthorization {
             leo("Entra being, in plain words?"),
             maya("Microsoft Entra ID is Azure's sign-in system. Think of the reception desk of a big office: it keeps the list of every person, group and app, and checks who is who."),
             leo("And if no built-in role fits the job?"),
-            maya("You write a custom role: your own list of actions, in a short text file that also says where it may be assigned. One more split. Managing a thing, like building or knocking down a shed, is the control plane. What's inside the shed, like reading a file or a secret, is the data plane, with its own data roles."),
+            maya("You write a custom role: your own list of actions, in a short text file that also says where it may be assigned."),
+            leo("And my API reading a file in storage? Same kind of action as creating the storage?"),
+            maya("No. Managing a thing, like building a shed, is the control plane. What's inside the shed, like reading a file or a secret, is the data plane, with its own data roles."),
             leo("Here's what confuses me. Our boss is a Global Administrator. Doesn't she see everything?"),
             maya("[pause] No, and the exam loves this. There are two kinds of role. Entra roles run the directory: users, groups, licences. Global Administrator is one. Azure roles run resources: VMs, storage, databases. A Global Administrator has no Azure role by default, so she sees no VMs at all."),
             leo("Can she fix that herself?"),
@@ -47,7 +51,9 @@ internal object Az305EpisodesAuthorization {
             leo("So no inbound firewall port. Who checks the user?"),
             maya("Entra, first, with multifactor sign-in and Conditional Access, its if-then sign-in rules. Only then does the request go in, and the connector signs the user in to the app, even one using Kerberos, the built-in Windows sign-in."),
             leo("Last piece. Secrets. The database password, the keys."),
-            maya("They go in Azure Key Vault, a locked safe for three things. A secret is a password or connection string. A key encrypts, which means scrambles, or signs data. A certificate proves a website is who it says, the padlock in your browser."),
+            maya("They go in Azure Key Vault, a locked safe for three things. A secret is a password or connection string, the kind your API keeps in its config."),
+            leo("And keys and certificates?"),
+            maya("A key encrypts, which means scrambles, or signs data. A certificate proves a website is who it says, the padlock in your browser."),
             leo("And the safe comes in sizes?"),
             maya("Three. Standard keeps keys in software. Premium keeps them in an HSM, a hardware security module: a tamper-proof box that does the maths inside, so the key never leaves. Premium's boxes are shared between customers, and pass FIPS 140-3 Level 3, a US government test for such boxes."),
             leo("And the third?"),
@@ -102,11 +108,15 @@ internal object Az305EpisodesAuthorization {
             leo("Suspect: they should have used a VPN."),
             maya("A VPN, a private tunnel into the office network, would work. But Entra application proxy is the better answer. A small program, the private network connector, sits inside the office and only calls out to the cloud. Like a receptionist who phones out but never unlocks the front door."),
             leo("So nothing comes in uninvited. Who checks the user?"),
-            maya("Entra, first, with multifactor sign-in and Conditional Access, its if-then sign-in rules. Then the connector signs the user in to the app, even an old one using Kerberos, the Windows sign-in. And Entra Connect Sync copies office accounts into Entra, so it's one account for both."),
+            maya("Entra, first, with multifactor sign-in and Conditional Access, its if-then sign-in rules. Only then does the connector pass the request in to the app."),
+            leo("But the timesheet app only knows office accounts. It's never heard of Entra."),
+            maya("So the connector signs the user in to the app for them, even an old one using Kerberos, the Windows sign-in. And Entra Connect Sync copies office accounts up into Entra, so it's one account for both."),
             leo("One more thing in the file. A database password, sitting in a plain app setting?"),
             maya("[sigh] Yes. The team had picked Managed HSM for their keys: tamper-proof hardware boxes, HSMs, used by you alone. Then they found it holds keys only. No secrets. So the password sat in a setting."),
             leo("What should they have picked?"),
-            maya("Azure Key Vault, the safe for secrets, keys and certificates. Standard keeps keys in software. Premium keeps them in shared HSMs that pass FIPS 140-3 Level 3, a US government test. Managed HSM is single-tenant, with a security domain you hold, the only spare key. Nobody asked for that."),
+            maya("Azure Key Vault, the safe for secrets, keys and certificates. Standard keeps keys in software. Premium keeps them in shared HSMs that pass FIPS 140-3 Level 3, a US government test."),
+            leo("Shared boxes? Then why would anyone pay for Managed HSM?"),
+            maya("When the words say single-tenant: boxes for you alone, with a security domain you hold, the only spare key. Nobody at Two Tracks asked for that."),
             leo("So Premium, read by the backend's managed identity."),
             maya("Yes. A managed identity is a badge Azure makes for the app, with no password stored. Give it Key Vault Secrets User, which reads secrets and nothing else. The Key Vault episode goes deeper."),
             leo("So, the case summary for the exam?"),
@@ -142,7 +152,9 @@ internal object Az305EpisodesAuthorization {
             leo("Wednesday. I'm guessing the boss."),
             maya("[chuckle] Rita. Global Administrator. She opened the portal to check Tom's machines, and saw nothing. Not one. She was furious for about ten minutes."),
             leo("Why couldn't she see them? She's the top admin."),
-            maya("Of the directory. Global Administrator is an Entra role, and Entra roles run users, groups and licences. Azure roles run resources. A Global Administrator holds no Azure role by default. She can elevate herself to User Access Administrator at the very top, but it's a deliberate step."),
+            maya("Of the directory. Global Administrator is an Entra role, and Entra roles run users, groups and licences. Azure roles run resources, and by default she holds none."),
+            leo("None? She's the boss! Can't she just give herself one?"),
+            maya("She can elevate herself to User Access Administrator at the very top, then grant access. But it's a deliberate step, never a default."),
             leo("So that's where Azure RBAC stops. At the directory."),
             maya("And at what may exist: that's Azure Policy, which the governance episode covers. Also, reading a file inside storage is the data plane, with its own data roles. Managing the storage itself is the control plane."),
             leo("Thursday?"),
@@ -160,7 +172,9 @@ internal object Az305EpisodesAuthorization {
             leo("Is that everyone? Where's Priya's mistake?"),
             maya("Saturday. Priya picked Managed HSM for the database password. A Managed HSM is a pool of tamper-proof hardware boxes, used by you alone, with a security domain you hold, the only spare key. And it holds keys only. No passwords."),
             leo("Priya made a mistake. Somebody write it down."),
-            maya("She moved it the same day. Key Vault Premium holds secrets, keys and certificates, with keys in shared HSMs that pass FIPS 140-3 Level 3, a US government test. Standard keeps keys in software. Managed HSM only when the words say single-tenant."),
+            maya("She moved it the same day. Key Vault Premium holds secrets, keys and certificates, with keys in shared HSMs that pass FIPS 140-3 Level 3, a US government test."),
+            leo("Why not the cheaper Standard tier?"),
+            maya("Standard keeps keys in software, no HSM at all. Fine for most apps, but the rule said HSM. And Managed HSM only when the words say single-tenant."),
             leo("And the backend reads the password how?"),
             maya("With its managed identity, a badge Azure makes for the app, so no password is stored to fetch the passwords. It gets Key Vault Secrets User, which reads secrets and nothing else. The Key Vault episode has the rest."),
             leo("So, the gossip I should remember for the exam?"),
@@ -192,7 +206,9 @@ internal object Az305EpisodesAuthorization {
             ivy("So how generous should I be with the keys?"),
             nova("Not very. [chuckle] Least privilege: the smallest role at the narrowest scope that still does the job. The support team restarts the backend's virtual machines, computers rented by the hour, in one resource group. So, Virtual Machine Contributor, on that one box. Nothing more."),
             ivy("And I give it to each person on the team?"),
-            nova("To a group. The support team is a group in Microsoft Entra ID, which is Azure's sign-in system, the reception desk with the list of every person, group and app. Someone joins or leaves, you change one membership. And if no built-in role fits, you write a custom role: your own list of actions."),
+            nova("To a group. The support team is a group in Microsoft Entra ID, which is Azure's sign-in system, the reception desk with the list of every person, group and app. Someone joins or leaves, you change one membership."),
+            ivy("And if none of the ready-made roles fits what they do?"),
+            nova("Then you write a custom role: your own list of actions. [pause] Small, and made to measure."),
             ivy("Now, our boss is a Global Administrator. Surely she has every key in the building."),
             nova("[pause] Not these keys. Global Administrator is an Entra role, and Entra roles run the directory: users, groups, licences. Azure roles run resources. By default she holds none, so she sees no virtual machines at all. She can elevate herself to User Access Administrator at the top, on purpose."),
             ivy("So that's where the role rules end."),
@@ -246,8 +262,10 @@ internal object Az305EpisodesAuthorization {
             rafe("No kiss for that one. A lock stops changes, it never hides anything. Microsoft Entra ID, Azure's sign-in system, is the reception desk with the list of every person and app. Global Administrator is an Entra role, and Entra roles run the directory: users, groups, licences. Azure roles run resources. She holds none by default."),
             nova("Fair. She can elevate herself to User Access Administrator at the top, on purpose. And that's where Azure RBAC stops: it never runs the directory, and it never decides what may exist. That's Azure Policy, in the governance episode."),
             rafe("And the admins? Someone holds Owner on production all night?"),
-            nova("Not all night. Standing admin rights are a gift to anyone with a stolen password. So, PIM, Privileged Identity Management. You're eligible for a role, not active. You activate it for a few hours, with a reason, multifactor sign-in, a second proof like a code on your phone, and an approver."),
-            rafe("Eligible, not active. Story of my youth. My question: admins may hold Owner only when needed, with approval, for at most four hours. What do you recommend?"),
+            nova("Not all night. Standing admin rights are a gift to anyone with a stolen password. So, PIM, Privileged Identity Management. You're eligible for a role, not active."),
+            rafe("Eligible, not active. Story of my youth. So how do I get active, when production's on fire?"),
+            nova("You activate it for a few hours, with a reason, multifactor sign-in, a second proof like a code on your phone, and an approver."),
+            rafe("My question, then: admins may hold Owner only when needed, with approval, for at most four hours. What do you recommend?"),
             nova("PIM, with eligible assignments and approval. Every activation is logged, and the role expires on its own. It needs a paid licence, Entra ID P2 or ID Governance."),
             rafe("Right answer. Short, approved, and fully logged. [kiss]"),
             nova("Mm. Now, the old timesheet app, on a server in the office. On-premises, in our own building. Remote staff must reach it, signing in with Entra first, with no VPN, the private tunnel, and no inbound firewall port. What do you recommend?"),
@@ -422,71 +440,71 @@ internal object Az305EpisodesAuthorization {
                     Beat(4, show = setOf("who", "what", "where", "assign"), light = setOf("assign"), card = BoardCard("Azure RBAC", "Role-based access control: who may do which actions, on what.")),
                     Beat(6, light = setOf("who"), pulse = "who" to "assign", card = BoardCard("Managed identity", "A badge Azure makes for an app. No password stored.")),
                     Beat(8, light = setOf("what"), pulse = "what" to "assign", card = BoardCard("A role", "A list of allowed actions: Owner, Contributor, Reader.")),
-                    Beat(10, card = BoardCard("Virtual Machine Contributor", "A service role: manages VMs and nothing else.")),
+                    Beat(12, card = BoardCard("Virtual Machine Contributor", "A service role: manages VMs and nothing else.")),
                 ),
             ),
-            // 11: "Okay. And where?"
+            // 13: "Okay. And where?"
             Scene(
-                11, "Four sizes of scope", scopes(),
+                13, "Four sizes of scope", scopes(),
                 beats = listOf(
-                    Beat(12, show = setOf("res", "rg"), light = setOf("rg"), card = BoardCard("Resource group", "A box of things that live and die together.")),
-                    Beat(14, show = setOf("sub", "mg"), light = setOf("sub", "mg"), pulse = "mg" to "sub", card = BoardCard("Subscription, management group", "One account with its own bill; a folder of subscriptions.")),
-                    Beat(16, show = setOf("note"), light = setOf("note"), pulse = "sub" to "rg", card = BoardCard("Inherited", "Like a floor key: every room on that floor.")),
-                    Beat(18, show = setOf("owner", "vmc"), light = setOf("vmc", "rg"), pulse = "vmc" to "rg", card = BoardCard("Least privilege", "The smallest role at the narrowest scope that still does the job.")),
-                    Beat(20, card = BoardCard("Assign to groups", "A joiner or a leaver changes one membership.")),
-                    Beat(22, card = BoardCard("Microsoft Entra ID", "The reception desk: the list of people, groups and apps.")),
+                    Beat(14, show = setOf("res", "rg"), light = setOf("rg"), card = BoardCard("Resource group", "A box of things that live and die together.")),
+                    Beat(16, show = setOf("sub", "mg"), light = setOf("sub", "mg"), pulse = "mg" to "sub", card = BoardCard("Subscription, management group", "One account with its own bill; a folder of subscriptions.")),
+                    Beat(18, show = setOf("note"), light = setOf("note"), pulse = "sub" to "rg", card = BoardCard("Inherited", "Like a floor key: every room on that floor.")),
+                    Beat(20, show = setOf("owner", "vmc"), light = setOf("vmc", "rg"), pulse = "vmc" to "rg", card = BoardCard("Least privilege", "The smallest role at the narrowest scope that still does the job.")),
+                    Beat(22, card = BoardCard("Assign to groups", "A joiner or a leaver changes one membership.")),
+                    Beat(24, card = BoardCard("Microsoft Entra ID", "The reception desk: the list of people, groups and apps.")),
                 ),
             ),
-            // 23: "And if no built-in role fits the job?"
+            // 25: "And if no built-in role fits the job?"
             Scene(
-                23, "Your own list", planes(),
+                25, "Your own list", planes(),
                 beats = listOf(
-                    Beat(23, show = setOf("custom"), light = setOf("custom"), card = BoardCard("No role fits?", "Write a custom role: your own list of actions.")),
-                    Beat(24, show = setOf("control", "data", "note"), light = setOf("control", "data"), pulse = "custom" to "control", card = BoardCard("Control or data plane", "Managing the shed, or what's inside it: files and secrets.")),
+                    Beat(25, show = setOf("custom"), light = setOf("custom"), card = BoardCard("No role fits?", "Write a custom role: your own list of actions.")),
+                    Beat(28, show = setOf("control", "data", "note"), light = setOf("control", "data"), pulse = "custom" to "control", card = BoardCard("Control or data plane", "Managing the shed, or what's inside it: files and secrets.")),
                 ),
             ),
-            // 25: "Our boss is a Global Administrator..."
+            // 29: "Our boss is a Global Administrator..."
             Scene(
-                25, "Two kinds of role", kinds(),
+                29, "Two kinds of role", kinds(),
                 beats = listOf(
-                    Beat(26, show = setOf("entra", "azure", "ga", "owner"), light = setOf("ga"), pulse = "entra" to "ga", card = BoardCard("Global Administrator", "An Entra role: the directory. No Azure role by default.")),
-                    Beat(28, show = setOf("elevate"), light = setOf("elevate"), pulse = "ga" to "elevate", card = BoardCard("Elevate, on purpose", "User Access Administrator at the very top.")),
+                    Beat(30, show = setOf("entra", "azure", "ga", "owner"), light = setOf("ga"), pulse = "entra" to "ga", card = BoardCard("Global Administrator", "An Entra role: the directory. No Azure role by default.")),
+                    Beat(32, show = setOf("elevate"), light = setOf("elevate"), pulse = "ga" to "elevate", card = BoardCard("Elevate, on purpose", "User Access Administrator at the very top.")),
                 ),
             ),
-            // 29: "Now, admins. Somebody must hold Owner on production."
+            // 33: "Now, admins. Somebody must hold Owner on production."
             Scene(
-                29, "Admin rights, just in time", pim(),
+                33, "Admin rights, just in time", pim(),
                 beats = listOf(
-                    Beat(30, show = setOf("person", "eligible"), light = setOf("eligible"), pulse = "person" to "eligible", card = BoardCard("PIM", "Privileged Identity Management: switch a role on, briefly.")),
-                    Beat(32, show = setOf("active", "checks", "log"), light = setOf("checks", "active"), pulse = "eligible" to "active", card = BoardCard("Activate", "A reason, multifactor sign-in, an approver. A few hours.")),
-                    Beat(34, show = setOf("lic"), light = setOf("lic"), card = BoardCard("A paid licence", "Microsoft Entra ID P2 or Microsoft Entra ID Governance.")),
+                    Beat(34, show = setOf("person", "eligible"), light = setOf("eligible"), pulse = "person" to "eligible", card = BoardCard("PIM", "Privileged Identity Management: switch a role on, briefly.")),
+                    Beat(36, show = setOf("active", "checks", "log"), light = setOf("checks", "active"), pulse = "eligible" to "active", card = BoardCard("Activate", "A reason, multifactor sign-in, an approver. A few hours.")),
+                    Beat(38, show = setOf("lic"), light = setOf("lic"), card = BoardCard("A paid licence", "Microsoft Entra ID P2 or Microsoft Entra ID Governance.")),
                 ),
             ),
-            // 35: "Now the old timesheet app, on a server in the office."
+            // 39: "Now the old timesheet app, on a server in the office."
             Scene(
-                35, "The office timesheet app", appProxy(),
+                39, "The office timesheet app", appProxy(),
                 beats = listOf(
-                    Beat(36, show = setOf("sync"), light = setOf("sync"), card = BoardCard("One account, both worlds", "Entra Connect Sync copies Active Directory into Entra ID.")),
-                    Beat(38, show = setOf("user", "conn", "proxy", "app", "fw"), light = setOf("conn"), pulse = "conn" to "proxy", card = BoardCard("Application proxy", "A connector inside the office that only calls out.")),
-                    Beat(40, show = setOf("entra"), light = setOf("entra", "app"), pulse = "user" to "entra", card = BoardCard("Entra checks first", "Multifactor sign-in and Conditional Access, then the app.")),
+                    Beat(40, show = setOf("sync"), light = setOf("sync"), card = BoardCard("One account, both worlds", "Entra Connect Sync copies Active Directory into Entra ID.")),
+                    Beat(42, show = setOf("user", "conn", "proxy", "app", "fw"), light = setOf("conn"), pulse = "conn" to "proxy", card = BoardCard("Application proxy", "A connector inside the office that only calls out.")),
+                    Beat(44, show = setOf("entra"), light = setOf("entra", "app"), pulse = "user" to "entra", card = BoardCard("Entra checks first", "Multifactor sign-in and Conditional Access, then the app.")),
                 ),
             ),
-            // 41: "Last piece. Secrets."
+            // 45: "Last piece. Secrets."
             Scene(
-                41, "A safe for secrets", vault(),
+                45, "A safe for secrets", vault(),
                 beats = listOf(
-                    Beat(42, show = setOf("std", "holds"), light = setOf("holds"), pulse = "std" to "holds", card = BoardCard("Key Vault", "A locked safe for secrets, keys and certificates.")),
-                    Beat(44, show = setOf("prem"), light = setOf("prem"), pulse = "prem" to "holds", card = BoardCard("Premium", "Keys in shared HSMs, FIPS 140-3 Level 3, at low cost.")),
-                    Beat(46, show = setOf("mhsm", "keysonly"), light = setOf("mhsm", "keysonly"), pulse = "mhsm" to "keysonly", card = BoardCard("Managed HSM", "Single-tenant, your own security domain. Keys only.")),
-                    Beat(48, show = setOf("api", "role"), light = setOf("api", "role"), pulse = "api" to "role", card = BoardCard("Key Vault Secrets User", "Read by managed identity: reads secrets, nothing else.")),
+                    Beat(46, show = setOf("std", "holds"), light = setOf("holds"), pulse = "std" to "holds", card = BoardCard("Key Vault", "A locked safe for secrets, keys and certificates.")),
+                    Beat(50, show = setOf("prem"), light = setOf("prem"), pulse = "prem" to "holds", card = BoardCard("Premium", "Keys in shared HSMs, FIPS 140-3 Level 3, at low cost.")),
+                    Beat(52, show = setOf("mhsm", "keysonly"), light = setOf("mhsm", "keysonly"), pulse = "mhsm" to "keysonly", card = BoardCard("Managed HSM", "Single-tenant, your own security domain. Keys only.")),
+                    Beat(54, show = setOf("api", "role"), light = setOf("api", "role"), pulse = "api" to "role", card = BoardCard("Key Vault Secrets User", "Read by managed identity: reads secrets, nothing else.")),
                 ),
             ),
-            // 49: "So what do I remember for the exam?"
+            // 55: "So what do I remember for the exam?"
             Scene(
-                49, "For the exam", exam(),
+                55, "For the exam", exam(),
                 beats = listOf(
-                    Beat(50, show = all6, light = all6, card = phrase),
-                    Beat(52, card = today),
+                    Beat(56, show = all6, light = all6, card = phrase),
+                    Beat(58, card = today),
                 ),
             ),
         ),
@@ -544,21 +562,21 @@ internal object Az305EpisodesAuthorization {
                     Beat(36, show = setOf("user", "entra", "sync"), light = setOf("entra"), pulse = "user" to "entra", card = BoardCard("Entra checks first", "MFA and Conditional Access; Kerberos for old apps.")),
                 ),
             ),
-            // 37: "One more thing in the file."
+            // 39: "One more thing in the file."
             Scene(
-                37, "One more thing", vault(),
+                39, "One more thing", vault(),
                 beats = listOf(
-                    Beat(38, show = setOf("mhsm", "keysonly"), light = setOf("keysonly"), pulse = "mhsm" to "keysonly", card = BoardCard("Managed HSM", "Keys only, so the password sat in a plain setting.")),
-                    Beat(40, show = setOf("std", "prem", "holds"), light = setOf("prem", "holds"), pulse = "prem" to "holds", card = BoardCard("Premium", "Secrets, keys and certificates; shared HSMs; low cost.")),
-                    Beat(42, show = setOf("api", "role"), light = setOf("api", "role"), pulse = "api" to "role", card = BoardCard("Managed identity", "A badge for the app; Key Vault Secrets User to read.")),
+                    Beat(40, show = setOf("mhsm", "keysonly"), light = setOf("keysonly"), pulse = "mhsm" to "keysonly", card = BoardCard("Managed HSM", "Keys only, so the password sat in a plain setting.")),
+                    Beat(42, show = setOf("std", "prem", "holds"), light = setOf("prem", "holds"), pulse = "prem" to "holds", card = BoardCard("Premium", "Secrets, keys and certificates; shared HSMs; low cost.")),
+                    Beat(46, show = setOf("api", "role"), light = setOf("api", "role"), pulse = "api" to "role", card = BoardCard("Managed identity", "A badge for the app; Key Vault Secrets User to read.")),
                 ),
             ),
-            // 43: "So, the case summary for the exam?"
+            // 47: "So, the case summary for the exam?"
             Scene(
-                43, "Case closed", exam(),
+                47, "Case closed", exam(),
                 beats = listOf(
-                    Beat(44, show = all6, light = all6, card = phrase),
-                    Beat(46, card = today),
+                    Beat(48, show = all6, light = all6, card = phrase),
+                    Beat(50, card = today),
                 ),
             ),
         ),
@@ -606,42 +624,42 @@ internal object Az305EpisodesAuthorization {
                 beats = listOf(
                     Beat(18, show = setOf("ga"), light = setOf("ga"), card = BoardCard("No machines at all", "The Global Administrator saw nothing.")),
                     Beat(20, show = setOf("entra", "azure", "owner", "elevate"), light = setOf("entra", "azure"), pulse = "ga" to "elevate", card = BoardCard("Two kinds of role", "Entra roles: the directory. Azure roles: resources.")),
-                    Beat(22, light = setOf("elevate"), card = BoardCard("Where RBAC stops", "What may exist is Azure Policy: the governance episode.")),
+                    Beat(24, light = setOf("elevate"), card = BoardCard("Where RBAC stops", "What may exist is Azure Policy: the governance episode.")),
                 ),
             ),
-            // 23: "Thursday?"
+            // 25: "Thursday?"
             Scene(
-                23, "Thursday: Marcus", pim(),
+                25, "Thursday: Marcus", pim(),
                 beats = listOf(
-                    Beat(24, show = setOf("person", "active"), light = setOf("active"), card = BoardCard("Standing Owner", "All day, every day. Then a fake page caught his password.")),
-                    Beat(26, show = setOf("eligible"), light = setOf("eligible"), pulse = "person" to "eligible", card = BoardCard("Only eligible", "PIM: the stolen password got the thief nothing.")),
-                    Beat(28, show = setOf("checks", "log", "lic"), light = setOf("checks", "log"), pulse = "eligible" to "active", card = BoardCard("Activate", "A reason, MFA, an approver; logged; expires on its own.")),
+                    Beat(26, show = setOf("person", "active"), light = setOf("active"), card = BoardCard("Standing Owner", "All day, every day. Then a fake page caught his password.")),
+                    Beat(28, show = setOf("eligible"), light = setOf("eligible"), pulse = "person" to "eligible", card = BoardCard("Only eligible", "PIM: the stolen password got the thief nothing.")),
+                    Beat(30, show = setOf("checks", "log", "lic"), light = setOf("checks", "log"), pulse = "eligible" to "active", card = BoardCard("Activate", "A reason, MFA, an approver; logged; expires on its own.")),
                 ),
             ),
-            // 29: "Friday. Let me guess. The intern."
+            // 31: "Friday. Let me guess. The intern."
             Scene(
-                29, "Friday: the intern", appProxy(),
+                31, "Friday: the intern", appProxy(),
                 beats = listOf(
-                    Beat(30, show = setOf("app", "fw"), light = setOf("app"), card = BoardCard("An inbound port", "A door from the internet, for the timesheet app.")),
-                    Beat(32, show = setOf("conn", "proxy"), light = setOf("conn", "fw"), pulse = "conn" to "proxy", card = BoardCard("Application proxy", "The connector only calls out. No VPN, no inbound port.")),
-                    Beat(34, show = setOf("user", "entra", "sync"), light = setOf("entra"), pulse = "user" to "entra", card = BoardCard("Entra checks first", "MFA and Conditional Access, then Kerberos to the app.")),
+                    Beat(32, show = setOf("app", "fw"), light = setOf("app"), card = BoardCard("An inbound port", "A door from the internet, for the timesheet app.")),
+                    Beat(34, show = setOf("conn", "proxy"), light = setOf("conn", "fw"), pulse = "conn" to "proxy", card = BoardCard("Application proxy", "The connector only calls out. No VPN, no inbound port.")),
+                    Beat(36, show = setOf("user", "entra", "sync"), light = setOf("entra"), pulse = "user" to "entra", card = BoardCard("Entra checks first", "MFA and Conditional Access, then Kerberos to the app.")),
                 ),
             ),
-            // 35: "Is that everyone? Where's Priya's mistake?"
+            // 37: "Is that everyone? Where's Priya's mistake?"
             Scene(
-                35, "Saturday: Priya", vault(),
+                37, "Saturday: Priya", vault(),
                 beats = listOf(
-                    Beat(36, show = setOf("mhsm", "keysonly"), light = setOf("keysonly"), pulse = "mhsm" to "keysonly", card = BoardCard("Managed HSM", "Single-tenant, your own security domain. Keys only.")),
-                    Beat(38, show = setOf("std", "prem", "holds"), light = setOf("prem"), pulse = "prem" to "holds", card = BoardCard("Premium", "Secrets, keys and certificates; shared HSMs; low cost.")),
-                    Beat(40, show = setOf("api", "role"), light = setOf("api", "role"), pulse = "api" to "role", card = BoardCard("Managed identity", "Key Vault Secrets User: reads secrets, nothing else.")),
+                    Beat(38, show = setOf("mhsm", "keysonly"), light = setOf("keysonly"), pulse = "mhsm" to "keysonly", card = BoardCard("Managed HSM", "Single-tenant, your own security domain. Keys only.")),
+                    Beat(40, show = setOf("std", "prem", "holds"), light = setOf("prem"), pulse = "prem" to "holds", card = BoardCard("Premium", "Secrets, keys and certificates; shared HSMs; low cost.")),
+                    Beat(44, show = setOf("api", "role"), light = setOf("api", "role"), pulse = "api" to "role", card = BoardCard("Managed identity", "Key Vault Secrets User: reads secrets, nothing else.")),
                 ),
             ),
-            // 41: "So, the gossip I should remember for the exam?"
+            // 45: "So, the gossip I should remember for the exam?"
             Scene(
-                41, "For the exam", exam(),
+                45, "For the exam", exam(),
                 beats = listOf(
-                    Beat(42, show = all6, light = all6, card = phrase),
-                    Beat(44, card = today),
+                    Beat(46, show = all6, light = all6, card = phrase),
+                    Beat(48, card = today),
                 ),
             ),
         ),
@@ -683,47 +701,47 @@ internal object Az305EpisodesAuthorization {
                     Beat(16, card = BoardCard("Groups, in Entra", "Entra ID is the reception desk. Change one membership.")),
                 ),
             ),
-            // 17: "Now, our boss is a Global Administrator."
+            // 19: "Now, our boss is a Global Administrator."
             Scene(
-                17, "Not these keys", kinds(),
+                19, "Not these keys", kinds(),
                 beats = listOf(
-                    Beat(18, show = setOf("entra", "azure", "ga", "owner", "elevate"), light = setOf("ga"), pulse = "ga" to "elevate", card = BoardCard("Global Administrator", "An Entra role. No Azure role by default; elevate on purpose.")),
-                    Beat(20, light = setOf("azure"), card = BoardCard("Where it ends", "Not the directory; not what may exist. Data plane: data roles.")),
+                    Beat(20, show = setOf("entra", "azure", "ga", "owner", "elevate"), light = setOf("ga"), pulse = "ga" to "elevate", card = BoardCard("Global Administrator", "An Entra role. No Azure role by default; elevate on purpose.")),
+                    Beat(22, light = setOf("azure"), card = BoardCard("Where it ends", "Not the directory; not what may exist. Data plane: data roles.")),
                 ),
             ),
-            // 21: "And the admins. Who keeps the master key overnight?"
+            // 23: "And the admins. Who keeps the master key overnight?"
             Scene(
-                21, "The master key", pim(),
+                23, "The master key", pim(),
                 beats = listOf(
-                    Beat(22, show = setOf("person", "eligible"), light = setOf("eligible"), pulse = "person" to "eligible", card = BoardCard("PIM", "Eligible, not active: the master key stays at reception.")),
-                    Beat(24, show = setOf("active", "checks", "log", "lic"), light = setOf("active", "checks"), pulse = "eligible" to "active", card = BoardCard("Activate", "A reason, multifactor sign-in, an approver. Then it slips away.")),
+                    Beat(24, show = setOf("person", "eligible"), light = setOf("eligible"), pulse = "person" to "eligible", card = BoardCard("PIM", "Eligible, not active: the master key stays at reception.")),
+                    Beat(26, show = setOf("active", "checks", "log", "lic"), light = setOf("active", "checks"), pulse = "eligible" to "active", card = BoardCard("Activate", "A reason, multifactor sign-in, an approver. Then it slips away.")),
                 ),
             ),
-            // 25: "Mm. Now the old timesheet app..."
+            // 27: "Mm. Now the old timesheet app..."
             Scene(
-                25, "The office at night", appProxy(),
+                27, "The office at night", appProxy(),
                 beats = listOf(
-                    Beat(26, show = setOf("sync"), light = setOf("sync"), card = BoardCard("One account, both worlds", "Entra Connect Sync copies Active Directory into Entra ID.")),
-                    Beat(28, show = setOf("conn", "proxy", "app", "fw"), light = setOf("conn"), pulse = "conn" to "proxy", card = BoardCard("Application proxy", "A night porter who calls out, but never unlocks the door.")),
-                    Beat(30, show = setOf("user", "entra"), light = setOf("entra"), pulse = "user" to "entra", card = BoardCard("Entra checks first", "Multifactor sign-in and Conditional Access, then Kerberos.")),
+                    Beat(28, show = setOf("sync"), light = setOf("sync"), card = BoardCard("One account, both worlds", "Entra Connect Sync copies Active Directory into Entra ID.")),
+                    Beat(30, show = setOf("conn", "proxy", "app", "fw"), light = setOf("conn"), pulse = "conn" to "proxy", card = BoardCard("Application proxy", "A night porter who calls out, but never unlocks the door.")),
+                    Beat(32, show = setOf("user", "entra"), light = setOf("entra"), pulse = "user" to "entra", card = BoardCard("Entra checks first", "Multifactor sign-in and Conditional Access, then Kerberos.")),
                 ),
             ),
-            // 31: "And the secrets. Where do the passwords sleep?"
+            // 33: "And the secrets. Where do the passwords sleep?"
             Scene(
-                31, "Where secrets sleep", vault(),
+                33, "Where secrets sleep", vault(),
                 beats = listOf(
-                    Beat(32, show = setOf("holds"), light = setOf("holds"), card = BoardCard("Key Vault", "A locked safe for secrets, keys and certificates.")),
-                    Beat(34, show = setOf("std", "prem"), light = setOf("prem"), pulse = "prem" to "holds", card = BoardCard("Premium", "Shared HSMs, tamper-proof boxes; FIPS 140-3 Level 3.")),
-                    Beat(36, show = setOf("mhsm", "keysonly"), light = setOf("mhsm"), pulse = "mhsm" to "keysonly", card = BoardCard("Managed HSM", "Yours alone, your own security domain. Keys only.")),
-                    Beat(38, show = setOf("api", "role"), light = setOf("api", "role"), pulse = "api" to "role", card = BoardCard("Managed identity", "No password at all. Key Vault Secrets User reads.")),
+                    Beat(34, show = setOf("holds"), light = setOf("holds"), card = BoardCard("Key Vault", "A locked safe for secrets, keys and certificates.")),
+                    Beat(36, show = setOf("std", "prem"), light = setOf("prem"), pulse = "prem" to "holds", card = BoardCard("Premium", "Shared HSMs, tamper-proof boxes; FIPS 140-3 Level 3.")),
+                    Beat(38, show = setOf("mhsm", "keysonly"), light = setOf("mhsm"), pulse = "mhsm" to "keysonly", card = BoardCard("Managed HSM", "Yours alone, your own security domain. Keys only.")),
+                    Beat(40, show = setOf("api", "role"), light = setOf("api", "role"), pulse = "api" to "role", card = BoardCard("Managed identity", "No password at all. Key Vault Secrets User reads.")),
                 ),
             ),
-            // 39: "Before you send me off to bed. What do I remember for the exam?"
+            // 41: "Before you send me off to bed. What do I remember for the exam?"
             Scene(
-                39, "For the exam", exam(),
+                41, "For the exam", exam(),
                 beats = listOf(
-                    Beat(40, show = all6, light = all6, card = phrase),
-                    Beat(42, card = today),
+                    Beat(42, show = all6, light = all6, card = phrase),
+                    Beat(44, card = today),
                 ),
             ),
         ),
@@ -772,38 +790,38 @@ internal object Az305EpisodesAuthorization {
                 17, "Eligible, not active", pim(),
                 beats = listOf(
                     Beat(18, show = setOf("person", "eligible", "active", "checks"), light = setOf("eligible"), pulse = "person" to "eligible", card = BoardCard("PIM", "Eligible for a role; activate it for hours, with a reason.")),
-                    Beat(19, light = setOf("active"), card = BoardCard("Quiz: Owner, four hours", "Only when needed, with approval, at most four hours?")),
-                    Beat(20, show = setOf("log", "lic"), light = setOf("active", "log"), pulse = "eligible" to "active", card = BoardCard("Right answer", "PIM eligible assignments with approval. All logged.")),
+                    Beat(21, light = setOf("active"), card = BoardCard("Quiz: Owner, four hours", "Only when needed, with approval, at most four hours?")),
+                    Beat(22, show = setOf("log", "lic"), light = setOf("active", "log"), pulse = "eligible" to "active", card = BoardCard("Right answer", "PIM eligible assignments with approval. All logged.")),
                 ),
             ),
-            // 22: "Mm. Now, the old timesheet app..."
+            // 24: "Mm. Now, the old timesheet app..."
             Scene(
-                22, "Calls out, never in", appProxy(),
+                24, "Calls out, never in", appProxy(),
                 beats = listOf(
-                    Beat(22, show = setOf("user", "app", "fw"), light = setOf("app"), card = BoardCard("Quiz: the timesheet app", "From home, Entra first, no VPN, no inbound port?")),
-                    Beat(23, show = setOf("conn", "proxy"), light = setOf("conn"), pulse = "conn" to "proxy", card = BoardCard("Right answer", "Entra application proxy: the connector only calls out.")),
-                    Beat(25, show = setOf("entra", "sync"), light = setOf("entra"), pulse = "user" to "entra", card = BoardCard("Entra checks first", "MFA and Conditional Access, then Kerberos to the app.")),
+                    Beat(24, show = setOf("user", "app", "fw"), light = setOf("app"), card = BoardCard("Quiz: the timesheet app", "From home, Entra first, no VPN, no inbound port?")),
+                    Beat(25, show = setOf("conn", "proxy"), light = setOf("conn"), pulse = "conn" to "proxy", card = BoardCard("Right answer", "Entra application proxy: the connector only calls out.")),
+                    Beat(27, show = setOf("entra", "sync"), light = setOf("entra"), pulse = "user" to "entra", card = BoardCard("Entra checks first", "MFA and Conditional Access, then Kerberos to the app.")),
                 ),
             ),
-            // 26: "Now secrets."
+            // 28: "Now secrets."
             Scene(
-                26, "Kept for yourself", vault(),
+                28, "Kept for yourself", vault(),
                 beats = listOf(
-                    Beat(26, show = setOf("holds"), light = setOf("holds"), card = BoardCard("Key Vault", "A locked safe for secrets, keys and certificates.")),
-                    Beat(28, show = setOf("std", "prem", "mhsm"), light = setOf("prem"), pulse = "prem" to "holds", card = BoardCard("Premium", "Shared HSMs, FIPS 140-3 Level 3.")),
-                    Beat(30, show = setOf("keysonly"), light = setOf("mhsm"), card = BoardCard("Quiz: the bank", "Single-tenant HSM, its own security domain. Which option?")),
-                    Beat(31, light = setOf("mhsm", "keysonly"), pulse = "mhsm" to "keysonly", card = BoardCard("Right answer", "Managed HSM, with the passwords in an ordinary vault.")),
-                    Beat(33, light = setOf("prem"), card = BoardCard("Quiz: lowest cost", "HSM-protected, FIPS 140-3 Level 3, and cheapest?")),
-                    Beat(34, light = setOf("prem", "holds"), pulse = "prem" to "holds", card = BoardCard("Right answer", "Premium: shared boxes, and it holds the passwords too.")),
-                    Beat(36, show = setOf("api", "role"), light = setOf("api", "role"), pulse = "api" to "role", card = BoardCard("Managed identity", "A badge for the app. Key Vault Secrets User reads.")),
+                    Beat(28, show = setOf("holds"), light = setOf("holds"), card = BoardCard("Key Vault", "A locked safe for secrets, keys and certificates.")),
+                    Beat(30, show = setOf("std", "prem", "mhsm"), light = setOf("prem"), pulse = "prem" to "holds", card = BoardCard("Premium", "Shared HSMs, FIPS 140-3 Level 3.")),
+                    Beat(32, show = setOf("keysonly"), light = setOf("mhsm"), card = BoardCard("Quiz: the bank", "Single-tenant HSM, its own security domain. Which option?")),
+                    Beat(33, light = setOf("mhsm", "keysonly"), pulse = "mhsm" to "keysonly", card = BoardCard("Right answer", "Managed HSM, with the passwords in an ordinary vault.")),
+                    Beat(35, light = setOf("prem"), card = BoardCard("Quiz: lowest cost", "HSM-protected, FIPS 140-3 Level 3, and cheapest?")),
+                    Beat(36, light = setOf("prem", "holds"), pulse = "prem" to "holds", card = BoardCard("Right answer", "Premium: shared boxes, and it holds the passwords too.")),
+                    Beat(38, show = setOf("api", "role"), light = setOf("api", "role"), pulse = "api" to "role", card = BoardCard("Managed identity", "A badge for the app. Key Vault Secrets User reads.")),
                 ),
             ),
-            // 37: "Last question, for the exam. What do we remember?"
+            // 39: "Last question, for the exam. What do we remember?"
             Scene(
-                37, "For the exam", exam(),
+                39, "For the exam", exam(),
                 beats = listOf(
-                    Beat(38, show = all6, light = all6, card = phrase),
-                    Beat(41, card = today),
+                    Beat(40, show = all6, light = all6, card = phrase),
+                    Beat(43, card = today),
                 ),
             ),
         ),
