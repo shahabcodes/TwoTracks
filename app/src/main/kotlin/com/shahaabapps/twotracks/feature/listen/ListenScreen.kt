@@ -45,6 +45,7 @@ import androidx.compose.material.icons.rounded.FormatQuote
 import androidx.compose.material.icons.rounded.KeyboardArrowDown
 import androidx.compose.material.icons.rounded.Pause
 import androidx.compose.material.icons.rounded.PlayArrow
+import androidx.compose.material.icons.rounded.Refresh
 import androidx.compose.material.icons.rounded.Replay
 import androidx.compose.material.icons.rounded.Stop
 import androidx.compose.material3.CircularProgressIndicator
@@ -129,6 +130,8 @@ data class ListenUiState(
     val style: PodcastStyle = PodcastStyle.CLASSIC,
     /** The sound on its way from the couple's storage, or why it could not come; null once it is on the phone. */
     val fetch: EpisodeAudio.Fetch? = null,
+    /** The sound is on the phone, so the player can offer to fetch its latest recording. */
+    val downloaded: Boolean = false,
 ) {
     /** Why the sound could not come; while it is coming, the play button shows how far it has got. */
     val fetchLine: String? get() = (fetch as? EpisodeAudio.Fetch.Failed)?.let { "${it.message} Press play to try again." }
@@ -159,7 +162,9 @@ class ListenViewModel @Inject constructor(
     private val courseId: String = savedStateHandle.get<String>("courseId").orEmpty()
     private val id: String get() = episodeId.value
 
-    val uiState: StateFlow<ListenUiState> = combine(player.state, episodeId, audio.fetching) { now, id, fetching -> state(now, id).copy(fetch = fetching[id]) }
+    val uiState: StateFlow<ListenUiState> = combine(player.state, episodeId, audio.fetching) { now, id, fetching ->
+        state(now, id).copy(fetch = fetching[id], downloaded = audio.downloaded(id))
+    }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), state(player.state.value, episodeId.value))
 
     private fun state(now: NowPlaying?, id: String): ListenUiState {
@@ -211,6 +216,9 @@ class ListenViewModel @Inject constructor(
 
     fun stop() = player.stop()
 
+    /** Fetches this episode's latest recording, replacing the copy on the phone. */
+    fun refresh() = player.refresh(id, uiState.value.position)
+
     /** Whether the controls are folded away, kept for the next episode; null until someone chooses. */
     private val _controlsHidden = MutableStateFlow(place.controlsHidden)
     val controlsHidden: StateFlow<Boolean?> = _controlsHidden
@@ -235,7 +243,7 @@ fun ListenScreen(onBack: () -> Unit, viewModel: ListenViewModel = hiltViewModel(
     ListenContent(
         state, onBack = onBack, onPlayPause = viewModel::playPause, onBack15 = viewModel::back, onForward30 = viewModel::forward,
         onSeek = viewModel::seek, onSpeed = viewModel::speed, onStop = { viewModel.stop(); onBack() }, onLine = viewModel::line,
-        onStyle = viewModel::style, controlsHidden = controlsHidden, onToggleControls = { viewModel.toggleControls(controlsHidden) },
+        onStyle = viewModel::style, onRefresh = viewModel::refresh, controlsHidden = controlsHidden, onToggleControls = { viewModel.toggleControls(controlsHidden) },
     )
 }
 
@@ -267,9 +275,10 @@ fun ListenContent(
     onStyle: (PodcastStyle) -> Unit = {},
     controlsHidden: Boolean = false,
     onToggleControls: () -> Unit = {},
+    onRefresh: () -> Unit = {},
 ) {
     if (AppTheme.departures) {
-        BoardListen(state, onBack, onPlayPause, onBack15, onForward30, onSeek, onSpeed, onStop, onLine, onStyle, controlsHidden, onToggleControls, transcriptFirst)
+        BoardListen(state, onBack, onPlayPause, onBack15, onForward30, onSeek, onSpeed, onStop, onLine, onStyle, controlsHidden, onToggleControls, transcriptFirst, onRefresh)
         return
     }
     LightStatusIcons()
@@ -286,7 +295,14 @@ fun ListenContent(
                 "${state.series.label.uppercase()} PODCAST", color = Soft, fontSize = 12.sp, fontWeight = FontWeight.SemiBold, letterSpacing = 1.4.sp,
                 textAlign = TextAlign.Center, modifier = Modifier.weight(1f),
             )
-            Spacer(Modifier.width(44.dp))
+            // Fetch the latest recording, replacing the copy on the phone; offered once there is one.
+            if (state.downloaded && state.downloading == null) {
+                RoundControl("Download the latest version", onRefresh, size = 44.dp) {
+                    Icon(Icons.Rounded.Refresh, contentDescription = null, tint = Soft, modifier = Modifier.size(24.dp))
+                }
+            } else {
+                Spacer(Modifier.width(44.dp))
+            }
         }
         if (state.styles.size > 1) StyleChips(state, onStyle)
         AnimatedContent(

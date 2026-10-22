@@ -36,6 +36,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Download
 import androidx.compose.material.icons.rounded.Pause
 import androidx.compose.material.icons.rounded.PlayArrow
+import androidx.compose.material.icons.rounded.Refresh
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -98,6 +99,7 @@ internal fun BoardListen(
     controlsHidden: Boolean = false,
     onToggleControls: () -> Unit = {},
     transcriptFirst: Boolean = false,
+    onRefresh: () -> Unit = {},
 ) {
     // An episode with a board shows it first, and the timetable a tap away;
     // one without keeps the timetable alone.
@@ -113,6 +115,13 @@ internal fun BoardListen(
                 BoardLabel(state.series.label, size = 13.sp, maxLines = 1, modifier = Modifier.weight(1f))
                 // The board and the timetable, one link apart.
                 if (state.board != null) BoardLink(if (showBoard) "Transcript" else "Board", { showBoard = !showBoard })
+                // Fetch the latest recording, replacing the copy on the phone; offered once there is one.
+                if (state.downloaded && state.downloading == null) {
+                    Box(
+                        contentAlignment = Alignment.Center,
+                        modifier = Modifier.size(40.dp).clickable(role = Role.Button, onClickLabel = "Download the latest version", onClick = onRefresh),
+                    ) { Icon(Icons.Rounded.Refresh, contentDescription = null, tint = AppTheme.colors.accent, modifier = Modifier.size(24.dp)) }
+                }
                 BoardLink("Stop", onStop)
             }
             HorizontalDivider(color = AppTheme.colors.separator)

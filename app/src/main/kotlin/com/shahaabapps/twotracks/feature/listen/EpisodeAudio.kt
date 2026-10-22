@@ -27,11 +27,17 @@ import javax.inject.Singleton
  *
  * The script and its timing still ship in the app (Episodes): the transcript
  * and the board work before a single byte is downloaded.
+ *
+ * Episodes get re-recorded. Each download keeps a note of the recording it is
+ * (its length, from the timing that came with it), and a copy whose note does
+ * not match the timing in this app is old: the next play fetches the new one.
+ * The player can also fetch it again on request ([refresh]).
  */
 @Singleton
 class EpisodeAudio @Inject constructor(
     @ApplicationContext private val context: Context,
     private val sessions: SessionStore,
+    private val episodes: Episodes,
 ) {
     /** An episode on its way, or why it could not come. */
     sealed interface Fetch {
@@ -46,8 +52,33 @@ class EpisodeAudio @Inject constructor(
 
     private fun file(episodeId: String) = File(File(context.filesDir, Episodes.DIR), "$episodeId.ogg")
 
-    /** True once the episode is on the phone. */
-    fun ready(episodeId: String): Boolean = file(episodeId).let { it.isFile && it.length() > 0 }
+    /** Beside the sound: which recording it is. */
+    private fun note(episodeId: String) = File(File(context.filesDir, Episodes.DIR), "$episodeId.recording")
+
+    /** The recording this app's timing describes; null for an episode with no timing. */
+    private fun recording(episodeId: String): String? = episodes.timeline(episodeId)?.let { "%.2f:%d".format(java.util.Locale.ROOT, it.seconds, it.spans.size) }
+
+    /** True once the episode is on the phone, and it is the recording this app's timing describes. */
+    fun ready(episodeId: String): Boolean {
+        val f = file(episodeId)
+        if (!f.isFile || f.length() == 0L) return false
+        val want = recording(episodeId) ?: return true
+        val n = note(episodeId)
+        return n.isFile && n.readText() == want
+    }
+
+    /** On the phone at all, the latest recording or not: what the player offers to fetch again. */
+    fun downloaded(episodeId: String): Boolean = file(episodeId).let { it.isFile && it.length() > 0 }
+
+    /**
+     * Fetches the episode again, replacing the copy on the phone: for a
+     * recording replaced since it was downloaded. The copy stays until the new
+     * one has arrived whole, so a failed fetch leaves the old one playable.
+     */
+    suspend fun refresh(episodeId: String): Boolean {
+        note(episodeId).delete()
+        return fetch(episodeId)
+    }
 
     /** What the player plays: the copy on the phone. */
     fun uri(episodeId: String): Uri = Uri.fromFile(file(episodeId))
@@ -87,6 +118,7 @@ class EpisodeAudio @Inject constructor(
                 partial.copyTo(target, overwrite = true)
                 partial.delete()
             }
+            recording(episodeId)?.let { note(episodeId).writeText(it) }
             _fetching.update { it - episodeId }
             true
         } catch (e: Exception) {

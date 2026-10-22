@@ -95,7 +95,30 @@ class ListenPlayer @Inject constructor(
         scope.launch { if (audio.fetch(episodeId)) start(episodeId, from) }
     }
 
-    private fun start(episodeId: String, from: Double?) = withController { c ->
+    /**
+     * Fetches the episode's latest recording, replacing the copy on the phone,
+     * and if it was the one playing, carries on from the same place in it.
+     */
+    fun refresh(episodeId: String, at: Double) {
+        val wasPlaying = _state.value?.let { it.episodeId == episodeId && it.playing } == true
+        val loaded = _state.value?.episodeId == episodeId
+        if (loaded) pause()
+        scope.launch {
+            if (!audio.refresh(episodeId)) return@launch
+            if (loaded) start(episodeId, at, reload = true, resume = wasPlaying)
+        }
+    }
+
+    private fun start(episodeId: String, from: Double?, reload: Boolean = false, resume: Boolean = true) = withController { c ->
+        if (reload) {
+            // A new recording under the same id: load the file again rather than carry on with the old one.
+            val item = mediaItem(episodeId) ?: return@withController
+            c.setMediaItem(item, ((from ?: 0.0) * 1000).toLong())
+            c.setPlaybackSpeed(place.speed)
+            c.prepare()
+            if (resume) c.play()
+            return@withController
+        }
         val loaded = c.currentMediaItem?.mediaId == episodeId && c.playbackState != Player.STATE_IDLE
         if (loaded && from == null) {
             if (c.playbackState == Player.STATE_ENDED) c.seekTo(0)

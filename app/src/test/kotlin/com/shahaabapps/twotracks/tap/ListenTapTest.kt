@@ -15,13 +15,13 @@ import org.junit.Test
 /** The podcast player, the bar that follows you round the app, and the way in from a topic. */
 class ListenTapTest(look: AppLook) : TapTest(look) {
 
-    private fun player(playing: Boolean = true, hidden: Boolean = false, downloading: Float? = null) = show {
+    private fun player(playing: Boolean = true, hidden: Boolean = false, downloading: Float? = null, downloaded: Boolean = false) = show {
         ListenContent(
-            ListenSamples.listen(playing = playing).let { s -> downloading?.let { s.copy(fetch = EpisodeAudio.Fetch.Downloading(it), playing = false) } ?: s },
+            ListenSamples.listen(playing = playing).copy(downloaded = downloaded).let { s -> downloading?.let { s.copy(fetch = EpisodeAudio.Fetch.Downloading(it), playing = false) } ?: s },
             onBack = record("close"), onPlayPause = record("playPause"),
             onBack15 = record("back15"), onForward30 = record("forward30"), onSeek = record1("seek"), onSpeed = record1("speed"),
             onStop = record("stop"), onLine = record1("line"), onStyle = record1("style"),
-            controlsHidden = hidden, onToggleControls = record("toggleControls"),
+            controlsHidden = hidden, onToggleControls = record("toggleControls"), onRefresh = record("refresh"),
         )
     }
 
@@ -115,6 +115,13 @@ class ListenTapTest(look: AppLook) : TapTest(look) {
         expect("forward30")
         tapAction("Show all the controls")
         expect("toggleControls")
+    }
+
+    @Test
+    fun `an episode on the phone offers its latest recording`() {
+        player(downloaded = true)
+        tapAction("Download the latest version")
+        expect("refresh")
     }
 
     @Test
