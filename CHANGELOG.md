@@ -3,6 +3,10 @@
 All notable changes to Two Tracks. Versions follow `version.properties`; the
 build number is appended by CI (for example `0.1.0 (build 12)`).
 
+## [0.91.3] - 2026-10-22
+### Changed
+- AZ-204 Case Files and Gossip: 22 episodes re-recorded with the corrected scripts (push and pull, conversation, acronyms said letter by letter).
+
 ## [0.91.2] - 2026-10-22
 ### Changed
 - AZ-204 Case Files and Gossip: 22 episodes re-recorded with the corrected scripts (push and pull, conversation, acronyms said letter by letter).

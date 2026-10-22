@@ -25,7 +25,9 @@ internal object Az204StyledSecurity3 {
             leo("Let me guess. Something about a header."),
             maya("[laugh] You're learning. Count, search and some filters on users and groups need one extra header, ConsistencyLevel: eventual. A header is a small note sent along with the request. Without it, those directory queries fail. It's a favourite exam detail."),
             leo("While we're tidying, the list was slow too. Every trainer's whole profile came back. Can I ask for less?"),
-            maya("With OData query parameters. They're little add-ons at the end of a request that shape the answer. Select picks the fields, so just the name and job title. Filter is a where clause, say only the trainers department. Orderby sorts, and top sets the page size. Expand pulls in something related, like a group's members."),
+            maya("With OData query parameters, little add-ons at the end of a request that shape the answer. Select picks the fields, so just the name and job title. Filter is a where clause, say only the trainers department."),
+            leo("And the order on screen? Members want the trainers alphabetically."),
+            maya("Orderby sorts, and top sets the page size. Expand pulls in something related, like a group's members."),
             leo("Shape first, then page through. Got it. Any more clues in the file?"),
             maya("One more, from Tuesday. The app now shows each trainer's next free slot, from their calendar. That's a hundred and forty calls. The developer sent them one by one, and Graph answered with a 429."),
             leo("Which means slow down?"),
@@ -74,7 +76,9 @@ internal object Az204StyledSecurity3 {
             leo("Let me guess. A missing header."),
             maya("Exactly. Count, search and some filters on users and groups need a header, ConsistencyLevel: eventual. A header is a small note sent along with the request. Priya added it, and both lit up. It's a favourite exam detail, so the intern will never forget it."),
             leo("While we're on the directory, it was slow, wasn't it?"),
-            maya("Very. Ben fetched every field of every person. Priya showed him OData query parameters, little add-ons at the end of a request. Select picks fields, like name and email. Filter is a where clause. Orderby sorts. Expand pulls in something related, like a group's members. The answer shrank to a fraction."),
+            maya("Very. Ben fetched every field of every person. Priya showed him OData query parameters, little add-ons at the end of a request. Select picks fields, like name and email."),
+            leo("So the directory only asks for what's on screen. Can it narrow down the people too?"),
+            maya("Filter is a where clause, like one department. Orderby sorts. Expand pulls in something related, like a group's members. The answer shrank to a fraction."),
             leo("Any drama with batches?"),
             maya("A small one. Dana needed thirty calls for a dashboard, so she put all thirty in one batch. A batch is one envelope with many requests inside, each with its own id and its own answer. But one batch carries at most twenty, so hers was rejected. Two batches fixed it."),
             leo("And if Graph decides we're asking too much?"),
@@ -158,7 +162,9 @@ internal object Az204StyledSecurity3 {
             leo("And how does the Android app read the store?"),
             maya("It doesn't, directly. A connection string in a phone app can be pulled out by anyone who downloads it. The phone asks the backend, and the backend reads the store with its identity. If the phone needs a setting, like the question time limit, the backend simply sends it along with the quiz."),
             leo("Any happy stories this week?"),
-            maya("Sam's. Sam needed the test app to allow fifty quizzes a day, while the live app keeps fifteen. Same key, two labels. A label is a variant of one key, usually per environment, like dev and prod. Each app loads its own label with a label filter. And for a value with structure, like a list of quiz topics, the content type says to read it as JSON."),
+            maya("Sam's. Sam needed the test app to allow fifty quizzes a day, while the live app keeps fifteen. Same key, two labels. A label is a variant of one key, usually per environment, like dev and prod."),
+            leo("How does each app know which label is its own?"),
+            maya("It loads its own label with a label filter. And for a value with structure, like a list of quiz topics, the content type says to read it as JSON."),
             leo("Nice. And the new quiz mode everyone's talking about?"),
             maya("That's a feature flag, an on-off switch for part of the app, flipped from the board with no new release. Nora wanted it on for a fifth of players, and first tried a label. But a label is per environment, not a rollout. The answer was a feature filter, a percentage filter, which decides the flag while the app runs."),
             leo("What other filters are there?"),
@@ -291,9 +297,9 @@ internal object Az204StyledSecurity3 {
                     Beat(20, show = setOf("select", "filter", "orderby", "top", "more"), light = setOf("select", "filter"), pulse = "req" to "select", card = BoardCard("OData query parameters", "Select fields, filter rows, orderby, top. Expand adds related things.")),
                 ),
             ),
-            // 21: "Shape first, then page through. Got it. Any more clues in the file?"
+            // 23: "Shape first, then page through. Got it. Any more clues in the file?"
             Scene(
-                21, "Too many calls",
+                23, "Too many calls",
                 DiagramSpec(
                     "Calls sent one by one get a 429 with Retry-After; a batch carries up to twenty requests in one call.",
                     nodes = listOf(
@@ -311,16 +317,16 @@ internal object Az204StyledSecurity3 {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(22, show = setOf("app", "graph"), light = setOf("app"), pulse = "app" to "graph", card = BoardCard("140 calls, one by one", "A next free slot for every trainer, from their calendar.")),
-                    Beat(23, show = setOf("err"), light = setOf("err"), pulse = "graph" to "err", card = BoardCard("429: slow down", "You're throttled. Honour Retry-After; the SDKs retry for you.")),
-                    Beat(24, show = setOf("batch"), light = setOf("batch"), pulse = "batch" to "graph", card = BoardCard("Batch", "One envelope, many requests, each with its own id. At most twenty.")),
-                    Beat(25, card = BoardCard("140 calls is seven batches", "And thirty is two. More than twenty in one batch is rejected.")),
-                    Beat(26, light = setOf("graph"), card = BoardCard("Round trips, not work", "Graph still counts every request inside, so a burst can be throttled.")),
+                    Beat(24, show = setOf("app", "graph"), light = setOf("app"), pulse = "app" to "graph", card = BoardCard("140 calls, one by one", "A next free slot for every trainer, from their calendar.")),
+                    Beat(25, show = setOf("err"), light = setOf("err"), pulse = "graph" to "err", card = BoardCard("429: slow down", "You're throttled. Honour Retry-After; the SDKs retry for you.")),
+                    Beat(26, show = setOf("batch"), light = setOf("batch"), pulse = "batch" to "graph", card = BoardCard("Batch", "One envelope, many requests, each with its own id. At most twenty.")),
+                    Beat(27, card = BoardCard("140 calls is seven batches", "And thirty is two. More than twenty in one batch is rejected.")),
+                    Beat(28, light = setOf("graph"), card = BoardCard("Round trips, not work", "Graph still counts every request inside, so a burst can be throttled.")),
                 ),
             ),
-            // 27: "Where does Graph stop being the answer?..."
+            // 29: "Where does Graph stop being the answer?..."
             Scene(
-                27, "Where Graph stops",
+                29, "Where Graph stops",
                 DiagramSpec(
                     "Graph serves Microsoft 365 and Entra data; your own data is your database, and Azure resources are Resource Manager.",
                     nodes = listOf(
@@ -335,13 +341,13 @@ internal object Az204StyledSecurity3 {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(28, show = setOf("graph", "db", "arm"), light = setOf("db", "arm"), card = BoardCard("Not Graph", "Own bookings: your database. A storage account: Resource Manager.")),
-                    Beat(30, show = setOf("phone"), light = setOf("phone", "graph"), pulse = "phone" to "graph", card = BoardCard("The phone side", "Signs in with MSAL; Graph Explorer shows the scope each call needs.")),
+                    Beat(30, show = setOf("graph", "db", "arm"), light = setOf("db", "arm"), card = BoardCard("Not Graph", "Own bookings: your database. A storage account: Resource Manager.")),
+                    Beat(32, show = setOf("phone"), light = setOf("phone", "graph"), pulse = "phone" to "graph", card = BoardCard("The phone side", "Signs in with MSAL; Graph Explorer shows the scope each call needs.")),
                 ),
             ),
-            // 31: "Then give me the case summary for the exam."
+            // 33: "Then give me the case summary for the exam."
             Scene(
-                31, "Case closed",
+                33, "Case closed",
                 DiagramSpec(
                     "The exam's Graph questions, each as the phrase to listen for and the answer it points to.",
                     nodes = listOf(
@@ -353,8 +359,8 @@ internal object Az204StyledSecurity3 {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(32, show = setOf("page", "batch", "cons", "retry"), light = setOf("page"), card = BoardCard("Listen for the phrase", "Each phrase points to one answer. Audience Graph, version one point oh.")),
-                    Beat(34, card = BoardCard("Today", "Graph Explorer: me, three messages, users with a count, permissions.")),
+                    Beat(34, show = setOf("page", "batch", "cons", "retry"), light = setOf("page"), card = BoardCard("Listen for the phrase", "Each phrase points to one answer. Audience Graph, version one point oh.")),
+                    Beat(36, card = BoardCard("Today", "Graph Explorer: me, three messages, users with a count, permissions.")),
                 ),
             ),
         ),
@@ -478,9 +484,9 @@ internal object Az204StyledSecurity3 {
                     Beat(26, light = setOf("query"), card = BoardCard("OData query parameters", "Select, filter, orderby, expand: Ben's answer shrank to a fraction.")),
                 ),
             ),
-            // 27: "Any drama with batches?"
+            // 29: "Any drama with batches?"
             Scene(
-                27, "Dana's thirty",
+                29, "Dana's thirty",
                 DiagramSpec(
                     "A batch carries up to twenty requests in one call; a 429 means wait for Retry-After.",
                     nodes = listOf(
@@ -497,14 +503,14 @@ internal object Az204StyledSecurity3 {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(28, show = setOf("app", "batch", "graph"), light = setOf("batch"), pulse = "batch" to "graph", card = BoardCard("Thirty in one batch", "Rejected: a batch carries at most twenty. Two batches fixed it.")),
-                    Beat(30, show = setOf("err"), light = setOf("err"), pulse = "graph" to "err", card = BoardCard("429: slow down", "Honour Retry-After. A batch saves round trips, not work.")),
-                    Beat(32, light = setOf("graph"), card = BoardCard("Not Graph", "Azure resources: Resource Manager. Your own data: your database.")),
+                    Beat(30, show = setOf("app", "batch", "graph"), light = setOf("batch"), pulse = "batch" to "graph", card = BoardCard("Thirty in one batch", "Rejected: a batch carries at most twenty. Two batches fixed it.")),
+                    Beat(32, show = setOf("err"), light = setOf("err"), pulse = "graph" to "err", card = BoardCard("429: slow down", "Honour Retry-After. A batch saves round trips, not work.")),
+                    Beat(34, light = setOf("graph"), card = BoardCard("Not Graph", "Azure resources: Resource Manager. Your own data: your database.")),
                 ),
             ),
-            // 33: "So, the gossip I should remember for the exam?"
+            // 35: "So, the gossip I should remember for the exam?"
             Scene(
-                33, "For the exam",
+                35, "For the exam",
                 DiagramSpec(
                     "The exam's Graph questions, each as the phrase to listen for and the answer it points to.",
                     nodes = listOf(
@@ -516,8 +522,8 @@ internal object Az204StyledSecurity3 {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(34, show = setOf("page", "batch", "cons", "retry"), light = setOf("batch"), card = BoardCard("Listen for the phrase", "Thirty calls is two batches. Audience Graph, version one point oh.")),
-                    Beat(36, card = BoardCard("Today", "Graph Explorer: me, three messages, users with a count, permissions.")),
+                    Beat(36, show = setOf("page", "batch", "cons", "retry"), light = setOf("batch"), card = BoardCard("Listen for the phrase", "Thirty calls is two batches. Audience Graph, version one point oh.")),
+                    Beat(38, card = BoardCard("Today", "Graph Explorer: me, three messages, users with a count, permissions.")),
                 ),
             ),
         ),
@@ -844,9 +850,9 @@ internal object Az204StyledSecurity3 {
                     Beat(24, show = setOf("dev", "prod", "devapp", "liveapp"), light = setOf("dev", "prod"), pulse = "prod" to "liveapp", card = BoardCard("Label", "Same key, a value per environment. Each app loads its own label.")),
                 ),
             ),
-            // 25: "Nice. And the new quiz mode everyone's talking about?"
+            // 27: "Nice. And the new quiz mode everyone's talking about?"
             Scene(
-                25, "Nora's fifth",
+                27, "Nora's fifth",
                 DiagramSpec(
                     "A feature filter decides a flag's answer while the app runs: by percentage, time window or targeting.",
                     nodes = listOf(
@@ -864,13 +870,13 @@ internal object Az204StyledSecurity3 {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(26, show = setOf("flag", "pct"), light = setOf("pct"), pulse = "flag" to "pct", card = BoardCard("Not a label: a percentage", "A fifth of players is a percentage filter, decided while the app runs.")),
-                    Beat(28, show = setOf("time", "tgt", "snap"), light = setOf("time", "tgt"), card = BoardCard("Feature filters", "Weekend: time window. Beta testers: targeting. Snapshot: frozen keys.")),
+                    Beat(28, show = setOf("flag", "pct"), light = setOf("pct"), pulse = "flag" to "pct", card = BoardCard("Not a label: a percentage", "A fifth of players is a percentage filter, decided while the app runs.")),
+                    Beat(30, show = setOf("time", "tgt", "snap"), light = setOf("time", "tgt"), card = BoardCard("Feature filters", "Weekend: time window. Beta testers: targeting. Snapshot: frozen keys.")),
                 ),
             ),
-            // 29: "So, the gossip I should remember for the exam?"
+            // 31: "So, the gossip I should remember for the exam?"
             Scene(
-                29, "For the exam",
+                31, "For the exam",
                 DiagramSpec(
                     "The exam's App Configuration questions, each as the phrase to listen for and the answer it points to.",
                     nodes = listOf(
@@ -882,8 +888,8 @@ internal object Az204StyledSecurity3 {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(30, show = setOf("restart", "env", "secret", "share"), light = setOf("share"), card = BoardCard("Listen for the phrase", "Each phrase points to one answer. The identity reads with Data Reader.")),
-                    Beat(32, card = BoardCard("Today", "A free store, two labels, a flag, a console app, then a sentinel.")),
+                    Beat(32, show = setOf("restart", "env", "secret", "share"), light = setOf("share"), card = BoardCard("Listen for the phrase", "Each phrase points to one answer. The identity reads with Data Reader.")),
+                    Beat(34, card = BoardCard("Today", "A free store, two labels, a flag, a console app, then a sentinel.")),
                 ),
             ),
         ),

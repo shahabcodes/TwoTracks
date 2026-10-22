@@ -107,7 +107,9 @@ internal object Az204StyledMonitor2 {
             leo("So the edge kept the first rider's page and gave it to the next one. [pause] Oh. The API had caching switched on."),
             maya("Detective Leo, finally. When the team added Front Door, they switched caching on for every route, the API too. My Rides is one address for every rider, and the backend sent nothing saying, don't keep this. So the edge kept it, and served it to the next rider nearby."),
             leo("So what's the fix?"),
-            maya("Caching rules. There are three. Honor origin obeys the Cache-Control header your origin sends, and it's the default. Override sets your own TTL, the time to live, for files that arrive with no header. And bypass cache never keeps a copy. Personal answers, like a rider's rides or bill, get bypass cache. Spoke moved the API onto its own route, with caching bypassed."),
+            maya("Caching rules. There are three. Honor origin obeys the Cache-Control header your origin sends, and it's the default. Override sets your own TTL, the time to live, for files that arrive with no header."),
+            leo("But My Rides came with no header at all. Wouldn't override just keep it for longer?"),
+            maya("Exactly, which is why personal answers get the third rule, bypass cache, which never keeps a copy. Spoke moved the API onto its own route, with caching bypassed."),
             leo("Wait, the TTL. How long does an edge keep a copy anyway?"),
             maya("As long as the Cache-Control header says. It's a best-before date on the file. With no header, Front Door uses a default, a day or a few days depending on the product, unless a caching rule overrides it."),
             leo("Case closed?"),
@@ -146,7 +148,9 @@ internal object Az204StyledMonitor2 {
             leo("So what did Dana do?"),
             maya("Dana switched caching on for every route, the API too. The My Habits screen is one address for every user. So the first user's answer was kept at the edge, and the next user nearby got it. Yoga streak and all."),
             leo("[sigh] Oh, Dana. Who fixed it?"),
-            maya("Marcus. He explained the caching rules. Honor origin obeys the Cache-Control header the origin sends, and it's the default. Override sets your own TTL for files that arrive with no header. And bypass cache never keeps a copy. The API got its own route, with caching bypassed. Anything personal never sits at the edge."),
+            maya("Marcus. He explained the caching rules. Honor origin obeys the Cache-Control header the origin sends, and it's the default. Override sets your own TTL for files that arrive with no header."),
+            leo("Neither of those stops the edge keeping someone's yoga streak, though."),
+            maya("No, that's the third, bypass cache, which never keeps a copy. The API got its own route, with caching bypassed. Anything personal never sits at the edge."),
             leo("TTL I know from Redis. Time to live?"),
             maya("Right. How long an edge keeps its copy. It comes from the origin's Cache-Control header, a best-before date on the file, unless a rule overrides it. With no header, Front Door uses a default of a day or a few days, depending on the product."),
             leo("Okay. Week two?"),
@@ -603,13 +607,13 @@ internal object Az204StyledMonitor2 {
                 ),
                 beats = listOf(
                     Beat(15, show = setOf("origin", "edge")),
-                    Beat(16, show = setOf("honor", "over", "bypass"), light = setOf("bypass"), card = BoardCard("Bypass cache", "Personal answers, like a rider's rides or bill, never at the edge.")),
-                    Beat(18, show = setOf("cc"), light = setOf("cc"), pulse = "origin" to "edge", card = BoardCard("TTL: time to live", "How long an edge keeps its copy. Set by Cache-Control or a rule.")),
+                    Beat(18, show = setOf("honor", "over", "bypass"), light = setOf("bypass"), card = BoardCard("Bypass cache", "Personal answers, like a rider's rides or bill, never at the edge.")),
+                    Beat(20, show = setOf("cc"), light = setOf("cc"), pulse = "origin" to "edge", card = BoardCard("TTL: time to live", "How long an edge keeps its copy. Set by Cache-Control or a rule.")),
                 ),
             ),
-            // 19: "Case closed?"
+            // 21: "Case closed?"
             Scene(
-                19, "The map that stayed old",
+                21, "The map that stayed old",
                 DiagramSpec(
                     "Purge removes the cached copy before its TTL; a versioned name gives a new URL that cannot be stale.",
                     nodes = listOf(
@@ -624,15 +628,15 @@ internal object Az204StyledMonitor2 {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(20, show = setOf("old"), light = setOf("old"), card = BoardCard("Second clue", "A new bike map; riders still see the old one. Purged five times.")),
-                    Beat(21, show = setOf("purge"), light = setOf("purge"), pulse = "purge" to "old"),
-                    Beat(22, show = setOf("hash"), light = setOf("hash"), card = BoardCard("Purge, or a versioned name", "Purge: minutes, per path, every edge. A new name can't be stale.")),
-                    Beat(23, show = setOf("ttl1"), light = setOf("ttl1"), card = BoardCard("A one-second TTL?", "Back to the origin almost every time: no point having a CDN.")),
+                    Beat(22, show = setOf("old"), light = setOf("old"), card = BoardCard("Second clue", "A new bike map; riders still see the old one. Purged five times.")),
+                    Beat(23, show = setOf("purge"), light = setOf("purge"), pulse = "purge" to "old"),
+                    Beat(24, show = setOf("hash"), light = setOf("hash"), card = BoardCard("Purge, or a versioned name", "Purge: minutes, per path, every edge. A new name can't be stale.")),
+                    Beat(25, show = setOf("ttl1"), light = setOf("ttl1"), card = BoardCard("A one-second TTL?", "Back to the origin almost every time: no point having a CDN.")),
                 ),
             ),
-            // 24: "Then the edge goes back to the origin almost every time... Third clue."
+            // 26: "Then the edge goes back to the origin almost every time, and you've th..."
             Scene(
-                24, "The wrong origin address",
+                26, "The wrong origin address",
                 DiagramSpec(
                     "Front Door's origin must be the storage account's static website address, which serves index pages, not the blob address.",
                     nodes = listOf(
@@ -650,13 +654,13 @@ internal object Az204StyledMonitor2 {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(24, show = setOf("fd", "sa"), card = BoardCard("Third clue", "The help site's home page fails through Front Door.")),
-                    Beat(26, show = setOf("blob", "web"), light = setOf("web"), pulse = "fd" to "web", card = BoardCard("The static website address", "It serves index pages. The Blob Storage episode covers both.")),
+                    Beat(26, show = setOf("fd", "sa"), card = BoardCard("Third clue", "The help site's home page fails through Front Door.")),
+                    Beat(28, show = setOf("blob", "web"), light = setOf("web"), pulse = "fd" to "web", card = BoardCard("The static website address", "It serves index pages. The Blob Storage episode covers both.")),
                 ),
             ),
-            // 27: "Any last clue?"
+            // 29: "Any last clue?"
             Scene(
-                27, "Query strings",
+                29, "Query strings",
                 DiagramSpec(
                     "Query string caching decides whether different URL parameters make separate cached copies.",
                     nodes = listOf(
@@ -672,12 +676,12 @@ internal object Az204StyledMonitor2 {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(28, show = setOf("small", "large", "use", "ignore"), light = setOf("ignore"), card = BoardCard("A tracking tag", "Never changes the file: ignore it. A map's size really differs: use.")),
+                    Beat(30, show = setOf("small", "large", "use", "ignore"), light = setOf("ignore"), card = BoardCard("A tracking tag", "Never changes the file: ignore it. A map's size really differs: use.")),
                 ),
             ),
-            // 29: "So where does Front Door stop being the answer?"
+            // 31: "So where does Front Door stop being the answer?"
             Scene(
-                29, "Where it stops",
+                31, "Where it stops",
                 DiagramSpec(
                     "Front Door keeps copies of responses that are the same for everyone; per-user data the backend reads belongs in Redis.",
                     nodes = listOf(
@@ -691,13 +695,13 @@ internal object Az204StyledMonitor2 {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(29, show = setOf("fd"), light = setOf("fd")),
-                    Beat(30, show = setOf("redis", "prem"), light = setOf("redis", "prem"), card = BoardCard("Not for personal data", "Data the backend reads often: the Redis cache episode.")),
+                    Beat(31, show = setOf("fd"), light = setOf("fd")),
+                    Beat(32, show = setOf("redis", "prem"), light = setOf("redis", "prem"), card = BoardCard("Not for personal data", "Data the backend reads often: the Redis cache episode.")),
                 ),
             ),
-            // 31: "So, the case summary for the exam?"
+            // 33: "So, the case summary for the exam?"
             Scene(
-                31, "Case closed",
+                33, "Case closed",
                 DiagramSpec(
                     "The exam's caching questions, each as the phrase to listen for and the answer it points to.",
                     nodes = listOf(
@@ -710,8 +714,8 @@ internal object Az204StyledMonitor2 {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(32, show = setOf("stale", "diff", "ttl", "fd", "prem"), light = setOf("stale", "diff"), card = BoardCard("Listen for the phrase", "Each exam phrase points straight to one answer.")),
-                    Beat(34, card = BoardCard("Today", "Static website, Front Door profile, a miss then a hit, then purge.")),
+                    Beat(34, show = setOf("stale", "diff", "ttl", "fd", "prem"), light = setOf("stale", "diff"), card = BoardCard("Listen for the phrase", "Each exam phrase points straight to one answer.")),
+                    Beat(36, card = BoardCard("Today", "Static website, Front Door profile, a miss then a hit, then purge.")),
                 ),
             ),
         ),
@@ -788,12 +792,12 @@ internal object Az204StyledMonitor2 {
                 ),
                 beats = listOf(
                     Beat(10, show = setOf("pages", "habits", "cache"), light = setOf("habits"), card = BoardCard("Dana's week", "Caching on every route: one user's habits served to the next.")),
-                    Beat(12, show = setOf("bypass"), light = setOf("habits", "bypass"), pulse = "habits" to "bypass", card = BoardCard("Bypass cache", "Marcus gave the API its own route. Anything personal skips the edge.")),
+                    Beat(14, show = setOf("bypass"), light = setOf("habits", "bypass"), pulse = "habits" to "bypass", card = BoardCard("Bypass cache", "Marcus gave the API its own route. Anything personal skips the edge.")),
                 ),
             ),
-            // 13: "TTL I know from Redis. Time to live?"
+            // 15: "TTL I know from Redis. Time to live?"
             Scene(
-                13, "How long a copy lasts",
+                15, "How long a copy lasts",
                 DiagramSpec(
                     "The origin's Cache-Control header sets the TTL, unless a caching rule overrides it.",
                     nodes = listOf(
@@ -810,13 +814,13 @@ internal object Az204StyledMonitor2 {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(13, show = setOf("origin", "edge")),
-                    Beat(14, show = setOf("cc", "honor", "over", "bypass"), light = setOf("cc"), pulse = "origin" to "edge", card = BoardCard("TTL: time to live", "How long an edge keeps its copy. Set by Cache-Control or a rule.")),
+                    Beat(15, show = setOf("origin", "edge")),
+                    Beat(16, show = setOf("cc", "honor", "over", "bypass"), light = setOf("cc"), pulse = "origin" to "edge", card = BoardCard("TTL: time to live", "How long an edge keeps its copy. Set by Cache-Control or a rule.")),
                 ),
             ),
-            // 15: "Okay. Week two?"
+            // 17: "Okay. Week two?"
             Scene(
-                15, "Week two: Tom",
+                17, "Week two: Tom",
                 DiagramSpec(
                     "Purge removes the cached copy before its TTL; a versioned name gives a new URL that cannot be stale.",
                     nodes = listOf(
@@ -831,14 +835,14 @@ internal object Az204StyledMonitor2 {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(16, show = setOf("old"), light = setOf("old"), card = BoardCard("Seven purges", "Tom's new logo; users still saw the old one.")),
-                    Beat(18, show = setOf("purge", "hash"), light = setOf("hash"), pulse = "purge" to "old", card = BoardCard("Purge, or a versioned name", "Purge: minutes, per path, every edge. A content hash: a new URL.")),
-                    Beat(20, show = setOf("ttl1"), light = setOf("ttl1"), card = BoardCard("A one-second TTL?", "Back to the origin almost every time: no point having a CDN.")),
+                    Beat(18, show = setOf("old"), light = setOf("old"), card = BoardCard("Seven purges", "Tom's new logo; users still saw the old one.")),
+                    Beat(20, show = setOf("purge", "hash"), light = setOf("hash"), pulse = "purge" to "old", card = BoardCard("Purge, or a versioned name", "Purge: minutes, per path, every edge. A content hash: a new URL.")),
+                    Beat(22, show = setOf("ttl1"), light = setOf("ttl1"), card = BoardCard("A one-second TTL?", "Back to the origin almost every time: no point having a CDN.")),
                 ),
             ),
-            // 21: "Priya? She never makes mistakes."
+            // 23: "Priya? She never makes mistakes."
             Scene(
-                21, "Week three: Priya",
+                23, "Week three: Priya",
                 DiagramSpec(
                     "Front Door's origin must be the storage account's static website address, which serves index pages, not the blob address.",
                     nodes = listOf(
@@ -856,13 +860,13 @@ internal object Az204StyledMonitor2 {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(21, show = setOf("fd", "sa")),
-                    Beat(22, show = setOf("blob", "web"), light = setOf("blob", "web"), pulse = "fd" to "web", card = BoardCard("The static website address", "It serves index pages. The Blob Storage episode covers both.")),
+                    Beat(23, show = setOf("fd", "sa")),
+                    Beat(24, show = setOf("blob", "web"), light = setOf("blob", "web"), pulse = "fd" to "web", card = BoardCard("The static website address", "It serves index pages. The Blob Storage episode covers both.")),
                 ),
             ),
-            // 23: "And the intern? I sense an intern."
+            // 25: "And the intern? I sense an intern."
             Scene(
-                23, "The intern's tags",
+                25, "The intern's tags",
                 DiagramSpec(
                     "Query string caching decides whether different URL parameters make separate cached copies.",
                     nodes = listOf(
@@ -878,13 +882,13 @@ internal object Az204StyledMonitor2 {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(24, show = setOf("small", "large"), card = BoardCard("Query string", "The bit after the question mark in a web address.")),
-                    Beat(26, show = setOf("use", "ignore"), light = setOf("ignore"), card = BoardCard("A tracking tag", "Never changes the file: ignore it. A chart's size really differs: use.")),
+                    Beat(26, show = setOf("small", "large"), card = BoardCard("Query string", "The bit after the question mark in a web address.")),
+                    Beat(28, show = setOf("use", "ignore"), light = setOf("ignore"), card = BoardCard("A tracking tag", "Never changes the file: ignore it. A chart's size really differs: use.")),
                 ),
             ),
-            // 27: "Is Front Door the answer to every slow thing, then?"
+            // 29: "Is Front Door the answer to every slow thing, then?"
             Scene(
-                27, "Where it stops",
+                29, "Where it stops",
                 DiagramSpec(
                     "Front Door keeps copies of responses that are the same for everyone; per-user data the backend reads belongs in Redis.",
                     nodes = listOf(
@@ -898,12 +902,12 @@ internal object Az204StyledMonitor2 {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(28, show = setOf("fd", "redis", "prem"), light = setOf("redis"), card = BoardCard("Not for personal data", "Data the backend reads often: the Redis cache episode.")),
+                    Beat(30, show = setOf("fd", "redis", "prem"), light = setOf("redis"), card = BoardCard("Not for personal data", "Data the backend reads often: the Redis cache episode.")),
                 ),
             ),
-            // 29: "So, the gossip I should remember for the exam?"
+            // 31: "So, the gossip I should remember for the exam?"
             Scene(
-                29, "For the exam",
+                31, "For the exam",
                 DiagramSpec(
                     "The exam's caching questions, each as the phrase to listen for and the answer it points to.",
                     nodes = listOf(
@@ -916,8 +920,8 @@ internal object Az204StyledMonitor2 {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(30, show = setOf("stale", "diff", "ttl", "fd", "prem"), light = setOf("stale", "diff"), card = BoardCard("Listen for the phrase", "Each exam phrase points straight to one answer.")),
-                    Beat(32, card = BoardCard("Today", "Static website, Front Door profile, a miss then a hit, then purge.")),
+                    Beat(32, show = setOf("stale", "diff", "ttl", "fd", "prem"), light = setOf("stale", "diff"), card = BoardCard("Listen for the phrase", "Each exam phrase points straight to one answer.")),
+                    Beat(34, card = BoardCard("Today", "Static website, Front Door profile, a miss then a hit, then purge.")),
                 ),
             ),
         ),
