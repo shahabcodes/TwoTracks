@@ -2,6 +2,11 @@ package com.shahaabapps.twotracks.feature.listen
 
 import android.app.Activity
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.material.icons.rounded.KeyboardArrowUp
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.animation.shrinkVertically
+import androidx.compose.animation.expandVertically
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.fadeIn
@@ -63,6 +68,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.Role
@@ -204,28 +210,47 @@ class ListenViewModel @Inject constructor(
     fun speed(speed: Float) = player.setSpeed(speed)
 
     fun stop() = player.stop()
+
+    /** Whether the controls are folded away, kept for the next episode; null until someone chooses. */
+    private val _controlsHidden = MutableStateFlow(place.controlsHidden)
+    val controlsHidden: StateFlow<Boolean?> = _controlsHidden
+
+    /** Folds the controls away or brings them back, from how they are shown [now]. */
+    fun toggleControls(now: Boolean) {
+        _controlsHidden.value = !now
+        place.controlsHidden = !now
+    }
 }
+
+/** Below this height the full controls leave the board too little room to start with. */
+private const val SHORT_SCREEN_DP = 720
 
 @Composable
 fun ListenScreen(onBack: () -> Unit, viewModel: ListenViewModel = hiltViewModel()) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+    val chosen by viewModel.controlsHidden.collectAsStateWithLifecycle()
+    // Until someone chooses, a short screen starts with the controls folded,
+    // so the board has room from the first open.
+    val controlsHidden = chosen ?: (LocalConfiguration.current.screenHeightDp < SHORT_SCREEN_DP)
     ListenContent(
         state, onBack = onBack, onPlayPause = viewModel::playPause, onBack15 = viewModel::back, onForward30 = viewModel::forward,
         onSeek = viewModel::seek, onSpeed = viewModel::speed, onStop = { viewModel.stop(); onBack() }, onLine = viewModel::line,
-        onStyle = viewModel::style,
+        onStyle = viewModel::style, controlsHidden = controlsHidden, onToggleControls = { viewModel.toggleControls(controlsHidden) },
     )
 }
 
 /**
  * The player, drawn from its state alone.
  *
- * Parallel draws it as a podcast app's now-playing screen: the cover on a
- * field of its own blue, growing a little when it plays and settling when it
- * pauses, the scrubber, back 15 and forward 30 either side of play, and the
- * speed, the transcript and stop along the foot. The transcript takes the
- * cover's place, follows the voice line by line, and plays from any line you
- * tap. An episode with a board draws it in place of the cover, building its
- * diagrams as the hosts talk.
+ * Parallel draws it as a podcast app's now-playing screen on a field of its
+ * own blue. What is being talked about fills the screen and scrolls: the
+ * episode's board at full width, or the cover for one without, with the
+ * titles under it. The subtitles stay pinned above the controls, so the
+ * words are in view however far the board is scrolled. The controls fold
+ * away to one row (play, the time, forward 30, the transcript) to give the
+ * board the room, and the choice is remembered. The transcript takes the
+ * board's place, follows the voice line by line, and plays from any line you
+ * tap.
  */
 @Composable
 fun ListenContent(
@@ -240,9 +265,11 @@ fun ListenContent(
     onLine: (Int) -> Unit,
     transcriptFirst: Boolean = false,
     onStyle: (PodcastStyle) -> Unit = {},
+    controlsHidden: Boolean = false,
+    onToggleControls: () -> Unit = {},
 ) {
     if (AppTheme.departures) {
-        BoardListen(state, onBack, onPlayPause, onBack15, onForward30, onSeek, onSpeed, onStop, onLine, onStyle)
+        BoardListen(state, onBack, onPlayPause, onBack15, onForward30, onSeek, onSpeed, onStop, onLine, onStyle, controlsHidden, onToggleControls, transcriptFirst)
         return
     }
     LightStatusIcons()
@@ -263,7 +290,7 @@ fun ListenContent(
         }
         if (state.styles.size > 1) StyleChips(state, onStyle)
         AnimatedContent(
-            targetState = transcript, label = "cover or transcript", modifier = Modifier.weight(1f).fillMaxWidth(),
+            targetState = transcript, label = "board or transcript", modifier = Modifier.weight(1f).fillMaxWidth(),
             transitionSpec = { fadeIn() togetherWith fadeOut() },
         ) { showing ->
             if (showing) {
@@ -274,69 +301,114 @@ fun ListenContent(
                     }
                     Transcript(state, onLine, Modifier.weight(1f))
                 }
-            } else if (state.board != null) {
-                // An episode with a board shows it where the cover was: the
-                // diagram of what is being said, with the titles under it.
-                Column(verticalArrangement = Arrangement.Center, modifier = Modifier.fillMaxSize()) {
-                    EpisodeBoard(state.board, state.line, state.playing, Modifier.fillMaxWidth().weight(1f, fill = false), fit = true)
-                    Spacer(Modifier.height(16.dp))
-                    Captions(state)
-                    Titles(state, size = 18.sp)
-                }
             } else {
-                Column(verticalArrangement = Arrangement.Center, modifier = Modifier.fillMaxSize()) {
-                    val scale by animateFloatAsState(if (state.playing) 1f else 0.86f, spring(dampingRatio = 0.62f, stiffness = 260f), label = "cover")
-                    BoxWithConstraints(contentAlignment = Alignment.Center, modifier = Modifier.weight(1f).fillMaxWidth()) {
-                        // As large as the space allows either way, so a short
-                        // screen shrinks the cover rather than the controls.
+                // The board at its full size, or the cover, scrolling on a
+                // short screen rather than shrinking to fit.
+                Column(Modifier.fillMaxSize().fadeBottom(28.dp).verticalScroll(rememberScrollState()).padding(top = 8.dp, bottom = 24.dp)) {
+                    if (state.board != null) {
+                        EpisodeBoard(state.board, state.line, state.playing, Modifier.fillMaxWidth())
+                    } else {
+                        val scale by animateFloatAsState(if (state.playing) 1f else 0.9f, spring(dampingRatio = 0.62f, stiffness = 260f), label = "cover")
                         Cover(
-                            Modifier.size(min(maxWidth, maxHeight)).graphicsLayer { scaleX = scale; scaleY = scale },
+                            Modifier.fillMaxWidth().aspectRatio(1f).padding(12.dp).graphicsLayer { scaleX = scale; scaleY = scale },
                             corner = 14.dp, shadow = if (state.playing) 28.dp else 12.dp, series = state.series,
                         )
                     }
-                    Spacer(Modifier.height(20.dp))
-                    Captions(state)
-                    Titles(state, size = 21.sp)
+                    Spacer(Modifier.height(16.dp))
+                    Titles(state, size = 20.sp)
                 }
             }
         }
-        Spacer(Modifier.height(18.dp))
-        Scrubber(state, onSeek)
-        Row(
-            horizontalArrangement = Arrangement.SpaceEvenly, verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.fillMaxWidth().padding(top = 10.dp),
-        ) {
-            RoundControl("Back 15 seconds", onBack15, size = 64.dp) { SkipGlyph(15, forward = false, tint = Ink, size = 40.dp) }
-            val downloading = state.downloading
-            RoundControl(if (downloading != null) "Downloading" else if (state.playing) "Pause" else "Play", onPlayPause, size = 84.dp) {
-                if (downloading != null) {
-                    // Pressed play, and the sound is still on its way: a ring that fills as it comes.
-                    if (downloading > 0f) {
-                        CircularProgressIndicator(progress = { downloading }, color = Ink, trackColor = Ink.copy(alpha = 0.2f), strokeWidth = 4.dp, modifier = Modifier.size(72.dp))
-                    } else {
-                        CircularProgressIndicator(color = Ink, trackColor = Ink.copy(alpha = 0.2f), strokeWidth = 4.dp, modifier = Modifier.size(72.dp))
+        if (!transcript) Captions(state)
+        AnimatedContent(
+            targetState = controlsHidden, label = "controls",
+            transitionSpec = { (fadeIn() + expandVertically()) togetherWith (fadeOut() + shrinkVertically()) },
+        ) { hidden ->
+            if (hidden) {
+                SlimControls(state, onPlayPause, onForward30, transcript, onTranscript = { transcript = !transcript }, onShow = onToggleControls)
+            } else {
+                Column {
+                    Handle("Hide the controls", onToggleControls)
+                    Scrubber(state, onSeek)
+                    Row(
+                        horizontalArrangement = Arrangement.SpaceEvenly, verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.fillMaxWidth().padding(top = 6.dp),
+                    ) {
+                        RoundControl("Back 15 seconds", onBack15, size = 64.dp) { SkipGlyph(15, forward = false, tint = Ink, size = 40.dp) }
+                        PlayKey(state, onPlayPause, size = 80.dp)
+                        RoundControl("Forward 30 seconds", onForward30, size = 64.dp) { SkipGlyph(30, forward = true, tint = Ink, size = 40.dp) }
                     }
-                    Text("${(downloading * 100).toInt()}%", color = Ink, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
-                } else {
-                    Icon(if (state.playing) Icons.Rounded.Pause else Icons.Rounded.PlayArrow, contentDescription = null, tint = Ink, modifier = Modifier.size(64.dp))
+                    Row(
+                        horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.fillMaxWidth().padding(top = 8.dp, bottom = 10.dp),
+                    ) {
+                        Box(
+                            contentAlignment = Alignment.Center,
+                            modifier = Modifier.height(36.dp).width(60.dp).clip(RoundedCornerShape(10.dp)).background(Ink.copy(alpha = 0.16f))
+                                .clickable(role = Role.Button, onClickLabel = "Change the speed") { onSpeed(ListenSpeeds.next(state.speed)) },
+                        ) { Text(ListenSpeeds.label(state.speed), color = Ink, fontSize = 15.sp, fontWeight = FontWeight.SemiBold) }
+                        RoundControl(if (!transcript) "Show the transcript" else if (state.board != null) "Show the board" else "Show the cover", { transcript = !transcript }, size = 48.dp, on = transcript) {
+                            Icon(Icons.Rounded.FormatQuote, contentDescription = null, tint = if (transcript) Deep else Ink, modifier = Modifier.size(26.dp))
+                        }
+                        RoundControl("Stop", onStop, size = 48.dp) {
+                            Icon(Icons.Rounded.Stop, contentDescription = null, tint = Ink, modifier = Modifier.size(28.dp))
+                        }
+                    }
                 }
             }
-            RoundControl("Forward 30 seconds", onForward30, size = 64.dp) { SkipGlyph(30, forward = true, tint = Ink, size = 40.dp) }
         }
-        Row(
-            horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.fillMaxWidth().padding(top = 12.dp, bottom = 12.dp),
-        ) {
-            Box(
-                contentAlignment = Alignment.Center,
-                modifier = Modifier.height(32.dp).width(56.dp).clip(RoundedCornerShape(10.dp)).background(Ink.copy(alpha = 0.16f))
-                    .clickable(role = Role.Button, onClickLabel = "Change the speed") { onSpeed(ListenSpeeds.next(state.speed)) },
-            ) { Text(ListenSpeeds.label(state.speed), color = Ink, fontSize = 15.sp, fontWeight = FontWeight.SemiBold) }
-            RoundControl(if (transcript) "Show the cover" else "Show the transcript", { transcript = !transcript }, size = 44.dp, on = transcript) {
-                Icon(Icons.Rounded.FormatQuote, contentDescription = null, tint = if (transcript) Deep else Ink, modifier = Modifier.size(26.dp))
+    }
+}
+
+/** Play or pause; while the sound is still downloading after play, a ring that fills as it comes. */
+@Composable
+private fun PlayKey(state: ListenUiState, onPlayPause: () -> Unit, size: Dp) {
+    val downloading = state.downloading
+    RoundControl(if (downloading != null) "Downloading" else if (state.playing) "Pause" else "Play", onPlayPause, size = size) {
+        if (downloading != null) {
+            if (downloading > 0f) {
+                CircularProgressIndicator(progress = { downloading }, color = Ink, trackColor = Ink.copy(alpha = 0.2f), strokeWidth = 4.dp, modifier = Modifier.size(size - 12.dp))
+            } else {
+                CircularProgressIndicator(color = Ink, trackColor = Ink.copy(alpha = 0.2f), strokeWidth = 4.dp, modifier = Modifier.size(size - 12.dp))
             }
-            RoundControl("Stop", onStop, size = 44.dp) {
-                Icon(Icons.Rounded.Stop, contentDescription = null, tint = Ink, modifier = Modifier.size(28.dp))
+            Text("${(downloading * 100).toInt()}%", color = Ink, fontSize = if (size > 60.dp) 15.sp else 11.sp, fontWeight = FontWeight.SemiBold)
+        } else {
+            Icon(if (state.playing) Icons.Rounded.Pause else Icons.Rounded.PlayArrow, contentDescription = null, tint = Ink, modifier = Modifier.size(size * 0.75f))
+        }
+    }
+}
+
+/** A wide strip with a chevron that folds the controls away. */
+@Composable
+private fun Handle(label: String, onClick: () -> Unit) {
+    Box(
+        contentAlignment = Alignment.Center,
+        modifier = Modifier.fillMaxWidth().height(32.dp).clip(RoundedCornerShape(10.dp)).clickable(role = Role.Button, onClickLabel = label, onClick = onClick),
+    ) {
+        Icon(Icons.Rounded.KeyboardArrowDown, contentDescription = null, tint = Soft, modifier = Modifier.size(26.dp))
+    }
+}
+
+/** The controls folded away: progress along the top, then play, the time, forward 30, the transcript, and the way back to the rest. */
+@Composable
+private fun SlimControls(state: ListenUiState, onPlayPause: () -> Unit, onForward30: () -> Unit, transcript: Boolean, onTranscript: () -> Unit, onShow: () -> Unit) {
+    val done = if (state.duration > 0) (state.position / state.duration).toFloat().coerceIn(0f, 1f) else 0f
+    Column(Modifier.padding(top = 4.dp, bottom = 8.dp)) {
+        Box(Modifier.fillMaxWidth().height(3.dp).clip(CircleShape).background(Ink.copy(alpha = 0.26f))) {
+            Box(Modifier.fillMaxWidth(done).fillMaxHeight().background(Ink))
+        }
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp), modifier = Modifier.fillMaxWidth().padding(top = 6.dp)) {
+            PlayKey(state, onPlayPause, size = 52.dp)
+            Text(
+                "${clock(state.position)} / ${clock(state.duration)}", color = Soft, fontSize = 14.sp, fontWeight = FontWeight.Medium,
+                modifier = Modifier.weight(1f).padding(start = 6.dp), maxLines = 1,
+            )
+            RoundControl("Forward 30 seconds", onForward30, size = 48.dp) { SkipGlyph(30, forward = true, tint = Ink, size = 30.dp) }
+            RoundControl(if (!transcript) "Show the transcript" else if (state.board != null) "Show the board" else "Show the cover", onTranscript, size = 48.dp, on = transcript) {
+                Icon(Icons.Rounded.FormatQuote, contentDescription = null, tint = if (transcript) Deep else Ink, modifier = Modifier.size(24.dp))
+            }
+            RoundControl("Show all the controls", onShow, size = 48.dp) {
+                Icon(Icons.Rounded.KeyboardArrowUp, contentDescription = null, tint = Ink, modifier = Modifier.size(30.dp))
             }
         }
     }

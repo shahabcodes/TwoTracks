@@ -34,6 +34,11 @@ class ListenPlace @Inject constructor(@ApplicationContext context: Context) {
         set(value) { prefs.edit().putFloat("speed", value).apply() }
 
     /** The telling last picked, offered first on a topic that has it. */
+    /** The player's controls folded away to one row, to give the board the room; null until someone chooses. */
+    var controlsHidden: Boolean?
+        get() = if (prefs.contains("controlsHidden")) prefs.getBoolean("controlsHidden", false) else null
+        set(value) { prefs.edit().apply { if (value == null) remove("controlsHidden") else putBoolean("controlsHidden", value) }.apply() }
+
     var style: PodcastStyle
         get() = PodcastStyle.entries.firstOrNull { it.name == prefs.getString("style", null) } ?: PodcastStyle.CLASSIC
         set(value) { prefs.edit().putString("style", value.name).apply() }

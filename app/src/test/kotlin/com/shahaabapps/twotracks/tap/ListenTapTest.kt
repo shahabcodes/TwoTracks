@@ -6,6 +6,7 @@ import androidx.compose.ui.test.performSemanticsAction
 import com.shahaabapps.core.content.PodcastCue
 import com.shahaabapps.core.ui.theme.AppLook
 import com.shahaabapps.twotracks.feature.learn.TopicContent
+import com.shahaabapps.twotracks.feature.listen.EpisodeAudio
 import com.shahaabapps.twotracks.feature.listen.ListenContent
 import com.shahaabapps.twotracks.feature.listen.NowPlayingBar
 import com.shahaabapps.twotracks.preview.ListenSamples
@@ -14,11 +15,13 @@ import org.junit.Test
 /** The podcast player, the bar that follows you round the app, and the way in from a topic. */
 class ListenTapTest(look: AppLook) : TapTest(look) {
 
-    private fun player(playing: Boolean = true) = show {
+    private fun player(playing: Boolean = true, hidden: Boolean = false, downloading: Float? = null) = show {
         ListenContent(
-            ListenSamples.listen(playing = playing), onBack = record("close"), onPlayPause = record("playPause"),
+            ListenSamples.listen(playing = playing).let { s -> downloading?.let { s.copy(fetch = EpisodeAudio.Fetch.Downloading(it), playing = false) } ?: s },
+            onBack = record("close"), onPlayPause = record("playPause"),
             onBack15 = record("back15"), onForward30 = record("forward30"), onSeek = record1("seek"), onSpeed = record1("speed"),
             onStop = record("stop"), onLine = record1("line"), onStyle = record1("style"),
+            controlsHidden = hidden, onToggleControls = record("toggleControls"),
         )
     }
 
@@ -57,8 +60,8 @@ class ListenTapTest(look: AppLook) : TapTest(look) {
     @Test
     fun `the speed steps up from where it is`() {
         player()
-        // The sample plays at 1.2: Parallel's chip steps to the next speed, the board picks one outright.
-        if (board) tap("1.5×") else tapAction("Change the speed")
+        // The sample plays at 1.2; the speed key steps to the next one in both looks.
+        tapAction("Change the speed")
         expect("speed(1.5)")
     }
 
@@ -91,9 +94,34 @@ class ListenTapTest(look: AppLook) : TapTest(look) {
         } else {
             tapAction("Show the transcript")
             expect()
-            tapAction("Show the cover")
+            tapAction("Show the board")
             expect()
         }
+    }
+
+    @Test
+    fun `the controls fold away and come back`() {
+        player()
+        tapAction("Hide the controls")
+        expect("toggleControls")
+    }
+
+    @Test
+    fun `folded, the controls still play, skip on and unfold`() {
+        player(hidden = true)
+        tapAction("Pause")
+        expect("playPause")
+        tapAction("Forward 30 seconds")
+        expect("forward30")
+        tapAction("Show all the controls")
+        expect("toggleControls")
+    }
+
+    @Test
+    fun `while the sound downloads the play key says so`() {
+        player(downloading = 0.4f)
+        tapAction("Downloading")
+        expect("playPause")
     }
 
     @Test

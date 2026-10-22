@@ -1,10 +1,19 @@
 package com.shahaabapps.twotracks.feature.listen
 
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
+import androidx.compose.animation.togetherWith
+import androidx.compose.material.icons.rounded.KeyboardArrowDown
+import androidx.compose.material.icons.rounded.KeyboardArrowUp
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
@@ -66,12 +75,13 @@ import com.shahaabapps.twotracks.ui.board.LineMark
 import kotlin.math.max
 
 /**
- * The player as the board prints it: the episode as a departure, the time
- * gone on flip tiles, the speeds as a row of segments, and the transcript as
- * the timetable under it, the line being spoken marked as the board marks
- * the next train. Every line is a stop you can tap to play from. An episode
- * with a board shows it in the timetable's place, in the look's own colours,
- * with the timetable one segment away.
+ * The player as the board prints it. The episode's board fills the screen
+ * and scrolls, under the departure (cover, title, how long) and the choice of
+ * tellings; the timetable, the transcript as the board marks the next train,
+ * is one segment away, and every line in it is a stop you can tap to play
+ * from. The subtitles stay pinned above the controls, and the controls (the
+ * time on flip tiles, the track, the keys and the speeds) fold away to one
+ * row to give the board the room, which is remembered.
  */
 @Composable
 internal fun BoardListen(
@@ -85,88 +95,146 @@ internal fun BoardListen(
     onStop: () -> Unit,
     onLine: (Int) -> Unit,
     onStyle: (PodcastStyle) -> Unit = {},
+    controlsHidden: Boolean = false,
+    onToggleControls: () -> Unit = {},
+    transcriptFirst: Boolean = false,
 ) {
-    // An episode with a board shows it in the timetable's place first, and the
-    // transcript a tap away; one without keeps the timetable alone.
-    var showBoard by rememberSaveable { mutableStateOf(true) }
+    // An episode with a board shows it first, and the timetable a tap away;
+    // one without keeps the timetable alone.
+    var showBoard by rememberSaveable { mutableStateOf(!transcriptFirst) }
     val board = state.board?.takeIf { showBoard }
     Scaffold(containerColor = AppTheme.colors.groupedBackground) { inner ->
         Column(Modifier.fillMaxSize().padding(inner)) {
-            Column(Modifier.padding(horizontal = BoardGutter), verticalArrangement = Arrangement.spacedBy(14.dp)) {
-                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = 6.dp).height(44.dp)) {
-                    BoardBack(onBack, "Close the player")
-                    BoardLabel("Now playing · ${state.series.label} podcast", size = 13.sp, textAlign = TextAlign.Center, modifier = Modifier.weight(1f))
-                    BoardMono(ListenSpeeds.label(state.speed), modifier = Modifier.width(34.dp), textAlign = TextAlign.End, spacing = 0.sp)
-                }
-                Row(horizontalArrangement = Arrangement.spacedBy(14.dp), verticalAlignment = Alignment.CenterVertically) {
-                    Cover(Modifier.size(84.dp), corner = 10.dp, series = state.series)
-                    Column(verticalArrangement = Arrangement.spacedBy(4.dp), modifier = Modifier.weight(1f)) {
-                        BoardLabel("Module ${state.module} · ${state.hosts}", color = AppTheme.colors.accent)
-                        BoardTitle(state.title, size = 26.sp)
-                        BoardMono("${state.minutes} MIN · ${state.lines.size} LINES")
-                        state.fetchLine?.let { BoardMono(it.uppercase()) }
-                    }
-                }
-                // The tellings of this topic, when it has more than one.
-                if (state.styles.size > 1) {
-                    BoardSegments(state.styles.map { it to it.label }, selected = state.style, onSelect = onStyle, scroll = true)
-                }
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    FlipTiles(clock(state.position).padStart(5, '0'), tileWidth = 34.dp, tileHeight = 46.dp, fontSize = 28.sp, gap = 4.dp)
-                    Box(Modifier.weight(1f))
-                    Column(horizontalAlignment = Alignment.End) {
-                        BoardLabel("Left")
-                        BoardMono(clock(max(0.0, state.duration - state.position)), color = AppTheme.colors.ink, size = 16.sp)
-                    }
-                }
-                BoardScrubber(state, onSeek)
-                Row(horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Min)) {
-                    BoardControl("Back 15 seconds", onBack15, Modifier.weight(1f)) { SkipGlyph(15, forward = false, tint = AppTheme.colors.ink, size = 30.dp) }
-                    val downloading = state.downloading
-                    Box(
-                        contentAlignment = Alignment.Center,
-                        modifier = Modifier.weight(1.6f).height(60.dp).clip(RoundedCornerShape(12.dp))
-                            .background(if (downloading != null) AppTheme.colors.accent.copy(alpha = 0.35f) else AppTheme.colors.accent)
-                            .clickable(role = Role.Button, onClickLabel = if (downloading != null) "Downloading" else if (state.playing) "Pause" else "Play", onClick = onPlayPause),
+            Row(
+                verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(16.dp),
+                modifier = Modifier.padding(horizontal = BoardGutter).padding(top = 6.dp, bottom = 6.dp).height(44.dp),
+            ) {
+                BoardBack(onBack, "Close the player")
+                BoardLabel(state.series.label, size = 13.sp, maxLines = 1, modifier = Modifier.weight(1f))
+                // The board and the timetable, one link apart.
+                if (state.board != null) BoardLink(if (showBoard) "Transcript" else "Board", { showBoard = !showBoard })
+                BoardLink("Stop", onStop)
+            }
+            HorizontalDivider(color = AppTheme.colors.separator)
+            Box(Modifier.weight(1f).fillMaxWidth()) {
+                if (board != null) {
+                    // The board at its full size, scrolling on a short screen
+                    // rather than pushing the controls off it.
+                    Column(
+                        Modifier.fillMaxSize().fadeBottom(28.dp).verticalScroll(rememberScrollState()).padding(horizontal = BoardGutter).padding(top = 12.dp, bottom = 24.dp),
+                        verticalArrangement = Arrangement.spacedBy(14.dp),
                     ) {
-                        // Pressed play, and the sound is still on its way: the key fills from the left as it comes.
-                        if (downloading != null) Box(Modifier.align(Alignment.CenterStart).fillMaxHeight().fillMaxWidth(downloading).background(AppTheme.colors.accent))
-                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                            if (downloading != null) {
-                                Icon(Icons.Rounded.Download, contentDescription = null, tint = AppTheme.colors.onSolid, modifier = Modifier.size(26.dp))
-                                BoardLabel("${(downloading * 100).toInt()}%", color = AppTheme.colors.onSolid, size = 18.sp, weight = FontWeight.Bold)
-                            } else {
-                                Icon(if (state.playing) Icons.Rounded.Pause else Icons.Rounded.PlayArrow, contentDescription = null, tint = AppTheme.colors.onSolid, modifier = Modifier.size(30.dp))
-                                BoardLabel(if (state.playing) "Pause" else "Play", color = AppTheme.colors.onSolid, size = 18.sp, weight = FontWeight.Bold)
+                        Departure(state, onStyle)
+                        EpisodeBoard(
+                            board, state.line, state.playing,
+                            palette = boardPalette(),
+                            heading = { BoardLabel(it, color = AppTheme.colors.accent) },
+                        )
+                    }
+                } else {
+                    BoardTimetable(state, onLine, Modifier.fillMaxSize()) { Departure(state, onStyle) }
+                }
+            }
+            if (board != null) BoardCaptions(state)
+            HorizontalDivider(color = AppTheme.colors.separator)
+            AnimatedContent(
+                targetState = controlsHidden, label = "controls",
+                transitionSpec = { (fadeIn() + expandVertically()) togetherWith (fadeOut() + shrinkVertically()) },
+            ) { hidden ->
+                if (hidden) {
+                    SlimBoardControls(state, onPlayPause, onForward30, onShow = onToggleControls)
+                } else {
+                    Column(Modifier.padding(horizontal = BoardGutter).padding(bottom = 10.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                        Box(
+                            contentAlignment = Alignment.Center,
+                            modifier = Modifier.fillMaxWidth().height(30.dp).clickable(role = Role.Button, onClickLabel = "Hide the controls", onClick = onToggleControls),
+                        ) { Icon(Icons.Rounded.KeyboardArrowDown, contentDescription = null, tint = AppTheme.colors.secondaryLabel, modifier = Modifier.size(26.dp)) }
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            FlipTiles(clock(state.position).padStart(5, '0'), tileWidth = 28.dp, tileHeight = 38.dp, fontSize = 23.sp, gap = 3.dp)
+                            Box(Modifier.weight(1f))
+                            Column(horizontalAlignment = Alignment.End) {
+                                BoardLabel("Left")
+                                BoardMono(clock(max(0.0, state.duration - state.position)), color = AppTheme.colors.ink, size = 16.sp)
+                            }
+                        }
+                        BoardScrubber(state, onSeek)
+                        Row(horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.fillMaxWidth().height(56.dp)) {
+                            BoardControl("Back 15 seconds", onBack15, Modifier.weight(1f)) { SkipGlyph(15, forward = false, tint = AppTheme.colors.ink, size = 30.dp) }
+                            BoardPlayKey(state, onPlayPause, Modifier.weight(1.6f).fillMaxHeight())
+                            BoardControl("Forward 30 seconds", onForward30, Modifier.weight(1f)) { SkipGlyph(30, forward = true, tint = AppTheme.colors.ink, size = 30.dp) }
+                            // The speed as one key that steps through them, as the Parallel player has it.
+                            BoardControl("Change the speed", { onSpeed(ListenSpeeds.next(state.speed)) }, Modifier.weight(1f)) {
+                                BoardMono(ListenSpeeds.label(state.speed), color = AppTheme.colors.ink, size = 15.sp, spacing = 0.sp)
                             }
                         }
                     }
-                    BoardControl("Forward 30 seconds", onForward30, Modifier.weight(1f)) { SkipGlyph(30, forward = true, tint = AppTheme.colors.ink, size = 30.dp) }
-                }
-                BoardSegments(ListenSpeeds.ALL.map { it to ListenSpeeds.label(it) }, selected = ListenSpeeds.nearest(state.speed), onSelect = onSpeed)
-                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                    if (state.board != null) {
-                        BoardSegments(listOf(true to "Board", false to "Transcript"), selected = showBoard, onSelect = { showBoard = it }, modifier = Modifier.weight(1f))
-                    } else {
-                        BoardLabel("Transcript", modifier = Modifier.weight(1f))
-                    }
-                    BoardLink("Stop", onStop)
                 }
             }
-            HorizontalDivider(color = AppTheme.colors.separator, modifier = Modifier.padding(top = 8.dp))
-            if (board != null) {
-                BoardCaptions(state)
-                // In the timetable's place, scrolling on a short screen rather
-                // than pushing the controls off it.
-                Column(Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(horizontal = BoardGutter, vertical = 12.dp)) {
-                    EpisodeBoard(
-                        board, state.line, state.playing,
-                        palette = boardPalette(),
-                        heading = { BoardLabel(it, color = AppTheme.colors.accent) },
-                    )
-                }
+        }
+    }
+}
+
+/** The episode as a departure: its cover, its module and hosts, its title, how long, and the tellings to choose from. */
+@Composable
+private fun Departure(state: ListenUiState, onStyle: (PodcastStyle) -> Unit) {
+    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        Row(horizontalArrangement = Arrangement.spacedBy(14.dp), verticalAlignment = Alignment.CenterVertically) {
+            Cover(Modifier.size(64.dp), corner = 8.dp, series = state.series)
+            Column(verticalArrangement = Arrangement.spacedBy(3.dp), modifier = Modifier.weight(1f)) {
+                BoardLabel("Module ${state.module} · ${state.hosts}", color = AppTheme.colors.accent)
+                BoardTitle(state.title, size = 21.sp)
+                BoardMono("${state.minutes} MIN · ${state.lines.size} LINES")
+                state.fetchLine?.let { BoardMono(it.uppercase()) }
+            }
+        }
+        if (state.styles.size > 1) {
+            BoardSegments(state.styles.map { it to it.label }, selected = state.style, onSelect = onStyle, scroll = true)
+        }
+    }
+}
+
+/** Play or pause in the signal colour; while the sound downloads after play, the key fills from the left as it comes. */
+@Composable
+private fun BoardPlayKey(state: ListenUiState, onPlayPause: () -> Unit, modifier: Modifier, compact: Boolean = false) {
+    val downloading = state.downloading
+    BoxWithConstraints(
+        contentAlignment = Alignment.Center,
+        modifier = modifier.clip(RoundedCornerShape(12.dp))
+            .background(if (downloading != null) AppTheme.colors.accent.copy(alpha = 0.35f) else AppTheme.colors.accent)
+            .clickable(role = Role.Button, onClickLabel = if (downloading != null) "Downloading" else if (state.playing) "Pause" else "Play", onClick = onPlayPause),
+    ) {
+        val wide = maxWidth >= 132.dp
+        if (downloading != null) Box(Modifier.align(Alignment.CenterStart).fillMaxHeight().fillMaxWidth(downloading).background(AppTheme.colors.accent))
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+            if (downloading != null) {
+                Icon(Icons.Rounded.Download, contentDescription = null, tint = AppTheme.colors.onSolid, modifier = Modifier.size(if (compact) 20.dp else 26.dp))
+                BoardLabel("${(downloading * 100).toInt()}%", color = AppTheme.colors.onSolid, size = if (compact) 14.sp else 18.sp, weight = FontWeight.Bold)
             } else {
-                BoardTimetable(state, onLine, Modifier.weight(1f))
+                Icon(if (state.playing) Icons.Rounded.Pause else Icons.Rounded.PlayArrow, contentDescription = null, tint = AppTheme.colors.onSolid, modifier = Modifier.size(if (compact) 26.dp else 30.dp))
+                // The word only where it fits beside the glyph: a narrow phone with large text keeps the glyph alone.
+                if (!compact && wide) BoardLabel(if (state.playing) "Pause" else "Play", color = AppTheme.colors.onSolid, size = 18.sp, weight = FontWeight.Bold)
+            }
+        }
+    }
+}
+
+/** The controls folded away: the run so far along the top, then play, the time, forward 30, and the way back to the rest. */
+@Composable
+private fun SlimBoardControls(state: ListenUiState, onPlayPause: () -> Unit, onForward30: () -> Unit, onShow: () -> Unit) {
+    val done = if (state.duration > 0) (state.position / state.duration).toFloat().coerceIn(0f, 1f) else 0f
+    Column {
+        Box(Modifier.fillMaxWidth().height(3.dp).background(AppTheme.colors.separator)) {
+            Box(Modifier.fillMaxWidth(done).fillMaxHeight().background(AppTheme.colors.accent))
+        }
+        Row(
+            verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp),
+            modifier = Modifier.fillMaxWidth().padding(horizontal = BoardGutter, vertical = 10.dp).height(48.dp),
+        ) {
+            BoardPlayKey(state, onPlayPause, Modifier.width(76.dp).fillMaxHeight(), compact = true)
+            BoardMono("${clock(state.position)}/${clock(state.duration)}", color = AppTheme.colors.ink, size = 14.sp, spacing = 0.sp, modifier = Modifier.weight(1f))
+            BoardControl("Forward 30 seconds", onForward30, Modifier.width(52.dp)) { SkipGlyph(30, forward = true, tint = AppTheme.colors.ink, size = 26.dp) }
+            BoardControl("Show all the controls", onShow, Modifier.width(52.dp)) {
+                Icon(Icons.Rounded.KeyboardArrowUp, contentDescription = null, tint = AppTheme.colors.ink, modifier = Modifier.size(28.dp))
             }
         }
     }
@@ -206,11 +274,12 @@ private fun boardPalette() = BoardPalette(
 )
 
 @Composable
-private fun BoardTimetable(state: ListenUiState, onLine: (Int) -> Unit, modifier: Modifier) {
+private fun BoardTimetable(state: ListenUiState, onLine: (Int) -> Unit, modifier: Modifier, header: @Composable () -> Unit = {}) {
     val list = rememberLazyListState()
     val current = state.line
-    LaunchedEffect(current) { if (current != null) list.animateScrollToItem(max(0, current - 1)) }
+    LaunchedEffect(current) { if (current != null) list.animateScrollToItem(current) }
     LazyColumn(state = list, modifier = modifier, contentPadding = PaddingValues(horizontal = BoardGutter, vertical = 10.dp)) {
+        item { Box(Modifier.padding(top = 2.dp, bottom = 12.dp)) { header() } }
         itemsIndexed(state.lines) { i, line ->
             val lit = i == current
             Row(
