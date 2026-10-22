@@ -5,47 +5,59 @@ internal object Ai200EpisodesKeyVault {
     private val classic = Podcast(
         "ai-keyvault",
         listOf(
-            maya("Hi, and welcome back. Today is Key Vault, for AI apps. Here's the puzzle. Say you're building the Two Tracks Coach, a study assistant for an Android app, with a Python backend, the server code the app talks to, on Azure. It calls an AI model, and the model wants an API key: a long password that proves you're allowed to call it. Where does that key live?"),
+            maya("Hi, and welcome back. Today: Key Vault, for AI apps. Say you're building the Two Tracks Coach: an Android app with a Python backend, the server code the app talks to, on Azure. The backend calls an AI model that wants an API key: a long password that proves you may call it. Where does that key live?"),
             leo("In the app, obviously. Somewhere hidden. [chuckle] I'm guessing that's wrong."),
             maya("Very wrong. Anything shipped inside an Android app can be pulled out of it, hidden or not. So the phone never holds the key. The phone calls your backend, and only the backend talks to the place where the key lives. That place is Azure Key Vault."),
             leo("And Key Vault is, in plain words?"),
-            maya("A locked safe in Azure, for secrets. A secret is anything you'd never say out loud: API keys, passwords, connection strings, which are database addresses with a password baked in. Only the people and apps you choose can open the safe."),
+            maya("A locked safe in Azure, for secrets: API keys, passwords, connection strings, which are database addresses with a password baked in. Only the people and apps you choose can open it."),
             leo("But then the backend needs a password to open the safe. Doesn't that just move the problem?"),
             maya("That's the clever part. It uses a managed identity instead. Picture an employee badge that Azure makes for your app, and looks after itself. Nobody ever sees a password, so nobody can leak one."),
             leo("A badge. But who checks the badge, really?"),
-            maya("Microsoft Entra ID, Azure's sign-in system. Think of the reception desk of a big office: it keeps the list of everyone allowed in, people and apps, and checks who is who. The managed identity is a real account on that list."),
+            maya("Microsoft Entra ID, Azure's sign-in system. Think of a big office's reception desk: it keeps the list of everyone allowed in, people and apps. The managed identity is a real account on that list."),
             leo("And what does the app actually show at the vault's door?"),
             maya("A token. That's a short-lived signed pass, like a festival wristband: proof you were checked at the gate, and it runs out within hours. Azure started your backend, so it hands the backend tokens on a private local address nobody outside can reach."),
             leo("And how does the vault decide whether the badge is allowed in?"),
-            maya("With RBAC, role-based access control. Permissions come as roles, like job titles. Key Vault Secrets User can read secret values, nothing more. Secrets Officer can create, change and delete them. Key Vault Administrator can do everything, and that's for a person, rarely. Always the smallest role that works."),
-            leo("So the Coach backend gets Secrets User. Now, I've heard there are two kinds of badge."),
-            maya("Two. A system-assigned identity is switched on inside one app. It belongs to that app alone, and when the app is deleted, the badge goes with it. It can't be shared, and it can't be given a role before its app exists."),
+            maya("With RBAC, which is role-based access control. Permissions come as roles, like job titles at work. You give the backend's badge a role on the vault."),
+            leo("Which role? Honestly, I'd give it admin so it just works."),
+            maya("That's the trap. Your backend only reads the AI key, so it gets Key Vault Secrets User: read secret values, nothing more. Secrets Officer creates and changes them. Administrator does everything, and that's for a person, rarely."),
+            leo("So if someone breaks into my backend, they can read the key, but not wipe the vault."),
+            maya("Exactly. Always the smallest role that works."),
+            leo("Got it. Now, I've heard there are two kinds of badge."),
+            maya("Two. A system-assigned identity is switched on inside one app and belongs to it alone; delete the app, and the badge goes too. It can't be shared, or given a role before its app exists."),
             leo("And the other kind?"),
-            maya("A user-assigned identity. This one is a resource of its own, a separate thing in Azure, like a vault or an app. You create it by itself, before any app exists. Then you grant it its role once, and attach it to as many apps as you like."),
+            maya("A user-assigned identity. It's a resource of its own, a separate thing in Azure. You create it first, grant it its role once, and attach it to as many apps as you like."),
             leo("Why would I want one badge for several apps?"),
-            maya("For example, the Coach API runs on Container Apps, Azure's service for running a packaged app, and a nightly function rebuilds the search data. Both read the same AI key. With one user-assigned identity, you grant Key Vault Secrets User once, and attach the identity to both."),
+            maya("For example, the Coach API runs on Container Apps, Azure's service for running a packaged app, and a nightly function rebuilds the search data. Both read the same AI key: one user-assigned identity, granted once, attached to both."),
             leo("And if I delete one of those apps?"),
-            maya("The identity stays, still holding its role, ready for the next app. It outlives any one app. That's the point. Just never delete the identity itself while apps still use it, or they all lose access at once."),
+            maya("The identity stays, still holding its role, ready for the next app. It outlives any one app. Just never delete the identity itself while apps still use it, or they all lose access at once."),
             leo("And in the Python code? How does it show the badge?"),
-            maya("With one line, DefaultAzureCredential. It finds the right sign-in by itself. On your laptop, it uses your own sign-in, after az login, the Azure command line's way to sign in. In Azure, it uses the managed identity. Same code in both places."),
+            maya("One line: DefaultAzureCredential. It finds the right sign-in by itself. On your laptop, your own sign-in, after az login, the Azure command line's sign-in. In Azure, the managed identity. Same code in both places."),
             leo("And if the app wears a user-assigned badge? How does it know which one?"),
-            maya("You set an environment variable, a named setting the app reads when it starts, called AZURE CLIENT ID. Its value is the identity's client ID, the badge's own number. Then DefaultAzureCredential knows exactly which badge to wear."),
+            maya("You set an environment variable, a named setting the app reads when it starts: AZURE CLIENT ID, set to the identity's client ID, the badge's own number. DefaultAzureCredential reads it."),
             leo("Okay. The backend reads the key. Every time someone asks a question?"),
-            maya("No, and that's a common mistake. Calling the vault on every request is slow, and at busy times you get throttled, told to slow down. So cache it: keep the value in memory for a few minutes, five, say, then fetch it again."),
+            maya("No, and that's a common mistake. Calling the vault on every request is slow, and at busy times you get throttled, told to slow down. So cache it, the way your Android app caches a profile instead of calling the server on every screen. Keep it in memory for five minutes, say, then read again."),
             leo("Fetch it again? Does the key change?"),
-            maya("It should, now and then. Every time you write a secret, Key Vault keeps it as a new secret version, with its own id. The old versions stay. Ask without a version, and you get the latest. Pin a version number, and you get that one forever, so a new key never reaches you."),
+            maya("It should, now and then. Every write keeps the secret as a new secret version, and the old ones stay. Ask without a version, and you get the latest. Pin a version number, and you get that one forever, so a new key never reaches you."),
             leo("So changing the key on purpose is called?"),
-            maya("Rotation. Replacing a secret on a schedule, so a leaked value stops working. Now, the vault also holds keys for encryption, which scramble data so only the right holder can read it. Those have a key rotation policy: the vault makes new key versions by itself. But an API key comes from the AI provider, so secrets have no built-in rotation."),
+            maya("Rotation: replacing a secret on a schedule, so a leaked value stops working."),
+            leo("Can't the vault just do that for me? It's a vault."),
+            maya("For its own encryption keys, the ones that scramble data, yes: a key rotation policy makes new versions by itself. But your AI key is made by the AI provider. The vault can't invent one, so secrets have no built-in rotation."),
             leo("Then how does an API key get rotated, with no person involved?"),
-            maya("You give the secret an expiry date. About 30 days before it, Key Vault sends an event called SecretNearExpiry to Event Grid, Azure's notice board that pushes news. A function, a small piece of code that runs when something happens, wakes up, gets a new key from the provider, and writes it to the vault as a new version."),
+            maya("You give the secret an expiry date. About 30 days before it, Key Vault sends an event called SecretNearExpiry to Event Grid, Azure's notice board. Event Grid pushes that news to whoever subscribed."),
+            leo("Pushes it to my backend? It isn't listening for vault news."),
+            maya("No, to a function: a small piece of code that runs when something happens. It wakes up, gets a new key from the provider, and writes it to the vault as a new version. Nothing is pushed to your backend. It reads, as always."),
             leo("And the backend picks it up, because it reads the latest and its cache runs out."),
-            maya("Exactly. And if the model rejects the old key first, drop the cached value and read again. If you'd rather write no code, App Service, Azure's home for web apps, and Functions can use a Key Vault reference: a setting that says, fetch this from the vault. It refreshes within 24 hours, as long as you don't pin a version."),
+            maya("Exactly. And if the model rejects the old key first, drop the cached value and read again."),
+            leo("And if I don't want to write that caching code at all?"),
+            maya("Then App Service, Azure's home for web apps, and Functions can use a Key Vault reference: a setting that says, fetch this from the vault. The platform fetches it with the app's identity, and refreshes it within 24 hours, as long as you don't pin a version."),
             leo("Last scary thing. What if someone deletes the key by accident?"),
-            maya("Soft delete has you covered. It's a recycle bin. A deleted secret, or even a whole vault, waits there for a retention period of 7 to 90 days, 90 by default, and you can recover it. You choose the period when you create the vault, and it's fixed after that. Soft delete is always on for new vaults."),
+            maya("Soft delete has you covered. It's a recycle bin, always on for new vaults. A deleted secret, or even a whole vault, waits there, and you can recover it."),
+            leo("Waits how long?"),
+            maya("The retention period: 7 to 90 days, 90 by default. You choose it when you create the vault, and it's fixed after that."),
             leo("So deleted means waiting in the bin. Can anyone empty the bin?"),
-            maya("That's a purge. Purging erases a deleted secret for good, right now, with no way back. It needs its own permission, such as the Key Vault Purge Operator role. And while a secret sits in the bin, its name is taken. You can't create a new one with that name: recover it, or wait."),
+            maya("That's a purge: it erases a deleted secret for good, right now. It needs its own permission, such as the Key Vault Purge Operator role. And while a secret sits in the bin, its name is taken: recover it, or wait."),
             leo("So someone with that permission, careless or worse, could still make it vanish today."),
-            maya("[pause] Unless purge protection is on. It's off by default. With it on, nothing in the bin can be purged before its retention period ends. Not by anyone, not even an administrator. And once it's on, it can never be turned off, so nobody can quietly remove the safety net later."),
+            maya("[pause] Unless purge protection is on. It's off by default. With it on, nothing in the bin can be purged before its retention period ends, not even by an administrator. And once it's on, it can never be turned off."),
             leo("So what do I remember for the exam?"),
             maya("Five things. If several apps share one identity, or it must exist first, user-assigned. If an app only reads secrets, Key Vault Secrets User. If a secret must rotate itself, an expiry date, SecretNearExpiry and a function. If rotation never reaches the app, it pinned a version. And if nobody may purge early, purge protection."),
             leo("And anything to try today?"),
@@ -82,21 +94,29 @@ internal object Ai200EpisodesKeyVault {
             leo("Suspect: the vault is full. Or it only allows one app."),
             maya("Neither. The function had a system-assigned identity: a badge switched on inside one app, born with it and deleted with it. That badge didn't exist until the function was deployed, so nobody could grant its role in advance. It ran before anyone remembered."),
             leo("So what should they use?"),
-            maya("A user-assigned identity. It's a resource of its own. You create it first, grant Key Vault Secrets User once, then attach it to the backend and the nightly function both. A third app next month? Just attach it. Delete one app? The identity stays, with its role, ready for the next. It outlives any one app."),
+            maya("A user-assigned identity. It's a resource of its own. You create it first, grant Key Vault Secrets User once, then attach it to the backend and the nightly function both."),
+            leo("Hold on. One badge, two apps. If they delete the backend next year, does the function lose its badge?"),
+            maya("No. The identity stays, with its role, ready for the next app. It outlives any one app. A third app next month? Just attach it."),
             leo("And how does the code know which badge to wear?"),
             maya("An environment variable, a named setting the app reads at start, called AZURE CLIENT ID, set to the identity's client ID. DefaultAzureCredential reads it. Just never delete the shared identity while apps still use it, or they all lose access at once."),
             leo("Third witness. I can feel it."),
             maya("[chuckle] The leaked key was replaced with a new one. A new secret version: every write keeps the old versions and adds a new one. But the backend kept failing, with the model saying the key wasn't valid, for days."),
             leo("Suspect: the vault didn't save the new key."),
-            maya("It did. The backend's setting named a version number. Pinned. So it read the old, dead key forever. Read without a version, and you get the latest. And cache it for a few minutes, so you're not calling the vault on every request and getting throttled, told to slow down."),
+            maya("It did. The backend's setting named a version number. Pinned. So it read the old, dead key forever. Read without a version, and you get the latest."),
+            leo("Then should the backend read the vault on every request, just to be safe?"),
+            maya("No: that's slow, and at busy times you get throttled, told to slow down. Cache it in memory for a few minutes, the way your Android app caches a profile instead of calling the server on every screen."),
             leo("And next time, can the key change itself?"),
-            maya("Not by itself; only the provider can issue a new API key. So give the secret an expiry date. About 30 days before it, Key Vault sends SecretNearExpiry to Event Grid, Azure's notice board that pushes news. A function wakes, gets a new key, and writes a new version. The Event Grid and Functions episodes cover both halves."),
+            maya("Not by itself; only the provider can issue a new API key. So give the secret an expiry date. About 30 days before it, Key Vault sends SecretNearExpiry to Event Grid, Azure's notice board, which pushes it on."),
+            leo("Pushes it to the backend?"),
+            maya("To a function. It wakes, gets a new key, and writes a new version. The backend never gets pushed anything; it just reads the latest. The Event Grid and Functions episodes cover both halves."),
             leo("Couldn't they skip the code, and just point a setting at the vault?"),
             maya("They could. App Service, Azure's home for web apps, and Functions take a Key Vault reference, a setting that says fetch this from the vault, refreshed within 24 hours. Container Apps, Azure's service for running a packaged app, can point a secret at the vault too, picked up within about 30 minutes. Either way, no version in it."),
             leo("Last witness. Who's left?"),
             maya("The intern, cleaning up. They deleted the old secret. Then, to be tidy, they purged it. Then a manager asked for it back, for the audit, a check of past records."),
             leo("Deleted is recoverable, though. Soft delete."),
-            maya("Soft delete is a recycle bin: a deleted secret waits there for 7 to 90 days, and can be recovered. But a purge erases it from the bin for good, right now. QuizQuest's vault didn't have purge protection. With it on, nothing can be purged before the retention period ends, not even by an administrator. And once it's on, it can never be turned off."),
+            maya("Soft delete is a recycle bin: a deleted secret waits there for 7 to 90 days, and can be recovered. But a purge erases it from the bin, for good, right now."),
+            leo("So the bin was already empty when the manager asked. Suspect: nothing guarding the bin."),
+            maya("Correct. QuizQuest's vault had no purge protection. With it on, nothing can be purged before the retention period ends, not even by an administrator. And once it's on, it can never be turned off."),
             leo("Could they at least make a new secret with the same name?"),
             maya("Not while the old one sits in the bin: its name is taken. Recover it, or wait. The bin's retention period, 90 days by default, is chosen when the vault is created and fixed after that. And purging needs its own permission, such as the Key Vault Purge Operator role."),
             leo("So, the case summary for the exam?"),
@@ -134,7 +154,9 @@ internal object Ai200EpisodesKeyVault {
             leo("Why no?"),
             maya("Because a system-assigned badge only exists once its app does, so nobody had granted its role yet. And the Coach API needed a badge too. So Priya, of course, suggested a user-assigned identity."),
             leo("Which is different how?"),
-            maya("It's a resource of its own. You create it first, grant Key Vault Secrets User once, and attach it to the API and the nightly function both. A new app next month just gets attached. Delete one app, and the identity stays, with its role. It outlives any one app. Just never delete it while apps still wear it."),
+            maya("It's a resource of its own. You create it first, grant Key Vault Secrets User once, and attach it to the API and the nightly function both."),
+            leo("And when someone deletes one of those apps?"),
+            maya("The identity stays, with its role. It outlives any one app; a new app next month just gets attached. Just never delete it while apps still wear it."),
             leo("And the code knows which badge?"),
             maya("An environment variable, a named setting the app reads at start: AZURE CLIENT ID, set to the identity's client ID. DefaultAzureCredential picks it up. Marcus was very relieved."),
             leo("Thursday, I'm guessing, the intern."),
@@ -142,13 +164,17 @@ internal object Ai200EpisodesKeyVault {
             leo("So, cache it?"),
             maya("Cache it. Keep the value in memory for about five minutes, then read again. And read it without a version. Every write makes a new secret version, and the old ones stay. Without a version you get the latest; pin one, and rotation never reaches you."),
             leo("Rotation being?"),
-            maya("Replacing a secret on a schedule, so a leaked one stops working. Secrets don't rotate themselves, because only the provider can issue a new API key. So the key gets an expiry date, and about 30 days before, Key Vault sends SecretNearExpiry to Event Grid, the notice board that pushes. A function writes the new version. The Event Grid episode has the rest."),
+            maya("Replacing a secret on a schedule, so a leaked one stops working. And no, the vault can't do it alone: only the AI provider can issue a new API key."),
+            leo("So who does it? Not the intern, I hope."),
+            maya("A function. The key gets an expiry date, and about 30 days before, Key Vault sends SecretNearExpiry to Event Grid, the notice board that pushes it on to the function. The function writes the new version. The Event Grid episode has the rest."),
             leo("Couldn't someone skip the code entirely?"),
             maya("Dana did, for the admin website. App Service, Azure's home for web apps, can use a Key Vault reference: a setting that says, fetch this from the vault, using the app's own identity. It refreshes within 24 hours. As long as nobody pins a version."),
             leo("And Friday? There's always a Friday."),
             maya("Priya. Priya never makes mistakes, which is why everyone's still talking. She deleted an old test secret, called OpenAiKey. Then she tried to create a fresh one with the same name. And the vault refused."),
             leo("Why?"),
-            maya("Soft delete. It's a recycle bin, always on for new vaults. A deleted secret waits there for its retention period, 7 to 90 days, 90 by default, and while it's in the bin, its name is taken. Recover it, or wait. Or purge it, which erases it from the bin for good, right now."),
+            maya("Soft delete. It's a recycle bin, always on for new vaults. A deleted secret waits there for its retention period, 7 to 90 days, 90 by default."),
+            leo("And while it's in the bin, the name is... taken?"),
+            maya("Taken. Recover it, or wait. Or purge it, which erases it from the bin for good, right now."),
             leo("So she purged it?"),
             maya("She tried. And she couldn't. Because Priya had switched on purge protection when she created the vault. With it on, nothing in the bin can be purged before its retention ends. Not by her, not by an administrator, not by anyone. And it can never be turned off. She'd outsmarted herself."),
             leo("Wait. Who's allowed to purge, normally?"),
@@ -178,15 +204,21 @@ internal object Ai200EpisodesKeyVault {
             ivy("A badge. And who checks badges, at this hour?"),
             nova("Microsoft Entra ID, Azure's sign-in system. Think of the reception desk of a big office, open all night: it keeps the list of everyone allowed in, people and apps, and checks who is who. The badge is a real account on that list."),
             ivy("Then how does the backend prove it's really the backend? Not even a whisper of a password?"),
-            nova("Azure started the backend, so Azure knows who's running there. On a private little address, it hands the backend a token. That's a short-lived signed pass, like a festival wristband, and it fades within hours. The backend shows it to the vault, and the vault checks its role. In Python, that's one line: DefaultAzureCredential."),
+            nova("Azure started the backend, so Azure knows who's running there. On a private little address, it hands the backend a token: a short-lived signed pass, like a festival wristband, that fades within hours."),
+            ivy("And the backend just shows its wristband at the vault?"),
+            nova("Mm. The vault checks it, then checks its role. In Python, all of that is one line: DefaultAzureCredential."),
             ivy("Role. Tell me about roles."),
-            nova("That's RBAC, role-based access control. Permissions come as roles, like job titles. Key Vault Secrets User reads secret values, and nothing more. Secrets Officer can create and change them. Administrator does everything, and that's for a person, rarely. Always the smallest role that works."),
+            nova("That's RBAC, role-based access control. Permissions come as roles, like job titles. Your backend only reads the AI key, so it gets Key Vault Secrets User, and nothing more."),
+            ivy("Not the big one? Administrator sounds so much more trusting."),
+            nova("Too trusting. Administrator does everything, and that's for a person, rarely. Secrets Officer creates and changes secrets. [pause] Always the smallest role that works."),
             ivy("And I hear there are two kinds of badge."),
             nova("Two. A system-assigned identity belongs to one app alone. It's switched on inside that app, and when the app is deleted, the badge goes with it. Faithful, simple. But it can't be shared, and it can't get its role before the app exists."),
             ivy("And the other kind? The one that gets around?"),
             nova("[chuckle] A user-assigned identity. You create it on its own, as a resource of its own, a separate thing in Azure, before any app exists. You grant it Key Vault Secrets User once. Then you attach it to several apps at once: the Coach API, and the nightly function that rebuilds the search data."),
             ivy("And if one of those apps is deleted, late one night?"),
-            nova("The identity stays, still holding its role, ready for the next app. It outlives any one app. [pause] Just never delete the identity itself while apps are still wearing it, or they all lose access at once. And in the code, you set an environment variable, AZURE CLIENT ID, to its client ID, so DefaultAzureCredential knows which badge to wear."),
+            nova("The identity stays, still holding its role, ready for the next app. It outlives any one app. [pause] Just never delete the identity itself while apps are still wearing it."),
+            ivy("And how does my code know which badge to wear, if there are several?"),
+            nova("You set an environment variable, a setting the app reads when it starts, called AZURE CLIENT ID, to the badge's client ID. DefaultAzureCredential reads it."),
             ivy("Mm. And once the backend has the key? Does it ask the vault every time?"),
             nova("No. That's slow, and at busy times the vault throttles you, tells you to slow down. So keep the key in memory for a few minutes, five, say. Then read again, without a version number."),
             ivy("Version number? Secrets have versions?"),
@@ -242,7 +274,9 @@ internal object Ai200EpisodesKeyVault {
             rafe("And the one that gets around?"),
             nova("A user-assigned identity. A resource of its own, created before any app, with its role granted once. Then you attach it to several apps."),
             rafe("Then my question. The Coach API and a nightly function must read the same vault, and the identity must have its role before either is deployed. Which identity?"),
-            nova("One user-assigned identity on both. Grant Key Vault Secrets User once, attach it to the API and the nightly function. Delete one app, and the identity stays with its role. It outlives any one app. Set AZURE CLIENT ID, an environment variable the app reads at start, to its client ID, so DefaultAzureCredential knows which badge."),
+            nova("One user-assigned identity on both. Grant Key Vault Secrets User once, attach it to the API and the nightly function. Delete one app, and the identity stays with its role. It outlives any one app."),
+            rafe("And how does the code know which badge it's wearing tonight?"),
+            nova("Set AZURE CLIENT ID, an environment variable the app reads at start, to its client ID. DefaultAzureCredential does the rest."),
             rafe("Right answer. One badge, shared, and faithful to everyone. [kiss]"),
             nova("Just never delete it while apps still wear it. Now, versions. Every write makes a new secret version, and the old ones stay. Read without a version, and you get the latest. So. The key was rotated, and the app still uses the old one. Why?"),
             rafe("It pinned a version. Stuck on an old flame. And it should cache the key for a few minutes, not call the vault on every request and get throttled, told to slow down."),
@@ -251,12 +285,16 @@ internal object Ai200EpisodesKeyVault {
             nova("Then a Key Vault reference. App Service, Azure's home for web apps, and Functions take a setting that says, fetch this from the vault, using the app's identity. It refreshes within a day. Low effort, high reward. Like you."),
             rafe("My question, then. The secret OpenAiKey must be replaced every 90 days, with no person involved. What do you build?"),
             nova("A key rotation policy on the secret."),
-            rafe("Close, but no kiss. Rotation policies are for encryption keys, which scramble data, and which the vault can make itself. An API key comes from the provider. So, an expiry date. About 30 days before, Key Vault sends SecretNearExpiry to Event Grid, the notice board that pushes, and a function, code that wakes when something happens, writes a new version."),
+            rafe("Close, but no kiss. Rotation policies are for encryption keys, which scramble data; the vault can make those itself. But an API key comes from the provider."),
+            nova("So the vault can't invent a new one. Then what changes it?"),
+            rafe("An expiry date. About 30 days before, Key Vault sends SecretNearExpiry to Event Grid, the notice board that pushes, and a function, code that wakes when something happens, writes a new version. The app still just reads the latest."),
             nova("Mm. Fair. Then here's mine. Someone deletes the secret called OpenAiKey by mistake. Soft delete is on, with 90 days. What's true?"),
             rafe("Soft delete is a recycle bin. The secret waits there for its retention period, 7 to 90 days, and you can recover it. While it's there, its name is taken. And someone with the purge permission could erase it for good, right away."),
             nova("Right answer. Nothing's over until it's really over. [kiss]"),
             rafe("Unless we stop that purge. Your turn to tell me, darling. Purge protection."),
-            nova("Off by default. With it on, nothing in the bin can be purged before its retention ends. Not by us, not by an administrator, not by anyone. And once it's on, it can never be turned off. A commitment you can't take back. And the retention period itself is fixed when the vault is made."),
+            nova("Off by default. With it on, nothing in the bin can be purged before its retention ends. Not by us, not by an administrator, not by anyone."),
+            rafe("And if we change our minds later?"),
+            nova("We can't. Once it's on, it can never be turned off. A commitment you can't take back. And the retention period itself is fixed when the vault is made."),
             rafe("Like us. Who can purge, normally?"),
             nova("Anyone with the purge permission, like the Key Vault Purge Operator role. Which is why the protection matters: a careless click, or someone with bad intentions, can't erase anything early."),
             rafe("And where does it all stop working? Every romance has its limits."),
@@ -438,56 +476,56 @@ internal object Ai200EpisodesKeyVault {
                     Beat(12, show = allRoles, light = setOf("api", "user"), pulse = "api" to "user", card = BoardCard("RBAC", "Roles like job titles. The Coach API: Key Vault Secrets User.")),
                 ),
             ),
-            // 13: "So the Coach backend gets Secrets User. Now, two kinds of badge."
+            // 17: "Got it. Now, I've heard there are two kinds of badge."
             Scene(
-                13, "Two kinds of badge", identities(),
+                17, "Two kinds of badge", identities(),
                 beats = listOf(
-                    Beat(14, show = setOf("sys"), light = setOf("sys"), card = BoardCard("System-assigned", "Inside one app, deleted with it. Can't be shared or granted early.")),
-                    Beat(16, show = setOf("ua", "kv"), light = setOf("ua"), pulse = "ua" to "kv", card = BoardCard("User-assigned", "A resource of its own: created first, its role granted once.")),
-                    Beat(18, show = setOf("api", "fn"), light = setOf("api", "fn"), pulse = "ua" to "api", card = BoardCard("One badge, several apps", "The Coach API and the nightly job share it. A new app: just attach.")),
-                    Beat(20, light = setOf("ua"), card = BoardCard("It outlives any one app", "Delete an app; the identity keeps its role. Don't delete it in use.")),
+                    Beat(18, show = setOf("sys"), light = setOf("sys"), card = BoardCard("System-assigned", "Inside one app, deleted with it. Can't be shared or granted early.")),
+                    Beat(20, show = setOf("ua", "kv"), light = setOf("ua"), pulse = "ua" to "kv", card = BoardCard("User-assigned", "A resource of its own: created first, its role granted once.")),
+                    Beat(22, show = setOf("api", "fn"), light = setOf("api", "fn"), pulse = "ua" to "api", card = BoardCard("One badge, several apps", "The Coach API and the nightly job share it. A new app: just attach.")),
+                    Beat(24, light = setOf("ua"), card = BoardCard("It outlives any one app", "Delete an app; the identity keeps its role. Don't delete it in use.")),
                 ),
             ),
-            // 21: "And in the Python code? How does it show the badge?"
+            // 25: "And in the Python code? How does it show the badge?"
             Scene(
-                21, "Showing the badge", limits(),
+                25, "Showing the badge", limits(),
                 beats = listOf(
-                    Beat(22, show = setOf("cred", "laptop", "azure"), light = setOf("cred"), pulse = "cred" to "azure", card = BoardCard("DefaultAzureCredential", "az login on your laptop, the managed identity in Azure. Same code.")),
-                    Beat(24, light = setOf("azure"), card = BoardCard("AZURE_CLIENT_ID", "Set to the user-assigned identity's client ID: which badge to wear.")),
+                    Beat(26, show = setOf("cred", "laptop", "azure"), light = setOf("cred"), pulse = "cred" to "azure", card = BoardCard("DefaultAzureCredential", "az login on your laptop, the managed identity in Azure. Same code.")),
+                    Beat(28, light = setOf("azure"), card = BoardCard("AZURE_CLIENT_ID", "Set to the user-assigned identity's client ID: which badge to wear.")),
                 ),
             ),
-            // 25: "Okay. The backend reads the key. Every time someone asks a question?"
+            // 29: "Okay. The backend reads the key. Every time someone asks a question?"
             Scene(
-                25, "Versions and caching", versions(),
+                29, "Versions and caching", versions(),
                 beats = listOf(
-                    Beat(26, show = setOf("app", "cache"), light = setOf("cache"), pulse = "app" to "cache", card = BoardCard("Cache it", "Calling the vault every request is slow and gets throttled.")),
-                    Beat(28, show = setOf("v1", "v2", "v3", "pin"), light = setOf("v3", "pin"), pulse = "v3" to "app", card = BoardCard("Secret versions", "Each write is a new version. No version: the latest. Pinned: stuck.")),
+                    Beat(30, show = setOf("app", "cache"), light = setOf("cache"), pulse = "app" to "cache", card = BoardCard("Cache it", "Calling the vault every request is slow and gets throttled.")),
+                    Beat(32, show = setOf("v1", "v2", "v3", "pin"), light = setOf("v3", "pin"), pulse = "v3" to "app", card = BoardCard("Secret versions", "Each write is a new version. No version: the latest. Pinned: stuck.")),
                 ),
             ),
-            // 29: "So changing the key on purpose is called?"
+            // 33: "So changing the key on purpose is called?"
             Scene(
-                29, "Rotation", rotation(),
+                33, "Rotation", rotation(),
                 beats = listOf(
-                    Beat(30, show = setOf("kv", "policy"), light = setOf("policy"), card = BoardCard("Key rotation policy", "Encryption keys rotate themselves. API keys come from the provider.")),
-                    Beat(32, show = setOf("eg", "fn", "prov"), light = setOf("eg", "fn"), pulse = "kv" to "eg", card = BoardCard("SecretNearExpiry", "About 30 days before expiry; a function writes a new version.")),
-                    Beat(34, light = setOf("kv"), pulse = "fn" to "kv", card = BoardCard("Key Vault reference", "A setting that fetches from the vault, refreshed within 24 hours.")),
+                    Beat(36, show = setOf("kv", "policy"), light = setOf("policy"), card = BoardCard("Key rotation policy", "Encryption keys rotate themselves. API keys come from the provider.")),
+                    Beat(38, show = setOf("eg", "fn", "prov"), light = setOf("eg", "fn"), pulse = "kv" to "eg", card = BoardCard("SecretNearExpiry", "About 30 days before expiry; a function writes a new version.")),
+                    Beat(44, light = setOf("kv"), pulse = "fn" to "kv", card = BoardCard("Key Vault reference", "A setting that fetches from the vault, refreshed within 24 hours.")),
                 ),
             ),
-            // 35: "Last scary thing. What if someone deletes the key by accident?"
+            // 45: "Last scary thing. What if someone deletes the key by accident?"
             Scene(
-                35, "The recycle bin", recycle(),
+                45, "The recycle bin", recycle(),
                 beats = listOf(
-                    Beat(36, show = setOf("active", "deleted"), light = setOf("deleted"), pulse = "active" to "deleted", card = BoardCard("Soft delete", "Kept 7 to 90 days, 90 by default, set at creation. Always on.")),
-                    Beat(38, show = setOf("gone"), light = setOf("gone"), pulse = "deleted" to "gone", card = BoardCard("Purge", "Erased for good, now. Its own permission. The name is taken till then.")),
-                    Beat(40, show = setOf("note"), light = setOf("note"), card = protection),
+                    Beat(46, show = setOf("active", "deleted"), light = setOf("deleted"), pulse = "active" to "deleted", card = BoardCard("Soft delete", "Kept 7 to 90 days, 90 by default, set at creation. Always on.")),
+                    Beat(50, show = setOf("gone"), light = setOf("gone"), pulse = "deleted" to "gone", card = BoardCard("Purge", "Erased for good, now. Its own permission. The name is taken till then.")),
+                    Beat(52, show = setOf("note"), light = setOf("note"), card = protection),
                 ),
             ),
-            // 41: "So what do I remember for the exam?"
+            // 53: "So what do I remember for the exam?"
             Scene(
-                41, "For the exam", exam(),
+                53, "For the exam", exam(),
                 beats = listOf(
-                    Beat(42, show = all6, light = setOf("shared", "reads", "rotate", "pinned", "purge"), card = BoardCard("Listen for the phrase", "Each exam phrase points to one answer: identity, role, rotation, purge.")),
-                    Beat(44, card = today),
+                    Beat(54, show = all6, light = setOf("shared", "reads", "rotate", "pinned", "purge"), card = BoardCard("Listen for the phrase", "Each exam phrase points to one answer: identity, role, rotation, purge.")),
+                    Beat(56, card = today),
                 ),
             ),
         ),
@@ -525,34 +563,34 @@ internal object Ai200EpisodesKeyVault {
                     Beat(20, show = setOf("fn"), light = setOf("fn"), card = BoardCard("Refused at the door", "The nightly job's first run was refused by the vault.")),
                     Beat(22, show = setOf("sys"), light = setOf("sys"), card = BoardCard("System-assigned", "Born with its app, so its role couldn't be granted in advance.")),
                     Beat(24, show = setOf("ua", "kv", "api"), light = setOf("ua"), pulse = "ua" to "kv", card = BoardCard("User-assigned", "Created first, granted once, attached to both. Outlives any app.")),
-                    Beat(26, light = setOf("api", "fn"), pulse = "ua" to "api", card = BoardCard("AZURE_CLIENT_ID", "Tells DefaultAzureCredential which badge to wear.")),
+                    Beat(28, light = setOf("api", "fn"), pulse = "ua" to "api", card = BoardCard("AZURE_CLIENT_ID", "Tells DefaultAzureCredential which badge to wear.")),
                 ),
             ),
-            // 27: "Third witness. I can feel it."
+            // 29: "Third witness. I can feel it."
             Scene(
-                27, "The third witness", versions(),
+                29, "The third witness", versions(),
                 beats = listOf(
-                    Beat(28, show = setOf("v1", "v2", "v3"), light = setOf("v3"), card = BoardCard("A new version", "Every write adds a version; the old ones stay.")),
-                    Beat(30, show = setOf("app", "pin", "cache"), light = setOf("pin"), pulse = "v1" to "pin", card = BoardCard("Pinned", "The backend named a version, so it read the dead key forever.")),
-                    Beat(32, card = BoardCard("SecretNearExpiry", "An expiry date, Event Grid, and a function that writes a version.")),
-                    Beat(34, light = setOf("app"), pulse = "v3" to "app", card = BoardCard("Key Vault reference", "A setting that fetches from the vault. No version in it.")),
+                    Beat(30, show = setOf("v1", "v2", "v3"), light = setOf("v3"), card = BoardCard("A new version", "Every write adds a version; the old ones stay.")),
+                    Beat(32, show = setOf("app", "pin", "cache"), light = setOf("pin"), pulse = "v1" to "pin", card = BoardCard("Pinned", "The backend named a version, so it read the dead key forever.")),
+                    Beat(36, card = BoardCard("SecretNearExpiry", "An expiry date, Event Grid, and a function that writes a version.")),
+                    Beat(40, light = setOf("app"), pulse = "v3" to "app", card = BoardCard("Key Vault reference", "A setting that fetches from the vault. No version in it.")),
                 ),
             ),
-            // 35: "Last witness. Who's left?"
+            // 41: "Last witness. Who's left?"
             Scene(
-                35, "The last witness", recycle(),
+                41, "The last witness", recycle(),
                 beats = listOf(
-                    Beat(36, show = setOf("active", "deleted", "gone"), light = setOf("gone"), pulse = "deleted" to "gone", card = BoardCard("Deleted, then purged", "A purge erases it from the bin for good, right now.")),
-                    Beat(38, show = setOf("note"), light = setOf("note"), card = protection),
-                    Beat(40, light = setOf("deleted"), pulse = "active" to "deleted", card = BoardCard("The name is taken", "While soft-deleted: recover it or wait. Retention is fixed at creation.")),
+                    Beat(42, show = setOf("active", "deleted", "gone"), light = setOf("gone"), pulse = "deleted" to "gone", card = BoardCard("Deleted, then purged", "A purge erases it from the bin for good, right now.")),
+                    Beat(46, show = setOf("note"), light = setOf("note"), card = protection),
+                    Beat(48, light = setOf("deleted"), pulse = "active" to "deleted", card = BoardCard("The name is taken", "While soft-deleted: recover it or wait. Retention is fixed at creation.")),
                 ),
             ),
-            // 41: "So, the case summary for the exam?"
+            // 49: "So, the case summary for the exam?"
             Scene(
-                41, "Case closed", exam(),
+                49, "Case closed", exam(),
                 beats = listOf(
-                    Beat(42, show = all6, light = setOf("phone", "reads", "shared", "pinned", "purge"), card = BoardCard("Listen for the phrase", "Phone, role, identity, version, purge: one answer each.")),
-                    Beat(44, card = today),
+                    Beat(50, show = all6, light = setOf("phone", "reads", "shared", "pinned", "purge"), card = BoardCard("Listen for the phrase", "Phone, role, identity, version, purge: one answer each.")),
+                    Beat(52, card = today),
                 ),
             ),
         ),
@@ -587,42 +625,42 @@ internal object Ai200EpisodesKeyVault {
                 beats = listOf(
                     Beat(18, show = setOf("fn", "sys"), light = setOf("sys"), card = BoardCard("Refused on night one", "A system-assigned badge didn't exist until its app did.")),
                     Beat(22, show = setOf("ua", "kv", "api"), light = setOf("ua"), pulse = "ua" to "api", card = BoardCard("User-assigned", "Created first, granted once, attached to both. Outlives any app.")),
-                    Beat(24, light = setOf("ua"), pulse = "ua" to "kv", card = BoardCard("AZURE_CLIENT_ID", "Set to the identity's client ID, for DefaultAzureCredential.")),
+                    Beat(26, light = setOf("ua"), pulse = "ua" to "kv", card = BoardCard("AZURE_CLIENT_ID", "Set to the identity's client ID, for DefaultAzureCredential.")),
                 ),
             ),
-            // 25: "Thursday, I'm guessing, the intern."
+            // 27: "Thursday, I'm guessing, the intern."
             Scene(
-                25, "Thursday: the intern", versions(),
+                27, "Thursday: the intern", versions(),
                 beats = listOf(
-                    Beat(26, show = setOf("app"), light = setOf("app"), card = BoardCard("Thousands of reads an hour", "And at the busy time, the vault throttled them.")),
-                    Beat(28, show = setOf("cache", "v1", "v2", "v3"), light = setOf("cache", "v3"), pulse = "app" to "cache", card = BoardCard("Cache, then read the latest", "About five minutes in memory; no version, so rotation arrives.")),
-                    Beat(30, card = BoardCard("SecretNearExpiry", "Expiry date, Event Grid, and a function that writes a new version.")),
-                    Beat(32, show = setOf("pin"), light = setOf("pin"), pulse = "v1" to "pin", card = BoardCard("Key Vault reference", "A setting that fetches from the vault. Never pin a version.")),
+                    Beat(28, show = setOf("app"), light = setOf("app"), card = BoardCard("Thousands of reads an hour", "And at the busy time, the vault throttled them.")),
+                    Beat(30, show = setOf("cache", "v1", "v2", "v3"), light = setOf("cache", "v3"), pulse = "app" to "cache", card = BoardCard("Cache, then read the latest", "About five minutes in memory; no version, so rotation arrives.")),
+                    Beat(34, card = BoardCard("SecretNearExpiry", "Expiry date, Event Grid, and a function that writes a new version.")),
+                    Beat(36, show = setOf("pin"), light = setOf("pin"), pulse = "v1" to "pin", card = BoardCard("Key Vault reference", "A setting that fetches from the vault. Never pin a version.")),
                 ),
             ),
-            // 33: "And Friday? There's always a Friday."
+            // 37: "And Friday? There's always a Friday."
             Scene(
-                33, "Friday: Priya", recycle(),
+                37, "Friday: Priya", recycle(),
                 beats = listOf(
-                    Beat(34, show = setOf("active", "deleted"), light = setOf("deleted"), pulse = "active" to "deleted", card = BoardCard("The name was taken", "OpenAiKey sat in the bin, so a new one couldn't use its name.")),
-                    Beat(36, card = BoardCard("Soft delete", "A recycle bin: 7 to 90 days, always on for new vaults.")),
-                    Beat(38, show = setOf("gone", "note"), light = setOf("note"), card = protection),
-                    Beat(40, light = setOf("gone"), pulse = "deleted" to "gone", card = BoardCard("Purge", "Erases it for good. It needs its own permission.")),
+                    Beat(38, show = setOf("active", "deleted"), light = setOf("deleted"), pulse = "active" to "deleted", card = BoardCard("The name was taken", "OpenAiKey sat in the bin, so a new one couldn't use its name.")),
+                    Beat(40, card = BoardCard("Soft delete", "A recycle bin: 7 to 90 days, always on for new vaults.")),
+                    Beat(44, show = setOf("gone", "note"), light = setOf("note"), card = protection),
+                    Beat(46, light = setOf("gone"), pulse = "deleted" to "gone", card = BoardCard("Purge", "Erases it for good. It needs its own permission.")),
                 ),
             ),
-            // 41: "So where does all this stop working?"
+            // 47: "So where does all this stop working?"
             Scene(
-                41, "Where it stops", limits(),
+                47, "Where it stops", limits(),
                 beats = listOf(
-                    Beat(42, show = setOf("cred", "laptop", "azure", "phone"), light = setOf("phone", "laptop"), pulse = "cred" to "laptop", card = BoardCard("Phone and laptop", "No secret on the phone. On a laptop, az login instead.")),
+                    Beat(48, show = setOf("cred", "laptop", "azure", "phone"), light = setOf("phone", "laptop"), pulse = "cred" to "laptop", card = BoardCard("Phone and laptop", "No secret on the phone. On a laptop, az login instead.")),
                 ),
             ),
-            // 43: "So, the gossip I should remember for the exam?"
+            // 49: "So, the gossip I should remember for the exam?"
             Scene(
-                43, "For the exam", exam(),
+                49, "For the exam", exam(),
                 beats = listOf(
-                    Beat(44, show = all6, light = setOf("shared", "reads", "rotate", "pinned", "purge"), card = BoardCard("Listen for the phrase", "Each exam phrase points to one answer. One colleague, one lesson.")),
-                    Beat(46, card = today),
+                    Beat(50, show = all6, light = setOf("shared", "reads", "rotate", "pinned", "purge"), card = BoardCard("Listen for the phrase", "Each exam phrase points to one answer. One colleague, one lesson.")),
+                    Beat(52, card = today),
                 ),
             ),
         ),
@@ -643,62 +681,62 @@ internal object Ai200EpisodesKeyVault {
                     Beat(10, card = BoardCard("A token", "A short-lived signed pass, like a festival wristband. Gone in hours.")),
                 ),
             ),
-            // 11: "Role. Tell me about roles."
+            // 13: "Role. Tell me about roles."
             Scene(
-                11, "Roles", roles(),
+                13, "Roles", roles(),
                 beats = listOf(
-                    Beat(12, show = allRoles, light = setOf("api", "user"), pulse = "api" to "user", card = BoardCard("RBAC", "Secrets User reads; Officer writes; Administrator is for a person.")),
+                    Beat(14, show = allRoles, light = setOf("api", "user"), pulse = "api" to "user", card = BoardCard("RBAC", "Secrets User reads; Officer writes; Administrator is for a person.")),
                 ),
             ),
-            // 13: "And I hear there are two kinds of badge."
+            // 17: "And I hear there are two kinds of badge."
             Scene(
-                13, "Two kinds of badge", identities(),
+                17, "Two kinds of badge", identities(),
                 beats = listOf(
-                    Beat(14, show = setOf("sys"), light = setOf("sys"), card = BoardCard("System-assigned", "Faithful to one app, deleted with it. Can't be shared.")),
-                    Beat(16, show = setOf("ua", "kv", "api", "fn"), light = setOf("ua"), pulse = "ua" to "kv", card = BoardCard("User-assigned", "Its own resource, created first; Secrets User granted once.")),
-                    Beat(18, light = setOf("api", "fn"), pulse = "ua" to "fn", card = BoardCard("It outlives any app", "Delete an app; the badge stays. AZURE_CLIENT_ID names it.")),
+                    Beat(18, show = setOf("sys"), light = setOf("sys"), card = BoardCard("System-assigned", "Faithful to one app, deleted with it. Can't be shared.")),
+                    Beat(20, show = setOf("ua", "kv", "api", "fn"), light = setOf("ua"), pulse = "ua" to "kv", card = BoardCard("User-assigned", "Its own resource, created first; Secrets User granted once.")),
+                    Beat(22, light = setOf("api", "fn"), pulse = "ua" to "fn", card = BoardCard("It outlives any app", "Delete an app; the badge stays. AZURE_CLIENT_ID names it.")),
                 ),
             ),
-            // 19: "Mm. And once the backend has the key?..."
+            // 25: "Mm. And once the backend has the key?..."
             Scene(
-                19, "Versions", versions(),
+                25, "Versions", versions(),
                 beats = listOf(
-                    Beat(20, show = setOf("app", "cache"), light = setOf("cache"), pulse = "app" to "cache", card = BoardCard("Cache it", "A few minutes in memory, or the vault throttles you.")),
-                    Beat(22, show = setOf("v1", "v2", "v3", "pin"), light = setOf("v3"), pulse = "v3" to "app", card = BoardCard("Secret versions", "No version: the latest. Pinned: stuck forever.")),
-                    Beat(24, light = setOf("app"), card = BoardCard("A refused key", "Drop the cached copy and read the vault again.")),
+                    Beat(26, show = setOf("app", "cache"), light = setOf("cache"), pulse = "app" to "cache", card = BoardCard("Cache it", "A few minutes in memory, or the vault throttles you.")),
+                    Beat(28, show = setOf("v1", "v2", "v3", "pin"), light = setOf("v3"), pulse = "v3" to "app", card = BoardCard("Secret versions", "No version: the latest. Pinned: stuck forever.")),
+                    Beat(30, light = setOf("app"), card = BoardCard("A refused key", "Drop the cached copy and read the vault again.")),
                 ),
             ),
-            // 25: "And why would the key change?"
+            // 31: "And why would the key change?"
             Scene(
-                25, "Rotation", rotation(),
+                31, "Rotation", rotation(),
                 beats = listOf(
-                    Beat(26, show = setOf("kv", "policy"), light = setOf("policy"), card = BoardCard("Key rotation policy", "Encryption keys rotate themselves. API keys come from the provider.")),
-                    Beat(28, show = setOf("eg", "fn", "prov"), light = setOf("eg", "fn"), pulse = "kv" to "eg", card = BoardCard("SecretNearExpiry", "About 30 days before expiry; a function writes a new version.")),
-                    Beat(30, light = setOf("kv"), pulse = "fn" to "kv", card = BoardCard("Key Vault reference", "A setting that fetches from the vault, refreshed within a day.")),
+                    Beat(32, show = setOf("kv", "policy"), light = setOf("policy"), card = BoardCard("Key rotation policy", "Encryption keys rotate themselves. API keys come from the provider.")),
+                    Beat(34, show = setOf("eg", "fn", "prov"), light = setOf("eg", "fn"), pulse = "kv" to "eg", card = BoardCard("SecretNearExpiry", "About 30 days before expiry; a function writes a new version.")),
+                    Beat(36, light = setOf("kv"), pulse = "fn" to "kv", card = BoardCard("Key Vault reference", "A setting that fetches from the vault, refreshed within a day.")),
                 ),
             ),
-            // 31: "Now, the part that keeps me up. Someone deletes the key."
+            // 37: "Now, the part that keeps me up. Someone deletes the key."
             Scene(
-                31, "Tired fingers", recycle(),
+                37, "Tired fingers", recycle(),
                 beats = listOf(
-                    Beat(32, show = setOf("active", "deleted"), light = setOf("deleted"), pulse = "active" to "deleted", card = BoardCard("Soft delete", "A recycle bin: 7 to 90 days, chosen at creation. The name is taken.")),
-                    Beat(34, show = setOf("gone"), light = setOf("gone"), pulse = "deleted" to "gone", card = BoardCard("Purge", "Erased for good, now. It needs its own permission.")),
-                    Beat(36, show = setOf("note"), light = setOf("note"), card = protection),
+                    Beat(38, show = setOf("active", "deleted"), light = setOf("deleted"), pulse = "active" to "deleted", card = BoardCard("Soft delete", "A recycle bin: 7 to 90 days, chosen at creation. The name is taken.")),
+                    Beat(40, show = setOf("gone"), light = setOf("gone"), pulse = "deleted" to "gone", card = BoardCard("Purge", "Erased for good, now. It needs its own permission.")),
+                    Beat(42, show = setOf("note"), light = setOf("note"), card = protection),
                 ),
             ),
-            // 37: "Where does all of this stop working, Nova?"
+            // 43: "Where does all of this stop working, Nova?"
             Scene(
-                37, "Where it stops", limits(),
+                43, "Where it stops", limits(),
                 beats = listOf(
-                    Beat(38, show = setOf("cred", "laptop", "azure", "phone"), light = setOf("phone", "laptop"), pulse = "cred" to "laptop", card = BoardCard("Phone and laptop", "No secret on the phone. On a laptop, az login instead.")),
+                    Beat(44, show = setOf("cred", "laptop", "azure", "phone"), light = setOf("phone", "laptop"), pulse = "cred" to "laptop", card = BoardCard("Phone and laptop", "No secret on the phone. On a laptop, az login instead.")),
                 ),
             ),
-            // 39: "Before you send me off to bed. What do I remember for the exam?"
+            // 45: "Before you send me off to bed. What do I remember for the exam?"
             Scene(
-                39, "For the exam", exam(),
+                45, "For the exam", exam(),
                 beats = listOf(
-                    Beat(40, show = all6, light = setOf("shared", "reads", "rotate", "pinned", "purge"), card = BoardCard("Listen for the phrase", "Each exam phrase points to one answer: five little things.")),
-                    Beat(42, card = today),
+                    Beat(46, show = all6, light = setOf("shared", "reads", "rotate", "pinned", "purge"), card = BoardCard("Listen for the phrase", "Each exam phrase points to one answer: five little things.")),
+                    Beat(48, card = today),
                 ),
             ),
         ),
@@ -740,47 +778,47 @@ internal object Ai200EpisodesKeyVault {
                     Beat(22, light = setOf("ua"), pulse = "ua" to "api", card = BoardCard("Right answer", "One user-assigned identity on both. It outlives any one app.")),
                 ),
             ),
-            // 24: "Just never delete it while apps still wear it. Now, versions..."
+            // 26: "Just never delete it while apps still wear it. Now, versions..."
             Scene(
-                24, "Old flames", versions(),
+                26, "Old flames", versions(),
                 beats = listOf(
-                    Beat(24, show = setOf("v1", "v2", "v3", "app"), light = setOf("v3"), pulse = "v3" to "app", card = BoardCard("Quiz: rotated, still old", "The key was rotated; the app still uses the old one. Why?")),
-                    Beat(25, show = setOf("pin", "cache"), light = setOf("pin"), pulse = "v1" to "pin", card = BoardCard("Right answer", "A pinned version. Read the latest, and cache a few minutes.")),
-                    Beat(28, light = setOf("app"), card = BoardCard("Key Vault reference", "A setting that fetches from the vault, refreshed within a day.")),
+                    Beat(26, show = setOf("v1", "v2", "v3", "app"), light = setOf("v3"), pulse = "v3" to "app", card = BoardCard("Quiz: rotated, still old", "The key was rotated; the app still uses the old one. Why?")),
+                    Beat(27, show = setOf("pin", "cache"), light = setOf("pin"), pulse = "v1" to "pin", card = BoardCard("Right answer", "A pinned version. Read the latest, and cache a few minutes.")),
+                    Beat(30, light = setOf("app"), card = BoardCard("Key Vault reference", "A setting that fetches from the vault, refreshed within a day.")),
                 ),
             ),
-            // 29: "My question, then. The secret OpenAiKey must be replaced every 90 days..."
+            // 31: "My question, then. The secret OpenAiKey must be replaced every 90 days..."
             Scene(
-                29, "Every 90 days", rotation(),
+                31, "Every 90 days", rotation(),
                 beats = listOf(
-                    Beat(29, show = setOf("kv"), light = setOf("kv"), card = BoardCard("Quiz: every 90 days", "Replace OpenAiKey every 90 days, no person involved. Build what?")),
-                    Beat(30, show = setOf("policy"), light = setOf("policy"), card = BoardCard("A rotation policy?", "Those are for encryption keys. No kiss.")),
-                    Beat(31, show = setOf("eg", "fn", "prov"), light = setOf("eg", "fn"), pulse = "kv" to "eg", card = BoardCard("SecretNearExpiry", "Expiry date, Event Grid, and a function that writes a version.")),
+                    Beat(31, show = setOf("kv"), light = setOf("kv"), card = BoardCard("Quiz: every 90 days", "Replace OpenAiKey every 90 days, no person involved. Build what?")),
+                    Beat(32, show = setOf("policy"), light = setOf("policy"), card = BoardCard("A rotation policy?", "Those are for encryption keys. No kiss.")),
+                    Beat(35, show = setOf("eg", "fn", "prov"), light = setOf("eg", "fn"), pulse = "kv" to "eg", card = BoardCard("SecretNearExpiry", "Expiry date, Event Grid, and a function that writes a version.")),
                 ),
             ),
-            // 32: "Mm. Fair. Then here's mine. Someone deletes the secret..."
+            // 36: "Mm. Fair. Then here's mine. Someone deletes the secret..."
             Scene(
-                32, "Not over till it's over", recycle(),
+                36, "Not over till it's over", recycle(),
                 beats = listOf(
-                    Beat(32, show = setOf("active", "deleted"), light = setOf("deleted"), pulse = "active" to "deleted", card = BoardCard("Quiz: deleted by mistake", "Soft delete is on, with 90 days. What's true?")),
-                    Beat(33, show = setOf("gone"), light = setOf("deleted", "gone"), card = BoardCard("Right answer", "Recoverable for 7 to 90 days; the name is taken; a purge erases it.")),
-                    Beat(36, show = setOf("note"), light = setOf("note"), card = protection),
-                    Beat(38, light = setOf("gone"), pulse = "deleted" to "gone", card = BoardCard("Who can purge?", "Anyone with the purge permission, unless protection is on.")),
+                    Beat(36, show = setOf("active", "deleted"), light = setOf("deleted"), pulse = "active" to "deleted", card = BoardCard("Quiz: deleted by mistake", "Soft delete is on, with 90 days. What's true?")),
+                    Beat(37, show = setOf("gone"), light = setOf("deleted", "gone"), card = BoardCard("Right answer", "Recoverable for 7 to 90 days; the name is taken; a purge erases it.")),
+                    Beat(40, show = setOf("note"), light = setOf("note"), card = protection),
+                    Beat(44, light = setOf("gone"), pulse = "deleted" to "gone", card = BoardCard("Who can purge?", "Anyone with the purge permission, unless protection is on.")),
                 ),
             ),
-            // 39: "And where does it all stop working? Every romance has its limits."
+            // 45: "And where does it all stop working? Every romance has its limits."
             Scene(
-                39, "Every romance has limits", limits(),
+                45, "Every romance has limits", limits(),
                 beats = listOf(
-                    Beat(40, show = setOf("cred", "laptop", "azure", "phone"), light = setOf("phone", "laptop"), pulse = "cred" to "laptop", card = BoardCard("Phone and laptop", "No secret on the phone. On a laptop, az login instead.")),
+                    Beat(46, show = setOf("cred", "laptop", "azure", "phone"), light = setOf("phone", "laptop"), pulse = "cred" to "laptop", card = BoardCard("Phone and laptop", "No secret on the phone. On a laptop, az login instead.")),
                 ),
             ),
-            // 41: "Last question, for the exam. What do we remember?"
+            // 47: "Last question, for the exam. What do we remember?"
             Scene(
-                41, "For the exam", exam(),
+                47, "For the exam", exam(),
                 beats = listOf(
-                    Beat(42, show = all6, light = setOf("shared", "reads", "rotate", "pinned", "purge"), card = BoardCard("Listen for the phrase", "Each exam phrase points to one answer. Five for five.")),
-                    Beat(45, card = today),
+                    Beat(48, show = all6, light = setOf("shared", "reads", "rotate", "pinned", "purge"), card = BoardCard("Listen for the phrase", "Each exam phrase points to one answer. Five for five.")),
+                    Beat(51, card = today),
                 ),
             ),
         ),

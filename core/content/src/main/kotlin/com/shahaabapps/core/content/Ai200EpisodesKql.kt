@@ -9,15 +9,21 @@ internal object Ai200EpisodesKql {
             leo("Written down where, exactly?"),
             maya("Say you're building the Two Tracks Coach, a study assistant in an Android app. The phone calls the Coach API, a Python program on Azure, Microsoft's cloud. API means the part other programs call. Everything the API reports about itself, every request and every error, goes to Application Insights, Azure's service for collecting that."),
             leo("And Application Insights keeps it all?"),
-            maya("It stores it in a Log Analytics workspace. Picture a giant spreadsheet workbook. Each sheet is a table, each row is one event, like one request, and each column is one fact about it, like how long it took. Every row has a time."),
+            maya("It stores it in a Log Analytics workspace. Picture a giant spreadsheet workbook. Each sheet is a table, and each row is one event, like one request."),
+            leo("Like a Room database on my phone? Tables, rows, columns?"),
+            maya("Very like it, except your code never inserts the rows; Application Insights fills them for you. Each column is one fact, like how long the request took, and every row has a time."),
             leo("So which sheets are in the workbook?"),
             maya("The one you'll use most is AppRequests: the calls your app received, one row per question a student asked. Its columns include Name, the address that was called, DurationMs, how many milliseconds it took, and Success, true or false."),
             leo("And the calls my app makes out, to other things?"),
-            maya("Those go in AppDependencies. A dependency is something your app leans on, like its database or another program, and every call to one is a row. Errors, the moments your code gave up, go in AppExceptions. And the plain lines your code printed go in AppTraces."),
+            maya("Those go in AppDependencies. A dependency is something your app leans on, like its database or another program, and every call to one is a row."),
+            leo("And when my code crashes?"),
+            maya("Errors, the moments your code gave up, go in AppExceptions. And the plain lines your code logged go in AppTraces."),
             leo("Okay, I have a workbook. How do I ask it something?"),
             maya("With KQL, the Kusto Query Language. Kusto was Microsoft's internal name for the engine. A query is just a question written in that language. And KQL reads like an assembly line: you start with a table, and pass its rows through steps, one after another."),
             leo("Not like SQL, the usual database language, where you start with select?"),
-            maya("No. You start with the table's name, AppRequests. On the page, each step after it begins with a pipe, a straight upright line that means: hand the rows on. Each step takes the table from the step before, and hands a new one on. For example, keep some rows, then count them."),
+            maya("No. You start with the table's name, AppRequests. Each step after it begins with a pipe, a straight upright line that means: hand the rows on."),
+            leo("Like chaining calls on a Kotlin list? Filter, then map?"),
+            maya("Exactly that. Each step takes the table from the step before and hands a new one on: keep some rows, then count them."),
             leo("What's the first step, usually?"),
             maya("A where. Where keeps only the rows that match a rule, like a sieve. And the first rule should almost always be about time, using the TimeGenerated column: the time each row was written."),
             leo("And how do I say, the last hour?"),
@@ -39,7 +45,9 @@ internal object Ai200EpisodesKql {
             leo("So, the Coach's evening question."),
             maya("Start from AppRequests. Keep the last seven days, where the name has ask in it. Summarize the 95th percentile of DurationMs by bin of TimeGenerated, one hour. Render a timechart. On the Coach, the line jumped from under a second to six seconds, every evening at eight."),
             leo("[pause] But the line doesn't say why."),
-            maya("For why, you join. Join matches rows from two tables that share a value. The right one is OperationId. Think of a parcel's tracking number: each request gets one when it arrives, and every row it causes, its database calls and its errors, carries the same number. Join the slow requests to AppDependencies on OperationId, and you see the time went into the database, not the API."),
+            maya("For why, you join. Join matches rows from two tables that share a value. The right one is OperationId."),
+            leo("Which is what, in plain words?"),
+            maya("Think of a parcel's tracking number: each request gets one when it arrives, and every row it causes, its database calls and its errors, carries it. Join the slow requests to AppDependencies on OperationId, and the time went into the database, not the API."),
             leo("Could I join on something else? ResultCode, say?"),
             maya("[sigh] Please don't. Thousands of unrelated requests share a 500, so you'd match everything with everything: a huge pile of nonsense. OperationId, always. The same goes for joining failed requests to AppExceptions, to see the error behind each one."),
             leo("And the last ten rows, newest first?"),
@@ -47,7 +55,9 @@ internal object Ai200EpisodesKql {
             leo("One more. I've seen tables called requests, with a column called timestamp. Same thing?"),
             maya("Same data, older spelling. In the workspace it's AppRequests and TimeGenerated. The Logs page of Application Insights still accepts the classic names, requests and timestamp. Write the classic names in the workspace, and the query fails."),
             leo("Last thing. I don't want to sit staring at charts. Can it tell me?"),
-            maya("Yes, with a log search alert rule. It runs your query on a schedule, say every five minutes, and compares the result with a threshold, a line you draw, like ten failures. Cross it, and an action group fires: a list of who to tell and how, like an email."),
+            maya("Yes, with a log search alert rule. It runs your query on a schedule, say every five minutes, and compares the result with a threshold, a line you draw, like ten failures."),
+            leo("And when it's crossed, I still have to go and look?"),
+            maya("No, Azure tells you. An action group fires: a list of who to tell and how, like an email or a text message."),
             leo("So what do I remember for the exam?"),
             maya("If the question says count per five-minute slice, the answer is summarize by bin. If it's about how slow requests feel, a percentile, not an average. If you need the exception behind a failed request, join on OperationId. If a new column must keep all the others, extend. And to email someone when failures pass a number, a log search alert rule."),
             leo("And anything to try today?"),
@@ -62,11 +72,15 @@ internal object Ai200EpisodesKql {
         listOf(
             maya("Welcome to Case Files. Today's case: The Eight O'Clock Slowdown. PlantPal is a small Android app that tells you what's wrong with your houseplant. Behind it runs a Python program on Azure, Microsoft's cloud, that answers each photo. Every evening at eight, users say it crawls. And the team's chart says everything is fine."),
             leo("Detective Leo, on the case. A chart that says fine, and users that say slow. Somebody's lying."),
-            maya("Nobody's lying. They're asking different questions. Everything the backend, the program behind the app, reports about itself goes to Application Insights, Azure's service for collecting that. And it's stored in a Log Analytics workspace. Picture a giant spreadsheet workbook: each sheet a table, each row one event, each column one fact about it."),
+            maya("Nobody's lying. They're asking different questions. Everything the backend, the program behind the app, reports about itself goes to Application Insights, Azure's service for collecting that."),
+            leo("And where does it keep the evidence?"),
+            maya("In a Log Analytics workspace. Picture a giant spreadsheet workbook: each sheet a table, each row one event, each column one fact about it."),
             leo("Under the picture, what is a workspace, really?"),
             maya("A store of tables that Azure keeps for you, where each row is one thing that happened, with a time on it. Incoming calls land in a table called AppRequests: one row per photo a user sent, with columns like DurationMs, how many milliseconds it took."),
             leo("And how do you question the workbook?"),
-            maya("With KQL, the Kusto Query Language. A query is a question written in it. It reads like an assembly line: start with a table, and pass the rows through steps. Each step takes the table the last step made and hands a new table on. KQL only ever reads; it can't change a single row."),
+            maya("With KQL, the Kusto Query Language. A query is a question written in it. It reads like an assembly line: start with a table, and pass the rows through steps."),
+            leo("Like chaining filter and map on a list in Kotlin?"),
+            maya("Just like that: each step takes the table the last step made and hands a new one on. And KQL only ever reads; it can't change a single row."),
             leo("My first suspect, then: the team's chart. Show me the query."),
             maya("It started from AppRequests, used summarize, the step that groups rows and works something out for each group, and worked out the average of DurationMs, per hour. The average said under a second, all evening."),
             leo("So the average is innocent. Case closed: users exaggerate."),
@@ -76,7 +90,9 @@ internal object Ai200EpisodesKql {
             leo("And with p95, over the whole evening?"),
             maya("The line jumped from under a second to six seconds, every evening at eight. The users were right. To draw it per hour, they used bin, which rounds each time down to the start of its bucket, like sorting letters into hourly pigeonholes."),
             leo("Then my second suspect: the query that timed out yesterday. I saw it spin for minutes."),
-            maya("Good catch, wrong crime. That one had no time filter. Without a where on TimeGenerated, the column holding each row's time, it trawls through weeks of data. Where keeps only rows that match, like a sieve. Keep TimeGenerated later than ago seven days, and it's quick. Ago counts back from now."),
+            maya("Good catch, wrong crime. That one had no time filter, so it trawled through weeks of data."),
+            leo("So what should it have said?"),
+            maya("A where on TimeGenerated, the column holding each row's time. Where keeps only rows that match, like a sieve. Keep TimeGenerated later than ago seven days, and it's quick. Ago counts back from now."),
             leo("And the query that failed outright? Table not found?"),
             maya("Clue two. The intern wrote requests, with a column called timestamp. Those are the classic names, which the Logs page of Application Insights still accepts. In the workspace, it's AppRequests and TimeGenerated. Same data, two spellings."),
             leo("Fine. We know when. Now, why eight o'clock?"),
@@ -86,13 +102,17 @@ internal object Ai200EpisodesKql {
             leo("And the joined result?"),
             maya("Almost all of the six seconds was one call to the database, which was simply too small for the evening rush. Not the Python code at all. The OpenTelemetry episode, the one about following a request through programs, explains how that number gets onto every row."),
             leo("Any other witnesses?"),
-            maya("One. The backend's own printed output. The program runs in a container, which is like a lunchbox packed with the app and everything it needs, and what it prints lands in a table called Container App Console Logs, with C L at the end. Its column names end in an underscore and a letter, so it's ContainerAppName underscore s. Leave that off, and the query finds nothing."),
+            maya("One. The backend's own printed output. The program runs in a container, which is like a lunchbox packed with the app and everything it needs. What it prints lands in a table called Container App Console Logs, with C L at the end."),
+            leo("And the intern's query on that table failed. Why?"),
+            maya("Its column names end in an underscore and a letter, so it's ContainerAppName underscore s. Leave that off, and the query fails: there's no such column."),
             leo("So how do they shape a result for the report?"),
             maya("Project picks the columns to keep, and drops the rest. Extend adds a column you calculate, and keeps all the others: like a column called slow, true when DurationMs is over two thousand, which is two seconds."),
             leo("And the ten worst requests, for the front page?"),
             maya("Order by DurationMs, descending, so the slowest come first, then take ten, which keeps just ten rows. And render timechart draws the result as a line, with time along the bottom."),
             leo("And next time? I don't want to wait for users to complain."),
-            maya("A log search alert rule. Azure runs your query on a schedule, say every five minutes, over the last five minutes, and compares the result with a threshold, like ten failures. Cross it, and an action group fires: a list of who to tell and how, like an email."),
+            maya("A log search alert rule. Azure runs your query on a schedule, say every five minutes, over the last five minutes, and compares the result with a threshold, like ten failures."),
+            leo("And then someone still has to go and check it?"),
+            maya("No. Cross it, and an action group fires: a list of who to tell and how, like an email. The alert comes to you."),
             leo("Any loose ends in the file?"),
             maya("Where KQL stops working. It only reads, so it reports the problem; fixing the database is up to you. Rows arrive a minute or two after they happen, so a query is never quite live. And an alert checks on its schedule, not the instant something breaks."),
             leo("So, the case summary for the exam?"),
@@ -110,9 +130,13 @@ internal object Ai200EpisodesKql {
         listOf(
             maya("Okay, did you hear what happened on the Coach team this week? Grab a coffee. They spent the whole week querying the logs of the Two Tracks Coach, the study assistant in the Android app, with its Python program on Azure, Microsoft's cloud. And let's just say, it was a week."),
             leo("[laugh] I heard someone's query ran for so long they went to lunch. Querying what, exactly?"),
-            maya("Everything the Coach reports about itself lands in Application Insights, Azure's service for collecting that. It's kept in a Log Analytics workspace. Picture a giant spreadsheet workbook: each sheet a table, each row one event, each column one fact. Requests the Coach received go in a table called AppRequests."),
+            maya("Everything the Coach reports about itself lands in Application Insights, Azure's service for collecting that. It's kept in a Log Analytics workspace."),
+            leo("Which is what, a database?"),
+            maya("Picture a giant spreadsheet workbook: each sheet a table, each row one event, each column one fact. Requests the Coach received go in a table called AppRequests."),
             leo("And how do you ask the workbook something?"),
-            maya("With KQL, the Kusto Query Language. A query is a question in that language, and it reads like an assembly line: start with a table, then pass the rows through steps. Under the picture, each step takes the table the last one made and hands a new table on. And it only reads. It can't change a thing."),
+            maya("With KQL, the Kusto Query Language. A query is a question in that language, and it reads like an assembly line: start with a table, then pass the rows through steps."),
+            leo("Steps like what?"),
+            maya("Like chaining filter and map on a Kotlin list: each step takes the table the last one made and hands a new table on. And it only reads. It can't change a thing."),
             leo("Okay. Who went first?"),
             maya("Tom. Monday. The lunch query was Tom's. He started from AppRequests and went straight to counting. No time filter."),
             leo("And?"),
@@ -134,11 +158,15 @@ internal object Ai200EpisodesKql {
             leo("Sounds right. What did they join on?"),
             maya("ResultCode. The number a server sends back to say how it went, like 200 for fine. Thousands of unrelated rows share a 200, so everything matched everything. The result was enormous and meant nothing."),
             leo("What should they have joined on?"),
-            maya("OperationId. Think of a parcel's tracking number: each request gets one when it arrives, and every row it causes carries it. Join on that, and each slow request lines up with its own database call. Almost all of the six seconds was the database. The OpenTelemetry episode, the one about tracing, explains where that number comes from."),
+            maya("OperationId. Think of a parcel's tracking number: each request gets one when it arrives, and every row it causes carries it. Join on that, and each slow request lines up with its own database call."),
+            leo("And the verdict?"),
+            maya("Almost all of the six seconds was the database. The OpenTelemetry episode, the one about tracing, explains where that number comes from."),
             leo("And the intern's other famous query? I heard take one hour."),
             maya("Oh, that too. Take returns a number of rows, like take ten. It knows nothing about time. For the last hour you need where and ago. And for the ten slowest, order by DurationMs, descending, then take ten."),
             leo("And Friday? There's always a Friday."),
-            maya("Priya. Priya saved everyone from ever staring at charts again. She built a log search alert rule. Azure runs her failures query on a schedule, every five minutes, and compares the count with a threshold, ten. Cross it, and an action group fires: a list of who to tell and how. An email to the whole team."),
+            maya("Priya. Priya saved everyone from staring at charts. She built a log search alert rule: Azure runs her failures query on a schedule, every five minutes, and compares the count with a threshold, ten."),
+            leo("And if it crosses ten?"),
+            maya("An action group fires: a list of who to tell and how. An email to the whole team."),
             leo("Did anything still go wrong?"),
             maya("Only where KQL stops. It reads; it never fixes. The database still needed a bigger size, and that was a different job. Rows arrive a minute or two late, so a query is never quite live. And Priya's alert checks every five minutes, not the instant something breaks."),
             leo("And the extend versus project argument? I heard voices."),
@@ -162,15 +190,21 @@ internal object Ai200EpisodesKql {
             ivy("And where does Application Insights keep it all?"),
             nova("In a Log Analytics workspace. Picture a giant spreadsheet workbook, open on the desk. Each sheet is a table. Each row is one event, like one request. Each column is one fact about it, like how long it took. [pause] And every row has a time."),
             ivy("Which sheet do I open first?"),
-            nova("AppRequests. The calls the Coach received, one row per question, with columns like DurationMs, how many milliseconds it took, and Success, true or false. Calls the Coach made out, to its database, sit in AppDependencies. And errors in AppExceptions."),
+            nova("AppRequests. The calls the Coach received, one row per question, with columns like DurationMs, how many milliseconds it took, and Success, true or false."),
+            ivy("And the calls the Coach makes itself?"),
+            nova("Those sit in AppDependencies, the calls out to its database. And errors, in AppExceptions."),
             ivy("And how do I ask the workbook something?"),
-            nova("In KQL, the Kusto Query Language. A query is a question written in it. It reads like an assembly line: you start with a table, and pass its rows through steps. Under the picture, each step takes the table the last one made, and hands a new table on. And it only ever reads. It never changes a thing."),
+            nova("In KQL, the Kusto Query Language. A query is a question written in it. It reads like an assembly line: you start with a table, and pass its rows through steps."),
+            ivy("Steps. Like my code, line after line?"),
+            nova("Like chaining calls on a list in Kotlin: filter, then map. [pause] Each step takes the table the last one made and hands a new table on. And it only ever reads. It never changes a thing."),
             ivy("Gentle. What's the first step?"),
             nova("A where. Where keeps only the rows that match a rule, like a sieve. And the first rule is almost always time: TimeGenerated, the column holding when each row was written, later than ago one hour."),
             ivy("Ago. Say that one slowly."),
             nova("Ago means a time counted back from now. Ago one hour is one hour before now. [pause] Forget the time filter, and your query wanders through weeks of data, and keeps you up even later."),
             ivy("And after the sieve?"),
-            nova("Shape what's left. Project keeps only the columns you name. Extend adds a column you calculate, and keeps all the rest, like a column called slow, true when DurationMs is over two thousand."),
+            nova("Shape what's left. Project keeps only the columns you name."),
+            ivy("And if I want a column of my own, without losing the rest?"),
+            nova("Extend. It adds a column you calculate, and keeps all the others, like a column called slow, true when DurationMs is over two thousand."),
             ivy("And counting? I like counting, at night."),
             nova("Then you'll like summarize. It groups rows and works something out for each group: a count, an average, a percentile. Count requests by ResultCode, the number a server sends back to say how it went, and you get one row per code."),
             ivy("And counting by time? Every five minutes?"),
@@ -180,7 +214,9 @@ internal object Ai200EpisodesKql {
             ivy("Slowly. With small numbers."),
             nova("Twenty requests in a line, fastest to slowest. Eighteen take half a second, the last two take six. [pause] The average is about one second, and looks fine. The p95 is the nineteenth in the line: six seconds. On the Coach, p95 jumped to six seconds, every evening at eight."),
             ivy("But why eight o'clock?"),
-            nova("For why, you join. Join matches rows from two tables that share a value. The value to use is OperationId. Think of a parcel's tracking number: each request gets one when it arrives, and every row it causes carries it. Join the slow requests to AppDependencies on it, and the six seconds were all in the database."),
+            nova("For why, you join. Join matches rows from two tables that share a value. The value to use is OperationId."),
+            ivy("Which is? Slowly."),
+            nova("Think of a parcel's tracking number: each request gets one when it arrives, and every row it causes carries it. [pause] Join the slow requests to AppDependencies on it, and the six seconds were all in the database."),
             ivy("Could I join on something easier? ResultCode?"),
             nova("Never. Thousands of strangers share a 200. Everything would match everything. OperationId, always. The OpenTelemetry episode, the one about tracing, tells you how that number gets onto every row."),
             ivy("And if I've seen requests and timestamp, written in old notes?"),
@@ -208,7 +244,9 @@ internal object Ai200EpisodesKql {
             rafe("You do ask a lot of questions. Where are these logs kept?"),
             nova("Picture the Two Tracks Coach, the study assistant in the Android app, with its Python program on Azure, Microsoft's cloud. Everything it reports about itself goes to Application Insights, Azure's service for collecting that, and lands in a Log Analytics workspace."),
             rafe("Workspace. Under the picture, what is it?"),
-            nova("A giant spreadsheet workbook Azure keeps for you. Each sheet a table, each row one event with a time on it, each column one fact. The requests the Coach received sit in a table called AppRequests, with DurationMs, how many milliseconds each took."),
+            nova("A giant spreadsheet workbook Azure keeps for you. Each sheet a table, each row one event with a time on it, each column one fact."),
+            rafe("So, a database I never have to insert into myself."),
+            nova("Exactly, darling. The requests the Coach received sit in a table called AppRequests, with DurationMs, how many milliseconds each took."),
             rafe("And the calls the Coach makes out, to its database? Where do those go?"),
             nova("AppDependencies. Errors go in AppExceptions, and the lines the code printed go in AppTraces. Four sheets, four kinds of confession. You'll want to read them all."),
             rafe("And KQL reads like what, a love letter?"),
@@ -229,7 +267,9 @@ internal object Ai200EpisodesKql {
             nova("Under a second all day, then six seconds every evening at eight. So, Rafe. You need the database call behind each slow request. Which column do you join on?"),
             rafe("OperationId. Like a parcel's tracking number: each request gets one when it arrives, and every row it causes carries it. A join matches rows from two tables that share a value, and that's the one that belongs together. Never ResultCode; thousands of strangers share a 200."),
             nova("Right answer. Only the ones that truly belong together. [kiss]"),
-            rafe("The OpenTelemetry episode, the one about tracing, explains how that number gets on every row, by the way. My question. You want a column called slow, true when DurationMs is over two thousand, and you must keep every other column. Which step?"),
+            rafe("The OpenTelemetry episode, the one about tracing, explains how that number gets on every row, by the way."),
+            nova("Noted. Your question, then?"),
+            rafe("You want a column called slow, true when DurationMs is over two thousand, and you must keep every other column. Which step?"),
             nova("Extend. It adds a calculated column and keeps all the rest. Project would keep only the columns I name, and throw the others away."),
             rafe("Right answer. Nobody gets thrown away tonight. [kiss]"),
             nova("Quick one about names. Old notes say requests and timestamp. In the workspace?"),
@@ -407,69 +447,69 @@ internal object Ai200EpisodesKql {
                     Beat(0, card = BoardCard("Asking your logs", "When was it slow? What failed, and why? It's all written down.")),
                     Beat(2, show = setOf("api", "appi"), light = setOf("appi"), pulse = "api" to "appi", card = BoardCard("Application Insights", "Collects everything the Coach API reports about itself.")),
                     Beat(4, show = setOf("ws"), light = setOf("ws"), pulse = "appi" to "ws", card = BoardCard("Log Analytics workspace", "A workbook of tables: a row per event, a column per fact.")),
-                    Beat(6, show = setOf("tReq"), light = setOf("tReq"), pulse = "ws" to "tReq", card = BoardCard("AppRequests", "Calls received: Name, DurationMs, Success, ResultCode.")),
-                    Beat(8, show = setOf("tDep", "tExc", "tTr"), light = setOf("tDep", "tExc", "tTr"), card = BoardCard("The other tables", "Calls made out, errors, and the lines your code printed.")),
+                    Beat(8, show = setOf("tReq"), light = setOf("tReq"), pulse = "ws" to "tReq", card = BoardCard("AppRequests", "Calls received: Name, DurationMs, Success, ResultCode.")),
+                    Beat(10, show = setOf("tDep", "tExc", "tTr"), light = setOf("tDep", "tExc", "tTr"), card = BoardCard("The other tables", "Calls made out, errors, and the lines your code printed.")),
                 ),
             ),
-            // 9: "Okay, I have a workbook. How do I ask it something?"
+            // 13: "Okay, I have a workbook. How do I ask it something?"
             Scene(
-                9, "An assembly line", pipeline(),
+                13, "An assembly line", pipeline(),
                 beats = listOf(
-                    Beat(10, show = setOf("t"), light = setOf("t"), card = BoardCard("KQL", "Kusto Query Language: start with a table, then steps.")),
-                    Beat(12, show = setOf("pipe"), light = setOf("pipe"), card = BoardCard("The pipe", "Each step takes the last step's table and hands a new one on.")),
-                    Beat(14, show = setOf("w"), light = setOf("w"), pulse = "t" to "w", card = BoardCard("where", "Keeps only the rows that match. Filter on TimeGenerated first.")),
-                    Beat(16, show = setOf("ago"), light = setOf("ago"), pulse = "w" to "ago", card = lastHour),
-                    Beat(18, show = setOf("p"), light = setOf("p"), pulse = "w" to "p", card = BoardCard("project", "Keeps only the columns you name, and drops the rest.")),
-                    Beat(20, light = setOf("p"), card = extendCode),
+                    Beat(14, show = setOf("t"), light = setOf("t"), card = BoardCard("KQL", "Kusto Query Language: start with a table, then steps.")),
+                    Beat(16, show = setOf("pipe"), light = setOf("pipe"), card = BoardCard("The pipe", "Each step takes the last step's table and hands a new one on.")),
+                    Beat(20, show = setOf("w"), light = setOf("w"), pulse = "t" to "w", card = BoardCard("where", "Keeps only the rows that match. Filter on TimeGenerated first.")),
+                    Beat(22, show = setOf("ago"), light = setOf("ago"), pulse = "w" to "ago", card = lastHour),
+                    Beat(24, show = setOf("p"), light = setOf("p"), pulse = "w" to "p", card = BoardCard("project", "Keeps only the columns you name, and drops the rest.")),
+                    Beat(26, light = setOf("p"), card = extendCode),
                 ),
             ),
-            // 21: "Now the counting."
+            // 27: "Now the counting."
             Scene(
-                21, "Counting and charting", pipeline(),
+                27, "Counting and charting", pipeline(),
                 beats = listOf(
-                    Beat(22, show = setOf("s"), light = setOf("s"), pulse = "p" to "s", card = byCode),
-                    Beat(24, light = setOf("s"), card = BoardCard("bin", "Rounds each time down to its bucket: five-minute pigeonholes.")),
-                    Beat(26, show = setOf("r"), light = setOf("r"), pulse = "s" to "r", card = BoardCard("render timechart", "A line chart with time along the bottom.")),
+                    Beat(28, show = setOf("s"), light = setOf("s"), pulse = "p" to "s", card = byCode),
+                    Beat(30, light = setOf("s"), card = BoardCard("bin", "Rounds each time down to its bucket: five-minute pigeonholes.")),
+                    Beat(32, show = setOf("r"), light = setOf("r"), pulse = "s" to "r", card = BoardCard("render timechart", "A line chart with time along the bottom.")),
                 ),
             ),
-            // 27: "Okay. The Coach is slow in the evenings. Do I chart the average time?"
+            // 33: "Okay. The Coach is slow in the evenings. Do I chart the average time?"
             Scene(
-                27, "Percentiles, not averages", percentile(),
+                33, "Percentiles, not averages", percentile(),
                 beats = listOf(
-                    Beat(28, show = setOf("avg", "p95"), light = setOf("p95"), card = BoardCard("p95", "The time 95 of every 100 requests beat: the slowest one in twenty.")),
-                    Beat(30, light = setOf("avg", "p95"), card = BoardCard("Twenty requests", "18 take 0.5 s, 2 take 6 s. Average about 1 s; p95, the 19th, is 6 s.")),
-                    Beat(32, show = setOf("bin", "chart"), light = setOf("p95", "chart"), pulse = "bin" to "chart", card = p95Code),
+                    Beat(34, show = setOf("avg", "p95"), light = setOf("p95"), card = BoardCard("p95", "The time 95 of every 100 requests beat: the slowest one in twenty.")),
+                    Beat(36, light = setOf("avg", "p95"), card = BoardCard("Twenty requests", "18 take 0.5 s, 2 take 6 s. Average about 1 s; p95, the 19th, is 6 s.")),
+                    Beat(38, show = setOf("bin", "chart"), light = setOf("p95", "chart"), pulse = "bin" to "chart", card = p95Code),
                 ),
             ),
-            // 33: "But the line doesn't say why."
+            // 39: "But the line doesn't say why."
             Scene(
-                33, "Why eight o'clock?", join(),
+                39, "Why eight o'clock?", join(),
                 beats = listOf(
-                    Beat(34, show = setOf("req", "dep", "op", "ans"), light = setOf("op", "ans"), pulse = "op" to "ans", card = joinCode),
-                    Beat(36, show = setOf("rc"), light = setOf("rc"), pulse = "rc" to "op", card = BoardCard("Not ResultCode", "Thousands share a 500, so everything matches everything.")),
-                    Beat(38, light = setOf("req"), card = BoardCard("order by, then take", "Newest first, then ten rows. take knows nothing about time.")),
+                    Beat(40, show = setOf("req", "dep", "op", "ans"), light = setOf("op", "ans"), pulse = "op" to "ans", card = joinCode),
+                    Beat(44, show = setOf("rc"), light = setOf("rc"), pulse = "rc" to "op", card = BoardCard("Not ResultCode", "Thousands share a 500, so everything matches everything.")),
+                    Beat(46, light = setOf("req"), card = BoardCard("order by, then take", "Newest first, then ten rows. take knows nothing about time.")),
                 ),
             ),
-            // 39: "One more. I've seen tables called requests..."
+            // 47: "One more. I've seen tables called requests..."
             Scene(
-                39, "Two spellings", names(),
+                47, "Two spellings", names(),
                 beats = listOf(
-                    Beat(40, light = setOf("classic", "ws"), pulse = "ws" to "wsq", card = BoardCard("Same data, older spelling", "In the workspace: AppRequests and TimeGenerated.")),
+                    Beat(48, light = setOf("classic", "ws"), pulse = "ws" to "wsq", card = BoardCard("Same data, older spelling", "In the workspace: AppRequests and TimeGenerated.")),
                 ),
             ),
-            // 41: "Last thing. I don't want to sit staring at charts..."
+            // 49: "Last thing. I don't want to sit staring at charts..."
             Scene(
-                41, "Telling you next time", alert(),
+                49, "Telling you next time", alert(),
                 beats = listOf(
-                    Beat(42, light = setOf("thr", "ag"), pulse = "thr" to "ag", card = BoardCard("Log search alert rule", "A query on a schedule, a threshold, and an action group to tell.")),
+                    Beat(50, light = setOf("thr", "ag"), pulse = "thr" to "ag", card = BoardCard("Log search alert rule", "A query on a schedule, a threshold, and an action group to tell.")),
                 ),
             ),
-            // 43: "So what do I remember for the exam?"
+            // 53: "So what do I remember for the exam?"
             Scene(
-                43, "For the exam", exam(),
+                53, "For the exam", exam(),
                 beats = listOf(
-                    Beat(44, show = all6, light = setOf("slice", "slow", "behind", "keep", "email"), card = BoardCard("Listen for the phrase", "Each exam phrase points to one answer.")),
-                    Beat(46, card = today),
+                    Beat(54, show = all6, light = setOf("slice", "slow", "behind", "keep", "email"), card = BoardCard("Listen for the phrase", "Each exam phrase points to one answer.")),
+                    Beat(56, card = today),
                 ),
             ),
         ),
@@ -483,85 +523,85 @@ internal object Ai200EpisodesKql {
                 0, "The Eight O'Clock Slowdown", store("PlantPal API"),
                 beats = listOf(
                     Beat(0, show = setOf("api"), light = setOf("api"), card = BoardCard("The case", "Users say it crawls at eight. The team's chart says fine.")),
-                    Beat(2, show = setOf("appi", "ws"), light = setOf("ws"), pulse = "appi" to "ws", card = BoardCard("Log Analytics workspace", "A workbook of tables: a row per event, a column per fact.")),
-                    Beat(4, show = setOf("tReq"), light = setOf("tReq"), pulse = "ws" to "tReq", card = BoardCard("Under the picture", "A store of tables; each row one thing that happened, with a time.")),
+                    Beat(4, show = setOf("appi", "ws"), light = setOf("ws"), pulse = "appi" to "ws", card = BoardCard("Log Analytics workspace", "A workbook of tables: a row per event, a column per fact.")),
+                    Beat(6, show = setOf("tReq"), light = setOf("tReq"), pulse = "ws" to "tReq", card = BoardCard("Under the picture", "A store of tables; each row one thing that happened, with a time.")),
                 ),
             ),
-            // 5: "And how do you question the workbook?"
+            // 7: "And how do you question the workbook?"
             Scene(
-                5, "The assembly line", pipeline(),
+                7, "The assembly line", pipeline(),
                 beats = listOf(
-                    Beat(6, show = setOf("t", "pipe"), light = setOf("pipe"), card = BoardCard("KQL", "Start with a table, then steps. It only reads; it changes nothing.")),
+                    Beat(8, show = setOf("t", "pipe"), light = setOf("pipe"), card = BoardCard("KQL", "Start with a table, then steps. It only reads; it changes nothing.")),
                 ),
             ),
-            // 7: "My first suspect, then: the team's chart..."
+            // 11: "My first suspect, then: the team's chart..."
             Scene(
-                7, "Suspect one: the average", percentile(),
+                11, "Suspect one: the average", percentile(),
                 beats = listOf(
-                    Beat(8, show = setOf("avg"), light = setOf("avg"), card = BoardCard("The team's chart", "summarize the average DurationMs per hour: under a second.")),
-                    Beat(10, show = setOf("p95"), light = setOf("p95"), card = BoardCard("Clue one: a percentile", "p95: the time 95 of every 100 requests beat.")),
-                    Beat(12, light = setOf("avg", "p95"), card = BoardCard("Twenty requests", "18 take 0.5 s, 2 take 6 s. Average about 1 s; p95, the 19th, is 6 s.")),
-                    Beat(14, show = setOf("bin", "chart"), light = setOf("p95", "bin"), pulse = "p95" to "bin", card = p95Code),
+                    Beat(12, show = setOf("avg"), light = setOf("avg"), card = BoardCard("The team's chart", "summarize the average DurationMs per hour: under a second.")),
+                    Beat(14, show = setOf("p95"), light = setOf("p95"), card = BoardCard("Clue one: a percentile", "p95: the time 95 of every 100 requests beat.")),
+                    Beat(16, light = setOf("avg", "p95"), card = BoardCard("Twenty requests", "18 take 0.5 s, 2 take 6 s. Average about 1 s; p95, the 19th, is 6 s.")),
+                    Beat(18, show = setOf("bin", "chart"), light = setOf("p95", "bin"), pulse = "p95" to "bin", card = p95Code),
                 ),
             ),
-            // 15: "Then my second suspect: the query that timed out yesterday..."
+            // 19: "Then my second suspect: the query that timed out yesterday..."
             Scene(
-                15, "The query that spun", pipeline(),
+                19, "The query that spun", pipeline(),
                 beats = listOf(
-                    Beat(16, show = setOf("w", "ago"), light = setOf("w", "ago"), pulse = "w" to "ago", card = lastHour),
+                    Beat(22, show = setOf("w", "ago"), light = setOf("w", "ago"), pulse = "w" to "ago", card = lastHour),
                 ),
             ),
-            // 17: "And the query that failed outright? Table not found?"
+            // 23: "And the query that failed outright? Table not found?"
             Scene(
-                17, "Clue two: two spellings", names(),
+                23, "Clue two: two spellings", names(),
                 beats = listOf(
-                    Beat(18, light = setOf("classic", "ws"), pulse = "classic" to "logs", card = BoardCard("Classic names", "requests and timestamp work on the Logs page, not in the workspace.")),
+                    Beat(24, light = setOf("classic", "ws"), pulse = "classic" to "logs", card = BoardCard("Classic names", "requests and timestamp work on the Logs page, not in the workspace.")),
                 ),
             ),
-            // 19: "Fine. We know when. Now, why eight o'clock?"
+            // 25: "Fine. We know when. Now, why eight o'clock?"
             Scene(
-                19, "Why eight o'clock?", join(),
+                25, "Why eight o'clock?", join(),
                 beats = listOf(
-                    Beat(20, show = setOf("req", "dep"), light = setOf("req", "dep"), card = BoardCard("join", "Match rows from two tables that share a value.")),
-                    Beat(22, show = setOf("op", "rc"), light = setOf("rc", "op"), pulse = "rc" to "op", card = BoardCard("Not ResultCode", "Thousands share a 200. Join on OperationId, the trace id.")),
-                    Beat(24, show = setOf("ans"), light = setOf("op", "ans"), pulse = "op" to "ans", card = joinCode),
+                    Beat(26, show = setOf("req", "dep"), light = setOf("req", "dep"), card = BoardCard("join", "Match rows from two tables that share a value.")),
+                    Beat(28, show = setOf("op", "rc"), light = setOf("rc", "op"), pulse = "rc" to "op", card = BoardCard("Not ResultCode", "Thousands share a 200. Join on OperationId, the trace id.")),
+                    Beat(30, show = setOf("ans"), light = setOf("op", "ans"), pulse = "op" to "ans", card = joinCode),
                 ),
             ),
-            // 25: "Any other witnesses?"
+            // 31: "Any other witnesses?"
             Scene(
-                25, "Another witness", store("PlantPal API"),
+                31, "Another witness", store("PlantPal API"),
                 beats = listOf(
-                    Beat(26, light = setOf("api", "ws"), pulse = "appi" to "ws", card = BoardCard("KQL", "ContainerAppConsoleLogs_CL | where ContainerAppName_s == \"plantpal\"", code = true)),
+                    Beat(34, light = setOf("api", "ws"), pulse = "appi" to "ws", card = BoardCard("KQL", "ContainerAppConsoleLogs_CL | where ContainerAppName_s == \"plantpal\"", code = true)),
                 ),
             ),
-            // 27: "So how do they shape a result for the report?"
+            // 35: "So how do they shape a result for the report?"
             Scene(
-                27, "Shaping the report", pipeline(),
+                35, "Shaping the report", pipeline(),
                 beats = listOf(
-                    Beat(28, light = setOf("p"), card = extendCode),
-                    Beat(30, light = setOf("take", "r"), pulse = "p" to "take", card = BoardCard("order by, take, render", "Slowest first, keep ten rows, then draw a line over time.")),
+                    Beat(36, light = setOf("p"), card = extendCode),
+                    Beat(38, light = setOf("take", "r"), pulse = "p" to "take", card = BoardCard("order by, take, render", "Slowest first, keep ten rows, then draw a line over time.")),
                 ),
             ),
-            // 31: "And next time? I don't want to wait for users to complain."
+            // 39: "And next time? I don't want to wait for users to complain."
             Scene(
-                31, "Next time", alert(),
+                39, "Next time", alert(),
                 beats = listOf(
-                    Beat(32, light = setOf("thr", "ag"), pulse = "thr" to "ag", card = alertCode),
+                    Beat(40, light = setOf("thr", "ag"), pulse = "thr" to "ag", card = alertCode),
                 ),
             ),
-            // 33: "Any loose ends in the file?"
+            // 43: "Any loose ends in the file?"
             Scene(
-                33, "Loose ends", limits(),
+                43, "Loose ends", limits(),
                 beats = listOf(
-                    Beat(34, light = setOf("reads", "late", "sched"), pulse = "late" to "otel", card = BoardCard("Where KQL stops", "It reads, never fixes; rows land late; alerts check on a schedule.")),
+                    Beat(44, light = setOf("reads", "late", "sched"), pulse = "late" to "otel", card = BoardCard("Where KQL stops", "It reads, never fixes; rows land late; alerts check on a schedule.")),
                 ),
             ),
-            // 35: "So, the case summary for the exam?"
+            // 45: "So, the case summary for the exam?"
             Scene(
-                35, "Case closed", exam(),
+                45, "Case closed", exam(),
                 beats = listOf(
-                    Beat(36, show = all6, light = setOf("slow", "slice", "behind", "keep", "email"), card = BoardCard("Listen for the phrase", "Each exam phrase points to one answer.")),
-                    Beat(38, card = today),
+                    Beat(46, show = all6, light = setOf("slow", "slice", "behind", "keep", "email"), card = BoardCard("Listen for the phrase", "Each exam phrase points to one answer.")),
+                    Beat(48, card = today),
                 ),
             ),
         ),
@@ -578,76 +618,76 @@ internal object Ai200EpisodesKql {
                     Beat(2, show = setOf("appi", "ws", "tReq"), light = setOf("ws", "tReq"), pulse = "appi" to "ws", card = BoardCard("Log Analytics workspace", "A workbook of tables. Requests go in AppRequests.")),
                 ),
             ),
-            // 3: "And how do you ask the workbook something?"
+            // 5: "And how do you ask the workbook something?"
             Scene(
-                3, "An assembly line", pipeline(),
+                5, "An assembly line", pipeline(),
                 beats = listOf(
-                    Beat(4, show = setOf("t", "pipe"), light = setOf("pipe"), card = BoardCard("KQL", "Start with a table, then steps. It only reads.")),
+                    Beat(6, show = setOf("t", "pipe"), light = setOf("pipe"), card = BoardCard("KQL", "Start with a table, then steps. It only reads.")),
                 ),
             ),
-            // 5: "Okay. Who went first?"
+            // 9: "Okay. Who went first?"
             Scene(
-                5, "Monday: Tom", pipeline(),
+                9, "Monday: Tom", pipeline(),
                 beats = listOf(
-                    Beat(6, light = setOf("t"), card = BoardCard("No time filter", "Tom's query trawled through weeks of data. Lunch.")),
-                    Beat(8, show = setOf("w", "ago"), light = setOf("w", "ago"), pulse = "w" to "ago", card = lastHour),
+                    Beat(10, light = setOf("t"), card = BoardCard("No time filter", "Tom's query trawled through weeks of data. Lunch.")),
+                    Beat(12, show = setOf("w", "ago"), light = setOf("w", "ago"), pulse = "w" to "ago", card = lastHour),
                 ),
             ),
-            // 9: "Poor Tom. Tuesday?"
+            // 13: "Poor Tom. Tuesday?"
             Scene(
-                9, "Tuesday: Dana", percentile(),
+                13, "Tuesday: Dana", percentile(),
                 beats = listOf(
-                    Beat(10, show = setOf("avg"), light = setOf("avg"), card = BoardCard("Dana's chart", "The average DurationMs per hour: a calm, level line.")),
-                    Beat(12, show = setOf("p95"), light = setOf("p95"), card = BoardCard("Priya's one word", "p95: the time 95 of every 100 requests beat.")),
-                    Beat(14, light = setOf("avg", "p95"), card = BoardCard("Twenty requests", "18 take 0.5 s, 2 take 6 s. Average about 1 s; p95, the 19th, is 6 s.")),
-                    Beat(16, show = setOf("bin", "chart"), light = setOf("bin", "chart"), pulse = "bin" to "chart", card = p95Code),
+                    Beat(14, show = setOf("avg"), light = setOf("avg"), card = BoardCard("Dana's chart", "The average DurationMs per hour: a calm, level line.")),
+                    Beat(16, show = setOf("p95"), light = setOf("p95"), card = BoardCard("Priya's one word", "p95: the time 95 of every 100 requests beat.")),
+                    Beat(18, light = setOf("avg", "p95"), card = BoardCard("Twenty requests", "18 take 0.5 s, 2 take 6 s. Average about 1 s; p95, the 19th, is 6 s.")),
+                    Beat(20, show = setOf("bin", "chart"), light = setOf("bin", "chart"), pulse = "bin" to "chart", card = p95Code),
                 ),
             ),
-            // 17: "Wednesday. Go."
+            // 21: "Wednesday. Go."
             Scene(
-                17, "Wednesday: Marcus", names(),
+                21, "Wednesday: Marcus", names(),
                 beats = listOf(
-                    Beat(18, light = setOf("classic"), card = BoardCard("An old blog post", "requests and timestamp, pasted into a workspace query.")),
-                    Beat(20, light = setOf("ws", "wsq"), pulse = "ws" to "wsq", card = BoardCard("Two spellings", "In the workspace: AppRequests and TimeGenerated.")),
+                    Beat(22, light = setOf("classic"), card = BoardCard("An old blog post", "requests and timestamp, pasted into a workspace query.")),
+                    Beat(24, light = setOf("ws", "wsq"), pulse = "ws" to "wsq", card = BoardCard("Two spellings", "In the workspace: AppRequests and TimeGenerated.")),
                 ),
             ),
-            // 21: "Thursday?"
+            // 25: "Thursday?"
             Scene(
-                21, "Thursday: the intern", join(),
+                25, "Thursday: the intern", join(),
                 beats = listOf(
-                    Beat(22, show = setOf("req", "dep"), light = setOf("req", "dep"), card = BoardCard("join", "Match rows from two tables that share a value.")),
-                    Beat(24, show = setOf("op", "rc"), light = setOf("rc"), pulse = "rc" to "op", card = BoardCard("Joined on ResultCode", "Thousands share a 200: an enormous result that meant nothing.")),
-                    Beat(26, show = setOf("ans"), light = setOf("op", "ans"), pulse = "op" to "ans", card = joinCode),
-                    Beat(28, card = BoardCard("take one hour?", "take returns rows; it knows nothing about time. Use where and ago.")),
+                    Beat(26, show = setOf("req", "dep"), light = setOf("req", "dep"), card = BoardCard("join", "Match rows from two tables that share a value.")),
+                    Beat(28, show = setOf("op", "rc"), light = setOf("rc"), pulse = "rc" to "op", card = BoardCard("Joined on ResultCode", "Thousands share a 200: an enormous result that meant nothing.")),
+                    Beat(30, show = setOf("ans"), light = setOf("op", "ans"), pulse = "op" to "ans", card = joinCode),
+                    Beat(34, card = BoardCard("take one hour?", "take returns rows; it knows nothing about time. Use where and ago.")),
                 ),
             ),
-            // 29: "And Friday? There's always a Friday."
+            // 35: "And Friday? There's always a Friday."
             Scene(
-                29, "Friday: Priya", alert(),
+                35, "Friday: Priya", alert(),
                 beats = listOf(
-                    Beat(30, light = setOf("thr", "ag"), pulse = "thr" to "ag", card = alertCode),
+                    Beat(36, light = setOf("thr", "ag"), pulse = "thr" to "ag", card = alertCode),
                 ),
             ),
-            // 31: "Did anything still go wrong?"
+            // 39: "Did anything still go wrong?"
             Scene(
-                31, "Where it stops", limits(),
+                39, "Where it stops", limits(),
                 beats = listOf(
-                    Beat(32, light = setOf("reads", "late", "sched"), pulse = "late" to "otel", card = BoardCard("Where KQL stops", "It reads, never fixes; rows land late; alerts check on a schedule.")),
+                    Beat(40, light = setOf("reads", "late", "sched"), pulse = "late" to "otel", card = BoardCard("Where KQL stops", "It reads, never fixes; rows land late; alerts check on a schedule.")),
                 ),
             ),
-            // 33: "And the extend versus project argument? I heard voices."
+            // 41: "And the extend versus project argument? I heard voices."
             Scene(
-                33, "Extend or project", pipeline(),
+                41, "Extend or project", pipeline(),
                 beats = listOf(
-                    Beat(34, light = setOf("p"), card = extendCode),
+                    Beat(42, light = setOf("p"), card = extendCode),
                 ),
             ),
-            // 35: "So, the gossip I should remember for the exam?"
+            // 43: "So, the gossip I should remember for the exam?"
             Scene(
-                35, "For the exam", exam(),
+                43, "For the exam", exam(),
                 beats = listOf(
-                    Beat(36, show = all6, light = setOf("slow", "slice", "behind", "email"), card = BoardCard("Listen for the phrase", "Dana, the intern and Priya: one answer each.")),
-                    Beat(38, card = today),
+                    Beat(44, show = all6, light = setOf("slow", "slice", "behind", "email"), card = BoardCard("Listen for the phrase", "Dana, the intern and Priya: one answer each.")),
+                    Beat(46, card = today),
                 ),
             ),
         ),
@@ -666,67 +706,67 @@ internal object Ai200EpisodesKql {
                     Beat(6, show = setOf("tReq", "tDep", "tExc", "tTr"), light = setOf("tReq"), pulse = "ws" to "tReq", card = BoardCard("AppRequests", "Calls received, with DurationMs and Success.")),
                 ),
             ),
-            // 7: "And how do I ask the workbook something?"
+            // 9: "And how do I ask the workbook something?"
             Scene(
-                7, "An assembly line", pipeline(),
+                9, "An assembly line", pipeline(),
                 beats = listOf(
-                    Beat(8, show = setOf("t", "pipe"), light = setOf("pipe"), card = BoardCard("KQL", "A table, then steps; each hands a new table on. It only reads.")),
-                    Beat(10, show = setOf("w"), light = setOf("w"), pulse = "t" to "w", card = BoardCard("where", "A sieve: keep only rows that match. Time first.")),
-                    Beat(12, show = setOf("ago"), light = setOf("ago"), pulse = "w" to "ago", card = lastHour),
-                    Beat(14, show = setOf("p"), light = setOf("p"), pulse = "w" to "p", card = extendCode),
+                    Beat(10, show = setOf("t", "pipe"), light = setOf("pipe"), card = BoardCard("KQL", "A table, then steps; each hands a new table on. It only reads.")),
+                    Beat(14, show = setOf("w"), light = setOf("w"), pulse = "t" to "w", card = BoardCard("where", "A sieve: keep only rows that match. Time first.")),
+                    Beat(16, show = setOf("ago"), light = setOf("ago"), pulse = "w" to "ago", card = lastHour),
+                    Beat(20, show = setOf("p"), light = setOf("p"), pulse = "w" to "p", card = extendCode),
                 ),
             ),
-            // 15: "And counting? I like counting, at night."
+            // 21: "And counting? I like counting, at night."
             Scene(
-                15, "Counting at night", pipeline(),
+                21, "Counting at night", pipeline(),
                 beats = listOf(
-                    Beat(16, show = setOf("s"), light = setOf("s"), pulse = "p" to "s", card = byCode),
-                    Beat(18, show = setOf("r"), light = setOf("r"), pulse = "s" to "r", card = BoardCard("bin and render", "Five-minute pigeonholes, drawn as a line over time.")),
+                    Beat(22, show = setOf("s"), light = setOf("s"), pulse = "p" to "s", card = byCode),
+                    Beat(24, show = setOf("r"), light = setOf("r"), pulse = "s" to "r", card = BoardCard("bin and render", "Five-minute pigeonholes, drawn as a line over time.")),
                 ),
             ),
-            // 19: "Now. The Coach feels slow in the evenings..."
+            // 25: "Now. The Coach feels slow in the evenings..."
             Scene(
-                19, "Not the average", percentile(),
+                25, "Not the average", percentile(),
                 beats = listOf(
-                    Beat(20, show = setOf("avg", "p95"), light = setOf("p95"), card = BoardCard("p95", "The time 95 of every 100 requests beat: the slowest one in twenty.")),
-                    Beat(22, show = setOf("bin", "chart"), light = setOf("avg", "p95"), pulse = "bin" to "chart", card = BoardCard("Twenty requests", "18 take 0.5 s, 2 take 6 s. Average about 1 s; p95, the 19th, is 6 s.")),
+                    Beat(26, show = setOf("avg", "p95"), light = setOf("p95"), card = BoardCard("p95", "The time 95 of every 100 requests beat: the slowest one in twenty.")),
+                    Beat(28, show = setOf("bin", "chart"), light = setOf("avg", "p95"), pulse = "bin" to "chart", card = BoardCard("Twenty requests", "18 take 0.5 s, 2 take 6 s. Average about 1 s; p95, the 19th, is 6 s.")),
                 ),
             ),
-            // 23: "But why eight o'clock?"
+            // 29: "But why eight o'clock?"
             Scene(
-                23, "Why eight o'clock?", join(),
+                29, "Why eight o'clock?", join(),
                 beats = listOf(
-                    Beat(24, show = setOf("req", "dep", "op", "ans"), light = setOf("op", "ans"), pulse = "op" to "ans", card = joinCode),
-                    Beat(26, show = setOf("rc"), light = setOf("rc"), pulse = "rc" to "op", card = BoardCard("Never ResultCode", "Thousands of strangers share a 200.")),
+                    Beat(30, show = setOf("req", "dep", "op", "ans"), light = setOf("op", "ans"), pulse = "op" to "ans", card = joinCode),
+                    Beat(34, show = setOf("rc"), light = setOf("rc"), pulse = "rc" to "op", card = BoardCard("Never ResultCode", "Thousands of strangers share a 200.")),
                 ),
             ),
-            // 27: "And if I've seen requests and timestamp, written in old notes?"
+            // 35: "And if I've seen requests and timestamp, written in old notes?"
             Scene(
-                27, "Two spellings", names(),
+                35, "Two spellings", names(),
                 beats = listOf(
-                    Beat(28, light = setOf("classic", "ws"), pulse = "ws" to "wsq", card = BoardCard("Same data, two spellings", "In the workspace: AppRequests and TimeGenerated.")),
+                    Beat(36, light = setOf("classic", "ws"), pulse = "ws" to "wsq", card = BoardCard("Same data, two spellings", "In the workspace: AppRequests and TimeGenerated.")),
                 ),
             ),
-            // 29: "And can the logs whisper to me, so I don't have to keep watching?"
+            // 37: "And can the logs whisper to me, so I don't have to keep watching?"
             Scene(
-                29, "A whisper in the night", alert(),
+                37, "A whisper in the night", alert(),
                 beats = listOf(
-                    Beat(30, light = setOf("thr", "ag"), pulse = "thr" to "ag", card = BoardCard("Log search alert rule", "A query on a schedule, a threshold, and an action group.")),
+                    Beat(38, light = setOf("thr", "ag"), pulse = "thr" to "ag", card = BoardCard("Log search alert rule", "A query on a schedule, a threshold, and an action group.")),
                 ),
             ),
-            // 31: "Now the part I've been waiting for. Where does all this stop working?"
+            // 39: "Now the part I've been waiting for. Where does all this stop working?"
             Scene(
-                31, "Where it stops", limits(),
+                39, "Where it stops", limits(),
                 beats = listOf(
-                    Beat(32, light = setOf("reads", "late", "sched"), pulse = "late" to "otel", card = BoardCard("Where KQL stops", "It reads, never fixes; rows land late; alerts check on a schedule.")),
+                    Beat(40, light = setOf("reads", "late", "sched"), pulse = "late" to "otel", card = BoardCard("Where KQL stops", "It reads, never fixes; rows land late; alerts check on a schedule.")),
                 ),
             ),
-            // 33: "Mm. Before you send me off to bed. What do I remember for the exam?"
+            // 41: "Mm. Before you send me off to bed. What do I remember for the exam?"
             Scene(
-                33, "For the exam", exam(),
+                41, "For the exam", exam(),
                 beats = listOf(
-                    Beat(34, show = all6, light = setOf("slow", "slice", "behind", "keep", "email"), card = BoardCard("Listen for the phrase", "Each exam phrase points to one answer.")),
-                    Beat(36, card = today),
+                    Beat(42, show = all6, light = setOf("slow", "slice", "behind", "keep", "email"), card = BoardCard("Listen for the phrase", "Each exam phrase points to one answer.")),
+                    Beat(44, card = today),
                 ),
             ),
         ),
@@ -742,77 +782,77 @@ internal object Ai200EpisodesKql {
                     Beat(0, card = BoardCard("Date night", "The most curious thing in the cloud.")),
                     Beat(2, card = BoardCard("KQL", "Kusto Query Language: how you ask your app's logs questions.")),
                     Beat(4, show = setOf("api", "appi", "ws"), light = setOf("ws"), pulse = "appi" to "ws", card = BoardCard("Log Analytics workspace", "Where Application Insights keeps what the Coach reports.")),
-                    Beat(6, show = setOf("tReq"), light = setOf("tReq"), pulse = "ws" to "tReq", card = BoardCard("AppRequests", "Requests received, with DurationMs in milliseconds.")),
-                    Beat(8, show = setOf("tDep", "tExc", "tTr"), light = setOf("tDep", "tExc", "tTr"), card = BoardCard("Four sheets", "Calls made out, errors, and the lines the code printed.")),
+                    Beat(8, show = setOf("tReq"), light = setOf("tReq"), pulse = "ws" to "tReq", card = BoardCard("AppRequests", "Requests received, with DurationMs in milliseconds.")),
+                    Beat(10, show = setOf("tDep", "tExc", "tTr"), light = setOf("tDep", "tExc", "tTr"), card = BoardCard("Four sheets", "Calls made out, errors, and the lines the code printed.")),
                 ),
             ),
-            // 9: "And KQL reads like what, a love letter?"
+            // 11: "And KQL reads like what, a love letter?"
             Scene(
-                9, "An assembly line", pipeline(),
+                11, "An assembly line", pipeline(),
                 beats = listOf(
-                    Beat(10, show = setOf("t", "pipe"), light = setOf("pipe"), card = BoardCard("Like an assembly line", "Each step hands a new table on. It only ever reads.")),
-                    Beat(11, light = setOf("t"), card = BoardCard("Quiz: the last hour", "Only the last hour of requests. What do you write?")),
-                    Beat(12, show = setOf("w", "ago"), light = setOf("w", "ago"), pulse = "w" to "ago", card = lastHour),
-                    Beat(14, show = setOf("s"), light = setOf("s"), card = BoardCard("Quiz: five-minute slices", "A count of requests for every five minutes. What slices it?")),
-                    Beat(16, light = setOf("s"), card = BoardCard("No kiss: it's bin", "take only returns rows. bin makes buckets; summarize counts.")),
-                    Beat(18, show = setOf("r"), light = setOf("r"), pulse = "s" to "r", card = BoardCard("render timechart", "A line with time along the bottom.")),
+                    Beat(12, show = setOf("t", "pipe"), light = setOf("pipe"), card = BoardCard("Like an assembly line", "Each step hands a new table on. It only ever reads.")),
+                    Beat(13, light = setOf("t"), card = BoardCard("Quiz: the last hour", "Only the last hour of requests. What do you write?")),
+                    Beat(14, show = setOf("w", "ago"), light = setOf("w", "ago"), pulse = "w" to "ago", card = lastHour),
+                    Beat(16, show = setOf("s"), light = setOf("s"), card = BoardCard("Quiz: five-minute slices", "A count of requests for every five minutes. What slices it?")),
+                    Beat(18, light = setOf("s"), card = BoardCard("No kiss: it's bin", "take only returns rows. bin makes buckets; summarize counts.")),
+                    Beat(20, show = setOf("r"), light = setOf("r"), pulse = "s" to "r", card = BoardCard("render timechart", "A line with time along the bottom.")),
                 ),
             ),
-            // 19: "No. An average hides the slow tail..."
+            // 21: "No. An average hides the slow tail..."
             Scene(
-                19, "Never average", percentile(),
+                21, "Never average", percentile(),
                 beats = listOf(
-                    Beat(19, show = setOf("avg", "p95"), light = setOf("p95"), card = BoardCard("Right answer: a percentile", "p95: what the slowest one in twenty felt like.")),
-                    Beat(21, light = setOf("avg", "p95"), card = BoardCard("Twenty requests", "18 take 0.5 s, 2 take 6 s. Average about 1 s; p95, the 19th, is 6 s.")),
-                    Beat(23, show = setOf("bin", "chart"), light = setOf("p95", "chart"), pulse = "bin" to "chart", card = p95Code),
+                    Beat(21, show = setOf("avg", "p95"), light = setOf("p95"), card = BoardCard("Right answer: a percentile", "p95: what the slowest one in twenty felt like.")),
+                    Beat(23, light = setOf("avg", "p95"), card = BoardCard("Twenty requests", "18 take 0.5 s, 2 take 6 s. Average about 1 s; p95, the 19th, is 6 s.")),
+                    Beat(25, show = setOf("bin", "chart"), light = setOf("p95", "chart"), pulse = "bin" to "chart", card = p95Code),
                 ),
             ),
-            // 24: "Under a second all day, then six seconds every evening at eight..."
+            // 26: "Under a second all day, then six seconds every evening at eight..."
             Scene(
-                24, "Truly belong together", join(),
+                26, "Truly belong together", join(),
                 beats = listOf(
-                    Beat(24, show = setOf("req", "dep"), light = setOf("req", "dep"), card = BoardCard("Quiz: which column?", "The database call behind each slow request. Join on what?")),
-                    Beat(25, show = setOf("op", "rc"), light = setOf("op"), pulse = "req" to "op", card = BoardCard("Right answer: OperationId", "The shared trace id. Never ResultCode.")),
-                    Beat(26, show = setOf("ans"), light = setOf("ans"), pulse = "op" to "ans", card = joinCode),
+                    Beat(26, show = setOf("req", "dep"), light = setOf("req", "dep"), card = BoardCard("Quiz: which column?", "The database call behind each slow request. Join on what?")),
+                    Beat(27, show = setOf("op", "rc"), light = setOf("op"), pulse = "req" to "op", card = BoardCard("Right answer: OperationId", "The shared trace id. Never ResultCode.")),
+                    Beat(28, show = setOf("ans"), light = setOf("ans"), pulse = "op" to "ans", card = joinCode),
                 ),
             ),
-            // 27: "The OpenTelemetry episode explains how that id gets on every row..."
+            // 29: "The OpenTelemetry episode explains how that id gets on every row..."
             Scene(
-                27, "Nobody thrown away", pipeline(),
+                29, "Nobody thrown away", pipeline(),
                 beats = listOf(
-                    Beat(27, light = setOf("p"), card = BoardCard("Quiz: keep every column", "Add a column called slow, and keep all the others.")),
-                    Beat(28, light = setOf("p"), card = extendCode),
+                    Beat(31, light = setOf("p"), card = BoardCard("Quiz: keep every column", "Add a column called slow, and keep all the others.")),
+                    Beat(32, light = setOf("p"), card = extendCode),
                 ),
             ),
-            // 30: "Quick one about names..."
+            // 34: "Quick one about names..."
             Scene(
-                30, "Two spellings", names(),
+                34, "Two spellings", names(),
                 beats = listOf(
-                    Beat(30, light = setOf("classic"), card = BoardCard("Old notes", "requests and timestamp. In the workspace?")),
-                    Beat(31, light = setOf("ws", "wsq"), pulse = "ws" to "wsq", card = BoardCard("AppRequests, TimeGenerated", "Classic names only work on the Logs page of App Insights.")),
+                    Beat(34, light = setOf("classic"), card = BoardCard("Old notes", "requests and timestamp. In the workspace?")),
+                    Beat(35, light = setOf("ws", "wsq"), pulse = "ws" to "wsq", card = BoardCard("AppRequests, TimeGenerated", "Classic names only work on the Logs page of App Insights.")),
                 ),
             ),
-            // 32: "Lovely. Last question from me..."
+            // 36: "Lovely. Last question from me..."
             Scene(
-                32, "Calls when it's wrong", alert(),
+                36, "Calls when it's wrong", alert(),
                 beats = listOf(
-                    Beat(32, light = setOf("q"), card = BoardCard("Quiz: an email", "More than ten failures in five minutes. What do you create?")),
-                    Beat(33, light = setOf("thr", "ag"), pulse = "thr" to "ag", card = BoardCard("Right answer", "A log search alert rule: schedule, threshold, action group.")),
+                    Beat(36, light = setOf("q"), card = BoardCard("Quiz: an email", "More than ten failures in five minutes. What do you create?")),
+                    Beat(37, light = setOf("thr", "ag"), pulse = "thr" to "ag", card = BoardCard("Right answer", "A log search alert rule: schedule, threshold, action group.")),
                 ),
             ),
-            // 35: "And where does it all stop working?..."
+            // 39: "And where does it all stop working?..."
             Scene(
-                35, "Every romance has limits", limits(),
+                39, "Every romance has limits", limits(),
                 beats = listOf(
-                    Beat(36, light = setOf("reads", "late", "sched"), pulse = "late" to "otel", card = BoardCard("Where KQL stops", "It reads, never fixes; rows land late; alerts check on a schedule.")),
+                    Beat(40, light = setOf("reads", "late", "sched"), pulse = "late" to "otel", card = BoardCard("Where KQL stops", "It reads, never fixes; rows land late; alerts check on a schedule.")),
                 ),
             ),
-            // 37: "Last question, for the exam. What do we remember?"
+            // 41: "Last question, for the exam. What do we remember?"
             Scene(
-                37, "For the exam", exam(),
+                41, "For the exam", exam(),
                 beats = listOf(
-                    Beat(38, show = all6, light = setOf("slow", "slice", "behind", "keep", "email"), card = BoardCard("Listen for the phrase", "Five for five.")),
-                    Beat(42, card = today),
+                    Beat(42, show = all6, light = setOf("slow", "slice", "behind", "keep", "email"), card = BoardCard("Listen for the phrase", "Five for five.")),
+                    Beat(46, card = today),
                 ),
             ),
         ),
