@@ -60,7 +60,9 @@ internal object Az204StyledMonitor {
             leo("So what was wrong with Sam's labels?"),
             maya("Telemetry is kept for ninety days by default, and anyone with reader access can query it. So Sam's labels made a ninety-day phone book for half the office. Aisha from security cleaned it up that afternoon. No personal data in properties. Properties are for things like the class type, so you can filter by it."),
             leo("And under the flight recorder, what is the thing, actually?"),
-            maya("It's part of Azure Monitor. Each item becomes a row in a table in a Log Analytics workspace. Requests in one table, dependencies, the calls your app makes out, in another, exceptions in another. You ask it questions with KQL, the Kusto Query Language. Start with a table, then where to filter, summarize to group and count, and render to draw a chart."),
+            maya("It's part of Azure Monitor. Each item becomes a row in a table in a Log Analytics workspace. Requests in one table, dependencies, the calls your app makes out, in another, exceptions in another."),
+            leo("So it's a database of what the app did. How do I ask it anything?"),
+            maya("With KQL, the Kusto Query Language. Start with a table, then where to filter, summarize to group and count, and render to draw a chart."),
             leo("Give me one query I'd actually type."),
             maya("Requests, where success is false, summarize the count by result code. Table, filter, group. Now you can see how many bookings failed, and with which error. Add render at the end, and it's a chart for the Monday meeting."),
             leo("Okay. What happened on Tuesday?"),
@@ -115,7 +117,9 @@ internal object Az204StyledMonitor {
             leo("[sigh] Poor Jonah. So the fix is to add more emails to the alert?"),
             maya("Close, but not like that. The fix is an action group. Think of a phone tree: a reusable list of who to tell and how. An email, a text, a push to the Azure mobile app, or automation, like running a function. Every alert rule points at the group. When the on-call person changes, you update the group once, not every rule."),
             leo("Would a smarter kind of alert have caught it any sooner?"),
-            maya("Not here, but know the others. A log search alert runs a KQL query on a schedule, like more than ten errors of one type in fifteen minutes. An activity log alert watches management actions, like someone deleting a resource. Smart detection spots unusual patterns. An availability alert fires when, say, three of five regions fail. And a dynamic threshold learns what normal looks like, instead of a fixed line."),
+            maya("Not here, but know the others. A log search alert runs a KQL query on a schedule, like more than ten errors of one type in fifteen minutes. An activity log alert watches management actions, like someone deleting a resource."),
+            leo("And for a bike app that's quiet all week and wild on Saturday? A fixed line would be wrong half the time."),
+            maya("Then a dynamic threshold, which learns what normal looks like, instead of a fixed line. Smart detection spots unusual patterns on its own. And an availability alert fires when, say, three of five regions fail."),
             leo("Okay. Action group, everyone gets told. Done?"),
             maya("Not yet. Ask why nobody noticed the red test on their own dashboard. Because there was a second test on that dashboard, and it had been red for six weeks."),
             leo("Six weeks! Why?"),
@@ -491,12 +495,12 @@ internal object Az204StyledMonitor {
                 beats = listOf(
                     Beat(7, show = setOf("ai")),
                     Beat(8, show = setOf("la"), light = setOf("la"), pulse = "ai" to "la", card = BoardCard("Log Analytics workspace", "One table per kind, part of Azure Monitor, asked with KQL.")),
-                    Beat(10, show = setOf("kql", "steps"), light = setOf("kql", "steps"), pulse = "kql" to "la", card = BoardCard("KQL", "requests | where success == false | summarize count() by resultCode", code = true)),
+                    Beat(12, show = setOf("kql", "steps"), light = setOf("kql", "steps"), pulse = "kql" to "la", card = BoardCard("KQL", "requests | where success == false | summarize count() by resultCode", code = true)),
                 ),
             ),
-            // 11: "Okay. What happened on Tuesday?"
+            // 13: "Okay. What happened on Tuesday?"
             Scene(
-                11, "Tuesday: Ben",
+                13, "Tuesday: Ben",
                 DiagramSpec(
                     "Adaptive sampling keeps a share of related items under load and scales the counts back up.",
                     nodes = listOf(
@@ -511,14 +515,14 @@ internal object Az204StyledMonitor {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(12, show = setOf("all"), light = setOf("all"), card = BoardCard("Sampling off", "A sign-up rush, and Ben paid for every single item.")),
-                    Beat(14, show = setOf("samp"), light = setOf("samp"), pulse = "all" to "samp", card = BoardCard("Adaptive sampling", "The default in the dot net SDK. Keeps a share when traffic is heavy.")),
-                    Beat(16, show = setOf("counts"), light = setOf("counts"), pulse = "samp" to "counts", card = BoardCard("How it works", "Each kept item remembers how many it stands for; charts scale back up.")),
+                    Beat(14, show = setOf("all"), light = setOf("all"), card = BoardCard("Sampling off", "A sign-up rush, and Ben paid for every single item.")),
+                    Beat(16, show = setOf("samp"), light = setOf("samp"), pulse = "all" to "samp", card = BoardCard("Adaptive sampling", "The default in the dot net SDK. Keeps a share when traffic is heavy.")),
+                    Beat(18, show = setOf("counts"), light = setOf("counts"), pulse = "samp" to "counts", card = BoardCard("How it works", "Each kept item remembers how many it stands for; charts scale back up.")),
                 ),
             ),
-            // 17: "Nice. Wednesday?"
+            // 19: "Nice. Wednesday?"
             Scene(
-                17, "Wednesday: Dana",
+                19, "Wednesday: Dana",
                 DiagramSpec(
                     "The connection string tells the SDK where to send telemetry; auto-instrumentation needs no code at all.",
                     nodes = listOf(
@@ -536,14 +540,14 @@ internal object Az204StyledMonitor {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(18, show = setOf("ai", "key"), light = setOf("key"), card = BoardCard("Dana's new region", "The old instrumentation key, on its own. No telemetry arrived at all.")),
-                    Beat(20, show = setOf("sdk", "conn"), light = setOf("conn", "sdk"), pulse = "conn" to "sdk", card = BoardCard("Connection string", "The parcel's address label. New regions require it.")),
-                    Beat(22, show = setOf("auto"), light = setOf("auto"), pulse = "auto" to "ai", card = BoardCard("Two ways in", "Auto-instrumentation: no code. The SDK: your own custom events.")),
+                    Beat(20, show = setOf("ai", "key"), light = setOf("key"), card = BoardCard("Dana's new region", "The old instrumentation key, on its own. No telemetry arrived at all.")),
+                    Beat(22, show = setOf("sdk", "conn"), light = setOf("conn", "sdk"), pulse = "conn" to "sdk", card = BoardCard("Connection string", "The parcel's address label. New regions require it.")),
+                    Beat(24, show = setOf("auto"), light = setOf("auto"), pulse = "auto" to "ai", card = BoardCard("Two ways in", "Auto-instrumentation: no code. The SDK: your own custom events.")),
                 ),
             ),
-            // 23: "Thursday. I know there was a Thursday."
+            // 25: "Thursday. I know there was a Thursday."
             Scene(
-                23, "Thursday: the intern",
+                25, "Thursday: the intern",
                 DiagramSpec(
                     "An error written as a plain log line lands in traces; pass the exception object and it lands in exceptions.",
                     nodes = listOf(
@@ -559,13 +563,13 @@ internal object Az204StyledMonitor {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(24, show = setOf("exc"), light = setOf("exc"), card = BoardCard("Exceptions table: empty", "So the intern announced the backend had no errors at all.")),
-                    Beat(26, show = setOf("line", "traces", "obj"), light = setOf("line", "traces"), pulse = "line" to "traces", card = BoardCard("In traces all along", "Plain log lines land in traces unless you pass the exception object.")),
+                    Beat(26, show = setOf("exc"), light = setOf("exc"), card = BoardCard("Exceptions table: empty", "So the intern announced the backend had no errors at all.")),
+                    Beat(28, show = setOf("line", "traces", "obj"), light = setOf("line", "traces"), pulse = "line" to "traces", card = BoardCard("In traces all along", "Plain log lines land in traces unless you pass the exception object.")),
                 ),
             ),
-            // 27: "How did she find one failed booking among thousands?"
+            // 29: "How did she find one failed booking among thousands?"
             Scene(
-                27, "One booking, one id",
+                29, "One booking, one id",
                 DiagramSpec(
                     "Every item one request causes shares its operation id, and the SDK passes the id on as a header to the next service.",
                     nodes = listOf(
@@ -583,13 +587,13 @@ internal object Az204StyledMonitor {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(27, show = setOf("req")),
-                    Beat(28, show = setOf("dep", "trc", "next", "op"), light = setOf("op", "next"), pulse = "req" to "next", card = BoardCard("Operation id", "A tracking number on every item. The SDK sends it on as a header.")),
+                    Beat(29, show = setOf("req")),
+                    Beat(30, show = setOf("dep", "trc", "next", "op"), light = setOf("op", "next"), pulse = "req" to "next", card = BoardCard("Operation id", "A tracking number on every item. The SDK sends it on as a header.")),
                 ),
             ),
-            // 29: "So what did the team do on Friday, after all that?"
+            // 31: "So what did the team do on Friday, after all that?"
             Scene(
-                29, "Friday: something nice",
+                31, "Friday: something nice",
                 DiagramSpec(
                     "A custom event marks a business moment; its properties are text for filtering, its measurements numbers for charts.",
                     nodes = listOf(
@@ -606,13 +610,13 @@ internal object Az204StyledMonitor {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(29, show = setOf("app")),
-                    Beat(30, show = setOf("ev", "prop", "meas"), light = setOf("ev", "prop"), pulse = "app" to "ev", card = BoardCard("Bookings per hour, by class", "TrackEvent, class booked, with the class type as a property.")),
+                    Beat(31, show = setOf("app")),
+                    Beat(32, show = setOf("ev", "prop", "meas"), light = setOf("ev", "prop"), pulse = "app" to "ev", card = BoardCard("Bookings per hour, by class", "TrackEvent, class booked, with the class type as a property.")),
                 ),
             ),
-            // 31: "Why watch it live? Couldn't they just check the charts the next morning?"
+            // 33: "Why watch it live? Couldn't they just check the charts the next morning?"
             Scene(
-                31, "Live Metrics",
+                33, "Live Metrics",
                 DiagramSpec(
                     "Live Metrics shows requests, failures and CPU with about one second of delay while a new version ships.",
                     nodes = listOf(
@@ -627,13 +631,13 @@ internal object Az204StyledMonitor {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(31, show = setOf("ver", "app"), pulse = "ver" to "app"),
-                    Beat(32, show = setOf("live"), light = setOf("live"), pulse = "app" to "live", card = BoardCard("Watch as it happens", "Failures, requests and CPU, a second behind. Roll back within minutes.")),
+                    Beat(33, show = setOf("ver", "app"), pulse = "ver" to "app"),
+                    Beat(34, show = setOf("live"), light = setOf("live"), pulse = "app" to "live", card = BoardCard("Watch as it happens", "Failures, requests and CPU, a second behind. Roll back within minutes.")),
                 ),
             ),
-            // 33: "Is there anything it can't do? I bet the intern wants to know."
+            // 35: "Is there anything it can't do? I bet the intern wants to know."
             Scene(
-                33, "Where it stops",
+                35, "Where it stops",
                 DiagramSpec(
                     "Application Insights watches the backend from the moment a request arrives; alerts are what tell people.",
                     nodes = listOf(
@@ -650,12 +654,12 @@ internal object Az204StyledMonitor {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(34, show = setOf("phone", "app", "ai", "alerts"), light = setOf("app", "alerts"), pulse = "app" to "ai", card = BoardCard("The edge", "Backend only. Alerts: their own episode. Repeated slow reads: Redis cache.")),
+                    Beat(36, show = setOf("phone", "app", "ai", "alerts"), light = setOf("app", "alerts"), pulse = "app" to "ai", card = BoardCard("The edge", "Backend only. Alerts: their own episode. Repeated slow reads: Redis cache.")),
                 ),
             ),
-            // 35: "So, the gossip I should remember for the exam?"
+            // 37: "So, the gossip I should remember for the exam?"
             Scene(
-                35, "For the exam",
+                37, "For the exam",
                 DiagramSpec(
                     "The exam's Application Insights questions, each as the phrase to listen for and the answer it points to.",
                     nodes = listOf(
@@ -668,8 +672,8 @@ internal object Az204StyledMonitor {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(36, show = setOf("cost", "trace", "live", "count", "kql"), light = setOf("count"), card = BoardCard("Listen for the phrase", "Each exam phrase points straight to one answer.")),
-                    Beat(38, card = BoardCard("Today", "A resource, a sample app, a failing request, then a KQL count by result code.")),
+                    Beat(38, show = setOf("cost", "trace", "live", "count", "kql"), light = setOf("count"), card = BoardCard("Listen for the phrase", "Each exam phrase points straight to one answer.")),
+                    Beat(40, card = BoardCard("Today", "A resource, a sample app, a failing request, then a KQL count by result code.")),
                 ),
             ),
         ),
@@ -792,9 +796,9 @@ internal object Az204StyledMonitor {
                     Beat(16, show = setOf("metric", "log", "act", "smart", "avail", "dyn"), light = setOf("log", "dyn"), card = BoardCard("Metric or log search?", "A number crossing a line, or a KQL query run on a schedule.")),
                 ),
             ),
-            // 17: "Okay. Action group, everyone gets told. Done?"
+            // 19: "Okay. Action group, everyone gets told. Done?"
             Scene(
-                17, "The test that cried wolf",
+                19, "The test that cried wolf",
                 DiagramSpec(
                     "A standard test cannot reach a private network; a timer function inside it reports with TrackAvailability.",
                     nodes = listOf(
@@ -811,14 +815,14 @@ internal object Az204StyledMonitor {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(18, show = setOf("test", "tool"), light = setOf("test"), card = BoardCard("Red for six weeks", "A second test the whole team had learned to ignore.")),
-                    Beat(20, light = setOf("test", "tool"), pulse = "test" to "tool", card = BoardCard("A private endpoint", "Standard tests run from public regions. They can't reach it.")),
-                    Beat(22, show = setOf("fn", "ai"), light = setOf("fn"), pulse = "fn" to "ai", card = BoardCard("From inside", "A timer function in the network reports with TrackAvailability.")),
+                    Beat(20, show = setOf("test", "tool"), light = setOf("test"), card = BoardCard("Red for six weeks", "A second test the whole team had learned to ignore.")),
+                    Beat(22, light = setOf("test", "tool"), pulse = "test" to "tool", card = BoardCard("A private endpoint", "Standard tests run from public regions. They can't reach it.")),
+                    Beat(24, show = setOf("fn", "ai"), light = setOf("fn"), pulse = "fn" to "ai", card = BoardCard("From inside", "A timer function in the network reports with TrackAvailability.")),
                 ),
             ),
-            // 23: "Two clues down. Anything else in the file?"
+            // 25: "Two clues down. Anything else in the file?"
             Scene(
-                23, "The bill",
+                25, "The bill",
                 DiagramSpec(
                     "Autoscale in Azure Monitor adds and removes instances between a minimum and a maximum, following its rules.",
                     nodes = listOf(
@@ -836,13 +840,13 @@ internal object Az204StyledMonitor {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(24, show = setOf("as", "i1", "i2"), light = setOf("as"), card = BoardCard("Autoscale", "Adds or removes instances. In Azure Monitor: min, max, default.")),
-                    Beat(26, show = setOf("cpu", "i3", "never"), light = setOf("cpu", "never"), pulse = "as" to "i3", card = BoardCard("Only a scale out rule", "It grew to five instances and never shrank. Pair it with scale in.")),
+                    Beat(26, show = setOf("as", "i1", "i2"), light = setOf("as"), card = BoardCard("Autoscale", "Adds or removes instances. In Azure Monitor: min, max, default.")),
+                    Beat(28, show = setOf("cpu", "i3", "never"), light = setOf("cpu", "never"), pulse = "as" to "i3", card = BoardCard("Only a scale out rule", "It grew to five instances and never shrank. Pair it with scale in.")),
                 ),
             ),
-            // 27: "Easy. I'll add one. Remove an instance when CPU is below seventy."
+            // 29: "Easy. I'll add one. Remove an instance when CPU is below seventy."
             Scene(
-                27, "Flapping",
+                29, "Flapping",
                 DiagramSpec(
                     "Thresholds that meet make the rules fight; a gap between them and a cooldown keep it steady.",
                     nodes = listOf(
@@ -858,15 +862,15 @@ internal object Az204StyledMonitor {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(27, show = setOf("out", "in"), pulse = "out" to "in"),
-                    Beat(28, show = setOf("flap"), light = setOf("flap"), card = BoardCard("It flaps", "The same number in both rules. Add, remove, add, remove.")),
-                    Beat(30, show = setOf("fix", "cool"), light = setOf("fix", "cool"), card = BoardCard("The fix", "Out at 70, in at 30, and a cooldown after each scale action.")),
-                    Beat(32, light = setOf("out"), card = BoardCard("Schedule and queue rules", "Weekend mornings, at least three. Or Service Bus messages above 500.")),
+                    Beat(29, show = setOf("out", "in"), pulse = "out" to "in"),
+                    Beat(30, show = setOf("flap"), light = setOf("flap"), card = BoardCard("It flaps", "The same number in both rules. Add, remove, add, remove.")),
+                    Beat(32, show = setOf("fix", "cool"), light = setOf("fix", "cool"), card = BoardCard("The fix", "Out at 70, in at 30, and a cooldown after each scale action.")),
+                    Beat(34, light = setOf("out"), card = BoardCard("Schedule and queue rules", "Weekend mornings, at least three. Or Service Bus messages above 500.")),
                 ),
             ),
-            // 33: "Where does autoscale stop working?"
+            // 35: "Where does autoscale stop working?"
             Scene(
-                33, "Where autoscale stops",
+                35, "Where autoscale stops",
                 DiagramSpec(
                     "Autoscale changes how many instances run; a bigger tier is a manual change, and a consumption plan scales itself.",
                     nodes = listOf(
@@ -878,13 +882,13 @@ internal object Az204StyledMonitor {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(33, show = setOf("out", "up"), light = setOf("out")),
-                    Beat(34, show = setOf("std", "fn"), light = setOf("up", "fn"), card = BoardCard("The edges", "Scaling up is manual. A Functions consumption plan scales itself.")),
+                    Beat(35, show = setOf("out", "up"), light = setOf("out")),
+                    Beat(36, show = setOf("std", "fn"), light = setOf("up", "fn"), card = BoardCard("The edges", "Scaling up is manual. A Functions consumption plan scales itself.")),
                 ),
             ),
-            // 35: "So, the case summary for the exam?"
+            // 37: "So, the case summary for the exam?"
             Scene(
-                35, "Case closed",
+                37, "Case closed",
                 DiagramSpec(
                     "The exam's monitoring questions, each as the phrase to listen for and the answer it points to.",
                     nodes = listOf(
@@ -898,9 +902,9 @@ internal object Az204StyledMonitor {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(36, show = setOf("pub", "priv", "kql", "thr"), card = BoardCard("Listen for the phrase", "Each exam phrase points straight to one answer.")),
-                    Beat(38, show = setOf("flap", "who"), light = setOf("flap", "who"), card = BoardCard("Never shrinks?", "Add a scale in rule to match the scale out rule.")),
-                    Beat(40, card = BoardCard("Today", "A standard test, an action group, an alert below 100; stop the app, get an email.")),
+                    Beat(38, show = setOf("pub", "priv", "kql", "thr"), card = BoardCard("Listen for the phrase", "Each exam phrase points straight to one answer.")),
+                    Beat(40, show = setOf("flap", "who"), light = setOf("flap", "who"), card = BoardCard("Never shrinks?", "Add a scale in rule to match the scale out rule.")),
+                    Beat(42, card = BoardCard("Today", "A standard test, an action group, an alert below 100; stop the app, get an email.")),
                 ),
             ),
         ),

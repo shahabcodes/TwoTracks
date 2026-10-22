@@ -1,6 +1,6 @@
 {
  "topicId": "az-appinsights--case-files",
- "seconds": 444.66,
+ "seconds": 446.54,
  "lines": [
   {
    "line": 0,
@@ -54,193 +54,193 @@
    "line": 8,
    "host": "maya",
    "start": 110.59,
-   "end": 129.55
+   "end": 128.19
   },
   {
    "line": 9,
    "host": "leo",
-   "start": 129.87,
-   "end": 136.75
+   "start": 128.51,
+   "end": 135.39
   },
   {
    "line": 10,
    "host": "maya",
-   "start": 137.07,
-   "end": 151.87
+   "start": 135.71,
+   "end": 150.51
   },
   {
    "line": 11,
    "host": "leo",
-   "start": 152.19,
-   "end": 155.87
+   "start": 150.83,
+   "end": 154.51
   },
   {
    "line": 12,
    "host": "maya",
-   "start": 156.19,
-   "end": 175.59
+   "start": 154.83,
+   "end": 173.47
   },
   {
    "line": 13,
    "host": "leo",
-   "start": 175.91,
-   "end": 178.47
+   "start": 173.79,
+   "end": 176.35
   },
   {
    "line": 14,
    "host": "maya",
-   "start": 178.79,
-   "end": 192.99
+   "start": 176.67,
+   "end": 190.87
   },
   {
    "line": 15,
    "host": "leo",
-   "start": 193.31,
-   "end": 199.38
+   "start": 191.19,
+   "end": 197.26
   },
   {
    "line": 16,
    "host": "maya",
-   "start": 199.7,
-   "end": 214.1
+   "start": 197.58,
+   "end": 211.98
   },
   {
    "line": 17,
    "host": "leo",
-   "start": 214.42,
-   "end": 217.98
+   "start": 212.3,
+   "end": 215.86
   },
   {
    "line": 18,
    "host": "maya",
-   "start": 218.3,
-   "end": 229.42
+   "start": 216.18,
+   "end": 227.3
   },
   {
    "line": 19,
    "host": "leo",
-   "start": 229.74,
-   "end": 235.34
+   "start": 227.62,
+   "end": 233.22
   },
   {
    "line": 20,
    "host": "maya",
-   "start": 235.66,
-   "end": 250.1
+   "start": 233.54,
+   "end": 247.98
   },
   {
    "line": 21,
    "host": "leo",
-   "start": 250.42,
-   "end": 252.42
+   "start": 248.3,
+   "end": 250.3
   },
   {
    "line": 22,
    "host": "maya",
-   "start": 252.74,
-   "end": 268.18
+   "start": 250.62,
+   "end": 266.06
   },
   {
    "line": 23,
    "host": "leo",
-   "start": 268.5,
-   "end": 275.62
+   "start": 266.38,
+   "end": 273.5
   },
   {
    "line": 24,
    "host": "maya",
-   "start": 275.94,
-   "end": 297.3
+   "start": 273.82,
+   "end": 295.14
   },
   {
    "line": 25,
    "host": "leo",
-   "start": 297.62,
-   "end": 300.78
+   "start": 295.46,
+   "end": 298.62
   },
   {
    "line": 26,
    "host": "maya",
-   "start": 301.1,
-   "end": 317.9
+   "start": 298.94,
+   "end": 315.74
   },
   {
    "line": 27,
    "host": "leo",
-   "start": 318.22,
-   "end": 320.9
+   "start": 316.06,
+   "end": 318.74
   },
   {
    "line": 28,
    "host": "maya",
-   "start": 321.22,
-   "end": 337.38
+   "start": 319.06,
+   "end": 337.14
   },
   {
    "line": 29,
    "host": "leo",
-   "start": 337.7,
-   "end": 341.66
+   "start": 337.46,
+   "end": 341.42
   },
   {
    "line": 30,
    "host": "maya",
-   "start": 341.98,
-   "end": 360.7
+   "start": 341.74,
+   "end": 360.46
   },
   {
    "line": 31,
    "host": "leo",
-   "start": 361.02,
-   "end": 362.7
+   "start": 360.78,
+   "end": 362.46
   },
   {
    "line": 32,
    "host": "maya",
-   "start": 363.02,
-   "end": 379.02
+   "start": 362.78,
+   "end": 380.06
   },
   {
    "line": 33,
    "host": "leo",
-   "start": 379.34,
-   "end": 381.74
+   "start": 380.38,
+   "end": 382.78
   },
   {
    "line": 34,
    "host": "maya",
-   "start": 382.06,
-   "end": 404.06
+   "start": 383.1,
+   "end": 405.1
   },
   {
    "line": 35,
    "host": "leo",
-   "start": 404.38,
-   "end": 406.54
+   "start": 405.42,
+   "end": 407.58
   },
   {
    "line": 36,
    "host": "maya",
-   "start": 406.86,
-   "end": 417.1
+   "start": 407.9,
+   "end": 418.98
   },
   {
    "line": 37,
    "host": "leo",
-   "start": 417.42,
-   "end": 419.78
+   "start": 419.3,
+   "end": 421.66
   },
   {
    "line": 38,
    "host": "maya",
-   "start": 420.1,
-   "end": 439.82
+   "start": 421.98,
+   "end": 441.7
   },
   {
    "line": 39,
    "host": "leo",
-   "start": 440.14,
-   "end": 444.66
+   "start": 442.02,
+   "end": 446.54
   }
  ]
 }
