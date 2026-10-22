@@ -1,6 +1,6 @@
 {
  "topicId": "de4-grammar",
- "seconds": 456.4,
+ "seconds": 456.16,
  "lines": [
   {
    "line": 0,
@@ -252,31 +252,31 @@
    "line": 41,
    "host": "maya",
    "start": 401.8,
-   "end": 428.52
+   "end": 428.28
   },
   {
    "line": 42,
    "host": "leo",
-   "start": 428.84,
-   "end": 430.28
+   "start": 428.6,
+   "end": 430.04
   },
   {
    "line": 43,
    "host": "maya",
-   "start": 430.6,
-   "end": 450.8
+   "start": 430.36,
+   "end": 450.56
   },
   {
    "line": 44,
    "host": "jonas",
-   "start": 451.12,
-   "end": 453.2
+   "start": 450.88,
+   "end": 452.96
   },
   {
    "line": 45,
    "host": "leo",
-   "start": 453.52,
-   "end": 456.4
+   "start": 453.28,
+   "end": 456.16
   }
  ]
 }

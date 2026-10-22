@@ -188,5 +188,10 @@ numbers, from 0.
 
 Run the content tests (`./gradlew :core:content:test`); they hold the shape,
 the length, the cues, the glossary terms, the try-it, the drills, the German
-genders and every line and node the board names. Then follow README.md:
-export, speak the German, render, check, listen, install.
+genders and every line and node the board names, and DirectionTest holds
+push and pull the right way round. After exporting, run `python acronyms.py`:
+it lists any capitalised word render.py has no respelling for. The voices
+read an acronym however they like ("API" came out as "appy"), so every one
+needs an entry in SAY; render.py joins spelled letters with hyphens so they
+are said one by one. Then follow README.md: export, speak the German,
+render, check, listen, install.

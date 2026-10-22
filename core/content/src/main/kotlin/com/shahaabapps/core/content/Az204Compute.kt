@@ -507,7 +507,7 @@ internal object Az204Compute {
                 B.card("Consumption", "Runs rarely or in bursts; cost matters most.",
                     "Scales to zero; pay per execution and GB-seconds", "Cold start after idle", "Max run 10 minutes (default 5)", "No VNet"),
                 B.card("Premium", "No cold starts, long runs, or private networking.",
-                    "Pre-warmed instances", "Runs up to 60 minutes by default, unbounded if configured", "VNet integration", "Pay per core-second even when idle (minimum one instance)"),
+                    "Pre-warmed instances", "Runs up to 30 minutes by default, unbounded if configured", "VNet integration", "Pay per core-second even when idle (minimum one instance)"),
                 B.card("Dedicated (App Service)", "A plan already exists and has spare capacity.",
                     "Runs on your App Service plan", "Manual or auto scale like a web app", "Always On needed for timers", "Cost is the plan, not executions"),
             ),

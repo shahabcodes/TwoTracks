@@ -102,13 +102,13 @@ internal object Az204Boards {
                 ),
                 beats = listOf(
                     Beat(16, show = setOf("free", "basic", "std"), light = setOf("std"), card = BoardCard("A tier is a price level", "Basic: your own workers, scale by hand. Standard: auto scale and slots.")),
-                    Beat(18, show = setOf("prem", "iso"), light = setOf("prem", "iso"), card = BoardCard("Which tier?", "A hobby project: Free. A shop taking real orders: Standard.")),
-                    Beat(20, show = setOf("slots"), light = setOf("std", "slots"), pulse = "slots" to "std", card = BoardCard("Deployment slot", "A second live copy to test in. Cheapest tier with slots: Standard.")),
+                    Beat(20, show = setOf("prem", "iso"), light = setOf("prem", "iso"), card = BoardCard("Which tier?", "A hobby project: Free. A shop taking real orders: Standard.")),
+                    Beat(22, show = setOf("slots"), light = setOf("std", "slots"), pulse = "slots" to "std", card = BoardCard("Deployment slot", "A second live copy to test in. Cheapest tier with slots: Standard.")),
                 ),
             ),
-            // 21: "Got it. Now, my app needs a database password. Where does that go?"
+            // 23: "Got it. Now, my app needs a database password. Where does that go?"
             Scene(
-                21, "App settings",
+                23, "App settings",
                 DiagramSpec(
                     "An app setting is given to the app as an environment variable at start-up, so saving one restarts the app.",
                     nodes = listOf(
@@ -124,15 +124,15 @@ internal object Az204Boards {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(21, show = setOf("app")),
-                    Beat(22, show = setOf("set"), light = setOf("set"), card = BoardCard("Not in your code", "Put the database password in an app setting, not in a file you commit.")),
-                    Beat(24, show = setOf("env"), light = setOf("env"), pulse = "env" to "app", card = BoardCard("A to-do app", "Reads its database address from a setting. Change it in the portal, no code.")),
-                    Beat(26, show = setOf("restart"), light = setOf("restart"), card = BoardCard("Saving restarts the app", "So don't change settings at the busiest moment of the day.")),
+                    Beat(23, show = setOf("app")),
+                    Beat(24, show = setOf("set"), light = setOf("set"), card = BoardCard("Not in your code", "Put the database password in an app setting, not in a file you commit.")),
+                    Beat(26, show = setOf("env"), light = setOf("env"), pulse = "env" to "app", card = BoardCard("A to-do app", "Reads its database address from a setting. Change it in the portal, no code.")),
+                    Beat(28, show = setOf("restart"), light = setOf("restart"), card = BoardCard("Saving restarts the app", "So don't change settings at the busiest moment of the day.")),
                 ),
             ),
-            // 27: "Noted. And when something breaks, where do I look?"
+            // 29: "Noted. And when something breaks, where do I look?"
             Scene(
-                27, "When something breaks",
+                29, "When something breaks",
                 DiagramSpec(
                     "App Service keeps application logs, web server logs and failed request traces; log stream shows them live.",
                     nodes = listOf(
@@ -147,13 +147,13 @@ internal object Az204Boards {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(27, show = setOf("app")),
-                    Beat(28, show = setOf("logs", "stream"), light = setOf("logs"), pulse = "app" to "logs", card = BoardCard("File system logging", "Switches itself off after twelve hours, so it never fills the disk.")),
+                    Beat(29, show = setOf("app")),
+                    Beat(30, show = setOf("logs", "stream"), light = setOf("logs"), pulse = "app" to "logs", card = BoardCard("File system logging", "Switches itself off after twelve hours, so it never fills the disk.")),
                 ),
             ),
-            // 29: "Here's one I've hit. The app sits idle overnight, and the first visit ..."
+            // 31: "Here's one I've hit. The app sits idle overnight, and the first visit ..."
             Scene(
-                29, "The slow first visit",
+                31, "The slow first visit",
                 DiagramSpec(
                     "An idle app is unloaded and must start again; Always On, from Basic up, keeps it loaded.",
                     nodes = listOf(
@@ -169,14 +169,14 @@ internal object Az204Boards {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(29, show = setOf("user", "app"), pulse = "user" to "app"),
-                    Beat(30, show = setOf("on"), light = setOf("on"), pulse = "on" to "app", card = BoardCard("A dentist's booking site", "Quiet all night, so the first patient waits. Always On keeps it loaded.")),
-                    Beat(32, show = setOf("big"), light = setOf("big"), card = BoardCard("Not a bigger worker", "Bigger makes a running app faster; it doesn't wake a sleeping one.")),
+                    Beat(31, show = setOf("user", "app"), pulse = "user" to "app"),
+                    Beat(32, show = setOf("on"), light = setOf("on"), pulse = "on" to "app", card = BoardCard("A dentist's booking site", "Quiet all night, so the first patient waits. Always On keeps it loaded.")),
+                    Beat(34, show = setOf("big"), light = setOf("big"), card = BoardCard("Not a bigger worker", "Bigger makes a running app faster; it doesn't wake a sleeping one.")),
                 ),
             ),
-            // 33: "What do people usually get wrong?"
+            // 35: "What do people usually get wrong?"
             Scene(
-                33, "Mistakes to avoid",
+                35, "Mistakes to avoid",
                 DiagramSpec(
                     "Four ways to get App Service wrong, as the topic lists them.",
                     nodes = listOf(
@@ -188,12 +188,12 @@ internal object Az204Boards {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(34, show = setOf("secret", "basic", "restart", "case"), card = BoardCard("Worked on Windows, empty on Linux?", "Match the setting's name exactly, capital letters and all.")),
+                    Beat(36, show = setOf("secret", "basic", "restart", "case"), card = BoardCard("Worked on Windows, empty on Linux?", "Match the setting's name exactly, capital letters and all.")),
                 ),
             ),
-            // 35: "So what should I remember for the exam?"
+            // 37: "So what should I remember for the exam?"
             Scene(
-                35, "For the exam",
+                37, "For the exam",
                 DiagramSpec(
                     "The exam's App Service questions, each as the phrase to listen for and the answer it points to.",
                     nodes = listOf(
@@ -206,9 +206,9 @@ internal object Az204Boards {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(36, show = setOf("scale", "slots", "secret", "idle"), card = BoardCard("Listen for the phrase", "Each exam phrase points straight to one answer.")),
-                    Beat(38, show = setOf("restart"), light = setOf("restart"), card = BoardCard("Saved a setting?", "Expected: settings are read at start-up, so the app restarts.")),
-                    Beat(40, card = BoardCard("Today", "Free Linux web app, setting Hello=World, watch Log stream, browse, delete.")),
+                    Beat(38, show = setOf("scale", "slots", "secret", "idle"), card = BoardCard("Listen for the phrase", "Each exam phrase points straight to one answer.")),
+                    Beat(40, show = setOf("restart"), light = setOf("restart"), card = BoardCard("Saved a setting?", "Expected: settings are read at start-up, so the app restarts.")),
+                    Beat(42, card = BoardCard("Today", "Free Linux web app, setting Hello=World, watch Log stream, browse, delete.")),
                 ),
             ),
         ),
@@ -497,9 +497,9 @@ internal object Az204Boards {
                     Beat(6, show = setOf("http", "timer", "queue", "blob", "cosmos", "events"), light = setOf("http", "timer", "queue", "blob")),
                 ),
             ),
-            // 7: "Give me an app for some of those."
+            // 9: "Give me an app for some of those."
             Scene(
-                7, "Which trigger when",
+                9, "Which trigger when",
                 DiagramSpec(
                     "Simple apps and the trigger each one would use.",
                     nodes = listOf(
@@ -518,12 +518,12 @@ internal object Az204Boards {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(8, light = setOf("photo", "blob"), pulse = "photo" to "blob", card = BoardCard("A photo sharing app", "Upload a picture; a blob trigger makes a thumbnail.")),
+                    Beat(10, light = setOf("photo", "blob"), pulse = "photo" to "blob", card = BoardCard("A photo sharing app", "Upload a picture; a blob trigger makes a thumbnail.")),
                 ),
             ),
-            // 9: "And if my function reads from one place and writes to another? Isn't t..."
+            // 11: "And if my function reads from one place and writes to another? Isn't t..."
             Scene(
-                9, "Bindings",
+                11, "Bindings",
                 DiagramSpec(
                     "One trigger starts the function; input bindings bring data in and output bindings send results out.",
                     nodes = listOf(
@@ -540,14 +540,14 @@ internal object Az204Boards {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(9, show = setOf("trig", "fn")),
-                    Beat(10, show = setOf("in", "out"), light = setOf("in", "out"), pulse = "in" to "fn", card = BoardCard("Binding", "A ready-made connection to a service. No connection code to write.")),
-                    Beat(12, light = setOf("trig", "in", "out"), pulse = "fn" to "out", card = BoardCard("Read Cosmos, write a queue", "Still one trigger: an input binding and an output binding.")),
+                    Beat(11, show = setOf("trig", "fn")),
+                    Beat(12, show = setOf("in", "out"), light = setOf("in", "out"), pulse = "in" to "fn", card = BoardCard("Binding", "A ready-made connection to a service. No connection code to write.")),
+                    Beat(14, light = setOf("trig", "in", "out"), pulse = "fn" to "out", card = BoardCard("Read Cosmos, write a queue", "Still one trigger: an input binding and an output binding.")),
                 ),
             ),
-            // 13: "Tell me about the timer. I hear the schedule format is odd."
+            // 15: "Tell me about the timer. I hear the schedule format is odd."
             Scene(
-                13, "The timer's six fields",
+                15, "The timer's six fields",
                 DiagramSpec(
                     "NCRONTAB has six fields, and the first is seconds, not minutes.",
                     nodes = listOf(
@@ -562,13 +562,13 @@ internal object Az204Boards {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(14, light = setOf("sec"), card = BoardCard("NCRONTAB", "Six fields: seconds, minutes, hours, day, month, weekday.")),
-                    Beat(16, show = setOf("trap"), light = setOf("min", "trap"), card = BoardCard("Every five minutes", "0 */5 * * * *", code = true)),
+                    Beat(16, light = setOf("sec"), card = BoardCard("NCRONTAB", "Six fields: seconds, minutes, hours, day, month, weekday.")),
+                    Beat(18, show = setOf("trap"), light = setOf("min", "trap"), card = BoardCard("Every five minutes", "0 */5 * * * *", code = true)),
                 ),
             ),
-            // 17: "Good trap. What does a real one look like?"
+            // 19: "Good trap. What does a real one look like?"
             Scene(
-                17, "A reminder sweep",
+                19, "A reminder sweep",
                 DiagramSpec(
                     "A timer starts the sweep; bindings read today's sessions and queue reminders; a queue-triggered function sends them.",
                     nodes = listOf(
@@ -586,13 +586,13 @@ internal object Az204Boards {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(18, show = setOf("timer", "sweep", "queue", "send"), pulse = "sweep" to "queue", card = BoardCard("Timer, then queue", "Timer triggers the sweep; reminders go on a queue; a second function sends them.")),
-                    Beat(20, show = setOf("app"), light = setOf("app"), card = BoardCard("Function app", "The box you deploy: many functions sharing plan, runtime and settings.")),
+                    Beat(20, show = setOf("timer", "sweep", "queue", "send"), pulse = "sweep" to "queue", card = BoardCard("Timer, then queue", "Timer triggers the sweep; reminders go on a queue; a second function sends them.")),
+                    Beat(22, show = setOf("app"), light = setOf("app"), card = BoardCard("Function app", "The box you deploy: many functions sharing plan, runtime and settings.")),
                 ),
             ),
-            // 21: "You said plan. Which plans are there?"
+            // 23: "You said plan. Which plans are there?"
             Scene(
-                21, "Consumption",
+                23, "Consumption",
                 DiagramSpec(
                     "Consumption scales to zero and bills per run, at the price of cold starts and a ten-minute cap.",
                     nodes = listOf(
@@ -608,13 +608,13 @@ internal object Az204Boards {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(22, show = setOf("plan", "zero", "cold"), light = setOf("cold"), pulse = "plan" to "cold", card = BoardCard("Cold start", "A delay while Azure loads the function after a quiet spell.")),
-                    Beat(24, show = setOf("cap"), light = setOf("plan", "cap"), card = BoardCard("A small newsletter tool", "Runs a few times a day: Consumption. Pennies, and a short wait is fine.")),
+                    Beat(24, show = setOf("plan", "zero", "cold"), light = setOf("cold"), pulse = "plan" to "cold", card = BoardCard("Cold start", "A delay while Azure loads the function after a quiet spell.")),
+                    Beat(26, show = setOf("cap"), light = setOf("plan", "cap"), card = BoardCard("A small newsletter tool", "Runs a few times a day: Consumption. Pennies, and a short wait is fine.")),
                 ),
             ),
-            // 25: "And when the wait does matter?"
+            // 27: "And when the wait does matter?"
             Scene(
-                25, "Premium and Dedicated",
+                27, "Premium and Dedicated",
                 DiagramSpec(
                     "Premium pre-warms and allows private networks; Dedicated runs on an App Service plan and needs Always On for timers.",
                     nodes = listOf(
@@ -630,13 +630,13 @@ internal object Az204Boards {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(26, show = setOf("prem", "pay"), light = setOf("prem"), pulse = "pay" to "prem", card = BoardCard("Premium", "No cold start, long runs, private network. A payments app: Premium.")),
-                    Beat(28, show = setOf("ded", "on"), light = setOf("ded", "on"), pulse = "on" to "ded", card = BoardCard("Dedicated", "Cost is the plan, not the runs. Timers need Always On.")),
+                    Beat(28, show = setOf("prem", "pay"), light = setOf("prem"), pulse = "pay" to "prem", card = BoardCard("Premium", "No cold start, long runs, private network. A payments app: Premium.")),
+                    Beat(30, show = setOf("ded", "on"), light = setOf("ded", "on"), pulse = "on" to "ded", card = BoardCard("Dedicated", "Cost is the plan, not the runs. Timers need Always On.")),
                 ),
             ),
-            // 29: "Asleep on the job."
+            // 31: "Asleep on the job."
             Scene(
-                29, "Two files",
+                31, "Two files",
                 DiagramSpec(
                     "The host file configures the whole function app; the local settings file is for your laptop only.",
                     nodes = listOf(
@@ -650,12 +650,12 @@ internal object Az204Boards {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(30, show = setOf("host", "local", "never"), light = setOf("local", "never"), card = BoardCard("Local settings hold secrets", "Never deployed. In Azure the same keys live in app settings.")),
+                    Beat(32, show = setOf("host", "local", "never"), light = setOf("local", "never"), card = BoardCard("Local settings hold secrets", "Never deployed. In Azure the same keys live in app settings.")),
                 ),
             ),
-            // 31: "What do people usually get wrong?"
+            // 33: "What do people usually get wrong?"
             Scene(
-                31, "Mistakes to avoid",
+                33, "Mistakes to avoid",
                 DiagramSpec(
                     "Four ways to get Azure Functions wrong, as the topic lists them.",
                     nodes = listOf(
@@ -667,12 +667,12 @@ internal object Az204Boards {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(32, show = setOf("cron", "long", "commit", "on"), card = BoardCard("A long job?", "Consumption stops it at ten minutes. Use Premium or Durable Functions.")),
+                    Beat(34, show = setOf("cron", "long", "commit", "on"), card = BoardCard("A long job?", "Consumption stops it at ten minutes. Use Premium or Durable Functions.")),
                 ),
             ),
-            // 33: "So what should I remember for the exam?"
+            // 35: "So what should I remember for the exam?"
             Scene(
-                33, "For the exam",
+                35, "For the exam",
                 DiagramSpec(
                     "The exam's Functions questions, each as the phrase to listen for and the answer it points to.",
                     nodes = listOf(
@@ -685,9 +685,9 @@ internal object Az204Boards {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(34, show = setOf("one", "cold", "cheap", "long"), card = BoardCard("Listen for the phrase", "Each exam phrase points straight to one answer.")),
-                    Beat(36, show = setOf("cron"), light = setOf("cron"), card = BoardCard("Count the fields", "Six, seconds first: NCRONTAB. Reading or writing is bindings.")),
-                    Beat(38, card = BoardCard("Today", "Consumption app, HTTP trigger from the browser, a timer every minute, Monitor.")),
+                    Beat(36, show = setOf("one", "cold", "cheap", "long"), card = BoardCard("Listen for the phrase", "Each exam phrase points straight to one answer.")),
+                    Beat(38, show = setOf("cron"), light = setOf("cron"), card = BoardCard("Count the fields", "Six, seconds first: NCRONTAB. Reading or writing is bindings.")),
+                    Beat(40, card = BoardCard("Today", "Consumption app, HTTP trigger from the browser, a timer every minute, Monitor.")),
                 ),
             ),
         ),
@@ -945,52 +945,104 @@ internal object Az204Boards {
                     Beat(0, show = setOf("users", "v1", "v2"), light = setOf("v2"), pulse = "users" to "v2", card = BoardCard("Which service?", "One in ten users on the new version, the rest on the old one.")),
                 ),
             ),
-            // 2: "A container is your app packed up with everything it needs to run, so ..."
+            // 1: "No idea yet. But back up. I know my code, the server it's deployed on,..."
             Scene(
-                2, "Image and container",
+                1, "Without containers",
                 DiagramSpec(
-                    "An image is the packed-up app; each running copy of it is a container.",
+                    "Without containers, someone builds a server by hand and copies your build onto it, and it may not match your laptop.",
                     nodes = listOf(
-                        DNode("img", "Image", 0.5f, 0.2f, w = 0.4f, h = 0.22f, kind = NodeKind.NOTE, sub = "the blueprint"),
-                        DNode("c1", "Container", 0.25f, 0.72f, w = 0.36f, h = 0.2f, tone = 1, sub = "running"),
-                        DNode("c2", "Container", 0.75f, 0.72f, w = 0.36f, h = 0.2f, tone = 1, sub = "running"),
+                        DNode("code", "Your build", 0.2f, 0.2f, w = 0.32f, h = 0.18f, tone = 1),
+                        DNode("vm", "Server: a VM", 0.7f, 0.3f, w = 0.44f, h = 0.36f, sub = "OS, runtime, libraries"),
+                        DNode("laptop", "Your laptop", 0.2f, 0.62f, w = 0.32f, h = 0.18f),
+                        DNode("note", "Works on my machine", 0.5f, 0.9f, w = 0.7f, h = 0.14f, kind = NodeKind.NOTE, tone = 2),
                     ),
                     edges = listOf(
+                        DEdge("code", "vm", "copy"),
+                        DEdge("laptop", "vm", "not the same", dashed = true),
+                    ),
+                    aspect = 0.8f,
+                ),
+                beats = listOf(
+                    Beat(2, show = setOf("code", "vm"), light = setOf("vm"), pulse = "code" to "vm", card = BoardCard("By hand", "A VM with an OS, the runtime and libraries installed, then your build.")),
+                    Beat(3, show = setOf("laptop", "note"), light = setOf("note"), card = BoardCard("Works on my machine", "The server differs from your laptop, so the same code breaks.")),
+                ),
+            ),
+            // 4: "Everyone has. A container image fixes it. It packs your built code, th..."
+            Scene(
+                4, "Inside an image",
+                DiagramSpec(
+                    "An image stacks your code, the runtime and libraries on a slim base image of OS files; the kernel is the host's, shared.",
+                    nodes = listOf(
+                        DNode("app", "Your built code", 0.5f, 0.1f, w = 0.7f, h = 0.13f, tone = 1),
+                        DNode("rt", "Runtime and libraries", 0.5f, 0.26f, w = 0.7f, h = 0.13f, tone = 1),
+                        DNode("base", "Base image: OS files", 0.5f, 0.42f, w = 0.7f, h = 0.13f, tone = 1),
+                        DNode("kernel", "Host kernel, shared", 0.5f, 0.72f, w = 0.8f, h = 0.14f, tone = 2),
+                        DNode("vmnote", "A VM brings its own kernel", 0.5f, 0.92f, w = 0.8f, h = 0.12f, kind = NodeKind.NOTE),
+                    ),
+                    edges = listOf(
+                        DEdge("base", "kernel", "runs on", dashed = true),
+                    ),
+                    aspect = 0.8f,
+                ),
+                beats = listOf(
+                    Beat(4, show = setOf("app", "rt", "base"), light = setOf("base"), card = BoardCard("Container image", "Your built code, the runtime, libraries and a slim OS base image.")),
+                    Beat(6, show = setOf("kernel"), light = setOf("kernel"), pulse = "base" to "kernel", card = BoardCard("No kernel inside", "Every container on a machine shares the host's kernel.")),
+                    Beat(8, show = setOf("vmnote"), light = setOf("vmnote"), card = BoardCard("Small and quick", "Megabytes, seconds to start. A Linux image needs a Linux host.")),
+                ),
+            ),
+            // 9: "So a running container is what, under the hood? A tiny virtual machine?"
+            Scene(
+                9, "Dockerfile to container",
+                DiagramSpec(
+                    "A Dockerfile is the recipe, docker build makes the image, and each running copy of the image is a container.",
+                    nodes = listOf(
+                        DNode("df", "Dockerfile", 0.22f, 0.18f, w = 0.36f, h = 0.2f, kind = NodeKind.NOTE, sub = "the recipe"),
+                        DNode("img", "Image", 0.76f, 0.18f, w = 0.36f, h = 0.2f, sub = "like an APK"),
+                        DNode("c1", "Container", 0.25f, 0.75f, w = 0.36f, h = 0.2f, tone = 1, sub = "a process"),
+                        DNode("c2", "Container", 0.75f, 0.75f, w = 0.36f, h = 0.2f, tone = 1, sub = "a process"),
+                    ),
+                    edges = listOf(
+                        DEdge("df", "img", "docker build"),
                         DEdge("img", "c1", "run"),
                         DEdge("img", "c2", "run"),
                     ),
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(2, show = setOf("img", "c1", "c2"), light = setOf("img"), pulse = "img" to "c1", card = BoardCard("Container", "Your app plus everything it needs, so it runs the same anywhere.")),
+                    Beat(10, show = setOf("df", "img"), light = setOf("df"), pulse = "df" to "img", card = BoardCard("Dockerfile", "FROM a base image, copy your code, install, set the start command.")),
+                    Beat(11, show = setOf("c1", "c2"), light = setOf("c1", "c2"), pulse = "img" to "c1", card = BoardCard("One image, many containers", "Each running copy is a container: one walled-off process.")),
                 ),
             ),
-            // 4: "Close enough. Azure gives you three services. A place to store images,..."
+            // 12: "That's a good picture. One image, as many containers as you like. Azur..."
             Scene(
-                4, "The registry",
+                12, "The registry",
                 DiagramSpec(
-                    "ACR stores your images, and an ACR Task can build one in the cloud straight from your code.",
+                    "You push images into ACR, or an ACR Task builds them there; whatever runs them pulls them out.",
                     nodes = listOf(
-                        DNode("code", "Your code", 0.2f, 0.22f, w = 0.32f, h = 0.2f, tone = 1),
-                        DNode("task", "ACR Task", 0.2f, 0.7f, w = 0.32f, h = 0.18f, kind = NodeKind.PILL),
-                        DNode("acr", "Container Registry", 0.74f, 0.45f, w = 0.4f, h = 0.36f, kind = NodeKind.CYLINDER, sub = "ACR"),
-                        DNode("tiers", "Premium: geo-replication", 0.5f, 0.93f, w = 0.6f, h = 0.12f, kind = NodeKind.NOTE, tone = 2),
+                        DNode("pipe", "Laptop or pipeline", 0.22f, 0.12f, w = 0.4f, h = 0.18f, tone = 1),
+                        DNode("task", "ACR Task", 0.78f, 0.12f, w = 0.36f, h = 0.16f, kind = NodeKind.PILL),
+                        DNode("acr", "Container Registry", 0.5f, 0.45f, w = 0.44f, h = 0.3f, kind = NodeKind.CYLINDER, sub = "ACR"),
+                        DNode("runs", "App Service, ACI, Container Apps", 0.5f, 0.76f, w = 0.84f, h = 0.14f),
+                        DNode("tiers", "Premium: geo-replication", 0.5f, 0.93f, w = 0.64f, h = 0.1f, kind = NodeKind.NOTE, tone = 2),
                     ),
                     edges = listOf(
-                        DEdge("code", "task", "source"),
-                        DEdge("task", "acr", "image"),
+                        DEdge("pipe", "acr", "push"),
+                        DEdge("task", "acr", "build"),
+                        DEdge("acr", "runs", "pull"),
                     ),
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(4, show = setOf("acr"), light = setOf("acr")),
-                    Beat(6, show = setOf("code", "task"), light = setOf("task"), pulse = "task" to "acr", card = BoardCard("ACR and ACR Tasks", "A private shelf for images. An ACR Task builds one with no Docker.")),
-                    Beat(8, show = setOf("tiers"), light = setOf("tiers"), card = BoardCard("Three tiers", "Basic 10 GB, Standard 100 GB, Premium 500 GB with geo-replication.")),
+                    Beat(12, show = setOf("acr"), light = setOf("acr")),
+                    Beat(14, card = BoardCard("Container Registry", "A private, Azure-hosted store for images, like a private Maven repo.")),
+                    Beat(16, show = setOf("pipe", "runs"), light = setOf("pipe", "runs"), pulse = "pipe" to "acr", card = BoardCard("Push in, pull out", "Push uploads an image into the registry. Whatever runs it pulls it down.")),
+                    Beat(18, show = setOf("task"), light = setOf("task"), pulse = "task" to "acr", card = BoardCard("ACR Task", "az acr build builds the image in Azure and stores it. No Docker needed.")),
+                    Beat(20, show = setOf("tiers"), light = setOf("tiers"), card = BoardCard("Three tiers", "Basic 10 GB, Standard 100 GB, Premium 500 GB with geo-replication.")),
                 ),
             ),
-            // 10: "Premium, and only Premium. Starting on Basic and then needing geo-repl..."
+            // 22: "Premium, and only Premium. Starting on Basic and then needing geo-repl..."
             Scene(
-                10, "Run one, right now",
+                22, "Run one, right now",
                 DiagramSpec(
                     "Container Instances pulls an image and runs it at once, billed by the second.",
                     nodes = listOf(
@@ -1005,13 +1057,13 @@ internal object Az204Boards {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(10, show = setOf("acr", "aci"), light = setOf("aci"), pulse = "acr" to "aci"),
-                    Beat(12, show = setOf("job"), light = setOf("job"), pulse = "aci" to "job", card = BoardCard("Say you're building a recipe app", "Its nightly export to a file runs on ACI: start, work, stop.")),
+                    Beat(22, show = setOf("acr", "aci"), light = setOf("aci"), pulse = "acr" to "aci"),
+                    Beat(24, show = setOf("job"), light = setOf("job"), pulse = "aci" to "job", card = BoardCard("Say you're building a recipe app", "Its nightly export to a file runs on ACI: start, work, stop.")),
                 ),
             ),
-            // 13: "Can it run more than one container together?"
+            // 25: "Can it run more than one container together?"
             Scene(
-                13, "Groups and restarts",
+                25, "Groups and restarts",
                 DiagramSpec(
                     "A container group shares one host, network and storage; the restart policy says what happens when a container stops.",
                     nodes = listOf(
@@ -1029,14 +1081,14 @@ internal object Az204Boards {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(14, show = setOf("c1", "c2", "shared"), light = setOf("shared"), card = BoardCard("Container group", "Several containers sharing one machine, network and storage.")),
-                    Beat(16, show = setOf("always", "onf", "never"), light = setOf("onf"), card = BoardCard("Restart policy", "Always for services, OnFailure to retry a crash, Never for one-shots.")),
-                    Beat(18, card = BoardCard("Keep files, hide secrets", "Mount an Azure Files share. Pass secrets as secure environment variables.")),
+                    Beat(26, show = setOf("c1", "c2", "shared"), light = setOf("shared"), card = BoardCard("Container group", "Several containers sharing one machine, network and storage.")),
+                    Beat(28, show = setOf("always", "onf", "never"), light = setOf("onf"), card = BoardCard("Restart policy", "Always for services, OnFailure to retry a crash, Never for one-shots.")),
+                    Beat(30, card = BoardCard("Keep files, hide secrets", "Mount an Azure Files share. Pass secrets as secure environment variables.")),
                 ),
             ),
-            // 19: "Okay. Third service. Running many."
+            // 31: "Okay. Third service. Running many."
             Scene(
-                19, "Many services, managed",
+                31, "Many services, managed",
                 DiagramSpec(
                     "Container Apps runs a set of small services with Kubernetes hidden underneath.",
                     nodes = listOf(
@@ -1053,13 +1105,13 @@ internal object Az204Boards {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(20, show = setOf("aca", "m1", "m2", "m3"), light = setOf("m1", "m2", "m3"), pulse = "aca" to "m2", card = BoardCard("Picture a food delivery app", "Menus, orders and payments: small services in one managed home.")),
-                    Beat(22, light = setOf("aca"), card = BoardCard("What you get", "Scale to zero, HTTPS from the internet, and revisions. No cluster.")),
+                    Beat(32, show = setOf("aca", "m1", "m2", "m3"), light = setOf("m1", "m2", "m3"), pulse = "aca" to "m2", card = BoardCard("Picture a food delivery app", "Menus, orders and payments: small services in one managed home.")),
+                    Beat(34, light = setOf("aca"), card = BoardCard("What you get", "Scale to zero, HTTPS from the internet, and revisions. No cluster.")),
                 ),
             ),
-            // 23: "And what's a revision?"
+            // 35: "And what's a revision?"
             Scene(
-                23, "Revisions and traffic",
+                35, "Revisions and traffic",
                 DiagramSpec(
                     "Each deployment is a revision that never changes; traffic can be split across revisions by percentage.",
                     nodes = listOf(
@@ -1074,14 +1126,14 @@ internal object Az204Boards {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(24, show = setOf("r1", "r2"), light = setOf("r1", "r2"), card = BoardCard("Revision", "A frozen snapshot of one deployment. It never changes.")),
-                    Beat(25, show = setOf("users"), light = setOf("r2"), pulse = "users" to "r2", card = BoardCard("The puzzle solved", "Container Apps, multiple revision mode, traffic split 90 and 10.")),
-                    Beat(26, light = setOf("r1"), pulse = "users" to "r1", card = BoardCard("Rollback", "Point traffic back at the previous revision. Nothing to rebuild.")),
+                    Beat(36, show = setOf("r1", "r2"), light = setOf("r1", "r2"), card = BoardCard("Revision", "A frozen snapshot of one deployment. It never changes.")),
+                    Beat(37, show = setOf("users"), light = setOf("r2"), pulse = "users" to "r2", card = BoardCard("The puzzle solved", "Container Apps, multiple revision mode, traffic split 90 and 10.")),
+                    Beat(38, light = setOf("r1"), pulse = "users" to "r1", card = BoardCard("Rollback", "Point traffic back at the previous revision. Nothing to rebuild.")),
                 ),
             ),
-            // 27: "How does it scale, when lots of users show up?"
+            // 39: "How does it scale, when lots of users show up?"
             Scene(
-                27, "Scaling with KEDA",
+                39, "Scaling with KEDA",
                 DiagramSpec(
                     "KEDA watches traffic or a queue and adds or removes replicas between your minimum and maximum.",
                     nodes = listOf(
@@ -1101,13 +1153,13 @@ internal object Az204Boards {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(28, show = setOf("rules", "keda", "r1", "r2", "r3"), light = setOf("keda"), pulse = "keda" to "r2", card = BoardCard("KEDA", "Adds replicas, extra copies of your app, from traffic or a queue.")),
-                    Beat(30, show = setOf("min"), light = setOf("min"), card = BoardCard("Minimum replicas", "Zero for a hobby blog. One for a shop's checkout: no cold start.")),
+                    Beat(40, show = setOf("rules", "keda", "r1", "r2", "r3"), light = setOf("keda"), pulse = "keda" to "r2", card = BoardCard("KEDA", "Adds replicas, extra copies of your app, from traffic or a queue.")),
+                    Beat(42, show = setOf("min"), light = setOf("min"), card = BoardCard("Minimum replicas", "Zero for a hobby blog. One for a shop's checkout: no cold start.")),
                 ),
             ),
-            // 31: "And how does the app get its image out of the registry? With a passwor..."
+            // 43: "And how does the app get its image out of the registry? With a passwor..."
             Scene(
-                31, "No password to pull",
+                43, "No password to pull",
                 DiagramSpec(
                     "The app pulls its image with a managed identity that holds a pull role on the registry.",
                     nodes = listOf(
@@ -1117,18 +1169,18 @@ internal object Az204Boards {
                     ),
                     edges = listOf(
                         DEdge("app", "id", "wears"),
-                        DEdge("id", "acr", "pull role"),
+                        DEdge("id", "acr", "AcrPull"),
                     ),
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(31, show = setOf("app", "acr")),
-                    Beat(32, show = setOf("id"), light = setOf("id"), pulse = "id" to "acr", card = BoardCard("Managed identity", "A badge for your app: it pulls images with no password stored.")),
+                    Beat(43, show = setOf("app", "acr")),
+                    Beat(44, show = setOf("id"), light = setOf("id"), pulse = "id" to "acr", card = BoardCard("Managed identity, AcrPull", "A badge holding AcrPull: download only. A pipeline that pushes gets AcrPush.")),
                 ),
             ),
-            // 33: "So what should I remember for the exam?"
+            // 45: "So what should I remember for the exam?"
             Scene(
-                33, "For the exam",
+                45, "For the exam",
                 DiagramSpec(
                     "The exam's container questions, each as the phrase to listen for and the answer it points to.",
                     nodes = listOf(
@@ -1142,9 +1194,9 @@ internal object Az204Boards {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(34, show = setOf("now", "micro", "build"), card = BoardCard("Listen for the phrase", "Each exam phrase points straight to one service or setting.")),
-                    Beat(36, show = setOf("retry", "geo", "cold"), light = setOf("retry", "geo", "cold")),
-                    Beat(38, card = BoardCard("Today", "Basic registry, build a Dockerfile, run it with Never, read logs, delete.")),
+                    Beat(46, show = setOf("now", "micro", "build"), card = BoardCard("Listen for the phrase", "Each exam phrase points straight to one service or setting.")),
+                    Beat(48, show = setOf("retry", "geo", "cold"), light = setOf("retry", "geo", "cold")),
+                    Beat(50, card = BoardCard("Today", "Basic registry, build a Dockerfile, run it with Never, read logs, delete.")),
                 ),
             ),
         ),
@@ -1244,12 +1296,12 @@ internal object Az204Boards {
                 ),
                 beats = listOf(
                     Beat(12, show = setOf("cons", "dev", "std", "prem"), light = setOf("cons", "prem"), card = BoardCard("Consumption", "Serverless, pay per call, quick to start. No portal, no private network.")),
-                    Beat(14, show = setOf("sh"), light = setOf("sh"), pulse = "prem" to "sh", card = BoardCard("Self-hosted gateway", "The gateway as a container, on-premises or in another cloud. Premium.")),
+                    Beat(16, show = setOf("sh"), light = setOf("sh"), pulse = "prem" to "sh", card = BoardCard("Self-hosted gateway", "The gateway as a container, on-premises or in another cloud. Premium.")),
                 ),
             ),
-            // 15: "Okay. Policies. Where the rules live."
+            // 17: "Okay. Policies. Where the rules live."
             Scene(
-                15, "Four sections",
+                17, "Four sections",
                 DiagramSpec(
                     "A policy runs inbound, then backend, then outbound, with on-error when something breaks; base pulls in the wider rules.",
                     nodes = listOf(
@@ -1267,13 +1319,13 @@ internal object Az204Boards {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(16, show = setOf("in", "be", "out", "err"), light = setOf("in"), pulse = "in" to "be", card = BoardCard("Policy", "A small rule in XML, run in four sections, in order.")),
-                    Beat(18, show = setOf("base"), light = setOf("base"), card = BoardCard("XML", "<inbound><base /><rate-limit calls=\"60\" renewal-period=\"60\" /></inbound>", code = true)),
+                    Beat(18, show = setOf("in", "be", "out", "err"), light = setOf("in"), pulse = "in" to "be", card = BoardCard("Policy", "A small rule in XML, run in four sections, in order.")),
+                    Beat(20, show = setOf("base"), light = setOf("base"), card = BoardCard("XML", "<inbound><base /><rate-limit calls=\"60\" renewal-period=\"60\" /></inbound>", code = true)),
                 ),
             ),
-            // 20: "Now the pair everyone mixes up. Rate limit and quota. A rate limit sto..."
+            // 22: "Now the pair everyone mixes up. Rate limit and quota. A rate limit sto..."
             Scene(
-                20, "Slow down, or go away",
+                22, "Slow down, or go away",
                 DiagramSpec(
                     "A rate limit stops short bursts with 429; a quota is a long allowance, and past it the answer is 403.",
                     nodes = listOf(
@@ -1289,14 +1341,14 @@ internal object Az204Boards {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(20, show = setOf("rl", "r429"), light = setOf("r429"), pulse = "rl" to "r429", card = BoardCard("Rate limit", "60 calls a minute. Over it: 429, slow down. The puzzle's answer.")),
-                    Beat(22, show = setOf("q", "r403"), light = setOf("r403"), pulse = "q" to "r403", card = BoardCard("Ticket rush or monthly plan?", "A sales rush wants a rate limit. A monthly partner plan wants a quota.")),
-                    Beat(24, light = setOf("rl", "q"), card = BoardCard("By key", "Count per caller address, per subscription, or any value you like.")),
+                    Beat(22, show = setOf("rl", "r429"), light = setOf("r429"), pulse = "rl" to "r429", card = BoardCard("Rate limit", "60 calls a minute. Over it: 429, slow down. The puzzle's answer.")),
+                    Beat(24, show = setOf("q", "r403"), light = setOf("r403"), pulse = "q" to "r403", card = BoardCard("Ticket rush or monthly plan?", "A sales rush wants a rate limit. A monthly partner plan wants a quota.")),
+                    Beat(26, light = setOf("rl", "q"), card = BoardCard("By key", "Count per caller address, per subscription, or any value you like.")),
                 ),
             ),
-            // 25: "What other policies are worth knowing?"
+            // 27: "What other policies are worth knowing?"
             Scene(
-                25, "Handy policies",
+                27, "Handy policies",
                 DiagramSpec(
                     "A few more policies the topic lists, plus policy expressions for a bit of logic.",
                     nodes = listOf(
@@ -1310,13 +1362,13 @@ internal object Az204Boards {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(26, show = setOf("jwt", "ip", "hdr", "cache", "mock"), light = setOf("mock"), card = BoardCard("Picture a mobile team", "No back end yet? Mock response lets them build their screens now.")),
-                    Beat(28, show = setOf("expr"), light = setOf("expr"), card = BoardCard("Policy expression", "@(context.Request.Headers.GetValueOrDefault(\"x-client\",\"\"))", code = true)),
+                    Beat(30, show = setOf("jwt", "ip", "hdr", "cache", "mock"), light = setOf("mock"), card = BoardCard("Picture a mobile team", "No back end yet? Mock response lets them build their screens now.")),
+                    Beat(32, show = setOf("expr"), light = setOf("expr"), card = BoardCard("Policy expression", "@(context.Request.Headers.GetValueOrDefault(\"x-client\",\"\"))", code = true)),
                 ),
             ),
-            // 29: "You said the back end needs protecting separately."
+            // 33: "You said the back end needs protecting separately."
             Scene(
-                29, "Lock the back door",
+                33, "Lock the back door",
                 DiagramSpec(
                     "The back end accepts only the gateway, which signs in to it with a managed identity.",
                     nodes = listOf(
@@ -1334,13 +1386,13 @@ internal object Az204Boards {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(29, show = setOf("caller", "gw", "be"), pulse = "caller" to "gw"),
-                    Beat(30, show = setOf("id"), light = setOf("be", "id"), pulse = "gw" to "be", card = BoardCard("Lock the back end", "Accept only the gateway: IP restriction, private network or certificate.")),
+                    Beat(33, show = setOf("caller", "gw", "be"), pulse = "caller" to "gw"),
+                    Beat(34, show = setOf("id"), light = setOf("be", "id"), pulse = "gw" to "be", card = BoardCard("Lock the back end", "Accept only the gateway: IP restriction, private network or certificate.")),
                 ),
             ),
-            // 31: "So what should I remember for the exam?"
+            // 35: "So what should I remember for the exam?"
             Scene(
-                31, "For the exam",
+                35, "For the exam",
                 DiagramSpec(
                     "The exam's API Management questions, each as the phrase to listen for and the answer it points to.",
                     nodes = listOf(
@@ -1353,9 +1405,9 @@ internal object Az204Boards {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(32, show = setOf("burst", "allow", "onprem"), card = BoardCard("Listen for the phrase", "Each exam phrase points straight to one policy or tier.")),
-                    Beat(34, show = setOf("base", "skip"), light = setOf("base", "skip"), card = BoardCard("Two more traps", "Keep the base element, and let only the gateway reach the back end.")),
-                    Beat(36, card = BoardCard("Today", "Consumption tier, import the sample, rate limit 3 per 60, read the 429.")),
+                    Beat(36, show = setOf("burst", "allow", "onprem"), card = BoardCard("Listen for the phrase", "Each exam phrase points straight to one policy or tier.")),
+                    Beat(38, show = setOf("base", "skip"), light = setOf("base", "skip"), card = BoardCard("Two more traps", "Keep the base element, and let only the gateway reach the back end.")),
+                    Beat(40, card = BoardCard("Today", "Consumption tier, import the sample, rate limit 3 per 60, read the 429.")),
                 ),
             ),
         ),
@@ -1556,13 +1608,14 @@ internal object Az204Boards {
                 ),
                 beats = listOf(
                     Beat(26, show = setOf("eg", "eh", "sb"), card = BoardCard("Three different jobs", "Grid: something happened. Hubs: a huge stream. Bus: jobs handled with care.")),
-                    Beat(28, show = setOf("shop"), light = setOf("shop", "eg"), pulse = "shop" to "eg", card = BoardCard("A small online shop", "Photo uploaded: Grid. Every click: Hubs. An order to charge and ship: Bus.")),
-                    Beat(30, light = setOf("eh"), card = BoardCard("A flood of clicks?", "Not Event Grid. High-volume telemetry is Event Hubs.")),
+                    Beat(28, light = setOf("eg"), card = BoardCard("Push or pull", "Event Grid pushes to your handler. With Hubs and Service Bus, your code pulls.")),
+                    Beat(30, show = setOf("shop"), light = setOf("shop", "eg"), pulse = "shop" to "eg", card = BoardCard("A small online shop", "Photo uploaded: Grid. Every click: Hubs. An order to charge and ship: Bus.")),
+                    Beat(32, light = setOf("eh"), card = BoardCard("A flood of clicks?", "Not Event Grid. High-volume telemetry is Event Hubs.")),
                 ),
             ),
-            // 31: "What else do people get wrong?"
+            // 33: "What else do people get wrong?"
             Scene(
-                31, "Mistakes to avoid",
+                33, "Mistakes to avoid",
                 DiagramSpec(
                     "Three ways to get Event Grid wrong, as the topic lists them.",
                     nodes = listOf(
@@ -1573,12 +1626,12 @@ internal object Az204Boards {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(32, show = setOf("hs", "once", "late"), card = BoardCard("Filter early", "A subject filter stops the delivery, so you never pay for it.")),
+                    Beat(34, show = setOf("hs", "once", "late"), card = BoardCard("Filter early", "A subject filter stops the delivery, so you never pay for it.")),
                 ),
             ),
-            // 33: "So what should I remember for the exam?"
+            // 35: "So what should I remember for the exam?"
             Scene(
-                33, "For the exam",
+                35, "For the exam",
                 DiagramSpec(
                     "The exam's Event Grid questions, each as the phrase to listen for and the answer it points to.",
                     nodes = listOf(
@@ -1591,9 +1644,9 @@ internal object Az204Boards {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(34, show = setOf("react", "files", "keep", "dup"), card = BoardCard("Listen for the phrase", "Each exam phrase points straight to one answer.")),
-                    Beat(36, show = setOf("hook"), light = setOf("hook"), card = BoardCard("A webhook question?", "Send the code back, or use a Function with an Event Grid trigger.")),
-                    Beat(38, card = BoardCard("Today", "Blob upload to a Function, read the JSON, then a .png filter skips a .txt.")),
+                    Beat(36, show = setOf("react", "files", "keep", "dup"), card = BoardCard("Listen for the phrase", "Each exam phrase points straight to one answer.")),
+                    Beat(38, show = setOf("hook"), light = setOf("hook"), card = BoardCard("A webhook question?", "Send the code back, or use a Function with an Event Grid trigger.")),
+                    Beat(40, card = BoardCard("Today", "Blob upload to a Function, read the JSON, then a .png filter skips a .txt.")),
                 ),
             ),
         ),
@@ -1666,12 +1719,12 @@ internal object Az204Boards {
                 beats = listOf(
                     Beat(7, show = setOf("hub")),
                     Beat(8, show = setOf("p0", "p1", "p2"), light = setOf("p0", "p1", "p2"), card = BoardCard("Partition", "One lane: in order inside it. More lanes, more work in parallel.")),
-                    Beat(10, light = setOf("p1"), pulse = "hub" to "p1", card = BoardCard("Partition key", "Same key, same lane. One phone's steps stay in order.")),
+                    Beat(12, light = setOf("p1"), pulse = "hub" to "p1", card = BoardCard("Partition key", "Same key, same lane. One phone's steps stay in order.")),
                 ),
             ),
-            // 11: "Okay. Now, who reads all this?"
+            // 13: "Okay. Now, who reads all this?"
             Scene(
-                11, "Each reader its own view",
+                13, "Each reader its own view",
                 DiagramSpec(
                     "A leaderboard and a daily report each read the whole stream through their own consumer group.",
                     nodes = listOf(
@@ -1686,14 +1739,14 @@ internal object Az204Boards {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(11, show = setOf("hub")),
-                    Beat(12, show = setOf("cg1", "cg2"), light = setOf("cg1", "cg2"), pulse = "hub" to "cg2", card = BoardCard("Consumer group", "Each app's own view of the whole stream, with its own bookmark.")),
-                    Beat(14, card = BoardCard("Don't share one", "Two apps on one consumer group steal each other's partitions.")),
+                    Beat(13, show = setOf("hub")),
+                    Beat(14, show = setOf("cg1", "cg2"), light = setOf("cg1", "cg2"), pulse = "hub" to "cg2", card = BoardCard("Consumer group", "Each app's own view of the whole stream, with its own bookmark.")),
+                    Beat(16, card = BoardCard("Don't share one", "Two apps on one consumer group steal each other's partitions.")),
                 ),
             ),
-            // 15: "So partitions are lanes, and consumer groups are viewers. What's the b..."
+            // 17: "So partitions are lanes, and consumer groups are viewers. What's the b..."
             Scene(
-                15, "Bookmarks",
+                17, "Bookmarks",
                 DiagramSpec(
                     "A reader saves checkpoints in blob storage; EventProcessorClient or a Function trigger does it for you.",
                     nodes = listOf(
@@ -1708,14 +1761,14 @@ internal object Az204Boards {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(15, show = setOf("reader", "blob")),
-                    Beat(16, light = setOf("blob"), pulse = "reader" to "blob", card = BoardCard("Checkpoint", "A saved position in blob storage. Save after a batch, not every event.")),
-                    Beat(18, show = setOf("epc"), light = setOf("epc"), card = BoardCard("Or let it be done for you", "EventProcessorClient, or a Function with the Event Hub trigger.")),
+                    Beat(17, show = setOf("reader", "blob")),
+                    Beat(18, light = setOf("blob"), pulse = "reader" to "blob", card = BoardCard("Checkpoint", "A saved position in blob storage. Save after a batch, not every event.")),
+                    Beat(20, show = setOf("epc"), light = setOf("epc"), card = BoardCard("Or let it be done for you", "EventProcessorClient, or a Function with the Event Hub trigger.")),
                 ),
             ),
-            // 19: "And how do I make it take more?"
+            // 21: "And how do I make it take more?"
             Scene(
-                19, "Two dials",
+                21, "Two dials",
                 DiagramSpec(
                     "Throughput units buy capacity and auto-inflate adds them; more partitions mean more readers at once.",
                     nodes = listOf(
@@ -1726,14 +1779,14 @@ internal object Az204Boards {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(19, show = setOf("tu", "parts")),
-                    Beat(20, show = setOf("auto"), light = setOf("tu", "auto"), card = BoardCard("Throughput unit", "One slice of capacity: 1 MB a second in, 2 out.")),
-                    Beat(22, light = setOf("parts"), card = BoardCard("Retention", "Kept 1 to 7 days on Standard, up to 90 on Premium.")),
+                    Beat(21, show = setOf("tu", "parts")),
+                    Beat(22, show = setOf("auto"), light = setOf("tu", "auto"), card = BoardCard("Throughput unit", "One slice of capacity: 1 MB a second in, 2 out.")),
+                    Beat(24, light = setOf("parts"), card = BoardCard("Retention", "Kept 1 to 7 days on Standard, up to 90 on Premium.")),
                 ),
             ),
-            // 23: "What if I want every event saved for good?"
+            // 25: "What if I want every event saved for good?"
             Scene(
-                23, "Capture",
+                25, "Capture",
                 DiagramSpec(
                     "Capture writes events in batches to Blob Storage or a data lake as Avro files, with no code.",
                     nodes = listOf(
@@ -1746,13 +1799,13 @@ internal object Az204Boards {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(23, show = setOf("hub")),
-                    Beat(24, show = setOf("store"), light = setOf("store"), pulse = "hub" to "store", card = BoardCard("Capture", "Archive every event to storage as Avro files, with no code.")),
+                    Beat(25, show = setOf("hub")),
+                    Beat(26, show = setOf("store"), light = setOf("store"), pulse = "hub" to "store", card = BoardCard("Capture", "Archive every event to storage as Avro files, with no code.")),
                 ),
             ),
-            // 25: "Okay, the confusing bit. Event Hubs, Event Grid, Service Bus. Which on..."
+            // 27: "Okay, the confusing bit. Event Hubs, Event Grid, Service Bus. Which on..."
             Scene(
-                25, "Which one when",
+                27, "Which one when",
                 DiagramSpec(
                     "One thermostat company, three services: Event Hubs streams, Event Grid reacts, Service Bus handles orders.",
                     nodes = listOf(
@@ -1769,14 +1822,14 @@ internal object Az204Boards {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(26, show = setOf("eh", "eg", "sb"), card = BoardCard("Three different jobs", "Hubs: a stream. Grid: one this-happened note. Bus: a job handled carefully.")),
-                    Beat(28, show = setOf("co"), light = setOf("co", "eh"), pulse = "co" to "eh", card = BoardCard("A thermostat company", "Readings every minute: Hubs. Firmware upload: Grid. A new order: Bus.")),
-                    Beat(30, light = setOf("sb"), card = BoardCard("Each message handled with care?", "One-by-one work with dead-lettering is Service Bus, not Event Hubs.")),
+                    Beat(28, show = setOf("eh", "eg", "sb"), card = BoardCard("Three different jobs", "Hubs: a stream. Grid: one this-happened note. Bus: a job handled carefully.")),
+                    Beat(30, show = setOf("co"), light = setOf("co", "eh"), pulse = "co" to "eh", card = BoardCard("A thermostat company", "Readings every minute: Hubs. Firmware upload: Grid. A new order: Bus.")),
+                    Beat(32, light = setOf("sb"), card = BoardCard("Each message handled with care?", "One-by-one work with dead-lettering is Service Bus, not Event Hubs.")),
                 ),
             ),
-            // 31: "So what should I remember for the exam?"
+            // 33: "So what should I remember for the exam?"
             Scene(
-                31, "For the exam",
+                33, "For the exam",
                 DiagramSpec(
                     "The exam's Event Hubs questions, each as the phrase to listen for and the answer it points to.",
                     nodes = listOf(
@@ -1789,9 +1842,9 @@ internal object Az204Boards {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(32, show = setOf("two", "order", "arch", "mill"), card = BoardCard("Listen for the phrase", "Each exam phrase points straight to one answer.")),
-                    Beat(34, show = setOf("replay"), light = setOf("replay"), card = BoardCard("Replay yesterday?", "Retention, plus a new consumer group from an earlier position.")),
-                    Beat(36, card = BoardCard("Today", "Basic namespace, 2 partitions, send 10 events, read them, check Metrics.")),
+                    Beat(34, show = setOf("two", "order", "arch", "mill"), card = BoardCard("Listen for the phrase", "Each exam phrase points straight to one answer.")),
+                    Beat(36, show = setOf("replay"), light = setOf("replay"), card = BoardCard("Replay yesterday?", "Retention, plus a new consumer group from an earlier position.")),
+                    Beat(38, card = BoardCard("Today", "Basic namespace, 2 partitions, send 10 events, read them, check Metrics.")),
                 ),
             ),
         ),
@@ -1926,9 +1979,9 @@ internal object Az204Boards {
                     Beat(16, show = setOf("c", "a", "d", "f"), light = setOf("c"), card = BoardCard("Four ways to settle", "Complete, abandon, dead-letter or defer.")),
                 ),
             ),
-            // 17: "What's dead-letter, in plain words?"
+            // 19: "What's dead-letter, in plain words?"
             Scene(
-                17, "The dead-letter queue",
+                19, "The dead-letter queue",
                 DiagramSpec(
                     "A message that can never work is dead-lettered; one that fails too often lands there after ten tries.",
                     nodes = listOf(
@@ -1944,15 +1997,15 @@ internal object Az204Boards {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(17, show = setOf("q", "w")),
-                    Beat(18, show = setOf("dlq"), light = setOf("dlq"), pulse = "w" to "dlq", card = BoardCard("Broken for good?", "Dead-letter it. Complete hides the failure; abandon brings it back.")),
-                    Beat(20, pulse = "q" to "dlq", card = BoardCard("Max delivery count", "Ten tries by default, then dead-lettered. Read that pile!")),
-                    Beat(22, light = setOf("w"), card = BoardCard("Lock duration", "30 seconds by default, up to 5 minutes. Renew it for long work.")),
+                    Beat(19, show = setOf("q", "w")),
+                    Beat(20, show = setOf("dlq"), light = setOf("dlq"), pulse = "w" to "dlq", card = BoardCard("Broken for good?", "Dead-letter it. Complete hides the failure; abandon brings it back.")),
+                    Beat(22, pulse = "q" to "dlq", card = BoardCard("Max delivery count", "Ten tries by default, then dead-lettered. Read that pile!")),
+                    Beat(24, light = setOf("w"), card = BoardCard("Lock duration", "One minute by default, up to 5 minutes. Renew it for long work.")),
                 ),
             ),
-            // 23: "And if things must happen in a strict order?"
+            // 25: "And if things must happen in a strict order?"
             Scene(
-                23, "Order and extras",
+                25, "Order and extras",
                 DiagramSpec(
                     "Sessions keep messages with the same session id in order for one receiver; other features come built in.",
                     nodes = listOf(
@@ -1968,14 +2021,14 @@ internal object Az204Boards {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(23, show = setOf("q", "w")),
-                    Beat(24, light = setOf("w"), pulse = "q" to "w", card = BoardCard("Session", "Same session id, one receiver, strict order. A shop: use the order id.")),
-                    Beat(26, show = setOf("dup", "sched", "tx"), card = BoardCard("Built in", "Drop repeats, deliver later, or do two things all or nothing.")),
+                    Beat(25, show = setOf("q", "w")),
+                    Beat(26, light = setOf("w"), pulse = "q" to "w", card = BoardCard("Session", "Same session id, one receiver, strict order. A shop: use the order id.")),
+                    Beat(28, show = setOf("dup", "sched", "tx"), card = BoardCard("Built in", "Drop repeats, deliver later, or do two things all or nothing.")),
                 ),
             ),
-            // 27: "Okay. So what's Queue Storage for?"
+            // 29: "Okay. So what's Queue Storage for?"
             Scene(
-                27, "Queue Storage",
+                29, "Queue Storage",
                 DiagramSpec(
                     "Storage queues grow far past Service Bus's 80 GB, with a visibility timeout and a pop receipt instead of PeekLock.",
                     nodes = listOf(
@@ -1987,14 +2040,14 @@ internal object Az204Boards {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(27, show = setOf("sbq", "stq")),
-                    Beat(28, light = setOf("stq"), card = BoardCard("Photo thumbnails", "Trivial work, huge volume, no fancy features: a Storage queue.")),
-                    Beat(30, show = setOf("vt", "pr"), light = setOf("vt", "pr"), card = BoardCard("No PeekLock here", "Hidden for the visibility timeout; delete it with the pop receipt.")),
+                    Beat(29, show = setOf("sbq", "stq")),
+                    Beat(30, light = setOf("stq"), card = BoardCard("Photo thumbnails", "Trivial work, huge volume, no fancy features: a Storage queue.")),
+                    Beat(32, show = setOf("vt", "pr"), light = setOf("vt", "pr"), card = BoardCard("No PeekLock here", "Hidden for the visibility timeout; delete it with the pop receipt.")),
                 ),
             ),
-            // 31: "And how is all this different from Event Grid and Event Hubs?"
+            // 33: "And how is all this different from Event Grid and Event Hubs?"
             Scene(
-                31, "Which one when",
+                33, "Which one when",
                 DiagramSpec(
                     "Event Grid says something happened, Event Hubs takes a stream, Service Bus carries jobs that must be handled.",
                     nodes = listOf(
@@ -2009,12 +2062,12 @@ internal object Az204Boards {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(32, show = setOf("app", "eg", "eh", "sb"), light = setOf("sb"), pulse = "app" to "sb", card = BoardCard("The pizza app's receipt", "A job that must be handled, with a dead-letter queue: Service Bus.")),
+                    Beat(34, show = setOf("app", "eg", "eh", "sb"), light = setOf("sb"), pulse = "app" to "sb", card = BoardCard("The pizza app's receipt", "A job that must be handled, with a dead-letter queue: Service Bus.")),
                 ),
             ),
-            // 33: "So what should I remember for the exam?"
+            // 35: "So what should I remember for the exam?"
             Scene(
-                33, "For the exam",
+                35, "For the exam",
                 DiagramSpec(
                     "The exam's messaging questions, each as the phrase to listen for and the answer it points to.",
                     nodes = listOf(
@@ -2027,9 +2080,9 @@ internal object Az204Boards {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(34, show = setOf("never", "order", "big", "many"), card = BoardCard("Listen for the phrase", "Each exam phrase points straight to one answer.")),
-                    Beat(36, show = setOf("sb"), light = setOf("sb"), card = BoardCard("Service Bus over Storage?", "Duplicate detection, FIFO, transactions or publish and subscribe.")),
-                    Beat(38, card = BoardCard("Today", "A topic, two subscriptions, a SQL rule; send two messages, then peek them.")),
+                    Beat(36, show = setOf("never", "order", "big", "many"), card = BoardCard("Listen for the phrase", "Each exam phrase points straight to one answer.")),
+                    Beat(38, show = setOf("sb"), light = setOf("sb"), card = BoardCard("Service Bus over Storage?", "Duplicate detection, FIFO, transactions or publish and subscribe.")),
+                    Beat(40, card = BoardCard("Today", "A topic, two subscriptions, a SQL rule; send two messages, then peek them.")),
                 ),
             ),
         ),
@@ -2083,9 +2136,9 @@ internal object Az204Boards {
                     Beat(6, show = setOf("req", "dep", "exc", "trc"), light = setOf("req", "dep", "exc", "trc"), card = BoardCard("What gets recorded", "Requests in, dependencies out, exceptions, traces, and page views.")),
                 ),
             ),
-            // 7: "Do I have to write code to get all that?"
+            // 9: "Do I have to write code to get all that?"
             Scene(
-                7, "Two ways in",
+                9, "Two ways in",
                 DiagramSpec(
                     "Auto-instrumentation needs no code; the SDK adds custom events and finds the resource by its connection string.",
                     nodes = listOf(
@@ -2102,15 +2155,15 @@ internal object Az204Boards {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(7, show = setOf("ai")),
-                    Beat(8, show = setOf("auto"), light = setOf("auto"), pulse = "auto" to "ai", card = BoardCard("Auto-instrumentation", "Switch it on in the portal: requests, dependencies, exceptions.")),
-                    Beat(10, show = setOf("sdk"), light = setOf("sdk"), pulse = "sdk" to "ai", card = BoardCard("The SDK", "A small code library, for your own custom events.")),
-                    Beat(12, show = setOf("conn"), light = setOf("conn"), card = BoardCard("Connection string", "The parcel's address label. Use it, not the old instrumentation key.")),
+                    Beat(9, show = setOf("ai")),
+                    Beat(10, show = setOf("auto"), light = setOf("auto"), pulse = "auto" to "ai", card = BoardCard("Auto-instrumentation", "Switch it on in the portal: requests, dependencies, exceptions.")),
+                    Beat(12, show = setOf("sdk"), light = setOf("sdk"), pulse = "sdk" to "ai", card = BoardCard("The SDK", "A small code library, for your own custom events.")),
+                    Beat(14, show = setOf("conn"), light = setOf("conn"), card = BoardCard("Connection string", "The parcel's address label. Use it, not the old instrumentation key.")),
                 ),
             ),
-            // 13: "Tell me more about custom events."
+            // 15: "Tell me more about custom events."
             Scene(
-                13, "Custom events",
+                15, "Custom events",
                 DiagramSpec(
                     "A custom event marks a business moment; its properties are text for filtering, its measurements numbers for charts.",
                     nodes = listOf(
@@ -2127,14 +2180,14 @@ internal object Az204Boards {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(13, show = setOf("app")),
-                    Beat(14, show = setOf("ev", "prop", "meas"), light = setOf("ev", "prop"), pulse = "app" to "ev", card = BoardCard("Lessons per hour, by topic", "A language app sends a custom event, with the topic as a property.")),
-                    Beat(16, light = setOf("meas"), card = BoardCard("C#", "telemetry.TrackEvent(\"LessonFinished\", props, measurements);", code = true)),
+                    Beat(15, show = setOf("app")),
+                    Beat(16, show = setOf("ev", "prop", "meas"), light = setOf("ev", "prop"), pulse = "app" to "ev", card = BoardCard("Lessons per hour, by topic", "A language app sends a custom event, with the topic as a property.")),
+                    Beat(18, light = setOf("meas"), card = BoardCard("C#", "telemetry.TrackEvent(\"LessonFinished\", props, measurements);", code = true)),
                 ),
             ),
-            // 17: "Okay. So where does all this data end up?"
+            // 19: "Okay. So where does all this data end up?"
             Scene(
-                17, "Asking questions with KQL",
+                19, "Asking questions with KQL",
                 DiagramSpec(
                     "Telemetry lands in a Log Analytics workspace, one table per kind, and KQL asks it questions step by step.",
                     nodes = listOf(
@@ -2150,15 +2203,15 @@ internal object Az204Boards {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(17, show = setOf("ai")),
-                    Beat(18, show = setOf("la"), light = setOf("la"), pulse = "ai" to "la", card = BoardCard("Log Analytics workspace", "A filing cabinet: one table for requests, one for exceptions, and so on.")),
-                    Beat(20, show = setOf("kql", "steps"), light = setOf("kql", "steps"), pulse = "kql" to "la", card = BoardCard("KQL", "Start with a table. Where filters, summarize groups, render draws a chart.")),
-                    Beat(22, card = BoardCard("KQL", "requests | where success == false | summarize count() by resultCode", code = true)),
+                    Beat(19, show = setOf("ai")),
+                    Beat(20, show = setOf("la"), light = setOf("la"), pulse = "ai" to "la", card = BoardCard("Log Analytics workspace", "A filing cabinet: one table for requests, one for exceptions, and so on.")),
+                    Beat(22, show = setOf("kql", "steps"), light = setOf("kql", "steps"), pulse = "kql" to "la", card = BoardCard("KQL", "Start with a table. Where filters, summarize groups, render draws a chart.")),
+                    Beat(24, card = BoardCard("KQL", "requests | where success == false | summarize count() by resultCode", code = true)),
                 ),
             ),
-            // 24: "Now, back to the slow checkout. One click on checkout might make four ..."
+            // 26: "Now, back to the slow checkout. One click on checkout might make four ..."
             Scene(
-                24, "One request, one id",
+                26, "One request, one id",
                 DiagramSpec(
                     "Every item one request causes shares its operation id, which the end-to-end view follows.",
                     nodes = listOf(
@@ -2180,14 +2233,14 @@ internal object Az204Boards {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(24, show = setOf("req", "d1", "d2", "d3", "d4", "ex"), light = setOf("req")),
-                    Beat(25, card = BoardCard("The timestamp?", "Close, but no. Times can clash; something more exact ties them.")),
-                    Beat(26, show = setOf("op"), light = setOf("op"), pulse = "req" to "ex", card = BoardCard("Operation id", "One id on every item of a request. The end-to-end view follows it.")),
+                    Beat(26, show = setOf("req", "d1", "d2", "d3", "d4", "ex"), light = setOf("req")),
+                    Beat(27, card = BoardCard("The timestamp?", "Close, but no. Times can clash; something more exact ties them.")),
+                    Beat(28, show = setOf("op"), light = setOf("op"), pulse = "req" to "ex", card = BoardCard("Operation id", "One id on every item of a request. The end-to-end view follows it.")),
                 ),
             ),
-            // 27: "Doesn't recording everything cost a lot?"
+            // 29: "Doesn't recording everything cost a lot?"
             Scene(
-                27, "Sampling",
+                29, "Sampling",
                 DiagramSpec(
                     "Adaptive sampling keeps a share of related items under load and scales the counts back up.",
                     nodes = listOf(
@@ -2202,14 +2255,14 @@ internal object Az204Boards {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(27, show = setOf("all")),
-                    Beat(28, show = setOf("samp"), light = setOf("samp"), pulse = "all" to "samp", card = BoardCard("Adaptive sampling", "The default in the dot net SDK. Keeps a share, scales counts back up.")),
-                    Beat(30, show = setOf("counts"), light = setOf("counts"), card = BoardCard("A busy photo-sharing app", "Turns sampling on: a smaller bill, and charts still about right.")),
+                    Beat(29, show = setOf("all")),
+                    Beat(30, show = setOf("samp"), light = setOf("samp"), pulse = "all" to "samp", card = BoardCard("Adaptive sampling", "The default in the dot net SDK. Keeps a share, scales counts back up.")),
+                    Beat(32, show = setOf("counts"), light = setOf("counts"), card = BoardCard("A busy photo-sharing app", "Turns sampling on: a smaller bill, and charts still about right.")),
                 ),
             ),
-            // 31: "And if I want to watch while I deploy?"
+            // 33: "And if I want to watch while I deploy?"
             Scene(
-                31, "Live Metrics",
+                33, "Live Metrics",
                 DiagramSpec(
                     "Live Metrics shows requests, failures and CPU with about one second of delay while you deploy.",
                     nodes = listOf(
@@ -2224,13 +2277,13 @@ internal object Az204Boards {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(31, show = setOf("dep", "app"), pulse = "dep" to "app"),
-                    Beat(32, show = setOf("live"), light = setOf("live"), pulse = "app" to "live", card = BoardCard("Watch the deploy live", "A food delivery app ships on Friday; watch failures as traffic moves.")),
+                    Beat(33, show = setOf("dep", "app"), pulse = "dep" to "app"),
+                    Beat(34, show = setOf("live"), light = setOf("live"), pulse = "app" to "live", card = BoardCard("Watch the deploy live", "A food delivery app ships on Friday; watch failures as traffic moves.")),
                 ),
             ),
-            // 33: "Anything people often get wrong?"
+            // 35: "Anything people often get wrong?"
             Scene(
-                33, "Mistakes to avoid",
+                35, "Mistakes to avoid",
                 DiagramSpec(
                     "Four ways to get Application Insights wrong, as the topic lists them.",
                     nodes = listOf(
@@ -2242,12 +2295,12 @@ internal object Az204Boards {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(34, show = setOf("pii", "off", "ikey", "table"), card = BoardCard("Errors missing?", "Errors written as plain log lines land in traces, not exceptions.")),
+                    Beat(36, show = setOf("pii", "off", "ikey", "table"), card = BoardCard("Errors missing?", "Errors written as plain log lines land in traces, not exceptions.")),
                 ),
             ),
-            // 35: "So what should I remember for the exam?"
+            // 37: "So what should I remember for the exam?"
             Scene(
-                35, "For the exam",
+                37, "For the exam",
                 DiagramSpec(
                     "The exam's Application Insights questions, each as the phrase to listen for and the answer it points to.",
                     nodes = listOf(
@@ -2260,9 +2313,9 @@ internal object Az204Boards {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(36, show = setOf("cost", "trace", "live"), card = BoardCard("Listen for the phrase", "Each exam phrase points straight to one answer.")),
-                    Beat(38, show = setOf("count", "kql"), light = setOf("count", "kql"), card = BoardCard("Counting lessons per topic?", "A custom event with TrackEvent, the topic as a property.")),
-                    Beat(40, card = BoardCard("Today", "A resource, a sample app, a failing request, then a KQL count by result code.")),
+                    Beat(38, show = setOf("cost", "trace", "live"), card = BoardCard("Listen for the phrase", "Each exam phrase points straight to one answer.")),
+                    Beat(40, show = setOf("count", "kql"), light = setOf("count", "kql"), card = BoardCard("Counting lessons per topic?", "A custom event with TrackEvent, the topic as a property.")),
+                    Beat(42, card = BoardCard("Today", "A resource, a sample app, a failing request, then a KQL count by result code.")),
                 ),
             ),
         ),
@@ -2377,13 +2430,13 @@ internal object Az204Boards {
                 ),
                 beats = listOf(
                     Beat(14, show = setOf("metric", "log"), light = setOf("metric", "log"), card = BoardCard("Metric or log search?", "A number crossing a line, or a KQL query run on a schedule.")),
-                    Beat(16, show = setOf("act", "smart", "avail"), light = setOf("act", "smart", "avail")),
-                    Beat(18, show = setOf("dyn"), light = setOf("log", "dyn"), card = BoardCard("Dynamic threshold", "Learns what normal looks like, instead of a fixed number.")),
+                    Beat(18, show = setOf("act", "smart", "avail"), light = setOf("act", "smart", "avail")),
+                    Beat(20, show = setOf("dyn"), light = setOf("log", "dyn"), card = BoardCard("Dynamic threshold", "Learns what normal looks like, instead of a fixed number.")),
                 ),
             ),
-            // 19: "Who actually gets told when it goes off?"
+            // 21: "Who actually gets told when it goes off?"
             Scene(
-                19, "Who gets told",
+                21, "Who gets told",
                 DiagramSpec(
                     "Many alert rules point at one action group, a reusable list of who to tell and how.",
                     nodes = listOf(
@@ -2407,15 +2460,15 @@ internal object Az204Boards {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(19, show = setOf("r1")),
-                    Beat(20, show = setOf("ag", "email", "push", "auto"), light = setOf("ag"), pulse = "ag" to "push", card = BoardCard("Action group", "A phone tree: who to tell and how. Email, text, push, automation.")),
-                    Beat(22, show = setOf("r2", "r3"), light = setOf("r1", "r2", "r3"), pulse = "r2" to "ag", card = BoardCard("A food delivery team", "Ten rules, one action group. A new person? Update the group once.")),
-                    Beat(24, show = setOf("mute"), light = setOf("mute"), card = BoardCard("Alert processing rules", "Mute notifications during a maintenance window.")),
+                    Beat(21, show = setOf("r1")),
+                    Beat(22, show = setOf("ag", "email", "push", "auto"), light = setOf("ag"), pulse = "ag" to "push", card = BoardCard("Action group", "A phone tree: who to tell and how. Email, text, push, automation.")),
+                    Beat(24, show = setOf("r2", "r3"), light = setOf("r1", "r2", "r3"), pulse = "r2" to "ag", card = BoardCard("A food delivery team", "Ten rules, one action group. A new person? Update the group once.")),
+                    Beat(26, show = setOf("mute"), light = setOf("mute"), card = BoardCard("Alert processing rules", "Mute notifications during a maintenance window.")),
                 ),
             ),
-            // 25: "Good. Now autoscale."
+            // 27: "Good. Now autoscale."
             Scene(
-                25, "Autoscale",
+                27, "Autoscale",
                 DiagramSpec(
                     "Autoscale in Azure Monitor adds and removes instances between a minimum and a maximum, following its rules.",
                     nodes = listOf(
@@ -2433,13 +2486,13 @@ internal object Az204Boards {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(26, show = setOf("as", "i1", "i2"), light = setOf("as"), card = BoardCard("Autoscale", "Adds or removes copies of your app, called instances.")),
-                    Beat(28, show = setOf("cpu", "i3", "other"), light = setOf("cpu", "i3"), pulse = "as" to "i3", card = BoardCard("Rules", "Out above 70%, in below 30%, a schedule, or a Service Bus queue.")),
+                    Beat(28, show = setOf("as", "i1", "i2"), light = setOf("as"), card = BoardCard("Autoscale", "Adds or removes copies of your app, called instances.")),
+                    Beat(30, show = setOf("cpu", "i3", "other"), light = setOf("cpu", "i3"), pulse = "as" to "i3", card = BoardCard("Rules", "Out above 70%, in below 30%, a schedule, or a Service Bus queue.")),
                 ),
             ),
-            // 29: "Here's a trick one. Add one above seventy, remove one below seventy?"
+            // 33: "Here's a trick one. Add one above seventy, remove one below seventy?"
             Scene(
-                29, "Flapping",
+                33, "Flapping",
                 DiagramSpec(
                     "Thresholds that meet make the rules fight; a gap between them and a cooldown keep it steady.",
                     nodes = listOf(
@@ -2455,14 +2508,14 @@ internal object Az204Boards {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(29, show = setOf("out", "in"), pulse = "out" to "in"),
-                    Beat(30, show = setOf("flap", "fix", "cool"), light = setOf("fix", "cool"), card = BoardCard("It flaps", "Fix: out at 70, in at 30, and a cooldown after each action.")),
-                    Beat(32, light = setOf("fix"), card = BoardCard("A ticket-selling site", "Busy on Friday, small again on Monday. Pair out with an in rule.")),
+                    Beat(33, show = setOf("out", "in"), pulse = "out" to "in"),
+                    Beat(34, show = setOf("flap", "fix", "cool"), light = setOf("fix", "cool"), card = BoardCard("It flaps", "Fix: out at 70, in at 30, and a cooldown after each action.")),
+                    Beat(36, light = setOf("fix"), card = BoardCard("A ticket-selling site", "Busy on Friday, small again on Monday. Pair out with an in rule.")),
                 ),
             ),
-            // 33: "So what should I remember for the exam?"
+            // 37: "So what should I remember for the exam?"
             Scene(
-                33, "For the exam",
+                37, "For the exam",
                 DiagramSpec(
                     "The exam's monitoring questions, each as the phrase to listen for and the answer it points to.",
                     nodes = listOf(
@@ -2476,9 +2529,9 @@ internal object Az204Boards {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(34, show = setOf("pub", "priv", "kql", "thr"), card = BoardCard("Listen for the phrase", "Each exam phrase points straight to one answer.")),
-                    Beat(36, show = setOf("flap", "who"), light = setOf("flap", "who"), card = BoardCard("Never shrinks?", "Add a scale in rule to match the scale out rule.")),
-                    Beat(38, card = BoardCard("Today", "A standard test, an action group, an alert below 100; stop the app, get an email.")),
+                    Beat(38, show = setOf("pub", "priv", "kql", "thr"), card = BoardCard("Listen for the phrase", "Each exam phrase points straight to one answer.")),
+                    Beat(40, show = setOf("flap", "who"), light = setOf("flap", "who"), card = BoardCard("Never shrinks?", "Add a scale in rule to match the scale out rule.")),
+                    Beat(42, card = BoardCard("Today", "A standard test, an action group, an alert below 100; stop the app, get an email.")),
                 ),
             ),
         ),
@@ -2619,12 +2672,12 @@ internal object Az204Boards {
                 ),
                 beats = listOf(
                     Beat(20, show = setOf("str", "cnt", "hash", "list", "zset"), light = setOf("zset")),
-                    Beat(22, light = setOf("zset"), card = BoardCard("A fitness app's leaderboard", "Users are members, steps are the score: the top ten comes back fast.")),
+                    Beat(24, light = setOf("zset"), card = BoardCard("A fitness app's leaderboard", "Users are members, steps are the score: the top ten comes back fast.")),
                 ),
             ),
-            // 23: "What happens when the cache fills up?"
+            // 25: "What happens when the cache fills up?"
             Scene(
-                23, "When memory fills",
+                25, "When memory fills",
                 DiagramSpec(
                     "The eviction policy drops keys with a TTL first; anything can vanish, so keep the slow path.",
                     nodes = listOf(
@@ -2638,14 +2691,14 @@ internal object Az204Boards {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(23, show = setOf("redis")),
-                    Beat(24, show = setOf("evict"), light = setOf("evict"), pulse = "redis" to "evict", card = BoardCard("Eviction policy", "Least recently used keys with a TTL go first. Always set an expiry.")),
-                    Beat(26, show = setOf("slow"), light = setOf("slow"), card = BoardCard("Redis is not a database", "Assume anything can disappear. Always keep the slow path.")),
+                    Beat(25, show = setOf("redis")),
+                    Beat(26, show = setOf("evict"), light = setOf("evict"), pulse = "redis" to "evict", card = BoardCard("Eviction policy", "Least recently used keys with a TTL go first. Always set an expiry.")),
+                    Beat(28, show = setOf("slow"), light = setOf("slow"), card = BoardCard("Redis is not a database", "Assume anything can disappear. Always keep the slow path.")),
                 ),
             ),
-            // 27: "Good to know before I learn it the hard way. Are there different sizes..."
+            // 29: "Good to know before I learn it the hard way. Are there different sizes..."
             Scene(
-                27, "Tiers",
+                29, "Tiers",
                 DiagramSpec(
                     "Basic for testing, Standard for production, Premium for disk and private networks, Enterprise for modules.",
                     nodes = listOf(
@@ -2658,13 +2711,13 @@ internal object Az204Boards {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(28, show = setOf("basic", "std", "prem"), light = setOf("std"), card = BoardCard("SLA", "The uptime promise. Basic has none, so it's for testing only.")),
-                    Beat(30, show = setOf("ent", "flash"), light = setOf("prem", "ent"), card = BoardCard("A shop on a private network", "Needs Premium. A hobby app can test on Basic.")),
+                    Beat(30, show = setOf("basic", "std", "prem"), light = setOf("std"), card = BoardCard("SLA", "The uptime promise. Basic has none, so it's for testing only.")),
+                    Beat(32, show = setOf("ent", "flash"), light = setOf("prem", "ent"), card = BoardCard("A shop on a private network", "Needs Premium. A hobby app can test on Basic.")),
                 ),
             ),
-            // 31: "Anything else people get wrong?"
+            // 33: "Anything else people get wrong?"
             Scene(
-                31, "Mistakes to avoid",
+                33, "Mistakes to avoid",
                 DiagramSpec(
                     "Three ways to get Redis wrong, as the topic lists them.",
                     nodes = listOf(
@@ -2675,12 +2728,12 @@ internal object Az204Boards {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(32, show = setOf("shared", "basic", "keys"), card = BoardCard("Instead of access keys", "Managed identity where supported, or the string in Key Vault.")),
+                    Beat(34, show = setOf("shared", "basic", "keys"), card = BoardCard("Instead of access keys", "Managed identity where supported, or the string in Key Vault.")),
                 ),
             ),
-            // 33: "So what should I remember for the exam?"
+            // 35: "So what should I remember for the exam?"
             Scene(
-                33, "For the exam",
+                35, "For the exam",
                 DiagramSpec(
                     "The exam's Redis questions, each as the phrase to listen for and the answer it points to.",
                     nodes = listOf(
@@ -2693,9 +2746,9 @@ internal object Az204Boards {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(34, show = setOf("conn", "board", "aside"), card = BoardCard("Listen for the phrase", "Each exam phrase points straight to one answer.")),
-                    Beat(36, show = setOf("prem", "ent"), light = setOf("prem", "ent"), card = BoardCard("And Basic?", "Never for production: no replica, no SLA.")),
-                    Beat(38, card = BoardCard("Today", "SET greeting hello EX 60, GET it, wait, GET again; then ZADD and ZREVRANGE.", code = true)),
+                    Beat(36, show = setOf("conn", "board", "aside"), card = BoardCard("Listen for the phrase", "Each exam phrase points straight to one answer.")),
+                    Beat(38, show = setOf("prem", "ent"), light = setOf("prem", "ent"), card = BoardCard("And Basic?", "Never for production: no replica, no SLA.")),
+                    Beat(40, card = BoardCard("Today", "SET greeting hello EX 60, GET it, wait, GET again; then ZADD and ZREVRANGE.", code = true)),
                 ),
             ),
         ),
@@ -2795,12 +2848,12 @@ internal object Az204Boards {
                 beats = listOf(
                     Beat(11, show = setOf("origin", "edge")),
                     Beat(12, show = setOf("cc"), light = setOf("cc"), pulse = "origin" to "edge", card = BoardCard("TTL: time to live", "How long an edge keeps its copy. Set by the Cache-Control header.")),
-                    Beat(14, show = setOf("honor", "over", "bypass"), light = setOf("honor"), card = BoardCard("Three caching rules", "Honor origin is the default. Override for files with no label.")),
+                    Beat(16, show = setOf("honor", "over", "bypass"), light = setOf("honor"), card = BoardCard("Three caching rules", "Honor origin is the default. Override for files with no label.")),
                 ),
             ),
-            // 15: "When would I never want a copy?"
+            // 17: "When would I never want a copy?"
             Scene(
-                15, "Never cache personal pages",
+                17, "Never cache personal pages",
                 DiagramSpec(
                     "Shared files are cached at the edge; personalised pages bypass the cache so nobody sees another user's data.",
                     nodes = listOf(
@@ -2816,13 +2869,13 @@ internal object Az204Boards {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(15, show = setOf("photos", "basket")),
-                    Beat(16, show = setOf("cache", "bypass"), light = setOf("basket", "bypass"), pulse = "basket" to "bypass", card = BoardCard("A small online shop", "Cache the product photos. Bypass the cache for each shopper's basket.")),
+                    Beat(17, show = setOf("photos", "basket")),
+                    Beat(18, show = setOf("cache", "bypass"), light = setOf("basket", "bypass"), pulse = "basket" to "bypass", card = BoardCard("A small online shop", "Cache the product photos. Bypass the cache for each shopper's basket.")),
                 ),
             ),
-            // 18: "It's the worst mistake in this topic. Now, query strings. A query stri..."
+            // 20: "It's the worst mistake in this topic. Now, query strings. A query stri..."
             Scene(
-                18, "Query strings",
+                20, "Query strings",
                 DiagramSpec(
                     "Query string caching decides whether different URL parameters make separate cached copies.",
                     nodes = listOf(
@@ -2838,13 +2891,13 @@ internal object Az204Boards {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(18, show = setOf("small", "large"), card = BoardCard("Query string", "The bit after the question mark in a web address.")),
-                    Beat(20, show = setOf("use", "ignore"), light = setOf("use"), card = BoardCard("A weather app's map", "Small and large really differ: two copies. A tracking tag: ignore it.")),
+                    Beat(20, show = setOf("small", "large"), card = BoardCard("Query string", "The bit after the question mark in a web address.")),
+                    Beat(22, show = setOf("use", "ignore"), light = setOf("use"), card = BoardCard("A weather app's map", "Small and large really differ: two copies. A tracking tag: ignore it.")),
                 ),
             ),
-            // 21: "Now the big one. I've changed a file, but users still see the old one...."
+            // 23: "Now the big one. I've changed a file, but users still see the old one...."
             Scene(
-                21, "Changing a cached file",
+                23, "Changing a cached file",
                 DiagramSpec(
                     "Purge removes the cached copy before its TTL; a versioned name gives a new URL that cannot be stale.",
                     nodes = listOf(
@@ -2859,16 +2912,16 @@ internal object Az204Boards {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(21, show = setOf("old"), light = setOf("old")),
-                    Beat(22, show = setOf("purge"), light = setOf("purge"), pulse = "purge" to "old", card = BoardCard("Purge", "Removes the copy before its TTL. Takes minutes, per path, every edge.")),
-                    Beat(24, show = setOf("hash"), light = setOf("hash"), card = BoardCard("A versioned name", "app.3f2a.js", code = true)),
-                    Beat(25, show = setOf("ttl1")),
-                    Beat(26, light = setOf("hash"), card = BoardCard("The topic's example", "Hashed diagram names, a five minute TTL on help pages, API bypassed.")),
+                    Beat(23, show = setOf("old"), light = setOf("old")),
+                    Beat(24, show = setOf("purge"), light = setOf("purge"), pulse = "purge" to "old", card = BoardCard("Purge", "Removes the copy before its TTL. Takes minutes, per path, every edge.")),
+                    Beat(26, show = setOf("hash"), light = setOf("hash"), card = BoardCard("A versioned name", "app.3f2a.js", code = true)),
+                    Beat(27, show = setOf("ttl1")),
+                    Beat(28, light = setOf("hash"), card = BoardCard("The topic's example", "Hashed diagram names, a five minute TTL on help pages, API bypassed.")),
                 ),
             ),
-            // 27: "What else do people get wrong?"
+            // 29: "What else do people get wrong?"
             Scene(
-                27, "Mistakes to avoid",
+                29, "Mistakes to avoid",
                 DiagramSpec(
                     "Four ways to get edge caching wrong, as the topic lists them.",
                     nodes = listOf(
@@ -2880,12 +2933,12 @@ internal object Az204Boards {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(28, show = setOf("personal", "slow", "blob", "qs"), card = BoardCard("Origin address", "Point it at the static website address, not the plain blob one.")),
+                    Beat(30, show = setOf("personal", "slow", "blob", "qs"), card = BoardCard("Origin address", "Point it at the static website address, not the plain blob one.")),
                 ),
             ),
-            // 29: "So what should I remember for the exam?"
+            // 31: "So what should I remember for the exam?"
             Scene(
-                29, "For the exam",
+                31, "For the exam",
                 DiagramSpec(
                     "The exam's caching questions, each as the phrase to listen for and the answer it points to.",
                     nodes = listOf(
@@ -2898,9 +2951,9 @@ internal object Az204Boards {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(30, show = setOf("stale", "diff"), card = BoardCard("Listen for the phrase", "Each exam phrase points straight to one answer.")),
-                    Beat(32, show = setOf("ttl", "fd", "prem"), light = setOf("ttl", "fd")),
-                    Beat(34, card = BoardCard("Today", "Static website, Front Door profile, a miss then a hit, then purge.")),
+                    Beat(32, show = setOf("stale", "diff"), card = BoardCard("Listen for the phrase", "Each exam phrase points straight to one answer.")),
+                    Beat(34, show = setOf("ttl", "fd", "prem"), light = setOf("ttl", "fd")),
+                    Beat(36, card = BoardCard("Today", "Static website, Front Door profile, a miss then a hit, then purge.")),
                 ),
             ),
         ),
@@ -3077,12 +3130,12 @@ internal object Az204Boards {
                 ),
                 beats = listOf(
                     Beat(28, show = setOf("code", "cc"), light = setOf("code", "cc"), card = BoardCard("The two big ones", "A user in a browser: auth code with PKCE. No user: client credentials.")),
-                    Beat(30, show = setOf("obo", "dev", "imp"), light = setOf("obo", "dev"), card = BoardCard("Implicit is deprecated", "Pick authorization code with PKCE instead.")),
+                    Beat(32, show = setOf("obo", "dev", "imp"), light = setOf("obo", "dev"), card = BoardCard("Implicit is deprecated", "Pick authorization code with PKCE instead.")),
                 ),
             ),
-            // 31: "Can you put it all together in one app?"
+            // 33: "Can you put it all together in one app?"
             Scene(
-                31, "One app, all together",
+                33, "One app, all together",
                 DiagramSpec(
                     "TwoTracks: a public mobile client, an API exposing a scope, Graph for the profile, and a nightly job with client credentials.",
                     nodes = listOf(
@@ -3099,12 +3152,12 @@ internal object Az204Boards {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(32, show = setOf("mobile", "api", "graph", "night"), light = setOf("mobile"), pulse = "mobile" to "api", card = BoardCard("Usaid signs in once", "An ID token for his name; access tokens for the API and for Graph.")),
+                    Beat(34, show = setOf("mobile", "api", "graph", "night"), light = setOf("mobile"), pulse = "mobile" to "api", card = BoardCard("Usaid signs in once", "An ID token for his name; access tokens for the API and for Graph.")),
                 ),
             ),
-            // 33: "So what should I remember for the exam?"
+            // 35: "So what should I remember for the exam?"
             Scene(
-                33, "For the exam",
+                35, "For the exam",
                 DiagramSpec(
                     "The exam's identity questions, each as the phrase to listen for and the answer it points to.",
                     nodes = listOf(
@@ -3117,9 +3170,9 @@ internal object Az204Boards {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(34, show = setOf("nouser", "own", "spa"), card = BoardCard("Listen for the phrase", "Each exam phrase points straight to one answer.")),
-                    Beat(36, show = setOf("tenant", "obo"), light = setOf("tenant", "obo"), card = BoardCard("And always", "The API checks the audience of every access token.")),
-                    Beat(38, card = BoardCard("Today", "Register an app, note its ids, add User Read, compare platform settings.")),
+                    Beat(36, show = setOf("nouser", "own", "spa"), card = BoardCard("Listen for the phrase", "Each exam phrase points straight to one answer.")),
+                    Beat(38, show = setOf("tenant", "obo"), light = setOf("tenant", "obo"), card = BoardCard("And always", "The API checks the audience of every access token.")),
+                    Beat(40, card = BoardCard("Today", "Register an app, note its ids, add User Read, compare platform settings.")),
                 ),
             ),
         ),
@@ -3434,13 +3487,13 @@ internal object Az204Boards {
                 beats = listOf(
                     Beat(13, show = setOf("req")),
                     Beat(14, show = setOf("select", "filter", "orderby", "top"), light = setOf("select", "filter"), card = BoardCard("OData query parameters", "Add-ons to a request: select, filter, orderby, top.")),
-                    Beat(16, light = setOf("select"), card = BoardCard("A phone mail app", "Needs only subject and sender, so select those. Smaller, faster answer.")),
-                    Beat(18, show = setOf("more"), light = setOf("more")),
+                    Beat(18, light = setOf("select"), card = BoardCard("A phone mail app", "Needs only subject and sender, so select those. Smaller, faster answer.")),
+                    Beat(20, show = setOf("more"), light = setOf("more")),
                 ),
             ),
-            // 19: "Any catch with those?"
+            // 21: "Any catch with those?"
             Scene(
-                19, "One extra header",
+                21, "One extra header",
                 DiagramSpec(
                     "Count, search and some filters on users and groups only work with the ConsistencyLevel eventual header.",
                     nodes = listOf(
@@ -3455,13 +3508,13 @@ internal object Az204Boards {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(19, show = setOf("query", "graph")),
-                    Beat(20, show = setOf("header"), light = setOf("header"), pulse = "query" to "graph", card = BoardCard("Count or search?", "Add the header ConsistencyLevel: eventual, or the query fails.")),
+                    Beat(21, show = setOf("query", "graph")),
+                    Beat(22, show = setOf("header"), light = setOf("header"), pulse = "query" to "graph", card = BoardCard("Count or search?", "Add the header ConsistencyLevel: eventual, or the query fails.")),
                 ),
             ),
-            // 21: "One tiny note. Okay. What if there are thousands of results?"
+            // 23: "One tiny note. Okay. What if there are thousands of results?"
             Scene(
-                21, "Page after page",
+                23, "Page after page",
                 DiagramSpec(
                     "Big results come in pages; follow each page's next link until a page has none.",
                     nodes = listOf(
@@ -3477,13 +3530,13 @@ internal object Az204Boards {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(22, show = setOf("p1", "p2", "p3"), pulse = "p1" to "p2", card = BoardCard("Next link", "The full web address of the following page. Keep following it.")),
-                    Beat(24, show = setOf("dir"), light = setOf("dir", "p3"), pulse = "p2" to "p3", card = BoardCard("A company directory app", "Ignore the next link and it quietly lists only the first page.")),
+                    Beat(24, show = setOf("p1", "p2", "p3"), pulse = "p1" to "p2", card = BoardCard("Next link", "The full web address of the following page. Keep following it.")),
+                    Beat(26, show = setOf("dir"), light = setOf("dir", "p3"), pulse = "p2" to "p3", card = BoardCard("A company directory app", "Ignore the next link and it quietly lists only the first page.")),
                 ),
             ),
-            // 25: "Right. Now, back to the puzzle. Thirty calls."
+            // 27: "Right. Now, back to the puzzle. Thirty calls."
             Scene(
-                25, "Batching",
+                27, "Batching",
                 DiagramSpec(
                     "A batch is one envelope of up to twenty requests, so thirty requests need two batches.",
                     nodes = listOf(
@@ -3501,15 +3554,15 @@ internal object Az204Boards {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(25, show = setOf("thirty", "graph")),
-                    Beat(26, show = setOf("b1"), light = setOf("b1"), pulse = "b1" to "graph", card = BoardCard("A batch", "One envelope, up to twenty requests, each with its own id and answer.")),
-                    Beat(27, show = setOf("b2"), light = setOf("b1", "b2"), pulse = "b2" to "graph"),
-                    Beat(28, card = BoardCard("A profile page", "Details, photo and manager: three requests, one batch, one round trip.")),
+                    Beat(27, show = setOf("thirty", "graph")),
+                    Beat(28, show = setOf("b1"), light = setOf("b1"), pulse = "b1" to "graph", card = BoardCard("A batch", "One envelope, up to twenty requests, each with its own id and answer.")),
+                    Beat(29, show = setOf("b2"), light = setOf("b1", "b2"), pulse = "b2" to "graph"),
+                    Beat(30, card = BoardCard("A profile page", "Details, photo and manager: three requests, one batch, one round trip.")),
                 ),
             ),
-            // 29: "What if Graph thinks I'm asking too much?"
+            // 31: "What if Graph thinks I'm asking too much?"
             Scene(
-                29, "Slow down",
+                31, "Slow down",
                 DiagramSpec(
                     "A 429 answer means Graph is throttling you; wait as long as its Retry-After header says.",
                     nodes = listOf(
@@ -3523,13 +3576,13 @@ internal object Az204Boards {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(29, show = setOf("app", "graph")),
-                    Beat(30, show = setOf("retry"), light = setOf("retry"), pulse = "graph" to "app", card = BoardCard("Throttled", "Honour Retry-After. The Graph SDKs retry for you.")),
+                    Beat(31, show = setOf("app", "graph")),
+                    Beat(32, show = setOf("retry"), light = setOf("retry"), pulse = "graph" to "app", card = BoardCard("Throttled", "Honour Retry-After. The Graph SDKs retry for you.")),
                 ),
             ),
-            // 31: "Anything else people get wrong?"
+            // 33: "Anything else people get wrong?"
             Scene(
-                31, "Mistakes to avoid",
+                33, "Mistakes to avoid",
                 DiagramSpec(
                     "Four ways to get Microsoft Graph wrong, as the topic lists them.",
                     nodes = listOf(
@@ -3541,12 +3594,12 @@ internal object Az204Boards {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(32, show = setOf("tok", "beta", "next", "hdr"), light = setOf("beta"), card = BoardCard("Real apps", "Use version 1.0. Beta is a preview and can change under you.")),
+                    Beat(34, show = setOf("tok", "beta", "next", "hdr"), light = setOf("beta"), card = BoardCard("Real apps", "Use version 1.0. Beta is a preview and can change under you.")),
                 ),
             ),
-            // 33: "So what should I remember for the exam?"
+            // 35: "So what should I remember for the exam?"
             Scene(
-                33, "For the exam",
+                35, "For the exam",
                 DiagramSpec(
                     "The exam's Graph questions, each as the phrase to listen for and the answer it points to.",
                     nodes = listOf(
@@ -3559,9 +3612,9 @@ internal object Az204Boards {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(34, show = setOf("part", "many", "count", "429"), card = BoardCard("Listen for the phrase", "Thirty calls means two batches. Each phrase points to one answer.")),
-                    Beat(36, show = setOf("aud"), light = setOf("aud"), card = BoardCard("The token", "Its audience must be Graph. Production uses version 1.0, not beta.")),
-                    Beat(38, card = BoardCard("Today", "Graph Explorer: get me, top three messages, users with a count and header.")),
+                    Beat(36, show = setOf("part", "many", "count", "429"), card = BoardCard("Listen for the phrase", "Thirty calls means two batches. Each phrase points to one answer.")),
+                    Beat(38, show = setOf("aud"), light = setOf("aud"), card = BoardCard("The token", "Its audience must be Graph. Production uses version 1.0, not beta.")),
+                    Beat(40, card = BoardCard("Today", "Graph Explorer: get me, top three messages, users with a count and header.")),
                 ),
             ),
         ),
@@ -3895,9 +3948,9 @@ internal object Az204Boards {
                     Beat(12, show = setOf("devapp", "liveapp", "snap"), light = setOf("liveapp"), pulse = "prod" to "liveapp", card = BoardCard("Label filter and snapshot", "Each app loads its own label. A snapshot freezes keys for a release.")),
                 ),
             ),
-            // 15: "Okay. Back to the puzzle. Why only one key?"
+            // 17: "Okay. Back to the puzzle. Why only one key?"
             Scene(
-                15, "One key on watch",
+                17, "One key on watch",
                 DiagramSpec(
                     "The app watches one sentinel key; when it changes, the middleware reloads every other key.",
                     nodes = listOf(
@@ -3914,15 +3967,15 @@ internal object Az204Boards {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(15, show = setOf("sent")),
-                    Beat(16, show = setOf("others", "app"), light = setOf("sent"), pulse = "others" to "app", card = BoardCard("Sentinel key", "Bump one key and the app reloads all the rest. One request, not hundreds.")),
-                    Beat(18, show = setOf("mw"), light = setOf("mw"), pulse = "mw" to "sent", card = BoardCard("No middleware, no refresh", "The check runs on the next request after the refresh interval.")),
-                    Beat(20, light = setOf("app"), card = BoardCard("Don't register every key", "Register the sentinel and refresh all. App code reads values as usual.")),
+                    Beat(17, show = setOf("sent")),
+                    Beat(18, show = setOf("others", "app"), light = setOf("sent"), pulse = "others" to "app", card = BoardCard("Sentinel key", "Bump one key and the app reloads all the rest. One request, not hundreds.")),
+                    Beat(20, show = setOf("mw"), light = setOf("mw"), pulse = "mw" to "sent", card = BoardCard("No middleware, no refresh", "The check runs on the next request after the refresh interval.")),
+                    Beat(22, light = setOf("app"), card = BoardCard("Don't register every key", "Register the sentinel and refresh all. App code reads values as usual.")),
                 ),
             ),
-            // 21: "Nice. Now, feature flags. What's a flag?"
+            // 23: "Nice. Now, feature flags. What's a flag?"
             Scene(
-                21, "Feature flags",
+                23, "Feature flags",
                 DiagramSpec(
                     "A feature flag is an on-off switch in the store that turns part of the app on with no new release.",
                     nodes = listOf(
@@ -3936,13 +3989,13 @@ internal object Az204Boards {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(21, show = setOf("flag")),
-                    Beat(22, show = setOf("app", "off"), light = setOf("flag", "app"), pulse = "flag" to "app", card = BoardCard("A to-do app's dark mode", "Ship it with the flag off, switch it on when ready, off if it breaks.")),
+                    Beat(23, show = setOf("flag")),
+                    Beat(24, show = setOf("app", "off"), light = setOf("flag", "app"), pulse = "flag" to "app", card = BoardCard("A to-do app's dark mode", "Ship it with the flag off, switch it on when ready, off if it breaks.")),
                 ),
             ),
-            // 23: "Can a flag be on for some people and off for others?"
+            // 25: "Can a flag be on for some people and off for others?"
             Scene(
-                23, "Feature filters",
+                25, "Feature filters",
                 DiagramSpec(
                     "A feature filter decides a flag's answer while the app runs: by percentage, time window or targeting.",
                     nodes = listOf(
@@ -3960,14 +4013,14 @@ internal object Az204Boards {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(23, show = setOf("flag")),
-                    Beat(24, show = setOf("pct", "time", "tgt", "custom"), card = BoardCard("Feature filter", "A rule that decides the flag's answer at runtime.")),
-                    Beat(26, light = setOf("pct", "time", "tgt"), pulse = "flag" to "pct", card = BoardCard("A recipe app's new search", "Ten percent first, a weekend banner, or the beta testers first.")),
+                    Beat(25, show = setOf("flag")),
+                    Beat(26, show = setOf("pct", "time", "tgt", "custom"), card = BoardCard("Feature filter", "A rule that decides the flag's answer at runtime.")),
+                    Beat(28, light = setOf("pct", "time", "tgt"), pulse = "flag" to "pct", card = BoardCard("A recipe app's new search", "Ten percent first, a weekend banner, or the beta testers first.")),
                 ),
             ),
-            // 27: "And how does my code check a flag?"
+            // 29: "And how does my code check a flag?"
             Scene(
-                27, "Code and access",
+                29, "Code and access",
                 DiagramSpec(
                     "Code asks the feature manager about a flag; the app reads the store with its managed identity.",
                     nodes = listOf(
@@ -3983,14 +4036,14 @@ internal object Az204Boards {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(27, show = setOf("app", "store")),
-                    Beat(28, show = setOf("fm"), light = setOf("fm"), pulse = "app" to "fm", card = BoardCard("C#", "await featureManager.IsEnabledAsync(\"DarkMode\")", code = true)),
-                    Beat(30, show = setOf("id"), light = setOf("id"), pulse = "id" to "store", card = BoardCard("No connection string", "Managed identity with App Configuration Data Reader. Free tier for trying.")),
+                    Beat(29, show = setOf("app", "store")),
+                    Beat(30, show = setOf("fm"), light = setOf("fm"), pulse = "app" to "fm", card = BoardCard("C#", "await featureManager.IsEnabledAsync(\"DarkMode\")", code = true)),
+                    Beat(32, show = setOf("id"), light = setOf("id"), pulse = "id" to "store", card = BoardCard("No connection string", "Managed identity with App Configuration Data Reader. Free tier for trying.")),
                 ),
             ),
-            // 31: "Identity again. So what should I remember for the exam?"
+            // 33: "Identity again. So what should I remember for the exam?"
             Scene(
-                31, "For the exam",
+                33, "For the exam",
                 DiagramSpec(
                     "The exam's App Configuration questions, each as the phrase to listen for and the answer it points to.",
                     nodes = listOf(
@@ -4003,9 +4056,9 @@ internal object Az204Boards {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(32, show = setOf("restart", "env", "secret"), card = BoardCard("Listen for the phrase", "No restart: sentinel. Per environment: label. Secret: a reference.")),
-                    Beat(34, show = setOf("share", "more"), light = setOf("share"), card = BoardCard("A fifth of users?", "A percentage filter. Not a label, and not a sentinel key.")),
-                    Beat(36, card = BoardCard("Today", "Free store, two labelled values, a flag, a console app, a sentinel refresh.")),
+                    Beat(34, show = setOf("restart", "env", "secret"), card = BoardCard("Listen for the phrase", "No restart: sentinel. Per environment: label. Secret: a reference.")),
+                    Beat(36, show = setOf("share", "more"), light = setOf("share"), card = BoardCard("A fifth of users?", "A percentage filter. Not a label, and not a sentinel key.")),
+                    Beat(38, card = BoardCard("Today", "Free store, two labelled values, a flag, a console app, a sentinel refresh.")),
                 ),
             ),
         ),
@@ -4120,12 +4173,12 @@ internal object Az204Boards {
                 ),
                 beats = listOf(
                     Beat(20, show = setOf("hot", "cool", "cold"), light = setOf("hot"), card = BoardCard("Access tier", "Pay to keep or pay to read, never cheaply for both.")),
-                    Beat(22, show = setOf("arch"), light = setOf("arch"), card = BoardCard("Archive is offline", "Not slow: you cannot read it at all. That's the puzzle's answer.")),
+                    Beat(24, show = setOf("arch"), light = setOf("arch"), card = BoardCard("Archive is offline", "Not slow: you cannot read it at all. That's the puzzle's answer.")),
                 ),
             ),
-            // 23: "Then how do I get it back?"
+            // 25: "Then how do I get it back?"
             Scene(
-                23, "Rehydrate first",
+                25, "Rehydrate first",
                 DiagramSpec(
                     "An Archive blob must be rehydrated to Hot or Cool, which can take hours, before anything reads it.",
                     nodes = listOf(
@@ -4139,13 +4192,13 @@ internal object Az204Boards {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(23, show = setOf("arch")),
-                    Beat(24, show = setOf("hot", "time"), light = setOf("time"), pulse = "arch" to "hot", card = BoardCard("Rehydrate", "Move it back to Hot or Cool first, like adding water to dried food.")),
+                    Beat(25, show = setOf("arch")),
+                    Beat(26, show = setOf("hot", "time"), light = setOf("time"), pulse = "arch" to "hot", card = BoardCard("Rehydrate", "Move it back to Hot or Cool first, like adding water to dried food.")),
                 ),
             ),
-            // 25: "Fifteen hours. So when should I use which tier?"
+            // 27: "Fifteen hours. So when should I use which tier?"
             Scene(
-                25, "Files moving by age",
+                27, "Files moving by age",
                 DiagramSpec(
                     "A lifecycle rule moves a nightly report from Hot to Cool to Archive, then deletes it, with nobody involved.",
                     nodes = listOf(
@@ -4163,13 +4216,13 @@ internal object Az204Boards {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(26, show = setOf("hot", "cool", "arch"), light = setOf("hot", "cool", "arch"), card = BoardCard("A small study app", "Nightly reports: Hot this month, Cool for a year, then Archive.")),
-                    Beat(28, show = setOf("gone", "rule"), light = setOf("rule"), pulse = "arch" to "gone", card = BoardCard("Lifecycle rule", "A policy that moves or deletes blobs by age. Nobody does it by hand.")),
+                    Beat(28, show = setOf("hot", "cool", "arch"), light = setOf("hot", "cool", "arch"), card = BoardCard("A small study app", "Nightly reports: Hot this month, Cool for a year, then Archive.")),
+                    Beat(30, show = setOf("gone", "rule"), light = setOf("rule"), pulse = "arch" to "gone", card = BoardCard("Lifecycle rule", "A policy that moves or deletes blobs by age. Nobody does it by hand.")),
                 ),
             ),
-            // 29: "Nice. What do people get wrong?"
+            // 31: "Nice. What do people get wrong?"
             Scene(
-                29, "Mistakes to avoid",
+                31, "Mistakes to avoid",
                 DiagramSpec(
                     "Four ways to get Blob Storage wrong, as the topic lists them.",
                     nodes = listOf(
@@ -4181,12 +4234,12 @@ internal object Az204Boards {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(30, show = setOf("read", "fee", "grs", "v1"), light = setOf("v1"), card = BoardCard("Where did the tiers go?", "Tiers need a StorageV2 account. Cool has an early deletion fee.")),
+                    Beat(32, show = setOf("read", "fee", "grs", "v1"), light = setOf("v1"), card = BoardCard("Where did the tiers go?", "Tiers need a StorageV2 account. Cool has an early deletion fee.")),
                 ),
             ),
-            // 31: "So what should I remember for the exam?"
+            // 33: "So what should I remember for the exam?"
             Scene(
-                31, "For the exam",
+                33, "For the exam",
                 DiagramSpec(
                     "The exam's Blob Storage questions, each as the phrase to listen for and the answer it points to.",
                     nodes = listOf(
@@ -4199,9 +4252,9 @@ internal object Az204Boards {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(32, show = setOf("arch", "region", "ra", "zone"), card = BoardCard("Listen for the phrase", "Each exam phrase points straight to one answer.")),
-                    Beat(34, show = setOf("files"), light = setOf("files"), card = BoardCard("The files themselves", "Add-only logs: append blob. By age: lifecycle rule. Tiers: StorageV2.")),
-                    Beat(36, card = BoardCard("Today", "StorageV2 with LRS, a private container, Cool tier, a lifecycle rule.")),
+                    Beat(34, show = setOf("arch", "region", "ra", "zone"), card = BoardCard("Listen for the phrase", "Each exam phrase points straight to one answer.")),
+                    Beat(36, show = setOf("files"), light = setOf("files"), card = BoardCard("The files themselves", "Add-only logs: append blob. By age: lifecycle rule. Tiers: StorageV2.")),
+                    Beat(38, card = BoardCard("Today", "StorageV2 with LRS, a private container, Cool tier, a lifecycle rule.")),
                 ),
             ),
         ),
@@ -4325,13 +4378,13 @@ internal object Az204Boards {
                 beats = listOf(
                     Beat(14, show = setOf("sas"), light = setOf("sas"), card = BoardCard("SAS: shared access signature", "A link with limits: one door, only read, stops at checkout time.")),
                     Beat(16, show = setOf("ud", "svc", "acct"), light = setOf("ud")),
-                    Beat(18, light = setOf("ud"), card = BoardCard("Prefer user delegation", "Cancel it by revoking the user delegation key. The master key stays put.")),
-                    Beat(20, show = setOf("pol"), light = setOf("pol", "svc"), pulse = "pol" to "svc", card = BoardCard("Stored access policy", "Cancels a service SAS without changing the account key.")),
+                    Beat(20, light = setOf("ud"), card = BoardCard("Prefer user delegation", "Cancel it by revoking the user delegation key. The master key stays put.")),
+                    Beat(22, show = setOf("pol"), light = setOf("pol", "svc"), pulse = "pol" to "svc", card = BoardCard("Stored access policy", "Cancels a service SAS without changing the account key.")),
                 ),
             ),
-            // 21: "So walk me through a real one."
+            // 23: "So walk me through a real one."
             Scene(
-                21, "A thirty-minute link",
+                23, "A thirty-minute link",
                 DiagramSpec(
                     "The API checks the user, returns a short read-only SAS link, and the phone downloads straight from storage.",
                     nodes = listOf(
@@ -4348,15 +4401,15 @@ internal object Az204Boards {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(21, show = setOf("phone", "api", "store")),
-                    Beat(22, light = setOf("api"), pulse = "phone" to "api", card = BoardCard("Say you're building a photo app", "API checks the user, returns a read-only SAS for 30 minutes.")),
-                    Beat(24, light = setOf("store"), pulse = "phone" to "store", card = BoardCard("After 30 minutes: 403", "Access denied. The app asks the API for a fresh link.")),
-                    Beat(26, show = setOf("key"), light = setOf("key"), pulse = "api" to "store", card = BoardCard("Uploads from a phone", "Through the API, or a short SAS. Never the key in the app.")),
+                    Beat(23, show = setOf("phone", "api", "store")),
+                    Beat(24, light = setOf("api"), pulse = "phone" to "api", card = BoardCard("Say you're building a photo app", "API checks the user, returns a read-only SAS for 30 minutes.")),
+                    Beat(26, light = setOf("store"), pulse = "phone" to "store", card = BoardCard("After 30 minutes: 403", "Access denied. The app asks the API for a fresh link.")),
+                    Beat(28, show = setOf("key"), light = setOf("key"), pulse = "api" to "store", card = BoardCard("Uploads from a phone", "Through the API, or a short SAS. Never the key in the app.")),
                 ),
             ),
-            // 27: "Okay. Last piece. Leases."
+            // 29: "Okay. Last piece. Leases."
             Scene(
-                27, "One writer at a time",
+                29, "One writer at a time",
                 DiagramSpec(
                     "A lease locks a blob for writes, so several servers updating one file take turns.",
                     nodes = listOf(
@@ -4375,15 +4428,15 @@ internal object Az204Boards {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(27, show = setOf("file")),
-                    Beat(28, show = setOf("lease"), light = setOf("lease"), card = BoardCard("Lease", "An engaged sign on the door: one writer at a time.")),
-                    Beat(30, show = setOf("s1", "s2", "s3"), light = setOf("s1"), pulse = "s1" to "file", card = BoardCard("Picture a small game", "Three servers, one high score file. With a lease, they take turns.")),
-                    Beat(32, light = setOf("lease"), card = BoardCard("The catch", "A lease blocks your own writes too, unless you pass the lease id.")),
+                    Beat(29, show = setOf("file")),
+                    Beat(30, show = setOf("lease"), light = setOf("lease"), card = BoardCard("Lease", "An engaged sign on the door: one writer at a time.")),
+                    Beat(32, show = setOf("s1", "s2", "s3"), light = setOf("s1"), pulse = "s1" to "file", card = BoardCard("Picture a small game", "Three servers, one high score file. With a lease, they take turns.")),
+                    Beat(34, light = setOf("lease"), card = BoardCard("The catch", "A lease blocks your own writes too, unless you pass the lease id.")),
                 ),
             ),
-            // 33: "So what should I remember for the exam?"
+            // 35: "So what should I remember for the exam?"
             Scene(
-                33, "For the exam",
+                35, "For the exam",
                 DiagramSpec(
                     "The exam's blob code questions, each as the phrase to listen for and the answer it points to.",
                     nodes = listOf(
@@ -4396,9 +4449,9 @@ internal object Az204Boards {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(34, show = setOf("meta", "tags", "sas", "lease"), card = BoardCard("Listen for the phrase", "Each exam phrase points straight to one answer.")),
-                    Beat(36, show = setOf("none"), light = setOf("none"), card = BoardCard("No keys in code?", "DefaultAzureCredential and a managed identity. Never a key in an app.")),
-                    Beat(38, card = BoardCard("Today", "Upload a blob, set metadata, make a 10-minute SAS, open it twice.")),
+                    Beat(36, show = setOf("meta", "tags", "sas", "lease"), card = BoardCard("Listen for the phrase", "Each exam phrase points straight to one answer.")),
+                    Beat(38, show = setOf("none"), light = setOf("none"), card = BoardCard("No keys in code?", "DefaultAzureCredential and a managed identity. Never a key in an app.")),
+                    Beat(40, card = BoardCard("Today", "Upload a blob, set metadata, make a 10-minute SAS, open it twice.")),
                 ),
             ),
         ),
@@ -4473,12 +4526,12 @@ internal object Az204Boards {
                 beats = listOf(
                     Beat(5, show = setOf("acct")),
                     Beat(6, show = setOf("nosql", "mongo", "other"), light = setOf("nosql"), card = BoardCard("API", "The language your code speaks to the database. NoSQL is the default.")),
-                    Beat(8, show = setOf("fixed"), light = setOf("mongo", "fixed"), pulse = "acct" to "mongo", card = BoardCard("Moving a MongoDB shop app?", "Minimal code changes: the MongoDB API. A brand-new to-do app: NoSQL.")),
+                    Beat(10, show = setOf("fixed"), light = setOf("mongo", "fixed"), pulse = "acct" to "mongo", card = BoardCard("Moving a MongoDB shop app?", "Minimal code changes: the MongoDB API. A brand-new to-do app: NoSQL.")),
                 ),
             ),
-            // 10: "There's another one coming. But first, consistency. Cosmos keeps copie..."
+            // 12: "There's another one coming. But first, consistency. Cosmos keeps copie..."
             Scene(
-                10, "How fresh is a read",
+                12, "How fresh is a read",
                 DiagramSpec(
                     "Five consistency levels, from Strong (freshest, costliest) to Eventual (cheapest, fastest).",
                     nodes = listOf(
@@ -4492,16 +4545,16 @@ internal object Az204Boards {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(10, light = setOf("towns"), card = BoardCard("Consistency level", "The promise about how fresh a read is, across the copies (replicas).")),
-                    Beat(12, show = setOf("strong", "bounded", "session"), light = setOf("strong")),
-                    Beat(14, show = setOf("prefix", "eventual"), light = setOf("prefix", "eventual")),
-                    Beat(16, light = setOf("session"), card = BoardCard("Session is the default", "A notes app: you see your own edit at once, others soon after.")),
-                    Beat(17, light = setOf("prefix"), card = BoardCard("Late, never out of order", "A game leaderboard: consistent prefix. Order without Strong's cost.")),
+                    Beat(12, light = setOf("towns"), card = BoardCard("Consistency level", "The promise about how fresh a read is, across the copies (replicas).")),
+                    Beat(14, show = setOf("strong", "bounded", "session"), light = setOf("strong")),
+                    Beat(16, show = setOf("prefix", "eventual"), light = setOf("prefix", "eventual")),
+                    Beat(18, light = setOf("session"), card = BoardCard("Session is the default", "A notes app: you see your own edit at once, others soon after.")),
+                    Beat(19, light = setOf("prefix"), card = BoardCard("Late, never out of order", "A game leaderboard: consistent prefix. Order without Strong's cost.")),
                 ),
             ),
-            // 19: "What is that, in plain words?"
+            // 21: "What is that, in plain words?"
             Scene(
-                19, "Shelves by one label",
+                21, "Shelves by one label",
                 DiagramSpec(
                     "Items with the same partition key value share a logical partition; a query that names it reads one shelf.",
                     nodes = listOf(
@@ -4517,13 +4570,13 @@ internal object Az204Boards {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(20, show = setOf("p1", "p2", "p3", "cap"), light = setOf("p1"), card = BoardCard("Partition key", "The shelf label. Same value, same shelf: a logical partition.")),
-                    Beat(22, show = setOf("q"), light = setOf("q", "p1"), pulse = "q" to "p1", card = BoardCard("The puzzle answer", "The partition key is fixed when the container is created.")),
+                    Beat(22, show = setOf("p1", "p2", "p3", "cap"), light = setOf("p1"), card = BoardCard("Partition key", "The shelf label. Same value, same shelf: a logical partition.")),
+                    Beat(24, show = setOf("q"), light = setOf("q", "p1"), pulse = "q" to "p1", card = BoardCard("The puzzle answer", "The partition key is fixed when the container is created.")),
                 ),
             ),
-            // 23: "So how do I choose well?"
+            // 25: "So how do I choose well?"
             Scene(
-                23, "Choosing a key",
+                25, "Choosing a key",
                 DiagramSpec(
                     "A good key has many values, spreads writes evenly, and is in the query you run most.",
                     nodes = listOf(
@@ -4539,14 +4592,14 @@ internal object Az204Boards {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(24, show = setOf("owner"), light = setOf("owner"), card = BoardCard("Many, even, in the query", "A study app asked per user: the owner id is a great key.")),
-                    Beat(26, show = setOf("date", "country", "hot"), light = setOf("hot"), pulse = "country" to "hot", card = BoardCard("Hot partition", "Few values, so one huge shelf takes all the writes.")),
-                    Beat(28, show = setOf("chat"), light = setOf("chat"), card = BoardCard("Picture a chat app", "Asked per conversation? Key on conversation id, not message id.")),
+                    Beat(26, show = setOf("owner"), light = setOf("owner"), card = BoardCard("Many, even, in the query", "A study app asked per user: the owner id is a great key.")),
+                    Beat(28, show = setOf("date", "country", "hot"), light = setOf("hot"), pulse = "country" to "hot", card = BoardCard("Hot partition", "Few values, so one huge shelf takes all the writes.")),
+                    Beat(30, show = setOf("chat"), light = setOf("chat"), card = BoardCard("Picture a chat app", "Asked per conversation? Key on conversation id, not message id.")),
                 ),
             ),
-            // 29: "Now, money. How do I pay for all this?"
+            // 31: "Now, money. How do I pay for all this?"
             Scene(
-                29, "Paying in tokens",
+                31, "Paying in tokens",
                 DiagramSpec(
                     "Every action costs request units: about 1 RU for a 1 KB point read, more for queries and writes.",
                     nodes = listOf(
@@ -4563,13 +4616,13 @@ internal object Az204Boards {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(29, show = setOf("ru")),
-                    Beat(30, show = setOf("read", "query", "write"), light = setOf("ru", "read"), pulse = "ru" to "read", card = BoardCard("Request units", "Tokens at an arcade. A 1 KB read by id costs about one.")),
+                    Beat(31, show = setOf("ru")),
+                    Beat(32, show = setOf("read", "query", "write"), light = setOf("ru", "read"), pulse = "ru" to "read", card = BoardCard("Request units", "Tokens at an arcade. A 1 KB read by id costs about one.")),
                 ),
             ),
-            // 31: "And how do I buy the tokens?"
+            // 33: "And how do I buy the tokens?"
             Scene(
-                31, "Buying the tokens",
+                33, "Buying the tokens",
                 DiagramSpec(
                     "Provisioned for steady load, autoscale for a ceiling, serverless to pay per use; a 429 means you ran out.",
                     nodes = listOf(
@@ -4585,13 +4638,13 @@ internal object Az204Boards {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(32, show = setOf("prov", "auto", "serv"), light = setOf("serv"), card = BoardCard("A small hobby app?", "Spiky traffic: serverless. Steady, busy traffic: provisioned.")),
-                    Beat(34, show = setOf("app", "err"), light = setOf("err"), pulse = "err" to "app", card = BoardCard("429", "Out of RU. Retry after a short wait, or raise the limit.")),
+                    Beat(34, show = setOf("prov", "auto", "serv"), light = setOf("serv"), card = BoardCard("A small hobby app?", "Spiky traffic: serverless. Steady, busy traffic: provisioned.")),
+                    Beat(36, show = setOf("app", "err"), light = setOf("err"), pulse = "err" to "app", card = BoardCard("429", "Out of RU. Retry after a short wait, or raise the limit.")),
                 ),
             ),
-            // 35: "So what should I remember for the exam?"
+            // 37: "So what should I remember for the exam?"
             Scene(
-                35, "For the exam",
+                37, "For the exam",
                 DiagramSpec(
                     "The exam's Cosmos DB model questions, each as the phrase to listen for and the answer it points to.",
                     nodes = listOf(
@@ -4605,9 +4658,9 @@ internal object Az204Boards {
                     aspect = 0.8f,
                 ),
                 beats = listOf(
-                    Beat(36, show = setOf("mongo", "session", "prefix", "serv", "err"), card = BoardCard("Listen for the phrase", "Each exam phrase points straight to one answer.")),
-                    Beat(38, show = setOf("key"), light = setOf("key"), card = BoardCard("The one to remember", "Many values, spread evenly, in your common query. Never changes.")),
-                    Beat(40, card = BoardCard("Today", "Free-tier account, container keyed on owner, two items, one query.")),
+                    Beat(38, show = setOf("mongo", "session", "prefix", "serv", "err"), card = BoardCard("Listen for the phrase", "Each exam phrase points straight to one answer.")),
+                    Beat(40, show = setOf("key"), light = setOf("key"), card = BoardCard("The one to remember", "Many values, spread evenly, in your common query. Never changes.")),
+                    Beat(42, card = BoardCard("Today", "Free-tier account, container keyed on owner, two items, one query.")),
                 ),
             ),
         ),

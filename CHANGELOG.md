@@ -3,6 +3,10 @@
 All notable changes to Two Tracks. Versions follow `version.properties`; the
 build number is appended by CI (for example `0.1.0 (build 12)`).
 
+## [0.91.1] - 2026-10-22
+### Changed
+- AZ-204 classic episodes and German: 30 episodes re-recorded with the corrected scripts (push and pull, conversation, acronyms said letter by letter).
+
 ## [Unreleased]
 
 ## [0.91.0] - 2026-10-22

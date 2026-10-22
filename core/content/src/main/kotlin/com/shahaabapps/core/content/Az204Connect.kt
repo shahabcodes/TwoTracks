@@ -297,7 +297,7 @@ internal object Az204Connect {
             B.p("""
                 Before Event Grid trusts a webhook it sends a SubscriptionValidationEvent with a validationCode. Your
                 endpoint must echo it back in a validationResponse (synchronous handshake), or you visit the
-                validationUrl within 5 minutes (manual handshake). Functions with an Event Grid trigger handle this for you.
+                validationUrl within 10 minutes (manual handshake). Functions with an Event Grid trigger handle this for you.
             """),
             B.code("csharp", """
                 [HttpPost("events")]
