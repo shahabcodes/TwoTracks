@@ -1,6 +1,6 @@
 {
  "topicId": "de10-grammar",
- "seconds": 341.81,
+ "seconds": 342.13,
  "lines": [
   {
    "line": 0,
@@ -156,67 +156,67 @@
    "line": 25,
    "host": "maya",
    "start": 233.07,
-   "end": 247.63
+   "end": 247.95
   },
   {
    "line": 26,
    "host": "jonas",
-   "start": 247.95,
-   "end": 258.21
+   "start": 248.27,
+   "end": 258.53
   },
   {
    "line": 27,
    "host": "leo",
-   "start": 258.53,
-   "end": 260.01
+   "start": 258.85,
+   "end": 260.33
   },
   {
    "line": 28,
    "host": "maya",
-   "start": 260.33,
-   "end": 278.25
+   "start": 260.65,
+   "end": 278.57
   },
   {
    "line": 29,
    "host": "jonas",
-   "start": 278.57,
-   "end": 293.65
+   "start": 278.89,
+   "end": 293.97
   },
   {
    "line": 30,
    "host": "leo",
-   "start": 293.97,
-   "end": 296.57
+   "start": 294.29,
+   "end": 296.89
   },
   {
    "line": 31,
    "host": "maya",
-   "start": 296.89,
-   "end": 320.09
+   "start": 297.21,
+   "end": 320.41
   },
   {
    "line": 32,
    "host": "leo",
-   "start": 320.41,
-   "end": 321.85
+   "start": 320.73,
+   "end": 322.17
   },
   {
    "line": 33,
    "host": "maya",
-   "start": 322.17,
-   "end": 337.73
+   "start": 322.49,
+   "end": 338.05
   },
   {
    "line": 34,
    "host": "jonas",
-   "start": 338.05,
-   "end": 339.73
+   "start": 338.37,
+   "end": 340.05
   },
   {
    "line": 35,
    "host": "leo",
-   "start": 340.05,
-   "end": 341.81
+   "start": 340.37,
+   "end": 342.13
   }
  ]
 }

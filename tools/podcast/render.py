@@ -59,7 +59,7 @@ OPUS_LEVEL = 0.95
 # (late_night_voices.py): Kokoro's English text front end needs spaCy, which
 # Smart App Control refused to load on the PC they were made on. Keep their
 # clips in cache/voices as they are.
-KOKORO_VOICE = {"maya": "af_heart", "leo": "am_michael", "nova": "af_nicole", "ivy": "af_bella", "rafe": "am_onyx"}
+KOKORO_VOICE = {"maya": "af_heart", "leo": "am_michael", "nova": "af_nicole", "ivy": "af_bella", "rafe": "am_fenrir"}
 
 # A neutral passage for the sample clips: ten seconds or so of ordinary
 # speech, with no cue sounds, so the clip carries a voice and not a mood.
@@ -78,6 +78,7 @@ SAY = [
     (r"\bAZ-204\b", "A Z two oh four"),
     (r"\bASP\.NET\b", "A S P dot net"),
     (r"\.NET\b", "dot net"),
+    (r"\bRA-GZRS\b", "R A, G Z R S"),
     (r"\bRA-GRS\b", "R A, G R S"),
     (r"\bGZRS\b", "G Z R S"),
     (r"\bGRS\b", "G R S"),
@@ -179,18 +180,101 @@ EXTRA_SAY = [
     (r"\btext-embedding-3-small\b", "text embedding three small"),
     (r"\btext-embedding-3-large\b", "text embedding three large"),
     (r"\bEnableNoSQLVectorSearch\b", "Enable no sequel vector search"),
+    # Added with AZ-305.
+    (r"\bAZ-305\b", "A Z three oh five"),
+    (r"\bAZ-104\b", "A Z one oh four"),
+    (r"\bRPO\b", "R P O"),
+    (r"\bRTO\b", "R T O"),
+    (r"\bPITR\b", "P I T R"),
+    (r"\bLTR\b", "L T R"),
+    (r"\bDR\b", "D R"),
+    (r"\bHA\b", "H A"),
+    (r"\bIaaS\b", "eye-as"),
+    (r"\bPaaS\b", "pass"),
+    (r"\bSaaS\b", "sass"),
+    (r"\bVNets?\b", "V net"),
+    (r"\bVPNs?\b", "V P N"),
+    (r"\bDNS\b", "D N S"),
+    (r"\bNAT\b", "nat"),
+    (r"\bNSGs?\b", "N S G"),
+    (r"\bASGs?\b", "A S G"),
+    (r"\bUDRs?\b", "U D R"),
+    (r"\bWAF\b", "waff"),
+    (r"\bDDoS\b", "D dos"),
+    (r"\bRDP\b", "R D P"),
+    (r"\bSSH\b", "S S H"),
+    (r"\bTCP\b", "T C P"),
+    (r"\bUDP\b", "U D P"),
+    (r"\bGDPR\b", "G D P R"),
+    (r"\bMFA\b", "M F A"),
+    (r"\bPIM\b", "P I M"),
+    (r"\bB2B\b", "B to B"),
+    (r"\bB2C\b", "B to C"),
+    (r"\bAD FS\b", "A D F S"),
+    (r"\bTDE\b", "T D E"),
+    (r"\bDTUs?\b", "D T U"),
+    (r"\bvCores?\b", "V core"),
+    (r"\bETL\b", "E T L"),
+    (r"\bSSIS\b", "S S I S"),
+    (r"\bSIEM\b", "seem"),
+    (r"\bFIPS\b", "fips"),
+    (r"\bCAF\b", "C A F"),
+    (r"\bIoT\b", "I o T"),
+    (r"\bFIFO\b", "fie-foe"),
+    (r"\bWORM\b", "worm"),
+    (r"\bSMB\b", "S M B"),
+    (r"\bNFS\b", "N F S"),
+    (r"\bTB\b", "terabytes"),
+    (r"\bMbps\b", "megabits a second"),
+    # Found by listening: acronyms with no entry, read as a word or not at all.
+    (r"\bSLAs\b", "S L As"),
+    (r"\bTTLs\b", "T T Ls"),
+    (r"\bPDFs\b", "P D Fs"),
+    (r"\bIPs\b", "I Ps"),
+    (r"\bHSMs\b", "H S Ms"),
+    (r"\bAD\b", "A D"),
+    (r"\bFS\b", "F S"),
+    (r"\bOS\b", "O S"),
+    (r"\bUS\b", "U S"),
+    (r"\bEU\b", "E U"),
+    (r"\bPC\b", "P C"),
+    (r"\bBI\b", "B I"),
+    (r"\bAPK\b", "A P K"),
+    (r"\bSSD\b", "S S D"),
+    (r"\bANN\b", "A N N"),
+    (r"\bDLQ\b", "D L Q"),
+    (r"\bDMS\b", "D M S"),
+    (r"\bP1\b", "P one"),
+    (r"\bP2\b", "P two"),
+    (r"\bOTEL\b", "O tel"),
+    (r"\bISO\b", "eye-so"),
+    (r"\bJPG\b", "jay-peg"),
+    (r"\bXXXX\b", "X X X X"),
+    (r"\bOK\b", "okay"),
+    (r"\bWITHSCORES\b", "with scores"),
+    (r"\bAZURE CLIENT ID\b", "Azure client I D"),
+    (r"\bRA\b", "R A"),
+    (r"\bdot NET\b", "dot net"),
+    (r"\bA1\b", "A one"),
 ]
 
+# Two or more capital letters standing alone, as the respellings above leave
+# an acronym ("A P I", "R Us"); not "B to B", whose "to" is a word.
+LETTERS = re.compile(r"\b[A-Z](?: [A-Z])+(?=s?\b)")
 # Identifiers such as AcquireTokenSilent or CreateItemAsync read as one long
 # word; split at the capitals they are read as words. Run after SAY, so its
 # own respellings (Default Azure Credential and the rest) come first.
 CAMEL = re.compile(r"\b[A-Z][a-z]+(?:[A-Z][a-z]+)+\b")
-AFTER_SPLIT = [(r"\bMsal\b", "em-sal"), (r"\bUi\b", "U I"), (r"\bUtc\b", "U T C")]
+AFTER_SPLIT = [(r"\bMsal\b", "em-sal"), (r"\bUi\b", "U-I"), (r"\bUtc\b", "U-T-C")]
 
 
 def say(text: str) -> str:
     for pattern, spoken in SAY + EXTRA_SAY:
-        text = re.sub(pattern, spoken, text)
+        # Letters to be spelled join with hyphens: spaced, the voice runs some
+        # together, so "A P I" came out as "a pie" and "appy"; "A-P-I" is said
+        # letter by letter in every voice. Joined inside each respelling, so
+        # two acronyms side by side ("ID P1") stay two.
+        text = re.sub(pattern, LETTERS.sub(lambda m: m.group(0).replace(" ", "-"), spoken), text)
     text = CAMEL.sub(lambda m: re.sub(r"(?<!^)(?=[A-Z])", " ", m.group(0)), text)
     for pattern, spoken in AFTER_SPLIT:
         text = re.sub(pattern, spoken, text)

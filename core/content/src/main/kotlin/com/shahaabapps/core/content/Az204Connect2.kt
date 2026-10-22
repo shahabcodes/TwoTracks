@@ -223,7 +223,7 @@ internal object Az204Connect2 {
                 listOf("Queue", "FIFO-ish store; one receiver takes each message", "Competing consumers"),
                 listOf("Topic + subscription", "Publish once, each subscription gets a copy", "Rules filter: SQL filter, correlation filter, boolean"),
                 listOf("Receive mode", "PeekLock (default) or ReceiveAndDelete", "PeekLock lets you complete, abandon, defer or dead-letter"),
-                listOf("Lock duration", "How long a peeked message is invisible", "30 s default, up to 5 minutes; renew if needed"),
+                listOf("Lock duration", "How long a peeked message is invisible", "1 minute default, up to 5 minutes; renew if needed"),
                 listOf("Max delivery count", "Attempts before dead-lettering", "Default 10"),
                 listOf("Dead-letter queue", "Sub-queue of every queue and subscription", "Read it at <entity>/\$DeadLetterQueue"),
                 listOf("Sessions", "Group messages by SessionId for strict order and state", "Session-enabled queue; one receiver per session"),
