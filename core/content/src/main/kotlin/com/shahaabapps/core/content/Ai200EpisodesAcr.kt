@@ -5,13 +5,21 @@ internal object Ai200EpisodesAcr {
     private val classic = Podcast(
         "ai-acr",
         listOf(
-            maya("Hi, and welcome back. Today is about where your app waits before it runs. Let's start with the box itself. A container image is a packed-up copy of your app and everything it needs to run: the code, the right Python, the libraries. Like a lunchbox packed the night before, ready to open anywhere."),
-            leo("A lunchbox for code. I like it already. So where do I keep the lunchboxes?"),
-            maya("In a container registry. That's a private warehouse for images. You upload an image there once, and every server that needs it downloads it from there. Uploading an image is called a push, and downloading it is called a pull."),
-            leo("Push up, pull down. And Azure has its own warehouse?"),
-            maya("Azure Container Registry, or ACR for short. It's a private registry that Azure looks after for you, so you never run the warehouse yourself. Think of a private version of Docker Hub, the big public warehouse that most people know."),
-            leo("And who builds the lunchboxes in the first place?"),
-            maya("Usually a tool called Docker, the popular program for building and running images. But hold that thought. Say you're building the Two Tracks Coach, a study assistant for an Android app, with a Python backend on Azure. The backend is packed as an image called coach-api, and it lives in a registry called ttcoach."),
+            maya("Hi, and welcome back. Today is Azure Container Registry, where your app waits before it runs. But first, what it stores. Leo, you write backend code. How does that code get onto a server today?"),
+            leo("Someone sets up a virtual machine with Linux on it, installs the right Python and the libraries, and copies my code across. Then something breaks, and I say: but it works on my machine."),
+            maya("Because the server isn't your laptop. Another Python version, a missing library. A container image ends that: your code, the Python it needs and the libraries, packed in one box. Like a lunchbox packed the night before, ready to open anywhere."),
+            leo("Hang on. To open anywhere, is the operating system in the lunchbox too?"),
+            maya("Part of it. The box starts from a base image: a slim copy of an operating system's files, like a cut-down Debian Linux, with its shell and its system libraries. What's left out is the kernel."),
+            leo("The kernel. Plain words?"),
+            maya("The core of the operating system, the part that drives the hardware: memory, disk, network. Every container on a server shares that server's one kernel. A virtual machine brings its own whole system, kernel and all."),
+            leo("So that's why an image is megabytes, not gigabytes, and starts in seconds. And a Linux image needs a Linux server."),
+            maya("Right. You write the box as a recipe, a Dockerfile. FROM names the base image, then you copy in your code, install the libraries, and set the start command. Docker, the usual tool for building and running images, turns the recipe into an image."),
+            leo("And when the server runs it?"),
+            maya("A running container is one copy of the image, running as a walled-off process. One image, many copies. Say you're building the Two Tracks Coach, a study assistant in an Android app. The Python backend the phone calls is an image called coach-api."),
+            leo("Built on my laptop. So how does the server get it?"),
+            maya("From a container registry, a private warehouse for images. Like the npm or Maven repository your libraries come from, only private, and holding whole ready-to-run images. Your laptop or build pipeline uploads into it: that's a push. The server downloads from it to run: that's a pull."),
+            leo("Push in from my side, pull out on the server's side. And Azure has its own warehouse?"),
+            maya("Azure Container Registry, ACR for short. Azure runs it for you, a private cousin of Docker Hub, the big public warehouse. The Coach's registry is called ttcoach."),
             leo("And inside the warehouse, is it just one big pile of lunchboxes?"),
             maya("[chuckle] No, there are shelves. A repository is one shelf: all the versions of one image. So coach-api is a repository, and every new build of the backend goes on that shelf."),
             leo("How do I tell the versions on the shelf apart?"),
@@ -19,7 +27,7 @@ internal object Ai200EpisodesAcr {
             leo("So the label can wander off. What's the second way?"),
             maya("The digest. It's a long code worked out from every byte of the image, like a fingerprint. Change a single byte, and you get a different fingerprint. So a digest never moves. It always means exactly one image."),
             leo("And the famous tag called latest? Everybody uses latest."),
-            maya("Latest is just a tag that means whatever was pushed last. Fine on your laptop, risky in production, which is the live app your real users touch. Picture a small app that runs coach-api latest. On Tuesday someone pushes a test build as latest, and the next restart quietly runs that instead."),
+            maya("Just a tag meaning whatever was pushed last. Fine on your laptop, risky in production, the live app your real users touch. On Tuesday someone pushes a test build as latest, and the next restart quietly pulls and runs that instead."),
             leo("[sigh] Real users on a test build. Lovely. So what should I put live?"),
             maya("A unique tag for every build, like a version number or the build's own id. Or the digest itself. Then a later push can't change what's running."),
             leo("Got it. Now, does every registry cost the same?"),
@@ -28,30 +36,34 @@ internal object Ai200EpisodesAcr {
             maya("Copies of your registry in other parts of the world. Azure calls each part a region, like West Europe or East US. You keep one registry name, Azure keeps a copy in each region, and every download goes to the nearest copy."),
             leo("So if the Coach runs in Europe and in America, both pull from nearby."),
             maya("Right, and that needs Premium. Basic and Standard sit in one region only. Premium can also keep the registry on a private network, away from the public internet."),
-            leo("Okay. How does an image get into the registry? Do I need Docker on my laptop?"),
+            leo("Okay. How does an image get into the registry? Do I need Docker on my laptop to push it?"),
             maya("You don't. A feature called ACR Tasks builds images for you, inside Azure, on Azure's own machines. So your laptop needs no Docker at all."),
             leo("Nice. And how do I start a build there?"),
             maya("The simplest way is a quick task: one command, az acr build. Az is Azure's command line, a text window where you type instructions. It sends your folder up, builds the image there, and pushes it into the registry."),
             leo("Build in the cloud, no Docker needed. What else can a task do?"),
             maya("It can run by itself. That's a triggered task. It starts when something happens: a new commit, meaning a saved change to your code, or a timer, or an update to the base image."),
-            leo("Base image? Another kind of lunchbox?"),
-            maya("The one yours is built on top of. Your image starts from a ready-made one, like the official slim Python image. That's the base, like the pizza base under your toppings. When the base gets a security fix, the task rebuilds your image on the fixed base, with nobody remembering to do it."),
+            leo("Base image. The operating system layer from before?"),
+            maya("The one your Dockerfile starts FROM, like the official slim Python image. When that base gets a security fix, the task rebuilds your image on top of it, with nobody remembering to do it."),
             leo("Nice. Any other kind?"),
             maya("A multi-step task. A short file lists the steps: build the image, run the tests inside it, and push only if they pass. For example, the Coach team never pushes a build that fails its tests."),
             leo("Okay, it's built and pushed. Now the Coach's server must pull it. Does it need a password?"),
             maya("It shouldn't. It uses a managed identity. That's a badge Azure gives your app, so the app can prove who it is without any password stored anywhere."),
             leo("And which doors does the badge open?"),
-            maya("Whichever doors you give it a role for. A role is a named set of permissions. For pulling images, the role is AcrPull: it lets you download images and nothing more. Its sibling, AcrPush, is for whatever builds and uploads them."),
-            leo("Pull for the app, push for the builder. And me, a person at my keyboard?"),
+            maya("Whichever doors you give it a role for. A role is a named set of permissions. The server only downloads, so its role is AcrPull: pull images, and nothing more."),
+            leo("And the pipeline that builds and uploads?"),
+            maya("That gets AcrPush. Push for the builder, pull for the runner."),
+            leo("And me, a person at my keyboard?"),
             maya("You type az acr login. It uses your normal Azure sign-in, and hands Docker a short-lived pass. No password to remember there either."),
             leo("I spotted something called the admin user. What's that?"),
             maya("One shared username and password for the whole registry, with both push and pull rights. Like a master key under the doormat. It's off by default, so keep it off, except for a quick test."),
             leo("[laugh] No keys under the doormat. What are the usual mistakes?"),
-            maya("Four. Running latest, so a later push quietly changes production. Turning on the admin user because it's quicker. Giving an app AcrPush, or even Owner, the strongest role, when it only pulls. And expecting geo-replication on Basic or Standard. Where the image runs next has its own episodes: App Service, and Container Apps."),
+            maya("Four. Running latest, so a later push quietly changes production. And turning on the admin user because it's quicker."),
+            leo("Guilty. The other two?"),
+            maya("Giving the app AcrPush, or even Owner, the strongest role, when it only pulls. And expecting geo-replication on Basic or Standard. Where the image runs next has its own episodes: App Service, and Container Apps."),
             leo("So what do I remember for the exam?"),
             maya("If the question says one registry name, pulled locally in two regions, the answer is Premium with geo-replication. If images must rebuild when the base image is patched, a task with a base image trigger. If there's no Docker on the machine, az acr build. If an app pulls with no password, a managed identity with AcrPull. And if a push must never change what runs, a unique tag."),
             leo("And anything to try today?"),
-            maya("It takes about fifteen minutes. Create a Basic registry and check the admin user is off. Build a small Python image with az acr build and a unique tag. List its tags and its digest. Then push the same tag again, and watch the digest change while the tag stays."),
+            maya("Create a Basic registry and check the admin user is off. Build a small Python image with az acr build and a unique tag. List its tags and its digest. Then push the same tag again, and watch the digest change while the tag stays."),
             leo("A lunchbox with a fingerprint. See you next time."),
         ),
         series = PodcastSeries.AI200,
@@ -60,21 +72,31 @@ internal object Ai200EpisodesAcr {
     private val caseFiles = Podcast(
         "ai-acr",
         listOf(
-            maya("Welcome to Case Files. Today's case: The Bus That Said Hello World. A small Android app called Bus Buddy shows when the next bus is due. Its backend, a small Python service on Azure, runs from a container image. On Tuesday morning, every rider opened the app and saw one line: hello from the test build."),
-            leo("[chuckle] Detective Leo, reporting. Nobody wants a greeting, they want a bus. First, in plain words, what's a container image?"),
-            maya("A packed-up copy of the app and everything it needs to run, like a lunchbox packed the night before. Under the picture, an image is a stack of layers, each one a bundle of files, plus a short list that names the layers in order. Bus Buddy's image is called bus-api."),
+            maya("Welcome to Case Files. Today's case: The Bus That Said Hello World. Bus Buddy is a small Android app that shows when the next bus is due. Its backend, a small Python service on Azure, runs from a container image. On Tuesday, every rider opened the app and saw one line: hello from the test build."),
+            leo("[chuckle] Detective Leo, reporting. Riders want a bus, not a greeting. But first, the evidence. I know my code, my servers, my operating system. So what exactly is a container image?"),
+            maya("Start with how Bus Buddy used to ship. Someone set up a virtual machine, installed Linux, Python and the libraries, then copied the code on. Every server came out a little different."),
+            leo("Hence the oldest alibi in the business: it works on my machine."),
+            maya("An image ends that alibi. It packs the code, the right Python and the libraries into one box, like a lunchbox packed the night before. And underneath, a base image: a slim copy of Linux's files, its shell and system libraries."),
+            leo("So the whole operating system is in the evidence bag?"),
+            maya("No, and that's the detail juniors miss. There's no kernel inside, the core of the system that drives the hardware. Every container on a server shares that server's kernel. A virtual machine brings its own."),
+            leo("Which is why an image is megabytes, not gigabytes, and starts in seconds. And a Linux image needs a Linux host."),
+            maya("Good. The recipe is a Dockerfile: FROM the base image, copy the code, install, set the start command. Under the picture, the image is a stack of layers, each a bundle of files, plus a short list naming them in order. A running container is one copy of it. Bus Buddy's image is bus-api."),
             leo("And where does the lunchbox wait before it runs?"),
-            maya("In a container registry, a private warehouse for images. Bus Buddy uses Azure Container Registry, ACR for short, which Azure runs for you. Uploading an image is a push. Downloading it is a pull."),
+            maya("In a container registry, a private warehouse for images. Bus Buddy uses Azure Container Registry, ACR for short, which Azure runs for you. Uploading an image into it, from a laptop or a build, is a push. A server downloading it to run is a pull."),
             leo("And inside the warehouse? One big pile of lunchboxes?"),
             maya("Shelves. Each image has its own shelf, called a repository, holding all its versions. Bus Buddy's shelf is bus-api."),
             leo("Then my first suspect is obvious. Someone put a new version live on Monday night."),
             maya("Good thought, but the log of releases is empty. Nobody released anything. Here's the first clue. The app's settings say it runs bus-api colon latest."),
             leo("Latest. As in, the newest one. That sounds safe."),
-            maya("It sounds safe, and that's the trap. Latest is just a tag, a movable label stuck on one version. Whoever pushes next with the same tag moves the label. On Monday night, a developer pushed a test build as latest. On Tuesday the server restarted, pulled latest again, and got the test build."),
+            maya("It sounds safe, and that's the trap. Latest is just a tag, a movable label stuck on one version. Whoever pushes next with that tag moves the label."),
+            leo("So who pushed?"),
+            maya("A developer, on Monday night, a test build tagged latest. On Tuesday the server restarted, pulled latest again, and got the test build."),
             leo("[sigh] So the label wandered off to the wrong lunchbox."),
             maya("Exactly. The fix is a unique tag for every build, like the build's own id, and putting that exact tag live. Or better still, the digest."),
             leo("Digest. Plain words?"),
-            maya("A long code worked out from the image's content, like a fingerprint. Under the picture, it's worked out from that short list of layers, and the list names each layer by its own fingerprint, so change one byte anywhere and the fingerprint changes. A tag can move. A digest never can."),
+            maya("A long code worked out from the image's content, like a fingerprint. Under the picture, it comes from that short list of layers, and the list names each layer by its own fingerprint."),
+            leo("So change one byte anywhere, and..."),
+            maya("The fingerprint changes. A tag can move. A digest never can."),
             leo("Right. Suspect two, then. The registry was hacked."),
             maya("Closer than you think. Second clue: the server pulls with the admin user. That's one shared username and password for the whole registry, with push and pull rights, sitting in a settings file. A master key under the doormat. Anyone who finds it can push."),
             leo("So the fix is a stronger password."),
@@ -98,9 +120,13 @@ internal object Ai200EpisodesAcr {
             leo("And the security report on my desk? It says the image has an old hole in it."),
             maya("Last clue. Bus Buddy's image is built on a ready-made base image, the official slim Python one. The base was patched weeks ago, but nobody rebuilt. A triggered task fixes that: a task with a base image trigger rebuilds bus-api every time the base is updated."),
             leo("And where does this stop working?"),
-            maya("Here. A unique tag can still be pushed over by mistake. To make one version truly fixed, lock it, which makes it read-only so no push can replace it, or put the digest live. And a phone never pulls images at all. The app calls the backend, and the backend's host pulls. App Service has its own episode for that side."),
+            maya("Here. A unique tag can still be pushed over by mistake. To make one version truly fixed, lock it, which makes it read-only, or put the digest live."),
+            leo("And the phone? Could Bus Buddy pull a safer image itself?"),
+            maya("Never. A phone doesn't pull images. The app calls the backend, and the backend's host pulls. App Service has its own episode for that side."),
             leo("So, the case summary for the exam?"),
-            maya("If a later push quietly changed production, deploy a unique tag or the digest, not latest. If an app must pull with no password, a managed identity with AcrPull, and the admin user off. If one registry name must serve two regions, Premium with geo-replication. And if images must rebuild when the base is patched, a task with a base image trigger."),
+            maya("If a later push quietly changed production, deploy a unique tag or the digest, not latest. If an app must pull with no password, a managed identity with AcrPull, and the admin user off."),
+            leo("And the far-away riders, and the old hole?"),
+            maya("One registry name serving two regions: Premium with geo-replication. Images that must rebuild when the base is patched: a task with a base image trigger."),
             leo("Case closed. Anything to try today?"),
             maya("Create a Basic registry and check the admin user is off. Build a small Python image with az acr build and a unique tag. List its tags and its digest. Then push the same tag again, and see the digest change while the tag stays."),
             leo("The tag stays, the fingerprint tells the truth. See you next time."),
@@ -113,10 +139,16 @@ internal object Ai200EpisodesAcr {
         "ai-acr",
         listOf(
             maya("Okay, did you hear what happened on the Coach team this week? Sit down. They moved the Two Tracks Coach backend into its own container registry. The Coach is the study assistant in the Android app, with a Python backend on Azure. And it was quite a week."),
-            leo("[laugh] I heard someone called the registry a haunted warehouse. Start at the start. What's a container image?"),
-            maya("A packed-up copy of the app and everything it needs to run, like a lunchbox packed the night before. Under the picture, it's a stack of layers, each a bundle of files, plus a short list naming those layers. The Coach's backend image is called coach-api."),
+            leo("[laugh] I heard someone called the registry a haunted warehouse. Start at the start. What's a container image, really? I know my code, and the server it runs on."),
+            maya("Then you know the old way. Someone sets up a server, installs Linux, then Python, then the libraries, then copies your code on. And it's never quite your laptop."),
+            leo("It works on my machine. The office motto."),
+            maya("An image packs it all into one box: the code, the right Python, the libraries. Like a lunchbox packed the night before. On Monday Marcus called it a tiny virtual machine, and Priya nearly dropped her coffee."),
+            leo("Why? Isn't the operating system in there?"),
+            maya("Only a slim copy of its files, the base image, say a cut-down Debian: a shell, the system libraries. No kernel, the core that drives the hardware. Every container on a server shares that server's kernel. A virtual machine brings its own."),
+            leo("So that's why images are megabytes and start in seconds. And a Linux image wants a Linux host."),
+            maya("Priya's words exactly. The recipe is a Dockerfile: FROM the base, copy the code, install, set the start command. Under the picture, the image is a stack of layers, bundles of files, plus a short list naming them. A running container is one copy of it. The Coach's is coach-api."),
             leo("And the registry is where the lunchboxes wait."),
-            maya("A private warehouse for images. Theirs is Azure Container Registry, ACR, named ttcoach. Uploading is a push, downloading is a pull."),
+            maya("A private warehouse for images. Theirs is Azure Container Registry, ACR, named ttcoach. The build uploads into it: that's a push. The servers download from it to run: that's a pull."),
             leo("And inside, is it one big heap?"),
             maya("Shelves. Each image gets a shelf, called a repository, with all its versions on it. The Coach's shelf is coach-api."),
             leo("Okay. Who went first?"),
@@ -124,11 +156,15 @@ internal object Ai200EpisodesAcr {
             leo("I can feel this going wrong."),
             maya("Monday afternoon, the intern pushed a test build as latest. The server restarted that evening, pulled latest, and real learners got a Coach that answered everything with, testing, testing."),
             leo("[chuckle] Testing, testing. What should Tom have done?"),
-            maya("Put a unique tag live, like the build's own id. Or the digest: a code worked out from the image's content, like a fingerprint. Under the picture, it's worked out from that short list of layers, which names each layer by its own fingerprint. A tag can move to another image. A digest never can."),
+            maya("Put a unique tag live, like the build's own id. Or the digest: a code worked out from the image's content, like a fingerprint."),
+            leo("Worked out how?"),
+            maya("From that short list of layers, which names each layer by its own fingerprint. Change one byte, new fingerprint. A tag can move to another image. A digest never can."),
             leo("Tuesday?"),
             maya("Tuesday was Dana. The new server couldn't pull, and Dana was in a hurry. So she switched on the admin user. That's one shared username and password for the whole registry, with push and pull rights. A master key under the doormat."),
             leo("And it worked."),
-            maya("It worked, and that's the problem. The password sat in a settings file, and anyone who found it could push. The right way is a managed identity: a badge Azure gives the server. Azure hands the server short-lived passes on a private address nobody outside can reach, so there's no password to leak. Dana switched the admin user off by lunch."),
+            maya("It worked, and that's the problem. The password sat in a settings file, and anyone who found it could push."),
+            leo("So what should Dana have done?"),
+            maya("A managed identity: a badge Azure gives the server. Azure hands it short-lived passes on a private address nobody outside can reach, so there's no password to leak. Dana switched the admin user off by lunch."),
             leo("And people? Do the developers share that password too?"),
             maya("Not any more. They type az acr login. It uses their own Azure sign-in, and hands Docker, the usual tool for building and running images, a short-lived pass. Dana says she feels lighter."),
             leo("Wednesday. Go."),
@@ -138,7 +174,9 @@ internal object Ai200EpisodesAcr {
             leo("Thursday. I sense money."),
             maya("The intern again. The Coach launched in America too, and the American servers were slow to start, pulling images across the ocean. The intern asked for geo-replication on their Standard registry, the middle price level."),
             leo("Geo-replication meaning what?"),
-            maya("Copies of one registry in several regions, the parts of the world Azure runs in. One name, a copy in each region, and every pull goes to the nearest copy. Azure copies each push across for you. But it needs the Premium tier, the top price level. Basic and Standard live in one region only."),
+            maya("Copies of one registry in several regions, the parts of the world Azure runs in. One name, a copy in each region, and every pull goes to the nearest copy."),
+            leo("And who keeps the copies in step?"),
+            maya("Azure copies each push across for you. But it needs the Premium tier, the top price level. Basic and Standard live in one region only."),
             leo("Remind me what the three tiers are actually for."),
             maya("Basic is for learning and small projects. Standard suits most real apps in one region. Premium is for many regions, private networking away from the public internet, and the most speed. The intern had picked Standard to save a little money, which, to be fair, is usually sensible."),
             leo("So the intern was told to upgrade."),
@@ -152,9 +190,13 @@ internal object Ai200EpisodesAcr {
             leo("And the testing, testing build from Monday? Could a task have stopped that?"),
             maya("A multi-step task could. A short file of steps: build the image, run the tests inside it, and push only if they pass. Priya added one by Friday evening. Nobody was surprised."),
             leo("Did anything else go wrong?"),
-            maya("Only where all this stops. A unique tag can still be pushed over by mistake, so to fix a version for good, lock it, meaning make it read-only, or run the digest. And the Android app itself never pulls images; the backend's host does. The Container Apps episode covers that host."),
+            maya("Only where all this stops. A unique tag can still be pushed over by mistake, so to fix a version for good, lock it, meaning make it read-only, or run the digest."),
+            leo("And the Android app? Does it pull the new image?"),
+            maya("Never. The app calls the backend, and the backend's host pulls. The Container Apps episode covers that host."),
             leo("So, the gossip I should remember for the exam?"),
-            maya("If a later push changed production, the answer is a unique tag or the digest, not latest. If the app needs a password to pull, no: a managed identity with AcrPull, admin user off. If it's one registry name in two regions, Premium with geo-replication. And if images must rebuild when the base is patched, a base image trigger."),
+            maya("If a later push changed production, the answer is a unique tag or the digest, not latest. If the app needs a password to pull, no: a managed identity with AcrPull, admin user off."),
+            leo("And Thursday and Friday?"),
+            maya("One registry name in two regions: Premium with geo-replication. Images that must rebuild when the base is patched: a base image trigger."),
             leo("And something to try today, so I'm not next week's story?"),
             maya("Create a Basic registry and check the admin user is off. Build a small Python image with az acr build and a unique tag. List its tags and its digest. Then push the same tag again, and see the digest change while the tag stays."),
             leo("No testing, testing in production. Got it, Tom. See you next time."),
@@ -168,11 +210,21 @@ internal object Ai200EpisodesAcr {
         listOf(
             nova("Hey, you. It's late, the kettle's warm, and it's just the three of us. Me, Ivy, and you, still up, still learning. [pause] Tonight, let's talk about where your app waits before it runs."),
             ivy("Waiting in the dark. Sounds like me at a bus stop. Go on, Nova."),
-            nova("Picture your app packed up for a trip. That's a container image: a copy of your app and everything it needs to run, the code, the right Python, the libraries. Like a lunchbox packed the night before, ready to open anywhere."),
-            ivy("A lunchbox. Tell me what it really is, under the picture."),
-            nova("A stack of layers, each one a bundle of files, plus a short list that names the layers in order. [pause] And the lunchboxes need somewhere to wait. That's a container registry, a private warehouse for images."),
+            nova("Picture your day as a developer. You know your code, the server it lands on, and the operating system on that server. [pause] And you know the night it breaks, because the server isn't your laptop."),
+            ivy("It works on my machine. I've whispered that at two in the morning. So what's a container image?"),
+            nova("A box with your code, the right Python and the libraries, all packed together. Like a lunchbox packed the night before, ready to open anywhere."),
+            ivy("And the operating system? Is that in the lunchbox too?"),
+            nova("[pause] Only a little of it. A base image, a slim copy of an operating system's files, like a cut-down Debian: its shell, its system libraries. But not the kernel, the core that talks to the hardware."),
+            ivy("Then where's the kernel?"),
+            nova("On the server. Every container there shares the server's one kernel, while a virtual machine carries its own. So an image is megabytes, not gigabytes, and wakes in seconds. And a Linux image needs a Linux host."),
+            ivy("Mm. And who writes the lunchbox's recipe?"),
+            nova("You do, in a Dockerfile. FROM the base image, copy your code, install, set the start command. Under the picture, the image is a stack of layers, bundles of files, plus a short list naming them. A running container is one copy of it."),
+            ivy("And while they wait to be opened, where do the lunchboxes sleep?"),
+            nova("In a container registry. A private warehouse where images wait, between being built and being run."),
             ivy("And Azure has one of those."),
-            nova("Azure Container Registry, ACR, which Azure runs for you. Say you're building the Two Tracks Coach, the study assistant in the Android app, with a Python backend on Azure. The backend image is coach-api, and it lives in a registry called ttcoach. Uploading an image is a push. Downloading it is a pull."),
+            nova("Azure Container Registry, ACR, which Azure runs for you. Say you're building the Two Tracks Coach, the study assistant in the Android app. Its Python backend, the part the phone calls, is the image coach-api, in a registry called ttcoach."),
+            ivy("And how do the lunchboxes come and go?"),
+            nova("Your laptop or your build uploads an image into the registry: that's a push. A server downloads it from the registry to run it: that's a pull."),
             ivy("Push and pull. You're already flirting. How does the warehouse keep things tidy?"),
             nova("With shelves. A repository is one shelf, all the versions of one image. Coach-api is one repository. Each version on it carries a tag, a friendly label, like v1 or v2."),
             ivy("And a label can be peeled off, I suppose."),
@@ -193,8 +245,8 @@ internal object Ai200EpisodesAcr {
             nova("A quick task. One command on Azure's command line, the text window where you type instructions: az acr build. It sends your folder up, a build machine in Azure builds it, and pushes the image into the registry."),
             ivy("And if I'd rather it happened while I sleep?"),
             nova("A triggered task. It starts by itself, on a commit, a saved change to your code, or on a timer, or when the base image is updated."),
-            ivy("The base image. What's that, in plain words?"),
-            nova("The ready-made image yours is built on, like the slim Python one. Think of the pizza base under your toppings. [pause] Patch the base, and your image rebuilds."),
+            ivy("The base image. The slim operating system layer from before?"),
+            nova("The ready-made image yours starts FROM, like the slim Python one. Think of the pizza base under your toppings. [pause] Patch the base, and your image rebuilds."),
             ivy("Mm. Fixes arriving while I sleep. Is there more?"),
             nova("A multi-step task. A short file of steps: build, run the tests inside the image, and push only if they pass."),
             ivy("Now the shy part. How does the Coach's server get in, to pull? A password?"),
@@ -208,9 +260,13 @@ internal object Ai200EpisodesAcr {
             ivy("Give me the whole Coach, then, put together."),
             nova("One Premium registry, ttcoach, with copies in two regions. Images built by a task on every commit and every base image update, each tagged with the build's own id. And pulled by servers with managed identities that hold AcrPull, and nothing more."),
             ivy("Where does all this stop working?"),
-            nova("A unique tag can still be pushed over by mistake, so lock the version, making it read-only, or run the digest. Triggered tasks may not run on free trial accounts. And the Android app never pulls images itself; its backend's host does. The App Service containers episode is your next late night for that."),
+            nova("A unique tag can still be pushed over by mistake, so lock the version, making it read-only, or run the digest. [pause] And triggered tasks may not run on free trial accounts."),
+            ivy("And my phone? Does the Android app pull the image?"),
+            nova("Never. Its backend's host does. The App Service containers episode is your next late night for that."),
             ivy("[sigh] Mm. Before I fall asleep on you. What do I remember for the exam?"),
-            nova("If one registry name must serve two regions, the answer is Premium with geo-replication. If images must rebuild when the base is patched, a task with a base image trigger. If there's no Docker, az acr build. If an app pulls with no password, a managed identity with AcrPull. And if a push must never change what runs, a unique tag or the digest."),
+            nova("If one registry name must serve two regions, Premium with geo-replication. If images must rebuild when the base is patched, a task with a base image trigger. If there's no Docker, az acr build."),
+            ivy("And the password question?"),
+            nova("If an app pulls with no password, a managed identity with AcrPull. And if a push must never change what runs, a unique tag or the digest."),
             ivy("And something to try today, before I sleep?"),
             nova("Create a Basic registry and check the admin user is off. Build a small Python image with az acr build and a unique tag. List its tags and its digest. [pause] Then push the same tag again, and see the digest change while the tag stays."),
             ivy("The label moves, the fingerprint stays. Goodnight, you. See you next time."),
@@ -224,11 +280,19 @@ internal object Ai200EpisodesAcr {
         listOf(
             nova("Tonight is date night, darling. Candles, a little wine, and you and me, Rafe, talking about where your app waits before it goes out."),
             rafe("Waiting to go out. I know that feeling. You take hours."),
-            nova("[laugh] Worth every minute. Tonight it's Azure Container Registry. First, the thing it stores. A container image is a packed-up copy of your app and everything it needs, like an overnight bag. Under the picture, it's a stack of layers, bundles of files, plus a short list naming them."),
-            rafe("An overnight bag. Now you're talking. And the registry?"),
-            nova("A private warehouse for those bags. ACR, Azure Container Registry, is the one Azure runs for you. Uploading an image is a push, downloading is a pull."),
-            rafe("Push and pull. You do know how to talk to me. Whose bags are we storing?"),
-            nova("Picture the Two Tracks Coach, the study assistant in the Android app, with its Python backend packed as an image called coach-api."),
+            nova("[laugh] Worth every minute. Tonight it's Azure Container Registry. But first, the thing it stores. You write the backend, love. How does your code get onto a server today?"),
+            rafe("Someone sets up a virtual machine, puts Linux on it, then Python, then the libraries, then copies my code over. And then it sulks, because it isn't my laptop."),
+            nova("So we pack an overnight bag instead. A container image: your code, the right Python and the libraries, all in one bag, ready to open anywhere."),
+            rafe("An overnight bag. Now you're talking. Quiz for you, then. Is the operating system in the bag?"),
+            nova("Half of it. A base image, a slim copy of an operating system's files, like a cut-down Debian, with its shell and system libraries. But no kernel, the core that drives the hardware. Every container shares the host's kernel; a virtual machine packs its own."),
+            rafe("Right answer. Travelling light: megabytes, not gigabytes, and up in seconds. [kiss]"),
+            nova("Mm. Which is why a Linux bag needs a Linux host. The packing list is a Dockerfile: FROM the base, copy the code, install, set the start command. Under the picture, the image is a stack of layers, plus a short list naming them."),
+            rafe("And when it runs?"),
+            nova("A running container is one copy of the bag, unpacked and walled off on the server. One image, as many copies as you like."),
+            rafe("As many as I like. I'll remember that. And the registry?"),
+            nova("A private warehouse for those bags. ACR, Azure Container Registry, is the one Azure runs for you. Uploading an image from your laptop or build into it is a push. A server downloading it to run is a pull."),
+            rafe("Push in, pull out. You do know how to talk to me. Whose bags are we storing?"),
+            nova("Picture the Two Tracks Coach, the study assistant in the Android app. The Python backend the phone calls is packed as an image called coach-api."),
             rafe("And how is the warehouse arranged?"),
             nova("By shelves. A repository is one shelf, every version of one image. And each version can wear a tag, a friendly label, like v1 or v2."),
             rafe("Then let me test you, darling. Exam style. Production runs coach-api latest. Someone pushes a test build as latest, and after a restart the live app runs it. Why?"),
@@ -264,9 +328,13 @@ internal object Ai200EpisodesAcr {
             rafe("So the whole Coach, put together?"),
             nova("One Premium registry, ttcoach, with copies in two regions. Images built by a task on every commit and every base image update, each tagged with its build's own id. And pulled by managed identities holding AcrPull, and nothing more. A tidy household."),
             rafe("And where does it all stop working? Every romance has its limits."),
-            nova("A unique tag can still be pushed over, so lock that version, making it read-only, or run the digest. Triggered tasks may not run on a free trial account. And the phone never pulls images; its backend's host does. The Container Apps episode has that host, and the App Service one too."),
+            nova("A unique tag can still be pushed over, so lock that version, making it read-only, or run the digest. And triggered tasks may not run on a free trial account."),
+            rafe("And the phone? Does it pull the bag?"),
+            nova("Never. Its backend's host does. The Container Apps episode has that host, and the App Service one too."),
             rafe("Last question, for the exam. What do we remember?"),
-            nova("If a later push changed production, the answer is a unique tag or the digest, not latest. If the app must pull with no password, a managed identity with AcrPull, admin user off. If it's one registry name in two regions, Premium with geo-replication. And if images must rebuild when the base is patched, a base image trigger."),
+            nova("If a later push changed production, the answer is a unique tag or the digest, not latest. If the app must pull with no password, a managed identity with AcrPull, admin user off."),
+            rafe("That's two. Keep going."),
+            nova("If it's one registry name in two regions, Premium with geo-replication. And if images must rebuild when the base is patched, a base image trigger."),
             rafe("Four for four. That earns a long one. [kiss]"),
             nova("Mm. And something to try today, my love?"),
             rafe("Create a Basic registry and check the admin user is off. Build a small Python image with az acr build and a unique tag. List its tags and its digest. Then push the same tag again, and see the digest change while the tag stays."),
@@ -401,65 +469,70 @@ internal object Ai200EpisodesAcr {
     private fun classicBoard() = PodcastBoard(
         "ai-acr",
         listOf(
-            // 0: "Hi, and welcome back. Today is about where your app waits before it runs..."
+            // 0: "Hi, and welcome back. Today is Azure Container Registry, where your ap..."
             Scene(
                 0, "Images and registries", flow(),
                 beats = listOf(
-                    Beat(0, show = setOf("src"), light = setOf("src"), card = BoardCard("Container image", "A packed-up copy of your app and all it needs, like a lunchbox.")),
-                    Beat(2, show = setOf("acr"), light = setOf("acr"), card = BoardCard("Container registry", "A private warehouse for images. Upload is a push; download a pull.")),
-                    Beat(4, show = setOf("task"), light = setOf("acr"), card = BoardCard("ACR", "Azure Container Registry: a private registry Azure runs for you.")),
-                    Beat(6, show = setOf("app", "aca"), light = setOf("acr", "app"), pulse = "acr" to "app", card = BoardCard("Two Tracks Coach", "The backend image coach-api, in a registry called ttcoach.")),
+                    Beat(0, card = BoardCard("Where your app waits", "Azure Container Registry. First, what it stores.")),
+                    Beat(1, card = BoardCard("Today, without containers", "A VM with Linux, Python and libraries, then your code copied on.")),
+                    Beat(2, show = setOf("src"), light = setOf("src"), card = BoardCard("Container image", "Your code, its Python and libraries, packed in one box: a lunchbox.")),
+                    Beat(4, light = setOf("src"), card = BoardCard("Base image", "A slim copy of an operating system's files, like cut-down Debian.")),
+                    Beat(6, light = setOf("src"), card = BoardCard("No kernel inside", "Every container shares the server's kernel. A VM brings its own.")),
+                    Beat(8, light = setOf("src"), card = BoardCard("Dockerfile", "FROM a base image, copy your code, install, set the start command.")),
+                    Beat(10, light = setOf("src"), card = BoardCard("Container", "One running copy of the image. One image, many copies.")),
+                    Beat(12, show = setOf("task", "acr"), light = setOf("acr"), pulse = "task" to "acr", card = BoardCard("Push and pull", "Push: your laptop or pipeline uploads. Pull: the server downloads.")),
+                    Beat(14, show = setOf("app", "aca"), light = setOf("acr", "app"), pulse = "acr" to "app", card = BoardCard("ACR: ttcoach", "Azure Container Registry: a private registry Azure runs for you.")),
                 ),
             ),
-            // 7: "And inside the warehouse, is it just one big pile of lunchboxes?"
+            // 15: "And inside the warehouse, is it just one big pile of lunchboxes?"
             Scene(
-                7, "Shelves, tags, digests", names(),
+                15, "Shelves, tags, digests", names(),
                 beats = listOf(
-                    Beat(8, show = setOf("repo"), light = setOf("repo"), card = BoardCard("Repository", "One shelf: every version of one image, such as coach-api.")),
-                    Beat(10, show = setOf("tag", "image"), light = setOf("tag"), pulse = "tag" to "image", card = BoardCard("Tag", "A movable label, like v1. A new push with the same tag moves it.")),
-                    Beat(12, show = setOf("digest"), light = setOf("digest"), pulse = "digest" to "image", card = BoardCard("Digest", "A fingerprint worked out from the content. It never moves.")),
-                    Beat(14, light = setOf("tag"), card = BoardCard("latest", "Just a tag: whatever was pushed last. Risky in production.")),
-                    Beat(16, light = setOf("digest", "tag"), card = BoardCard("What to put live", "A unique tag for every build, or the digest itself.")),
+                    Beat(16, show = setOf("repo"), light = setOf("repo"), card = BoardCard("Repository", "One shelf: every version of one image, such as coach-api.")),
+                    Beat(18, show = setOf("tag", "image"), light = setOf("tag"), pulse = "tag" to "image", card = BoardCard("Tag", "A movable label, like v1. A new push with the same tag moves it.")),
+                    Beat(20, show = setOf("digest"), light = setOf("digest"), pulse = "digest" to "image", card = BoardCard("Digest", "A fingerprint worked out from the content. It never moves.")),
+                    Beat(22, light = setOf("tag"), card = BoardCard("latest", "Just a tag: whatever was pushed last. Risky in production.")),
+                    Beat(24, light = setOf("digest", "tag"), card = BoardCard("What to put live", "A unique tag for every build, or the digest itself.")),
                 ),
             ),
-            // 17: "Got it. Now, does every registry cost the same?"
+            // 25: "Got it. Now, does every registry cost the same?"
             Scene(
-                17, "Three tiers", tiers(),
+                25, "Three tiers", tiers(),
                 beats = listOf(
-                    Beat(18, show = setOf("basic", "std", "prem"), light = setOf("prem"), card = BoardCard("Tiers", "Basic to learn, Standard for most apps, Premium for many regions.")),
-                    Beat(20, show = setOf("west", "east"), light = setOf("west", "east"), pulse = "prem" to "west", card = BoardCard("Geo-replication", "One registry name, a copy in each region; pulls go to the nearest.")),
-                    Beat(22, light = setOf("prem"), pulse = "prem" to "east", card = BoardCard("Premium only", "Basic and Standard sit in one region. Premium adds private networking.")),
+                    Beat(26, show = setOf("basic", "std", "prem"), light = setOf("prem"), card = BoardCard("Tiers", "Basic to learn, Standard for most apps, Premium for many regions.")),
+                    Beat(28, show = setOf("west", "east"), light = setOf("west", "east"), pulse = "prem" to "west", card = BoardCard("Geo-replication", "One registry name, a copy in each region; pulls go to the nearest.")),
+                    Beat(30, light = setOf("prem"), pulse = "prem" to "east", card = BoardCard("Premium only", "Basic and Standard sit in one region. Premium adds private networking.")),
                 ),
             ),
-            // 23: "Okay. How does an image get into the registry?..."
+            // 31: "Okay. How does an image get into the registry? Do I need Docker on my..."
             Scene(
-                23, "Build in Azure", tasks(),
+                31, "Build in Azure", tasks(),
                 beats = listOf(
-                    Beat(24, card = BoardCard("ACR Tasks", "Builds your image on Azure's own machines. No Docker needed.")),
-                    Beat(26, show = setOf("quick", "acr"), light = setOf("quick"), pulse = "quick" to "acr", card = quickCode("ttcoach", "coach-api:v1")),
-                    Beat(28, show = setOf("trig"), light = setOf("trig"), pulse = "trig" to "acr", card = BoardCard("Triggered task", "Starts by itself: a commit, a timer, or a base image update.")),
-                    Beat(30, show = setOf("base"), light = setOf("base", "trig"), pulse = "base" to "trig", card = BoardCard("Base image trigger", "The base gets a security fix, and your image rebuilds by itself.")),
-                    Beat(32, show = setOf("multi"), light = setOf("multi"), pulse = "multi" to "acr", card = BoardCard("Multi-step task", "Build, run the tests inside the image, push only if they pass.")),
+                    Beat(32, card = BoardCard("ACR Tasks", "Builds your image on Azure's own machines. No Docker needed.")),
+                    Beat(34, show = setOf("quick", "acr"), light = setOf("quick"), pulse = "quick" to "acr", card = quickCode("ttcoach", "coach-api:v1")),
+                    Beat(36, show = setOf("trig"), light = setOf("trig"), pulse = "trig" to "acr", card = BoardCard("Triggered task", "Starts by itself: a commit, a timer, or a base image update.")),
+                    Beat(38, show = setOf("base"), light = setOf("base", "trig"), pulse = "base" to "trig", card = BoardCard("Base image trigger", "The base gets a security fix, and your image rebuilds by itself.")),
+                    Beat(40, show = setOf("multi"), light = setOf("multi"), pulse = "multi" to "acr", card = BoardCard("Multi-step task", "Build, run the tests inside the image, push only if they pass.")),
                 ),
             ),
-            // 33: "Okay, it's built and pushed. Now the Coach's server must pull it..."
+            // 41: "Okay, it's built and pushed. Now the Coach's server must pull it. Does..."
             Scene(
-                33, "Pulling without a password", access(),
+                41, "Pulling without a password", access(),
                 beats = listOf(
-                    Beat(33, show = setOf("acr")),
-                    Beat(34, show = setOf("mi"), light = setOf("mi"), pulse = "mi" to "acr", card = BoardCard("Managed identity", "A badge Azure gives your app: no password stored anywhere.")),
-                    Beat(36, show = setOf("role"), light = setOf("role", "mi"), pulse = "role" to "mi", card = BoardCard("AcrPull", "Download images and nothing more. AcrPush is for the builder.")),
-                    Beat(38, show = setOf("you", "login"), light = setOf("login"), pulse = "you" to "login", card = BoardCard("az acr login", "Your own Azure sign-in, and a short-lived pass for Docker.")),
-                    Beat(40, show = setOf("admin"), light = setOf("admin"), pulse = "admin" to "acr", card = BoardCard("Admin user", "One shared password for the whole registry. Keep it off.")),
+                    Beat(41, show = setOf("acr")),
+                    Beat(42, show = setOf("mi"), light = setOf("mi"), pulse = "mi" to "acr", card = BoardCard("Managed identity", "A badge Azure gives your app: no password stored anywhere.")),
+                    Beat(44, show = setOf("role"), light = setOf("role", "mi"), pulse = "role" to "mi", card = BoardCard("AcrPull", "Download images and nothing more. AcrPush is for the builder.")),
+                    Beat(48, show = setOf("you", "login"), light = setOf("login"), pulse = "you" to "login", card = BoardCard("az acr login", "Your own Azure sign-in, and a short-lived pass for Docker.")),
+                    Beat(50, show = setOf("admin"), light = setOf("admin"), pulse = "admin" to "acr", card = BoardCard("Admin user", "One shared password for the whole registry. Keep it off.")),
                 ),
             ),
-            // 41: "No keys under the doormat. What are the usual mistakes?"
+            // 51: "No keys under the doormat. What are the usual mistakes?"
             Scene(
-                41, "For the exam", exam(),
+                51, "For the exam", exam(),
                 beats = listOf(
-                    Beat(42, show = setOf("latest", "admin"), light = setOf("latest", "admin"), card = BoardCard("The usual mistakes", "latest live, admin user on, Owner for an app, Basic for regions.")),
-                    Beat(44, show = setOf("regions", "base", "nodocker", "nopass"), light = all6, card = BoardCard("Listen for the phrase", "Each phrase points to one answer: Premium, a trigger, AcrPull, a tag.")),
-                    Beat(46, card = today),
+                    Beat(52, show = setOf("latest", "admin"), light = setOf("latest", "admin"), card = BoardCard("The usual mistakes", "latest live, admin user on, Owner for an app, Basic for regions.")),
+                    Beat(56, show = setOf("regions", "base", "nodocker", "nopass"), light = all6, card = BoardCard("Listen for the phrase", "Each phrase points to one answer: Premium, a trigger, AcrPull, a tag.")),
+                    Beat(58, card = today),
                 ),
             ),
         ),
@@ -468,7 +541,7 @@ internal object Ai200EpisodesAcr {
     private fun caseFilesBoard() = PodcastBoard(
         "ai-acr--case-files",
         listOf(
-            // 0: "Welcome to Case Files. Today's case: The Bus That Said Hello World..."
+            // 0: "Welcome to Case Files. Today's case: The Bus That Said Hello World. Bu..."
             Scene(
                 0, "The Bus That Said Hello World",
                 DiagramSpec(
@@ -488,67 +561,70 @@ internal object Ai200EpisodesAcr {
                 ),
                 beats = listOf(
                     Beat(0, show = setOf("phone", "test"), light = setOf("test"), card = BoardCard("The case", "Every rider opens Bus Buddy and sees: hello from the test build.")),
-                    Beat(2, show = setOf("api"), light = setOf("api"), pulse = "phone" to "api", card = BoardCard("Container image", "The app packed with all it needs: layers of files, and a list.")),
-                    Beat(4, show = setOf("acr"), light = setOf("acr"), pulse = "api" to "acr", card = BoardCard("Container registry", "A private warehouse for images: push to upload, pull to download.")),
-                    Beat(8, light = setOf("api"), card = BoardCard("Clue one", "The backend's settings say: run bus-api:latest.")),
-                    Beat(10, light = setOf("acr", "test"), pulse = "acr" to "test", card = BoardCard("latest moved", "A test build was pushed as latest; the restart pulled it.")),
+                    Beat(2, show = setOf("api"), light = setOf("api"), pulse = "phone" to "api", card = BoardCard("Before containers", "A VM, Linux, Python, libraries, then the code: no two alike.")),
+                    Beat(4, light = setOf("api"), card = BoardCard("Container image", "Code, Python, libraries, on a slim base image of Linux files.")),
+                    Beat(6, light = setOf("api"), card = BoardCard("No kernel inside", "Containers share the host's kernel; a VM brings its own.")),
+                    Beat(8, light = setOf("api"), card = BoardCard("Dockerfile", "FROM the base, copy the code, install, set the start command.")),
+                    Beat(10, show = setOf("acr"), light = setOf("acr"), pulse = "api" to "acr", card = BoardCard("Container registry", "A private warehouse for images: push to upload, pull to download.")),
+                    Beat(14, light = setOf("api"), card = BoardCard("Clue one", "The backend's settings say: run bus-api:latest.")),
+                    Beat(16, light = setOf("acr", "test"), pulse = "acr" to "test", card = BoardCard("latest moved", "A test build was pushed as latest; the restart pulled it.")),
                 ),
             ),
-            // 11: "So the label wandered off to the wrong lunchbox."
+            // 19: "So the label wandered off to the wrong lunchbox."
             Scene(
-                11, "Tags and digests", names(),
+                19, "Tags and digests", names(),
                 beats = listOf(
-                    Beat(12, show = setOf("repo", "tag", "image"), light = setOf("tag"), pulse = "tag" to "image", card = BoardCard("Unique tag", "A unique tag for every build, like the build's own id.")),
-                    Beat(14, show = setOf("digest"), light = setOf("digest"), pulse = "digest" to "image", card = BoardCard("Digest", "The content's fingerprint. A tag can move; a digest never can.")),
+                    Beat(20, show = setOf("repo", "tag", "image"), light = setOf("tag"), pulse = "tag" to "image", card = BoardCard("Unique tag", "A unique tag for every build, like the build's own id.")),
+                    Beat(22, show = setOf("digest"), light = setOf("digest"), pulse = "digest" to "image", card = BoardCard("Digest", "The content's fingerprint. A tag can move; a digest never can.")),
                 ),
             ),
-            // 15: "Right. Suspect two, then. The registry was hacked."
+            // 25: "Right. Suspect two, then. The registry was hacked."
             Scene(
-                15, "Suspect two", access(),
+                25, "Suspect two", access(),
                 beats = listOf(
-                    Beat(16, show = setOf("acr", "admin"), light = setOf("admin"), pulse = "admin" to "acr", card = BoardCard("Admin user", "One shared password with push and pull, left in a settings file.")),
-                    Beat(18, show = setOf("mi"), light = setOf("mi"), pulse = "mi" to "acr", card = BoardCard("Managed identity", "Azure hands the server short-lived passes. No password at all.")),
-                    Beat(20, show = setOf("role"), light = setOf("role"), pulse = "role" to "mi", card = BoardCard("AcrPull, not Owner", "A role is a set of permissions. Pull images, nothing more.")),
+                    Beat(26, show = setOf("acr", "admin"), light = setOf("admin"), pulse = "admin" to "acr", card = BoardCard("Admin user", "One shared password with push and pull, left in a settings file.")),
+                    Beat(28, show = setOf("mi"), light = setOf("mi"), pulse = "mi" to "acr", card = BoardCard("Managed identity", "Azure hands the server short-lived passes. No password at all.")),
+                    Beat(30, show = setOf("role"), light = setOf("role"), pulse = "role" to "mi", card = BoardCard("AcrPull, not Owner", "A role is a set of permissions. Pull images, nothing more.")),
                 ),
             ),
-            // 21: "Fine. Then who builds them? The developer's laptop, with Docker?"
+            // 31: "Fine. Then who builds them? The developer's laptop, with Docker?"
             Scene(
-                21, "Who builds it", tasks(),
+                31, "Who builds it", tasks(),
                 beats = listOf(
-                    Beat(24, show = setOf("quick", "acr"), light = setOf("quick"), pulse = "quick" to "acr", card = quickCode("busbuddy", "bus-api:run42")),
-                    Beat(26, show = setOf("multi"), light = setOf("multi"), pulse = "multi" to "acr", card = BoardCard("Multi-step task", "Build, run the tests, push only if they pass.")),
-                    Beat(28, card = BoardCard("az acr login", "Each developer signs in as themselves; every push has a name.")),
+                    Beat(34, show = setOf("quick", "acr"), light = setOf("quick"), pulse = "quick" to "acr", card = quickCode("busbuddy", "bus-api:run42")),
+                    Beat(36, show = setOf("multi"), light = setOf("multi"), pulse = "multi" to "acr", card = BoardCard("Multi-step task", "Build, run the tests, push only if they pass.")),
+                    Beat(38, card = BoardCard("az acr login", "Each developer signs in as themselves; every push has a name.")),
                 ),
             ),
-            // 29: "Is the case closed?"
+            // 39: "Is the case closed?"
             Scene(
-                29, "The far-away riders", tiers(),
+                39, "The far-away riders", tiers(),
                 beats = listOf(
-                    Beat(31, show = setOf("basic", "std"), light = setOf("basic"), card = BoardCard("Two Basic registries?", "Registry names are unique across Azure, and two would drift apart.")),
-                    Beat(32, show = setOf("prem", "west", "east"), light = setOf("prem", "east"), pulse = "prem" to "east", card = BoardCard("Geo-replication", "One name, a copy in each region, the nearest pull. Premium only.")),
-                    Beat(33, card = BoardCard("Region", "A part of the world where Azure has machines, like East US.")),
+                    Beat(41, show = setOf("basic", "std"), light = setOf("basic"), card = BoardCard("Two Basic registries?", "Registry names are unique across Azure, and two would drift apart.")),
+                    Beat(42, show = setOf("prem", "west", "east"), light = setOf("prem", "east"), pulse = "prem" to "east", card = BoardCard("Geo-replication", "One name, a copy in each region, the nearest pull. Premium only.")),
+                    Beat(43, card = BoardCard("Region", "A part of the world where Azure has machines, like East US.")),
                 ),
             ),
-            // 35: "And the security report on my desk?..."
+            // 45: "And the security report on my desk? It says the image has an old hole..."
             Scene(
-                35, "The old hole", tasks(),
+                45, "The old hole", tasks(),
                 beats = listOf(
-                    Beat(36, show = setOf("quick", "trig", "multi", "base", "acr"), light = setOf("base", "trig"), pulse = "base" to "trig", card = BoardCard("Base image trigger", "The base gets patched, and a triggered task rebuilds bus-api.")),
+                    Beat(46, show = setOf("quick", "trig", "multi", "base", "acr"), light = setOf("base", "trig"), pulse = "base" to "trig", card = BoardCard("Base image trigger", "The base gets patched, and a triggered task rebuilds bus-api.")),
                 ),
             ),
-            // 37: "And where does this stop working?"
+            // 47: "And where does this stop working?"
             Scene(
-                37, "Where it stops", limits(),
+                47, "Where it stops", limits(),
                 beats = listOf(
-                    Beat(38, show = setOf("lock", "phone", "trial", "next"), light = setOf("lock", "phone"), pulse = "phone" to "next", card = BoardCard("Where it stops", "Lock a version, or run the digest. The host pulls, not the phone.")),
+                    Beat(48, show = setOf("lock", "phone", "trial", "next"), light = setOf("lock", "phone"), pulse = "phone" to "next", card = BoardCard("Where it stops", "Lock a version, or run the digest. The host pulls, not the phone.")),
                 ),
             ),
-            // 39: "So, the case summary for the exam?"
+            // 51: "So, the case summary for the exam?"
             Scene(
-                39, "Case closed", exam(),
+                51, "Case closed", exam(),
                 beats = listOf(
-                    Beat(40, show = all6, light = setOf("latest", "nopass", "regions", "base"), card = BoardCard("Listen for the phrase", "Each phrase points to one answer: a tag, AcrPull, Premium, a trigger.")),
-                    Beat(42, card = today),
+                    Beat(52, show = all6, light = setOf("latest", "nopass", "regions", "base"), card = BoardCard("Listen for the phrase", "Each phrase points to one answer: a tag, AcrPull, Premium, a trigger.")),
+                    Beat(56, card = today),
                 ),
             ),
         ),
@@ -557,72 +633,75 @@ internal object Ai200EpisodesAcr {
     private fun gossipBoard() = PodcastBoard(
         "ai-acr--gossip",
         listOf(
-            // 0: "Okay, did you hear what happened on the Coach team this week?..."
+            // 0: "Okay, did you hear what happened on the Coach team this week? Sit down..."
             Scene(
                 0, "What the Coach team did", flow(),
                 beats = listOf(
                     Beat(0, show = setOf("src", "task"), light = setOf("src"), pulse = "src" to "task", card = BoardCard("The week", "The Coach backend moved into its own container registry.")),
-                    Beat(2, light = setOf("src"), card = BoardCard("Container image", "A lunchbox: layers of files, plus a short list naming them.")),
-                    Beat(4, show = setOf("acr", "app", "aca"), light = setOf("acr"), pulse = "task" to "acr", card = BoardCard("ACR: ttcoach", "A private warehouse. Push to upload, pull to download.")),
+                    Beat(2, light = setOf("src"), card = BoardCard("The old way", "A server, Linux, Python, libraries, then your code copied on.")),
+                    Beat(4, light = setOf("src"), card = BoardCard("Container image", "Code, Python and libraries in one box: a lunchbox.")),
+                    Beat(6, light = setOf("src"), card = BoardCard("Not a tiny VM", "A slim base of OS files, no kernel: containers share the host's.")),
+                    Beat(8, light = setOf("src"), card = BoardCard("Dockerfile", "FROM the base, copy, install, start. Layers plus a list.")),
+                    Beat(10, show = setOf("acr", "app", "aca"), light = setOf("acr"), pulse = "task" to "acr", card = BoardCard("ACR: ttcoach", "A private warehouse. Push to upload, pull to download.")),
                 ),
             ),
-            // 7: "Okay. Who went first?"
+            // 13: "Okay. Who went first?"
             Scene(
-                7, "Monday: Tom", names(),
+                13, "Monday: Tom", names(),
                 beats = listOf(
-                    Beat(8, show = setOf("repo", "tag", "image"), light = setOf("tag"), pulse = "tag" to "image", card = BoardCard("latest", "A movable tag that means whatever was pushed last.")),
-                    Beat(10, light = setOf("tag"), card = BoardCard("Testing, testing", "The intern pushed a test build as latest; a restart pulled it.")),
-                    Beat(12, show = setOf("digest"), light = setOf("digest"), pulse = "digest" to "image", card = BoardCard("Unique tag or digest", "A digest is the content's fingerprint. It never moves.")),
+                    Beat(14, show = setOf("repo", "tag", "image"), light = setOf("tag"), pulse = "tag" to "image", card = BoardCard("latest", "A movable tag that means whatever was pushed last.")),
+                    Beat(16, light = setOf("tag"), card = BoardCard("Testing, testing", "The intern pushed a test build as latest; a restart pulled it.")),
+                    Beat(18, show = setOf("digest"), light = setOf("digest"), pulse = "digest" to "image", card = BoardCard("Unique tag or digest", "A digest is the content's fingerprint. It never moves.")),
                 ),
             ),
-            // 13: "Tuesday?"
+            // 21: "Tuesday?"
             Scene(
-                13, "Tuesday: Dana", access(),
+                21, "Tuesday: Dana", access(),
                 beats = listOf(
-                    Beat(14, show = setOf("acr", "admin"), light = setOf("admin"), pulse = "admin" to "acr", card = BoardCard("Admin user", "One shared password, push and pull, for the whole registry.")),
-                    Beat(16, show = setOf("mi", "role"), light = setOf("mi"), pulse = "mi" to "acr", card = BoardCard("Managed identity", "Short-lived passes from Azure on a private address. Nothing to leak.")),
-                    Beat(18, show = setOf("you", "login"), light = setOf("login"), pulse = "you" to "login", card = BoardCard("az acr login", "People sign in as themselves; Docker gets a short-lived pass.")),
+                    Beat(22, show = setOf("acr", "admin"), light = setOf("admin"), pulse = "admin" to "acr", card = BoardCard("Admin user", "One shared password, push and pull, for the whole registry.")),
+                    Beat(24, show = setOf("mi", "role"), light = setOf("mi"), pulse = "mi" to "acr", card = BoardCard("Managed identity", "Short-lived passes from Azure on a private address. Nothing to leak.")),
+                    Beat(28, show = setOf("you", "login"), light = setOf("login"), pulse = "you" to "login", card = BoardCard("az acr login", "People sign in as themselves; Docker gets a short-lived pass.")),
                 ),
             ),
-            // 19: "Wednesday. Go."
+            // 29: "Wednesday. Go."
             Scene(
-                19, "Wednesday: Marcus", access(),
+                29, "Wednesday: Marcus", access(),
                 beats = listOf(
-                    Beat(20, show = setOf("you", "login", "acr", "admin", "mi"), light = setOf("mi"), card = BoardCard("Owner", "Can do anything at all, even delete the registry.")),
-                    Beat(22, show = setOf("role"), light = setOf("role"), pulse = "role" to "mi", card = BoardCard("AcrPull", "Pull images, nothing more. AcrPush is for whatever builds.")),
+                    Beat(30, show = setOf("you", "login", "acr", "admin", "mi"), light = setOf("mi"), card = BoardCard("Owner", "Can do anything at all, even delete the registry.")),
+                    Beat(32, show = setOf("role"), light = setOf("role"), pulse = "role" to "mi", card = BoardCard("AcrPull", "Pull images, nothing more. AcrPush is for whatever builds.")),
                 ),
             ),
-            // 23: "Thursday. I sense money."
+            // 33: "Thursday. I sense money."
             Scene(
-                23, "Thursday: the intern", tiers(),
+                33, "Thursday: the intern", tiers(),
                 beats = listOf(
-                    Beat(24, show = setOf("basic", "std", "prem"), light = setOf("std"), card = BoardCard("Standard", "One region only. American servers pulled across the ocean.")),
-                    Beat(26, show = setOf("west", "east"), light = setOf("prem", "east"), pulse = "prem" to "east", card = BoardCard("Geo-replication", "One name, a copy in each region, the nearest pull. Premium only.")),
-                    Beat(28, light = setOf("basic", "std", "prem"), card = BoardCard("The three tiers", "Basic to learn, Standard for most apps, Premium for regions.")),
+                    Beat(34, show = setOf("basic", "std", "prem"), light = setOf("std"), card = BoardCard("Standard", "One region only. American servers pulled across the ocean.")),
+                    Beat(36, show = setOf("west", "east"), light = setOf("prem", "east"), pulse = "prem" to "east", card = BoardCard("Geo-replication", "One name, a copy in each region, the nearest pull. Premium only.")),
+                    Beat(40, light = setOf("basic", "std", "prem"), card = BoardCard("The three tiers", "Basic to learn, Standard for most apps, Premium for regions.")),
                 ),
             ),
-            // 29: "So the intern was told to upgrade."
+            // 41: "So the intern was told to upgrade."
             Scene(
-                29, "Friday: Priya", tasks(),
+                41, "Friday: Priya", tasks(),
                 beats = listOf(
-                    Beat(32, show = setOf("base", "acr"), light = setOf("base"), card = BoardCard("An old hole", "The base image was patched a month ago, and nobody rebuilt.")),
-                    Beat(36, show = setOf("quick", "trig"), light = setOf("trig"), pulse = "base" to "trig", card = BoardCard("Base image trigger", "Every patch to the base rebuilds coach-api by itself.")),
-                    Beat(38, show = setOf("multi"), light = setOf("multi"), pulse = "multi" to "acr", card = BoardCard("Multi-step task", "Build, run the tests, and push only if they pass.")),
+                    Beat(44, show = setOf("base", "acr"), light = setOf("base"), card = BoardCard("An old hole", "The base image was patched a month ago, and nobody rebuilt.")),
+                    Beat(48, show = setOf("quick", "trig"), light = setOf("trig"), pulse = "base" to "trig", card = BoardCard("Base image trigger", "Every patch to the base rebuilds coach-api by itself.")),
+                    Beat(50, show = setOf("multi"), light = setOf("multi"), pulse = "multi" to "acr", card = BoardCard("Multi-step task", "Build, run the tests, and push only if they pass.")),
                 ),
             ),
-            // 39: "Did anything else go wrong?"
+            // 51: "Did anything else go wrong?"
             Scene(
-                39, "Where it stops", limits(),
+                51, "Where it stops", limits(),
                 beats = listOf(
-                    Beat(40, show = setOf("lock", "phone", "trial", "next"), light = setOf("lock", "phone"), pulse = "phone" to "next", card = BoardCard("Where it stops", "Lock a version, or run the digest. The host pulls, not the phone.")),
+                    Beat(52, show = setOf("lock", "phone", "trial", "next"), light = setOf("lock", "phone"), pulse = "phone" to "next", card = BoardCard("Where it stops", "Lock a version, or run the digest. The host pulls, not the phone.")),
                 ),
             ),
-            // 41: "So, the gossip I should remember for the exam?"
+            // 55: "So, the gossip I should remember for the exam?"
             Scene(
-                41, "For the exam", exam(),
+                55, "For the exam", exam(),
                 beats = listOf(
-                    Beat(42, show = all6, light = setOf("latest", "nopass", "regions", "base"), card = BoardCard("Listen for the phrase", "Each phrase points to one answer. Nobody wants to be next week's story.")),
-                    Beat(44, card = today),
+                    Beat(56, show = all6, light = setOf("latest", "nopass", "regions", "base"), card = BoardCard("Listen for the phrase", "Each phrase points to one answer. Nobody wants to be next week's story.")),
+                    Beat(60, card = today),
                 ),
             ),
         ),
@@ -631,66 +710,70 @@ internal object Ai200EpisodesAcr {
     private fun lateNightBoard() = PodcastBoard(
         "ai-acr--late-night",
         listOf(
-            // 0: "Hey, you. It's late, the kettle's warm..."
+            // 0: "Hey, you. It's late, the kettle's warm, and it's just the three of us...."
             Scene(
                 0, "Where your app waits", flow(),
                 beats = listOf(
                     Beat(0, show = setOf("src"), card = BoardCard("Tonight", "Where your app waits before it runs.")),
-                    Beat(2, light = setOf("src"), card = BoardCard("Container image", "A copy of your app and all it needs: a lunchbox, packed.")),
-                    Beat(4, show = setOf("task", "acr"), light = setOf("acr"), card = BoardCard("Container registry", "Layers of files plus a list, kept in a private warehouse.")),
-                    Beat(6, show = setOf("app", "aca"), light = setOf("acr", "app"), pulse = "acr" to "app", card = BoardCard("ACR: ttcoach", "The Coach's image coach-api. Push to upload, pull to download.")),
+                    Beat(2, light = setOf("src"), card = BoardCard("A developer's day", "Your code, a server, its OS. And the night it breaks.")),
+                    Beat(4, light = setOf("src"), card = BoardCard("Container image", "Your code, its Python and libraries: a lunchbox, packed.")),
+                    Beat(6, light = setOf("src"), card = BoardCard("Base image", "A slim copy of an OS's files. Not the kernel.")),
+                    Beat(8, light = setOf("src"), card = BoardCard("The shared kernel", "Every container shares the host's kernel; a VM carries its own.")),
+                    Beat(10, light = setOf("src"), card = BoardCard("Dockerfile", "FROM the base, copy, install, start: layers plus a list.")),
+                    Beat(12, show = setOf("task", "acr"), light = setOf("acr"), card = BoardCard("Container registry", "A private warehouse where images wait to be run.")),
+                    Beat(14, show = setOf("app", "aca"), light = setOf("acr", "app"), pulse = "acr" to "app", card = BoardCard("ACR: ttcoach", "The Coach's image coach-api. Push to upload, pull to download.")),
                 ),
             ),
-            // 7: "Push and pull. You're already flirting..."
+            // 17: "Push and pull. You're already flirting. How does the warehouse keep th..."
             Scene(
-                7, "Shelves and labels", names(),
+                17, "Shelves and labels", names(),
                 beats = listOf(
-                    Beat(8, show = setOf("repo", "tag", "image"), light = setOf("repo", "tag"), pulse = "tag" to "image", card = BoardCard("Repository and tag", "One shelf per image; a friendly label on each version.")),
-                    Beat(10, light = setOf("tag"), card = BoardCard("latest", "A tag that slides to whatever was pushed last.")),
-                    Beat(12, show = setOf("digest"), light = setOf("digest"), pulse = "digest" to "image", card = BoardCard("Digest", "The content's fingerprint. It never moves.")),
-                    Beat(14, light = setOf("digest", "tag"), card = BoardCard("What goes live", "A unique tag for every build, or the digest. Never latest.")),
+                    Beat(18, show = setOf("repo", "tag", "image"), light = setOf("repo", "tag"), pulse = "tag" to "image", card = BoardCard("Repository and tag", "One shelf per image; a friendly label on each version.")),
+                    Beat(20, light = setOf("tag"), card = BoardCard("latest", "A tag that slides to whatever was pushed last.")),
+                    Beat(22, show = setOf("digest"), light = setOf("digest"), pulse = "digest" to "image", card = BoardCard("Digest", "The content's fingerprint. It never moves.")),
+                    Beat(24, light = setOf("digest", "tag"), card = BoardCard("What goes live", "A unique tag for every build, or the digest. Never latest.")),
                 ),
             ),
-            // 15: "Midnight pushes. We've all been there..."
+            // 25: "Midnight pushes. We've all been there. Does every warehouse cost the s..."
             Scene(
-                15, "Three tiers", tiers(),
+                25, "Three tiers", tiers(),
                 beats = listOf(
-                    Beat(16, show = setOf("basic", "std", "prem", "west", "east"), light = setOf("prem"), pulse = "prem" to "west", card = BoardCard("Geo-replication", "Premium: one name, a copy near each of your servers.")),
-                    Beat(20, light = setOf("west", "east"), pulse = "prem" to "east", card = BoardCard("The nearest copy", "Azure copies each push; each pull goes to the closest region.")),
+                    Beat(26, show = setOf("basic", "std", "prem", "west", "east"), light = setOf("prem"), pulse = "prem" to "west", card = BoardCard("Geo-replication", "Premium: one name, a copy near each of your servers.")),
+                    Beat(30, light = setOf("west", "east"), pulse = "prem" to "east", card = BoardCard("The nearest copy", "Azure copies each push; each pull goes to the closest region.")),
                 ),
             ),
-            // 21: "And who packs the lunchbox?..."
+            // 31: "And who packs the lunchbox? I don't even have Docker on this laptop."
             Scene(
-                21, "Built while you sleep", tasks(),
+                31, "Built while you sleep", tasks(),
                 beats = listOf(
-                    Beat(24, show = setOf("quick", "acr"), light = setOf("quick"), pulse = "quick" to "acr", card = quickCode("ttcoach", "coach-api:v1")),
-                    Beat(26, show = setOf("trig", "base"), light = setOf("trig", "base"), pulse = "base" to "trig", card = BoardCard("Triggered task", "A commit, a timer, or a base image update starts it.")),
-                    Beat(30, show = setOf("multi"), light = setOf("multi"), pulse = "multi" to "acr", card = BoardCard("Multi-step task", "Build, run the tests, push only if they pass.")),
+                    Beat(34, show = setOf("quick", "acr"), light = setOf("quick"), pulse = "quick" to "acr", card = quickCode("ttcoach", "coach-api:v1")),
+                    Beat(36, show = setOf("trig", "base"), light = setOf("trig", "base"), pulse = "base" to "trig", card = BoardCard("Triggered task", "A commit, a timer, or a base image update starts it.")),
+                    Beat(40, show = setOf("multi"), light = setOf("multi"), pulse = "multi" to "acr", card = BoardCard("Multi-step task", "Build, run the tests, push only if they pass.")),
                 ),
             ),
-            // 31: "Now the shy part..."
+            // 41: "Now the shy part. How does the Coach's server get in, to pull? A passw..."
             Scene(
-                31, "Getting in", access(),
+                41, "Getting in", access(),
                 beats = listOf(
-                    Beat(32, show = setOf("acr", "mi", "role"), light = setOf("mi", "role"), pulse = "mi" to "acr", card = BoardCard("Managed identity, AcrPull", "A badge with one permission: download images.")),
-                    Beat(36, show = setOf("admin"), light = setOf("admin"), pulse = "admin" to "acr", card = BoardCard("Admin user", "A master key under the doormat. Leave it off.")),
-                    Beat(38, show = setOf("you", "login"), light = setOf("login"), pulse = "you" to "login", card = BoardCard("az acr login", "Your own Azure sign-in, and a short-lived pass for Docker.")),
-                    Beat(40, light = setOf("acr", "mi", "role"), card = BoardCard("The whole Coach", "Premium, two regions, task builds, build-id tags, AcrPull.")),
+                    Beat(42, show = setOf("acr", "mi", "role"), light = setOf("mi", "role"), pulse = "mi" to "acr", card = BoardCard("Managed identity, AcrPull", "A badge with one permission: download images.")),
+                    Beat(46, show = setOf("admin"), light = setOf("admin"), pulse = "admin" to "acr", card = BoardCard("Admin user", "A master key under the doormat. Leave it off.")),
+                    Beat(48, show = setOf("you", "login"), light = setOf("login"), pulse = "you" to "login", card = BoardCard("az acr login", "Your own Azure sign-in, and a short-lived pass for Docker.")),
+                    Beat(50, light = setOf("acr", "mi", "role"), card = BoardCard("The whole Coach", "Premium, two regions, task builds, build-id tags, AcrPull.")),
                 ),
             ),
-            // 41: "Where does all this stop working?"
+            // 51: "Where does all this stop working?"
             Scene(
-                41, "Where it stops", limits(),
+                51, "Where it stops", limits(),
                 beats = listOf(
-                    Beat(42, show = setOf("lock", "phone", "trial", "next"), light = setOf("lock", "trial", "next"), pulse = "phone" to "next", card = BoardCard("Your next late night", "The App Service containers episode: the host that pulls.")),
+                    Beat(52, show = setOf("lock", "phone", "trial", "next"), light = setOf("lock", "trial", "next"), pulse = "phone" to "next", card = BoardCard("Your next late night", "The App Service containers episode: the host that pulls.")),
                 ),
             ),
-            // 43: "Before I fall asleep on you. What do I remember for the exam?"
+            // 55: "Mm. Before I fall asleep on you. What do I remember for the exam?"
             Scene(
-                43, "For the exam", exam(),
+                55, "For the exam", exam(),
                 beats = listOf(
-                    Beat(44, show = all6, light = setOf("regions", "base", "nodocker", "nopass", "latest"), card = BoardCard("Listen for the phrase", "Premium, a base trigger, az acr build, AcrPull, a unique tag.")),
-                    Beat(46, card = today),
+                    Beat(56, show = all6, light = setOf("regions", "base", "nodocker", "nopass", "latest"), card = BoardCard("Listen for the phrase", "Premium, a base trigger, az acr build, AcrPull, a unique tag.")),
+                    Beat(60, card = today),
                 ),
             ),
         ),
@@ -699,67 +782,71 @@ internal object Ai200EpisodesAcr {
     private fun couplesBoard() = PodcastBoard(
         "ai-acr--couples",
         listOf(
-            // 0: "Tonight is date night, darling..."
+            // 0: "Tonight is date night, darling. Candles, a little wine, and you and me..."
             Scene(
                 0, "Date night", flow(),
                 beats = listOf(
                     Beat(0, show = setOf("src"), card = BoardCard("Date night", "Where your app waits before it goes out: ACR.")),
-                    Beat(2, light = setOf("src"), card = BoardCard("Container image", "An overnight bag: layers of files, plus a list naming them.")),
-                    Beat(4, show = setOf("task", "acr", "app", "aca"), light = setOf("acr"), pulse = "acr" to "app", card = BoardCard("Container registry", "A private warehouse. Push to upload, pull to download.")),
+                    Beat(2, light = setOf("src"), card = BoardCard("The old way", "A VM, Linux, Python, libraries, then the code: it sulks.")),
+                    Beat(4, light = setOf("src"), card = BoardCard("Container image", "An overnight bag: your code, its Python and libraries.")),
+                    Beat(5, light = setOf("src"), card = BoardCard("Quiz: the OS in the bag?", "A slim base of OS files, no kernel. Containers share the host's.")),
+                    Beat(8, light = setOf("src"), card = BoardCard("Dockerfile", "FROM the base, copy, install, start: layers plus a list.")),
+                    Beat(10, light = setOf("src"), card = BoardCard("Container", "One copy of the bag, unpacked and running. As many as you like.")),
+                    Beat(12, show = setOf("task", "acr", "app", "aca"), light = setOf("acr"), pulse = "acr" to "app", card = BoardCard("Container registry", "A private warehouse. Push to upload, pull to download.")),
                 ),
             ),
-            // 7: "And how is the warehouse arranged?"
+            // 15: "And how is the warehouse arranged?"
             Scene(
-                7, "Labels and fingerprints", names(),
+                15, "Labels and fingerprints", names(),
                 beats = listOf(
-                    Beat(8, show = setOf("repo", "tag", "image"), light = setOf("repo", "tag"), pulse = "tag" to "image", card = BoardCard("Repository and tag", "One shelf per image; a label on each version.")),
-                    Beat(9, light = setOf("tag"), card = BoardCard("Quiz: latest", "A test build pushed as latest reaches production. Why?")),
-                    Beat(11, light = setOf("tag"), card = BoardCard("Right answer", "A tag moves. A new push slides the label onto the new image.")),
-                    Beat(13, show = setOf("digest"), light = setOf("digest"), pulse = "digest" to "image", card = BoardCard("Digest", "A fingerprint of the content. Change one byte, and it changes.")),
+                    Beat(16, show = setOf("repo", "tag", "image"), light = setOf("repo", "tag"), pulse = "tag" to "image", card = BoardCard("Repository and tag", "One shelf per image; a label on each version.")),
+                    Beat(17, light = setOf("tag"), card = BoardCard("Quiz: latest", "A test build pushed as latest reaches production. Why?")),
+                    Beat(19, light = setOf("tag"), card = BoardCard("Right answer", "A tag moves. A new push slides the label onto the new image.")),
+                    Beat(21, show = setOf("digest"), light = setOf("digest"), pulse = "digest" to "image", card = BoardCard("Digest", "A fingerprint of the content. Change one byte, and it changes.")),
                 ),
             ),
-            // 15: "I'd know you anywhere. Your turn to be quizzed..."
+            // 23: "I'd know you anywhere. Your turn to be quizzed. The Coach runs in West..."
             Scene(
-                15, "A copy in every city", tiers(),
+                23, "A copy in every city", tiers(),
                 beats = listOf(
-                    Beat(15, show = setOf("basic", "std", "prem"), light = setOf("prem"), card = BoardCard("Quiz: two regions", "One registry name, local pulls in two regions. What do we need?")),
-                    Beat(16, show = setOf("west", "east"), light = setOf("west", "east"), pulse = "prem" to "west", card = BoardCard("Geo-replication", "A copy in each region, the nearest pull. Premium only.")),
+                    Beat(23, show = setOf("basic", "std", "prem"), light = setOf("prem"), card = BoardCard("Quiz: two regions", "One registry name, local pulls in two regions. What do we need?")),
+                    Beat(24, show = setOf("west", "east"), light = setOf("west", "east"), pulse = "prem" to "west", card = BoardCard("Geo-replication", "A copy in each region, the nearest pull. Premium only.")),
                 ),
             ),
-            // 18: "Basic and Standard stay in one region... who packs the bags?"
+            // 26: "Basic and Standard stay in one region, like you on a Sunday. Now, who..."
             Scene(
-                18, "Who packs the bags", tasks(),
+                26, "Who packs the bags", tasks(),
                 beats = listOf(
-                    Beat(21, show = setOf("quick", "acr"), light = setOf("quick"), pulse = "quick" to "acr", card = quickCode("ttcoach", "coach-api:v1")),
-                    Beat(22, show = setOf("base", "trig"), light = setOf("base"), pulse = "base" to "trig", card = BoardCard("Quiz: the base is patched", "What rebuilds coach-api when the base gets a fix?")),
-                    Beat(23, show = setOf("multi"), light = setOf("trig", "multi"), pulse = "multi" to "acr", card = BoardCard("Right answer", "A triggered task with a base image trigger.")),
+                    Beat(29, show = setOf("quick", "acr"), light = setOf("quick"), pulse = "quick" to "acr", card = quickCode("ttcoach", "coach-api:v1")),
+                    Beat(30, show = setOf("base", "trig"), light = setOf("base"), pulse = "base" to "trig", card = BoardCard("Quiz: the base is patched", "What rebuilds coach-api when the base gets a fix?")),
+                    Beat(31, show = setOf("multi"), light = setOf("trig", "multi"), pulse = "multi" to "acr", card = BoardCard("Right answer", "A triggered task with a base image trigger.")),
                 ),
             ),
-            // 27: "Now the intimate part..."
+            // 35: "Now the intimate part. How does the Coach's server get into the wareho..."
             Scene(
-                27, "Knowing your role", access(),
+                35, "Knowing your role", access(),
                 beats = listOf(
-                    Beat(28, show = setOf("acr", "mi"), light = setOf("mi"), pulse = "mi" to "acr", card = BoardCard("Managed identity", "A badge from Azure: short-lived passes, no key.")),
-                    Beat(29, light = setOf("mi"), card = BoardCard("Quiz: it only downloads", "The server only pulls images. Which role?")),
-                    Beat(31, show = setOf("role"), light = setOf("role"), pulse = "role" to "mi", card = BoardCard("No kiss: it's AcrPull", "Owner can delete the registry. AcrPull pulls, nothing more.")),
-                    Beat(33, show = setOf("admin"), light = setOf("admin"), pulse = "admin" to "acr", card = BoardCard("Admin user", "A spare key under the doormat. Off by default; keep it off.")),
-                    Beat(38, show = setOf("you", "login"), light = setOf("login"), pulse = "you" to "login", card = BoardCard("az acr login", "Your own Azure sign-in, and a short pass for Docker.")),
-                    Beat(40, light = setOf("acr", "mi", "role"), card = BoardCard("The whole Coach", "Premium, two regions, task builds, build-id tags, AcrPull.")),
+                    Beat(36, show = setOf("acr", "mi"), light = setOf("mi"), pulse = "mi" to "acr", card = BoardCard("Managed identity", "A badge from Azure: short-lived passes, no key.")),
+                    Beat(37, light = setOf("mi"), card = BoardCard("Quiz: it only downloads", "The server only pulls images. Which role?")),
+                    Beat(39, show = setOf("role"), light = setOf("role"), pulse = "role" to "mi", card = BoardCard("No kiss: it's AcrPull", "Owner can delete the registry. AcrPull pulls, nothing more.")),
+                    Beat(41, show = setOf("admin"), light = setOf("admin"), pulse = "admin" to "acr", card = BoardCard("Admin user", "A spare key under the doormat. Off by default; keep it off.")),
+                    Beat(46, show = setOf("you", "login"), light = setOf("login"), pulse = "you" to "login", card = BoardCard("az acr login", "Your own Azure sign-in, and a short pass for Docker.")),
+                    Beat(48, light = setOf("acr", "mi", "role"), card = BoardCard("The whole Coach", "Premium, two regions, task builds, build-id tags, AcrPull.")),
                 ),
             ),
-            // 41: "And where does it all stop working? Every romance has its limits."
+            // 49: "And where does it all stop working? Every romance has its limits."
             Scene(
-                41, "Every romance has limits", limits(),
+                49, "Every romance has limits", limits(),
                 beats = listOf(
-                    Beat(42, show = setOf("lock", "phone", "trial", "next"), light = setOf("lock", "phone"), pulse = "phone" to "next", card = BoardCard("Where it stops", "Lock a version, or run the digest. The host pulls, not the phone.")),
+                    Beat(50, show = setOf("lock", "phone", "trial", "next"), light = setOf("lock", "phone"), pulse = "phone" to "next", card = BoardCard("Where it stops", "Lock a version, or run the digest. The host pulls, not the phone.")),
                 ),
             ),
-            // 43: "Last question, for the exam. What do we remember?"
+            // 53: "Last question, for the exam. What do we remember?"
             Scene(
-                43, "For the exam", exam(),
+                53, "For the exam", exam(),
                 beats = listOf(
-                    Beat(44, show = all6, light = setOf("latest", "nopass", "regions", "base"), card = BoardCard("Listen for the phrase", "A unique tag, AcrPull, Premium, a base trigger. Four for four.")),
-                    Beat(47, card = today),
+                    Beat(54, show = all6, light = setOf("latest", "nopass", "regions", "base"), card = BoardCard("Listen for the phrase", "A unique tag, AcrPull, Premium, a base trigger. Four for four.")),
+                    Beat(59, card = today),
                 ),
             ),
         ),
