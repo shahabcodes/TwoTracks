@@ -95,7 +95,9 @@ class ContentTest {
                 // section furniture: the same two links under every topic.
                 assertTrue("${t.id} has ${t.references.size} reference(s), wanted 4 or more", t.references.size >= 4)
                 assertEquals("${t.id} repeats a reference", t.references.size, t.references.map { it.url }.distinct().size)
-                t.references.forEach { r -> assertTrue("${t.id}: ${r.url}", r.url.startsWith("https://learn.microsoft.com/") || r.url.startsWith("https://www.goethe.de/") || r.url.startsWith("https://ielts.org/")) }
+                t.references.forEach { r -> assertTrue("${t.id}: ${r.url}", r.url.startsWith("https://learn.microsoft.com/") || r.url.startsWith("https://www.goethe.de/") || r.url.startsWith("https://ielts.org/") ||
+                    // PSM I: the Scrum Guide and Scrum.org, the assessment's own sources.
+                    r.url.startsWith("https://scrumguides.org/") || r.url.startsWith("https://www.scrum.org/")) }
                 assertTrue("${t.id} needs a glossary", t.blocks.any { it is Block.Glossary })
                 t.blocks.filterIsInstance<Block.Check>().forEach { c -> assertTrue("${c.question.id} topic", c.question.topicId == t.id) }
             }
