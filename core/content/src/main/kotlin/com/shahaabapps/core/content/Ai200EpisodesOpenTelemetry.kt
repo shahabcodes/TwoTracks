@@ -5,57 +5,69 @@ internal object Ai200EpisodesOpenTelemetry {
     private val classic = Podcast(
         "ai-opentelemetry",
         listOf(
-            maya("Hi, and welcome back. Today is about following one request on its journey through several programs. Think of a parcel with a tracking number, scanned at every depot, so later you can see the whole trip and where it sat waiting."),
+            maya("Hi, and welcome back. Today: following one request on its journey through several programs. Think of a parcel with a tracking number, scanned at every depot, so you can see the whole trip and where it sat waiting."),
             leo("My app is one program. Why would a request visit several?"),
-            maya("Say you're building the Two Tracks Coach, a study assistant in an Android app. A student asks a question. The phone sends it to the Coach API, a Python program running on Azure, Microsoft's cloud. API just means the part other programs call. And the API calls a second program to summarise the student's notes."),
+            maya("Say you're building the Two Tracks Coach, a study assistant in an Android app. A student asks a question, and the phone sends it to the Coach API, a Python program on Azure, Microsoft's cloud. API just means the part other programs call. That API calls a second program to summarise the notes."),
             leo("What's the second program?"),
             maya("A function. In Azure Functions, a function is a small piece of code Azure runs only when it's called, like a taxi you hail instead of a car you own. The Coach's one is called Summarize, and it reads the notes from a database."),
             leo("And one evening, students say the Coach is slow."),
-            maya("Exactly the evening we need. Each program keeps its own log, a diary of what it did, and each diary says, I was fine. Matching them by the clock fails: a hundred students ask in the same second. You need something that travels with the request."),
+            maya("Each program keeps its own log, a diary like Logcat on your phone, and each diary says, I was fine. Matching them by the clock fails: a hundred students ask in the same second. You need something that travels with the request."),
             leo("The tracking number."),
-            maya("That's distributed tracing: following one request through every program it touches. And OpenTelemetry is the open standard for it. A standard is a shared rulebook that many tools agree on, so it isn't tied to one company. Python, Java and many others all speak it."),
+            maya("That's distributed tracing: following one request through every program it touches. The tool for it is called OpenTelemetry."),
+            leo("Another Azure product I have to learn?"),
+            maya("No, an open standard: a shared rulebook many tools agree on, not tied to one company. Python, Java and Kotlin all speak it, and Azure is one place it can send to."),
             leo("Okay. What words does the rulebook use?"),
-            maya("Two big ones. A trace is the whole journey of one request, like a parcel's whole trip from the shop to your door. Here, one student question, end to end. It carries a trace id, a long random number that is the tracking number itself."),
+            maya("Two big ones. A trace is the whole journey of one request: here, one student question, end to end. It carries a trace id, a long random number: the tracking number itself."),
             leo("And the scans at each depot?"),
-            maya("Those are spans. A span is one stop on the trip, stamped in and stamped out. In at nine, out at nine forty: forty minutes at that depot. Every span has a name, a start, an end, and the same trace id as the rest of the trip."),
+            maya("Those are spans. A span is one stop on the trip, stamped in and stamped out: in at nine, out at nine forty, forty minutes at that depot. Every span has a name, a start, an end, and the trip's trace id."),
             leo("And in the Coach, what are the stops?"),
             maya("Handling the question is one span. The call to Summarize is a second, inside it, and the database read inside the function is a third. Each span's parent is the step that started it, so they sit inside each other, like boxes inside boxes."),
             leo("So the spans make a family tree, all with the same surname."),
             maya("[chuckle] That's it. And a span can carry attributes: little labels, a name and a value, stuck on the span. For example, coach topic equals cosmos. Later you can find every slow question about one topic."),
             leo("Where do all these spans go?"),
-            maya("To Application Insights, Azure's service that collects what your app reports about itself, and shows it to you. You create one in Azure, and each thing you create there is called a resource."),
-            leo("What does an app report about itself?"),
-            maya("That report is called telemetry. Picture a fitness tracker on your wrist: it counts your steps and heartbeat, and sends the readings to your phone. Your app's version sends how many requests came in, how long each took, which failed, and its spans. Application Insights stitches the spans into one story, by trace id."),
+            maya("To Application Insights, Azure's service that collects what your app reports about itself, and shows it to you. You create one in Azure; each thing you create there is called a resource."),
+            leo("Reports about itself? Like Logcat, when my phone's plugged in?"),
+            maya("Close, but nobody's plugged in: your server is in the cloud. That report is called telemetry. Picture a fitness tracker on your wrist, sending your steps and heartbeat to your phone. Your server sends its requests, how long each took, which failed, and its spans."),
+            leo("And it works out which spans belong together?"),
+            maya("By trace id. Application Insights stitches every span with the same number into one story."),
             leo("But how does the function know the API's trace id? They're two separate programs."),
-            maya("That's the clever bit: passing the trace along. When the API calls the function over the web, it adds a header. A header is a line of extra information on the outside of a web request, like writing on an envelope. This one is called traceparent."),
+            maya("That's the clever bit: passing the trace along. When the API calls the function over the web, it adds a header: a line of extra information on the outside of the request, like writing on an envelope. You've set headers with OkHttp. This one is called traceparent."),
             leo("And what's written on the envelope?"),
             maya("The trace id, and the id of the span that made the call, its parent. When the function receives the call, it reads traceparent and carries on the same trace, instead of starting a new one."),
             leo("Do I have to write that header myself?"),
-            maya("No. That's instrumentation: ready-made code that records spans for you, wrapped around the tools you already use, like a fitness tracker strapped to each one. When the Coach calls out, it adds the traceparent header; when a program receives a call, it reads it."),
+            maya("No. That's instrumentation: ready-made code that records spans for you, wrapped around the tools you already use. Think of an OkHttp interceptor that stamps every call without you touching it. Going out, it adds traceparent; coming in, it reads it."),
             leo("And how do I get this instrumentation into my Python?"),
-            maya("With one package from Microsoft: the Azure Monitor OpenTelemetry Distro. A distro is a bundle, like a meal kit: the OpenTelemetry parts, a sender that ships spans to Application Insights, and the instrumentations. You install it, then call one function, configure azure monitor, once."),
-            leo("Once, where?"),
-            maya("At the very start, before the app answers any request; call it later, and the first requests go untraced. It also needs to know where to send the data: the connection string, the postal address of your Application Insights."),
+            maya("With one package from Microsoft: the Azure Monitor OpenTelemetry Distro. A distro is a bundle, like a meal kit: the OpenTelemetry parts, the instrumentations, and an exporter that sends your spans to Application Insights. You install it and call one function, configure azure monitor."),
+            leo("Where in my code?"),
+            maya("At the very top, before the app answers any request, like starting a crash reporter in your Android Application class. Call it later, and the first requests go untraced. It also needs the connection string: the postal address of your Application Insights."),
             leo("Do I paste the connection string into the code?"),
-            maya("No. You hand it over as an environment variable: a setting given to a program from outside its code, like a note left on its desk. The distro finds it there by itself. Pasting it into the source is a classic mistake."),
+            maya("No. Hand it over as an environment variable: a setting given to a program from outside its code, like a note left on its desk. The distro finds it there. Pasting it into the source is a classic mistake."),
             leo("So what does it trace without me doing anything?"),
-            maya("Quite a lot. Incoming calls through FastAPI, the Python toolkit the Coach API is built with. Outgoing calls through requests, a popular Python library for calling the web. And calls through the Azure SDK, short for software development kit: Microsoft's Python packages for its services, so database reads show up too."),
+            maya("Incoming calls through FastAPI, the Python toolkit the Coach API is built with. That's the request your Android app sends in."),
+            leo("And the calls my server makes out?"),
+            maya("Through requests, a popular Python library for calling the web, and through the Azure SDK, short for software development kit: Microsoft's packages for its services. So database reads show up too."),
             leo("And if I want to time just one part of my own code?"),
             maya("A custom span. You get a tracer, the object that makes spans, and wrap the part you care about, say ranking the notes, in a with block. Then you set an attribute on it, like the topic."),
             leo("Okay. Where do I actually see all this?"),
             maya("Two places. Transaction search finds one request, by time or name. Open its end-to-end transaction details, and you see every span of that trace as a timeline: bars, one under another, showing where the time went."),
             leo("And the second place?"),
-            maya("The application map: a drawing of your whole system, with arrows for the calls and how often they fail. Each box on it is a node, one dot in a network; here, one node is one program. Its name is the cloud role name, set with the OTEL service name setting, OTEL being short for OpenTelemetry. Forget it, and two programs blur into one node."),
+            maya("The application map: a drawing of your whole system, with arrows for the calls and how often they fail. Each box on it is a node, one dot in a network; here, one node is one program."),
+            leo("How does it know which box is which?"),
+            maya("By the cloud role name, set with the OTEL service name setting, OTEL being short for OpenTelemetry. Forget it, and two programs blur into one node."),
             leo("So what did the slow evening show?"),
-            maya("One trace showed it. Forty milliseconds, a blink, in the API; nearly two seconds in Summarize, mostly one database query. Without tracing, the team would have tuned the wrong program all night."),
+            maya("One trace showed it: forty milliseconds in the API, nearly two seconds in Summarize, mostly one database query. Without tracing, they'd have tuned the wrong program."),
             leo("[pause] Does it keep every single request? That sounds expensive."),
-            maya("Not by default. That's sampling: keeping only some traces, to control cost. Recent versions keep about five traces a second. For a fixed one in ten, set the sampling ratio to 0.1. Whole traces are kept or dropped together, so you never get half a journey."),
+            maya("Not by default. That's sampling: keeping only some traces, to control cost. Recent versions keep about five traces a second. For a fixed one in ten, set the sampling ratio to 0.1."),
+            leo("Couldn't that cut a journey in half?"),
+            maya("No. Whole traces are kept or dropped together, so you never get half a journey."),
             leo("What goes wrong most often?"),
-            maya("Calling configure azure monitor too late. Leaving every service with the default name. Pasting the connection string into the code. Calling out with a homemade helper nobody instruments, so the trace breaks in two. And expecting every request to be kept while sampling is on."),
+            maya("Calling configure azure monitor too late, and pasting the connection string into the code. You've heard both."),
+            leo("And the sneaky ones?"),
+            maya("Every service left with the default name, so they blur on the map. A homemade call helper nobody instruments, so the trace breaks in two. And expecting every request kept while sampling is on."),
             leo("So what do I remember for the exam?"),
             maya("If the question says one call to send traces from Python, the answer is configure azure monitor. If a called service shows up as a separate trace, traceparent is missing. If two services appear as one node on the map, a different service name in each. To keep one trace in ten, a sampling ratio of 0.1. And for which service fails most, the application map."),
             leo("And anything to try today?"),
-            maya("About fifteen minutes. Create an Application Insights resource and copy its connection string. Install the distro with FastAPI, and call configure azure monitor in a tiny app. Add one custom span with an attribute, run the app and hit it a few times. Then open Transaction search, and the end-to-end view of one request."),
+            maya("Create an Application Insights resource and copy its connection string. Install the distro with FastAPI, and call configure azure monitor in a tiny app. Add one custom span with an attribute, run the app and hit it a few times. Then open Transaction search, and the end-to-end view of one request."),
             leo("A tracking number for every question. See you next time."),
         ),
         series = PodcastSeries.AI200,
@@ -74,17 +86,23 @@ internal object Ai200EpisodesOpenTelemetry {
             leo("And the rulebook's first word?"),
             maya("The trace: the whole journey of one request, like a parcel's whole trip from the shop to your door. It has a trace id, a long random number that works like the parcel's tracking number."),
             leo("And the scans at each depot?"),
-            maya("Spans. A span is one stop on the trip, stamped in and out: in at nine, out at nine forty, forty minutes there. Under the picture, it's a small record: a name, a start time, how long it took, the trace id, its own id, and its parent's. Marking the answer is one span; the call to the grader, another."),
+            maya("Spans. A span is one stop on the trip, stamped in and out: in at nine, out at nine forty, forty minutes there. Marking the answer is one span; the call to the grader, another."),
+            leo("And under the picture? What's actually in a span?"),
+            maya("A small record: a name, a start time, how long it took, the trace id, its own id, and its parent's id, the span that started it."),
             leo("And where do the records end up?"),
             maya("In Application Insights, Azure's service that collects an app's telemetry and shows it back to you."),
             leo("Telemetry. In plain words, for the file."),
-            maya("What an app reports about itself. Think of a fitness tracker on your wrist, sending your steps and heartbeat to your phone. Your app sends its requests, timings, errors and spans. Application Insights joins the spans into one story by trace id. That's the theory. The evidence: the grader's spans showed up as a separate trace. Two islands, no bridge."),
+            maya("What an app reports about itself. Think of a fitness tracker on your wrist, sending your steps and heartbeat to your phone. Your app sends its requests, timings, errors and spans, and Application Insights joins the spans into one story by trace id."),
+            leo("That's the theory. What's the evidence?"),
+            maya("The grader's spans showed up as a separate trace. Two islands, no bridge."),
             leo("Suspect one: the grader's managed identity. It's not allowed to join in."),
             maya("[pause] Wrong suspect. A managed identity is a badge that decides what a program may open. It carries nothing about tracing. Ask instead how the grader would know the trace id at all. It's a separate program."),
             leo("Someone has to tell it."),
             maya("Exactly. That's context propagation, passing the trace along. On every outgoing web call, a header is added. A header is a line of extra information on the outside of a request, like writing on an envelope. This one is traceparent. It carries the trace id and the caller's span id."),
             leo("So the grader reads the envelope and continues the same trace."),
-            maya("If the envelope arrives. And who writes it? The instrumentation: ready-made code wrapped around the tools you already use, recording spans and adding traceparent for you. Clue one: the quiz API called the grader with a raw socket helper, a homemade shortcut. Nothing instruments it, so the envelope went out blank."),
+            maya("If the envelope arrives. And who writes it? The instrumentation: ready-made code wrapped around the tools you already use, recording spans and adding traceparent for you. Like an OkHttp interceptor in your Android app."),
+            leo("So nobody on the team typed that header by hand."),
+            maya("Nobody. And here's clue one: the quiz API called the grader with a raw socket helper, a homemade shortcut. Nothing instruments it, so the envelope went out blank."),
             leo("And the fix?"),
             maya("Make the call with requests, the popular Python library for calling the web, which the distro does instrument. Traceparent is added, the grader reads it, and the two islands become one trace."),
             leo("Distro? Is that another suspect?"),
@@ -100,7 +118,9 @@ internal object Ai200EpisodesOpenTelemetry {
             leo("And what did the joined trace finally say?"),
             maya("Open transaction search, find one slow request, and open its end-to-end details: every span as a timeline. Forty milliseconds in the quiz API, nearly two seconds in the grader, most of it one database query. The culprit was the database read, not the API."),
             leo("Last loose end. Some slow requests weren't in there at all."),
-            maya("That's sampling: keeping only some traces, to control cost. By default, recent versions keep about five traces a second. To keep a fixed one in ten, the sampling ratio is 0.1. Whole traces are kept or dropped together. So where does tracing stop working? Wherever a call goes through a tool that isn't instrumented, and for any trace that wasn't kept."),
+            maya("That's sampling: keeping only some traces, to control cost. By default, recent versions keep about five traces a second. To keep a fixed one in ten, the sampling ratio is 0.1. Whole traces are kept or dropped together."),
+            leo("So where does tracing stop working, for the record?"),
+            maya("Wherever a call goes through a tool that isn't instrumented, and for any trace that sampling didn't keep."),
             leo("And if I want to time just the marking code?"),
             maya("A custom span. Ask for a tracer, the object that makes spans, wrap the marking in a with block, and set an attribute, a little label like the quiz topic. The KQL episode, the one about asking your logs questions, shows how to search those labels later."),
             leo("So, the case summary for the exam?"),
@@ -120,9 +140,13 @@ internal object Ai200EpisodesOpenTelemetry {
             leo("[laugh] I heard the word blob shouted across the office. What's tracing?"),
             maya("Following one request through every program it touches, like a parcel scanned at every depot. A student's question goes from the phone to the Coach API, the program the phone calls. Then on to Summarize, a small function Azure runs only when it's called, and then to a database."),
             leo("And they wanted to know which stop was slow."),
-            maya("Right. They used OpenTelemetry, the open standard for tracing: a shared rulebook many tools agree on. A trace is the whole journey of one question, like a parcel's whole trip from shop to door, and it has a trace id, a long random number, the tracking number."),
+            maya("Right. They used OpenTelemetry, the open standard for tracing: a shared rulebook many tools agree on."),
+            leo("Okay, but what does it actually record?"),
+            maya("A trace: the whole journey of one question, from phone to database. It has a trace id, a long random number: the tracking number."),
             leo("And each stop along the way?"),
-            maya("A span: one stop on the trip, stamped in and stamped out. In at nine, out at nine forty, so forty minutes at that depot. Under the picture, a span is a small record with a name, a duration, the trace id, its own id and its parent's id, the step that started it."),
+            maya("A span: one stop on the trip, stamped in and stamped out. In at nine, out at nine forty, so forty minutes at that depot."),
+            leo("And in code terms? It's not a real stamp."),
+            maya("No, a small record: a name, a duration, the trace id, its own id, and its parent's id, the step that started it."),
             leo("And where do all those stamps end up?"),
             maya("In Application Insights, Azure's service that collects an app's telemetry. That's what an app reports about itself, like a fitness tracker sending your steps and heartbeat to your phone. Here it's requests, timings, errors and spans."),
             leo("Okay. Who went first?"),
@@ -136,11 +160,15 @@ internal object Ai200EpisodesOpenTelemetry {
             leo("Wednesday. Go."),
             maya("The intern. Bless them. They wrote their own clever little helper to call Summarize, homemade from raw sockets, the bare plumbing of the internet. And from then on, Summarize's work showed up as its own separate trace. Two journeys instead of one."),
             leo("Why would a helper break tracing?"),
-            maya("Here's how it really works. When the Coach calls another program over the web, it adds a header, a line of extra information on the outside of the request, like writing on an envelope. It's called traceparent, and it carries the trace id. The receiving side reads it and carries on the same trace."),
+            maya("Here's how it really works. When the Coach calls another program over the web, it adds a header: a line of extra information on the outside of the request, like writing on an envelope."),
+            leo("Like the auth header my Android app sends?"),
+            maya("Same idea. This one's called traceparent, and it carries the trace id. The receiving side reads it and carries on the same trace."),
             leo("And the intern's helper didn't write the envelope."),
             maya("Nobody did. The header is added by instrumentation: ready-made code wrapped around common tools, like requests, the popular Python library for calling the web. The intern's homemade helper had no instrumentation. Switch to requests, and the header is back."),
             leo("So that's where tracing stops working."),
-            maya("One of the places. Any call through a tool that isn't instrumented breaks the chain. FastAPI, requests, and the Azure SDK, short for software development kit, Microsoft's Python packages for its services, are covered for you. And for the function, the team set telemetry mode to OpenTelemetry in its settings file, host json."),
+            maya("One of the places. Any call through a tool that isn't instrumented breaks the chain. FastAPI, requests, and the Azure SDK, short for software development kit, Microsoft's Python packages for its services, are covered for you."),
+            leo("And Summarize? It's a function, not a web app."),
+            maya("The team set telemetry mode to OpenTelemetry in the function's settings file, host json. Then it joins the same trace."),
             leo("Thursday. Who shouted blob?"),
             maya("Dana. Dana opened the application map, the drawing of the whole system, with arrows for the calls. Each box is a node, one dot in a network; here, one program. And the Coach API and Summarize appeared as one confused blob. She shouted. We all heard."),
             leo("[chuckle] Why one blob?"),
@@ -150,7 +178,9 @@ internal object Ai200EpisodesOpenTelemetry {
             leo("Was it?"),
             maya("No. That's sampling: keeping only some traces, to keep the cost down. Recent versions keep about five traces a second by default. Whole traces are kept or dropped together. For a fixed one in ten, the sampling ratio is 0.1. Priya's request just wasn't one of the lucky ones."),
             leo("Did they find what was slow, in the end?"),
-            maya("They did. Priya added a custom span: she asked for a tracer, the object that makes spans, and wrapped the note ranking in a with block, with an attribute, a little label for the topic. The end-to-end view showed nearly two seconds in one database query. The KQL episode, the one about asking your logs questions, shows how to search those labels."),
+            maya("They did. Priya added a custom span: she asked for a tracer, the object that makes spans, and wrapped the note ranking in a with block, with an attribute, a little label for the topic."),
+            leo("And the verdict?"),
+            maya("The end-to-end view showed nearly two seconds in one database query. The KQL episode, the one about asking your logs questions, shows how to search those labels."),
             leo("So, the gossip I should remember for the exam?"),
             maya("If the question says one call to send traces from Python, the answer is configure azure monitor, and Tom will tell you, call it first. If a called service starts its own trace, traceparent is missing. If services blur into one node, a different service name in each. To keep one in ten, a sampling ratio of 0.1."),
             leo("And something to try today, so I'm not next week's story?"),
@@ -170,7 +200,9 @@ internal object Ai200EpisodesOpenTelemetry {
             ivy("What's the second program?"),
             nova("Summarize. It's a function: in Azure Functions, a small piece of code Azure wakes only when it's called, like a night bus that comes when you wave. [pause] And one night, the Coach feels slow, and every program swears it wasn't them."),
             ivy("Of course they do. How do you catch them?"),
-            nova("With distributed tracing: following one request through every program it touches. Like a parcel scanned at every depot, so you can see the whole trip, and where it waited. The rulebook for it is OpenTelemetry, an open standard, a shared set of rules many tools agree on."),
+            nova("With distributed tracing: following one request through every program it touches. Like a parcel scanned at every depot, so you see the whole trip, and where it waited."),
+            ivy("And who sets the rules for the scanning?"),
+            nova("OpenTelemetry. It's an open standard, [pause] a shared set of rules many tools agree on, owned by no single company."),
             ivy("Rules. Tell me the first one."),
             nova("A trace is the whole journey of one request, like a parcel's whole trip from the shop to your door. It carries a trace id, a long random number, the parcel's tracking number. [pause] Every step of the journey wears that same number."),
             ivy("And each step has a name?"),
@@ -182,7 +214,9 @@ internal object Ai200EpisodesOpenTelemetry {
             ivy("But the function is a different program. How does it know the number?"),
             nova("Someone whispers it. When the Coach calls the function over the web, it adds a header: a line of extra information on the outside of the request, like writing on an envelope. This one is called traceparent. It carries the trace id and the caller's span id."),
             ivy("A secret note on the envelope. I like it."),
-            nova("And the function reads it, and carries on the same trace instead of starting a new one. That's how it really works. [pause] Nobody writes that note by hand. Instrumentation does: ready-made code wrapped around the tools you already use, recording spans and adding the header."),
+            nova("And the function reads it, and carries on the same trace instead of starting a new one. [pause] That's how it really works."),
+            ivy("Do I write that note by hand? I'd forget."),
+            nova("Nobody does. Instrumentation does: ready-made code wrapped around the tools you already use, like an interceptor on your Android app's web client, recording spans and adding the header."),
             ivy("And how does that get into my Python?"),
             nova("One package: the Azure Monitor OpenTelemetry Distro. A distro is a bundle, like a meal kit: the OpenTelemetry parts, a sender to Application Insights, and the instrumentations. You install it, and call one function, configure azure monitor, once, before the app starts answering."),
             ivy("Before. Not after."),
@@ -192,11 +226,15 @@ internal object Ai200EpisodesOpenTelemetry {
             ivy("What does it watch without being asked?"),
             nova("Quite a lot. FastAPI, the Python toolkit the Coach API is built with. Requests, the popular Python library for calling the web. And the Azure SDK, short for software development kit, Microsoft's Python packages for its services, so the database calls appear too."),
             ivy("And if I want to watch just one part of my own code? Closely."),
-            nova("A custom span. You ask for a tracer, the object that makes spans, and wrap the part you care about, say ranking the notes, in a with block. Then you set an attribute on it, a little label, like the topic. The KQL episode, about asking your logs questions, shows you how to search those labels later."),
+            nova("A custom span. You ask for a tracer, the object that makes spans, and wrap the part you care about, say ranking the notes, in a with block. Then you set an attribute on it, a little label, like the topic."),
+            ivy("And later, I find it how?"),
+            nova("The KQL episode, the one about asking your logs questions, shows you how to search those labels."),
             ivy("Now, where do I actually look?"),
             nova("Two places. Transaction search finds one request, by time or by name. Open its end-to-end transaction details, and every span lies there as a timeline, bar under bar, showing where the time went."),
             ivy("And the other place?"),
-            nova("The application map. A drawing of your whole system, with arrows for the calls. Each box is a node, one dot in a network; here, one program. It's named by its cloud role name, which you set with the OTEL service name setting. OTEL is short for OpenTelemetry. Forget it, and two services blur into one."),
+            nova("The application map. A drawing of your whole system, with arrows for the calls. Each box is a node, one dot in a network; here, one program."),
+            ivy("And how does a box get its name?"),
+            nova("From its cloud role name, which you set with the OTEL service name setting. OTEL is short for OpenTelemetry. [pause] Forget it, and two services blur into one."),
             ivy("Does it keep every request? Every single one?"),
             nova("Not by default. That's sampling: keeping only some traces, to keep the cost down. Recent versions keep about five a second. To keep a fixed one in ten, set the sampling ratio to 0.1. Whole traces are kept or dropped together. Never half a journey."),
             ivy("Now the part I've been waiting for. Where does all this stop working?"),
@@ -218,7 +256,9 @@ internal object Ai200EpisodesOpenTelemetry {
             rafe("Let me guess. Something that follows you everywhere you go."),
             nova("[laugh] Tracing, with OpenTelemetry. Following one request through every program it touches, like a parcel scanned at every depot. OpenTelemetry is the open standard for it, a shared rulebook many tools agree on."),
             rafe("Following someone everywhere. In some places that's frowned upon."),
-            nova("Not in software. Picture the Two Tracks Coach, the study assistant in the Android app. A question goes to the Coach API, the Python program the phone calls, on Azure, Microsoft's cloud. Then to Summarize, a function, a small piece of code Azure runs only when it's called. Then to a database."),
+            nova("Not in software. Picture the Two Tracks Coach, the study assistant in the Android app. A question goes from the phone to the Coach API, the Python program it calls, on Azure, Microsoft's cloud."),
+            rafe("And the API does all the work itself?"),
+            nova("No, it calls Summarize, a function: a small piece of code Azure runs only when it's called. And Summarize reads a database."),
             rafe("And when it's slow, everyone says it wasn't them."),
             nova("Exactly. So each request gets a trace: the whole journey, like a parcel's trip from the shop to your door, under one trace id, a long random number that works as the tracking number."),
             rafe("And each stop on the way? Every depot it visits?"),
@@ -236,7 +276,9 @@ internal object Ai200EpisodesOpenTelemetry {
             rafe("And it needs an address, I assume. Somewhere to send all those love letters."),
             nova("The connection string, the address of your Application Insights, with an id on it. And not in the code. It goes in an environment variable, a setting handed to a program from outside its code. The distro finds it by itself."),
             rafe("Discreet. What does it watch without being asked?"),
-            nova("FastAPI, the Python toolkit the Coach API is built with. Requests, the popular library for calling the web. And the Azure SDK, short for software development kit, Microsoft's Python packages for its services, so database calls appear too."),
+            nova("FastAPI, the Python toolkit the Coach API is built with: that's the request your phone sends in."),
+            rafe("And the calls going out?"),
+            nova("Requests, the popular library for calling the web. And the Azure SDK, short for software development kit, Microsoft's Python packages for its services, so database calls appear too."),
             rafe("And if I only want to watch one part of you closely?"),
             nova("[chuckle] A custom span. Ask for a tracer, the object that makes spans, and wrap the part you care about in a with block. Then add an attribute, a little label, like the topic. Your turn for a question."),
             rafe("Two services, one Application Insights, and on the application map they show up as one blob. How do we fix it?"),
@@ -414,77 +456,77 @@ internal object Ai200EpisodesOpenTelemetry {
                     Beat(2, show = setOf("phone", "api"), light = setOf("api"), pulse = "phone" to "api", card = BoardCard("The Two Tracks Coach", "The phone calls the Coach API, a Python program on Azure.")),
                     Beat(4, show = setOf("func", "db"), light = setOf("func"), pulse = "api" to "func", card = BoardCard("A function", "Code Azure runs only when it's called. Summarize reads the notes.")),
                     Beat(6, light = setOf("api", "func"), card = BoardCard("Every log says: I was fine", "Matching logs by the clock fails: a hundred students, one second.")),
-                    Beat(8, show = setOf("appi"), light = setOf("appi"), pulse = "api" to "appi", card = BoardCard("OpenTelemetry", "The open standard for distributed tracing: a shared rulebook.")),
+                    Beat(10, show = setOf("appi"), light = setOf("appi"), pulse = "api" to "appi", card = BoardCard("OpenTelemetry", "The open standard for distributed tracing: a shared rulebook.")),
                 ),
             ),
-            // 9: "Okay. What words does the rulebook use?"
+            // 11: "Okay. What words does the rulebook use?"
             Scene(
-                9, "Traces and spans", spans(),
+                11, "Traces and spans", spans(),
                 beats = listOf(
-                    Beat(10, show = setOf("trace"), light = setOf("trace"), card = BoardCard("Trace", "The whole trip of one request, shop to door, under one trace id.")),
-                    Beat(12, show = setOf("s1", "s3"), light = setOf("s3"), pulse = "s1" to "s3", card = BoardCard("Span", "One stop, stamped in and out: in at 9:00, out at 9:40, so 40 minutes.")),
-                    Beat(14, show = setOf("s4"), light = setOf("s4"), pulse = "s3" to "s4", card = BoardCard("Boxes inside boxes", "Each span's parent started it: the question, Summarize, the read.")),
-                    Beat(16, light = setOf("s1"), card = BoardCard("Attribute", "A name and a value on a span: coach.topic = cosmos.")),
+                    Beat(12, show = setOf("trace"), light = setOf("trace"), card = BoardCard("Trace", "The whole trip of one request, shop to door, under one trace id.")),
+                    Beat(14, show = setOf("s1", "s3"), light = setOf("s3"), pulse = "s1" to "s3", card = BoardCard("Span", "One stop, stamped in and out: in at 9:00, out at 9:40, so 40 minutes.")),
+                    Beat(16, show = setOf("s4"), light = setOf("s4"), pulse = "s3" to "s4", card = BoardCard("Boxes inside boxes", "Each span's parent started it: the question, Summarize, the read.")),
+                    Beat(18, light = setOf("s1"), card = BoardCard("Attribute", "A name and a value on a span: coach.topic = cosmos.")),
                 ),
             ),
-            // 17: "Where do all these spans go?"
+            // 19: "Where do all these spans go?"
             Scene(
-                17, "Where the spans go", journey("Coach API", "Summarize"),
+                19, "Where the spans go", journey("Coach API", "Summarize"),
                 beats = listOf(
-                    Beat(18, light = setOf("appi"), pulse = "func" to "appi", card = BoardCard("Application Insights", "Collects telemetry and stitches the spans back together by trace id.")),
-                    Beat(20, light = setOf("appi", "api"), pulse = "api" to "appi", card = BoardCard("Telemetry", "What the app reports about itself, like a fitness tracker's readings.")),
+                    Beat(20, light = setOf("appi"), pulse = "func" to "appi", card = BoardCard("Application Insights", "Collects telemetry and stitches the spans back together by trace id.")),
+                    Beat(22, light = setOf("appi", "api"), pulse = "api" to "appi", card = BoardCard("Telemetry", "What the app reports about itself, like a fitness tracker's readings.")),
                 ),
             ),
-            // 21: "But how does the function know the API's trace id?..."
+            // 25: "But how does the function know the API's trace id?..."
             Scene(
-                21, "Passing the trace along", propagation("Coach API", "Summarize"),
+                25, "Passing the trace along", propagation("Coach API", "Summarize"),
                 beats = listOf(
-                    Beat(21, show = setOf("api", "func"), light = setOf("func")),
-                    Beat(22, show = setOf("hdr"), light = setOf("hdr"), pulse = "api" to "hdr", card = BoardCard("A header", "Extra information on the outside of a web call, like an envelope.")),
-                    Beat(24, light = setOf("func"), pulse = "hdr" to "func", card = headerCode),
-                    Beat(26, light = setOf("api", "func"), pulse = "api" to "func", card = BoardCard("Instrumentation", "Ready-made code around your tools: it adds and reads traceparent.")),
+                    Beat(25, show = setOf("api", "func"), light = setOf("func")),
+                    Beat(26, show = setOf("hdr"), light = setOf("hdr"), pulse = "api" to "hdr", card = BoardCard("A header", "Extra information on the outside of a web call, like an envelope.")),
+                    Beat(28, light = setOf("func"), pulse = "hdr" to "func", card = headerCode),
+                    Beat(30, light = setOf("api", "func"), pulse = "api" to "func", card = BoardCard("Instrumentation", "Ready-made code around your tools: it adds and reads traceparent.")),
                 ),
             ),
-            // 27: "And how do I get this instrumentation into my Python?"
+            // 31: "And how do I get this instrumentation into my Python?"
             Scene(
-                27, "The distro", distro(),
+                31, "The distro", distro(),
                 beats = listOf(
-                    Beat(28, show = setOf("pkg", "inst", "otel", "exp"), light = setOf("pkg"), pulse = "pkg" to "inst", card = BoardCard("A meal kit", "OpenTelemetry, an exporter and the instrumentations, in one package.")),
-                    Beat(30, light = setOf("pkg"), card = configureCode),
-                    Beat(32, show = setOf("conn", "appi"), light = setOf("conn"), pulse = "conn" to "appi", card = envCode),
-                    Beat(34, light = setOf("inst"), pulse = "pkg" to "inst", card = traced),
+                    Beat(32, show = setOf("pkg", "inst", "otel", "exp"), light = setOf("pkg"), pulse = "pkg" to "inst", card = BoardCard("A meal kit", "OpenTelemetry, an exporter and the instrumentations, in one package.")),
+                    Beat(34, light = setOf("pkg"), card = configureCode),
+                    Beat(36, show = setOf("conn", "appi"), light = setOf("conn"), pulse = "conn" to "appi", card = envCode),
+                    Beat(38, light = setOf("inst"), pulse = "pkg" to "inst", card = traced),
                 ),
             ),
-            // 35: "And if I want to time just one part of my own code?"
+            // 41: "And if I want to time just one part of my own code?"
             Scene(
-                35, "A custom span", spans(),
+                41, "A custom span", spans(),
                 beats = listOf(
-                    Beat(36, show = setOf("s1", "s2"), light = setOf("s2"), pulse = "s1" to "s2", card = spanCode),
+                    Beat(42, show = setOf("s1", "s2"), light = setOf("s2"), pulse = "s1" to "s2", card = spanCode),
                 ),
             ),
-            // 37: "Okay. Where do I actually see all this?"
+            // 43: "Okay. Where do I actually see all this?"
             Scene(
-                37, "Where to look", views(),
+                43, "Where to look", views(),
                 beats = listOf(
-                    Beat(38, show = setOf("appi", "search", "timeline"), light = setOf("search", "timeline"), pulse = "search" to "timeline", card = BoardCard("Transaction search", "Find one request, then its end-to-end details as a timeline.")),
-                    Beat(40, show = setOf("map", "role"), light = setOf("map", "role"), pulse = "map" to "role", card = BoardCard("Application map", "One node per program, named by OTEL_SERVICE_NAME.")),
-                    Beat(42, light = setOf("timeline"), card = BoardCard("The slow evening", "40 ms in the API, nearly 2 s in Summarize: one database query.")),
+                    Beat(44, show = setOf("appi", "search", "timeline"), light = setOf("search", "timeline"), pulse = "search" to "timeline", card = BoardCard("Transaction search", "Find one request, then its end-to-end details as a timeline.")),
+                    Beat(46, show = setOf("map", "role"), light = setOf("map", "role"), pulse = "map" to "role", card = BoardCard("Application map", "One node per program, named by OTEL_SERVICE_NAME.")),
+                    Beat(50, light = setOf("timeline"), card = BoardCard("The slow evening", "40 ms in the API, nearly 2 s in Summarize: one database query.")),
                 ),
             ),
-            // 43: "Does it keep every single request? That sounds expensive."
+            // 51: "Does it keep every single request? That sounds expensive."
             Scene(
-                43, "Sampling", sampling(),
+                51, "Sampling", sampling(),
                 beats = listOf(
-                    Beat(44, show = setOf("all", "kept", "dropped", "ratio"), light = setOf("ratio"), pulse = "kept" to "ratio", card = BoardCard("Sampling", "Keep some traces, whole. For one in ten, sampling_ratio=0.1.")),
-                    Beat(46, light = setOf("dropped"), card = BoardCard("The usual mistakes", "Configured late, default names, a pasted string, a blank envelope.")),
+                    Beat(52, show = setOf("all", "kept", "dropped", "ratio"), light = setOf("ratio"), pulse = "kept" to "ratio", card = BoardCard("Sampling", "Keep some traces, whole. For one in ten, sampling_ratio=0.1.")),
+                    Beat(56, light = setOf("dropped"), card = BoardCard("The usual mistakes", "Configured late, default names, a pasted string, a blank envelope.")),
                 ),
             ),
-            // 47: "So what do I remember for the exam?"
+            // 59: "So what do I remember for the exam?"
             Scene(
-                47, "For the exam", exam(),
+                59, "For the exam", exam(),
                 beats = listOf(
-                    Beat(48, show = all6, light = setOf("one", "split", "blob", "tenth", "glance"), card = BoardCard("Listen for the phrase", "Each exam phrase points to one answer.")),
-                    Beat(50, card = today),
+                    Beat(60, show = all6, light = setOf("one", "split", "blob", "tenth", "glance"), card = BoardCard("Listen for the phrase", "Each exam phrase points to one answer.")),
+                    Beat(62, card = today),
                 ),
             ),
         ),
@@ -511,62 +553,62 @@ internal object Ai200EpisodesOpenTelemetry {
                     Beat(10, show = setOf("s1", "s3", "s4"), light = setOf("s1", "s3"), pulse = "s1" to "s3", card = BoardCard("Span", "One stop, stamped in and out: in at 9:00, out at 9:40, so 40 minutes.")),
                 ),
             ),
-            // 11: "And where do the records end up?"
+            // 13: "And where do the records end up?"
             Scene(
-                11, "Two islands, no bridge", journey("Quiz API", "Grader"),
+                13, "Two islands, no bridge", journey("Quiz API", "Grader"),
                 beats = listOf(
-                    Beat(12, light = setOf("appi"), pulse = "api" to "appi", card = BoardCard("Telemetry", "What the app reports about itself, like a fitness tracker's readings.")),
-                    Beat(14, light = setOf("appi", "func"), pulse = "func" to "appi", card = BoardCard("The evidence", "The grader's spans showed up as a separate trace.")),
+                    Beat(14, light = setOf("appi"), pulse = "api" to "appi", card = BoardCard("Telemetry", "What the app reports about itself, like a fitness tracker's readings.")),
+                    Beat(18, light = setOf("appi", "func"), pulse = "func" to "appi", card = BoardCard("The evidence", "The grader's spans showed up as a separate trace.")),
                 ),
             ),
-            // 15: "Suspect one: the grader's managed identity..."
+            // 19: "Suspect one: the grader's managed identity..."
             Scene(
-                15, "The blank envelope", propagation("Quiz API", "Grader"),
+                19, "The blank envelope", propagation("Quiz API", "Grader"),
                 beats = listOf(
-                    Beat(15, show = setOf("api", "func"), light = setOf("func"), card = BoardCard("Suspect: managed identity", "A badge for access. It carries nothing about tracing.")),
-                    Beat(18, show = setOf("hdr"), light = setOf("hdr"), pulse = "api" to "hdr", card = headerCode),
-                    Beat(20, light = setOf("api"), card = BoardCard("Clue one: a raw socket helper", "Nothing instruments it, so the envelope went out blank.")),
-                    Beat(22, light = setOf("api", "func"), pulse = "hdr" to "func", card = BoardCard("The fix: requests", "An instrumented library adds traceparent: one trace again.")),
+                    Beat(19, show = setOf("api", "func"), light = setOf("func"), card = BoardCard("Suspect: managed identity", "A badge for access. It carries nothing about tracing.")),
+                    Beat(22, show = setOf("hdr"), light = setOf("hdr"), pulse = "api" to "hdr", card = headerCode),
+                    Beat(26, light = setOf("api"), card = BoardCard("Clue one: a raw socket helper", "Nothing instruments it, so the envelope went out blank.")),
+                    Beat(28, light = setOf("api", "func"), pulse = "hdr" to "func", card = BoardCard("The fix: requests", "An instrumented library adds traceparent: one trace again.")),
                 ),
             ),
-            // 23: "Distro? Is that another suspect?"
+            // 29: "Distro? Is that another suspect?"
             Scene(
-                23, "The witness: the distro", distro(),
+                29, "The witness: the distro", distro(),
                 beats = listOf(
-                    Beat(24, show = setOf("pkg", "inst", "otel", "exp"), light = setOf("pkg"), pulse = "pkg" to "inst", card = configureCode),
-                    Beat(26, light = setOf("inst"), card = BoardCard("Functions too", "In host.json, telemetryMode is OpenTelemetry; add the distro.")),
-                    Beat(28, show = setOf("conn", "appi"), light = setOf("conn"), pulse = "conn" to "appi", card = BoardCard("Clue two: a pasted string", "The connection string belongs in an environment variable.")),
+                    Beat(30, show = setOf("pkg", "inst", "otel", "exp"), light = setOf("pkg"), pulse = "pkg" to "inst", card = configureCode),
+                    Beat(32, light = setOf("inst"), card = BoardCard("Functions too", "In host.json, telemetryMode is OpenTelemetry; add the distro.")),
+                    Beat(34, show = setOf("conn", "appi"), light = setOf("conn"), pulse = "conn" to "appi", card = BoardCard("Clue two: a pasted string", "The connection string belongs in an environment variable.")),
                 ),
             ),
-            // 29: "Case closed, then? One trace, everything joined."
+            // 35: "Case closed, then? One trace, everything joined."
             Scene(
-                29, "Clue three: one blob", views(),
+                35, "Clue three: one blob", views(),
                 beats = listOf(
-                    Beat(30, show = setOf("appi", "map"), light = setOf("map"), pulse = "appi" to "map", card = BoardCard("Application map", "Each box a node, one program. QuizCraft's showed one blob.")),
-                    Beat(32, show = setOf("role"), light = setOf("role"), pulse = "map" to "role", card = BoardCard("Cloud role name", "Not a second resource: set OTEL_SERVICE_NAME differently in each.")),
-                    Beat(34, show = setOf("search", "timeline"), light = setOf("timeline"), pulse = "search" to "timeline", card = BoardCard("End-to-end details", "40 ms in the quiz API, nearly 2 s in the grader's database read.")),
+                    Beat(36, show = setOf("appi", "map"), light = setOf("map"), pulse = "appi" to "map", card = BoardCard("Application map", "Each box a node, one program. QuizCraft's showed one blob.")),
+                    Beat(38, show = setOf("role"), light = setOf("role"), pulse = "map" to "role", card = BoardCard("Cloud role name", "Not a second resource: set OTEL_SERVICE_NAME differently in each.")),
+                    Beat(40, show = setOf("search", "timeline"), light = setOf("timeline"), pulse = "search" to "timeline", card = BoardCard("End-to-end details", "40 ms in the quiz API, nearly 2 s in the grader's database read.")),
                 ),
             ),
-            // 35: "Last loose end. Some slow requests weren't in there at all."
+            // 41: "Last loose end. Some slow requests weren't in there at all."
             Scene(
-                35, "The missing requests", sampling(),
+                41, "The missing requests", sampling(),
                 beats = listOf(
-                    Beat(36, show = setOf("all", "kept", "dropped", "ratio"), light = setOf("dropped", "ratio"), pulse = "all" to "dropped", card = BoardCard("Sampling", "About 5 traces a second by default; sampling_ratio=0.1 keeps one in ten.")),
+                    Beat(42, show = setOf("all", "kept", "dropped", "ratio"), light = setOf("dropped", "ratio"), pulse = "all" to "dropped", card = BoardCard("Sampling", "About 5 traces a second by default; sampling_ratio=0.1 keeps one in ten.")),
                 ),
             ),
-            // 37: "And if I want to time just the marking code?"
+            // 45: "And if I want to time just the marking code?"
             Scene(
-                37, "A custom span", spans(),
+                45, "A custom span", spans(),
                 beats = listOf(
-                    Beat(38, show = setOf("s1", "s2"), light = setOf("s2"), pulse = "s1" to "s2", card = spanCode),
+                    Beat(46, show = setOf("s1", "s2"), light = setOf("s2"), pulse = "s1" to "s2", card = spanCode),
                 ),
             ),
-            // 39: "So, the case summary for the exam?"
+            // 47: "So, the case summary for the exam?"
             Scene(
-                39, "Case closed", exam(),
+                47, "Case closed", exam(),
                 beats = listOf(
-                    Beat(40, show = all6, light = setOf("one", "split", "blob", "tenth", "part"), card = BoardCard("Listen for the phrase", "Each exam phrase points to one answer.")),
-                    Beat(42, card = today),
+                    Beat(48, show = all6, light = setOf("one", "split", "blob", "tenth", "part"), card = BoardCard("Listen for the phrase", "Each exam phrase points to one answer.")),
+                    Beat(50, card = today),
                 ),
             ),
         ),
@@ -584,69 +626,69 @@ internal object Ai200EpisodesOpenTelemetry {
                     Beat(4, show = setOf("appi"), light = setOf("appi"), pulse = "api" to "appi", card = BoardCard("OpenTelemetry", "The open standard: a trace per request, with one trace id.")),
                 ),
             ),
-            // 5: "And each stop along the way?"
+            // 7: "And each stop along the way?"
             Scene(
-                5, "Spans", spans(),
+                7, "Spans", spans(),
                 beats = listOf(
-                    Beat(6, show = setOf("trace", "s1", "s3", "s4"), light = setOf("s3"), pulse = "s1" to "s3", card = BoardCard("Span", "One stop, stamped in and out: in at 9:00, out at 9:40, so 40 minutes.")),
-                    Beat(8, light = setOf("trace"), card = BoardCard("Telemetry", "What the app reports about itself, like a fitness tracker's readings.")),
+                    Beat(8, show = setOf("trace", "s1", "s3", "s4"), light = setOf("s3"), pulse = "s1" to "s3", card = BoardCard("Span", "One stop, stamped in and out: in at 9:00, out at 9:40, so 40 minutes.")),
+                    Beat(12, light = setOf("trace"), card = BoardCard("Telemetry", "What the app reports about itself, like a fitness tracker's readings.")),
                 ),
             ),
-            // 9: "Okay. Who went first?"
+            // 13: "Okay. Who went first?"
             Scene(
-                9, "Monday: Tom", distro(),
+                13, "Monday: Tom", distro(),
                 beats = listOf(
-                    Beat(10, show = setOf("pkg", "inst", "otel", "exp"), light = setOf("pkg"), pulse = "pkg" to "exp", card = BoardCard("The distro", "Microsoft's bundle: OpenTelemetry, instrumentations, an exporter.")),
-                    Beat(12, light = setOf("pkg"), card = configureCode),
+                    Beat(14, show = setOf("pkg", "inst", "otel", "exp"), light = setOf("pkg"), pulse = "pkg" to "exp", card = BoardCard("The distro", "Microsoft's bundle: OpenTelemetry, instrumentations, an exporter.")),
+                    Beat(16, light = setOf("pkg"), card = configureCode),
                 ),
             ),
-            // 13: "Poor Tom. Tuesday?"
+            // 17: "Poor Tom. Tuesday?"
             Scene(
-                13, "Tuesday: Marcus", distro(),
+                17, "Tuesday: Marcus", distro(),
                 beats = listOf(
-                    Beat(14, show = setOf("conn", "appi"), light = setOf("conn"), pulse = "conn" to "appi", card = BoardCard("Pasted into the source", "The connection string, there for everyone to see.")),
-                    Beat(16, light = setOf("conn"), card = envCode),
+                    Beat(18, show = setOf("conn", "appi"), light = setOf("conn"), pulse = "conn" to "appi", card = BoardCard("Pasted into the source", "The connection string, there for everyone to see.")),
+                    Beat(20, light = setOf("conn"), card = envCode),
                 ),
             ),
-            // 17: "Wednesday. Go."
+            // 21: "Wednesday. Go."
             Scene(
-                17, "Wednesday: the intern", propagation("Coach API", "Summarize"),
+                21, "Wednesday: the intern", propagation("Coach API", "Summarize"),
                 beats = listOf(
-                    Beat(18, show = setOf("api", "func"), light = setOf("func"), card = BoardCard("Two journeys", "A homemade helper, and Summarize started its own trace.")),
-                    Beat(20, show = setOf("hdr"), light = setOf("hdr"), pulse = "api" to "hdr", card = headerCode),
-                    Beat(22, light = setOf("api"), pulse = "hdr" to "func", card = BoardCard("Instrumentation", "Wrapped around requests, it writes the envelope. The helper didn't.")),
-                    Beat(24, light = setOf("api", "func"), card = traced),
+                    Beat(22, show = setOf("api", "func"), light = setOf("func"), card = BoardCard("Two journeys", "A homemade helper, and Summarize started its own trace.")),
+                    Beat(26, show = setOf("hdr"), light = setOf("hdr"), pulse = "api" to "hdr", card = headerCode),
+                    Beat(28, light = setOf("api"), pulse = "hdr" to "func", card = BoardCard("Instrumentation", "Wrapped around requests, it writes the envelope. The helper didn't.")),
+                    Beat(30, light = setOf("api", "func"), card = traced),
                 ),
             ),
-            // 25: "Thursday. Who shouted blob?"
+            // 33: "Thursday. Who shouted blob?"
             Scene(
-                25, "Thursday: Dana", views(),
+                33, "Thursday: Dana", views(),
                 beats = listOf(
-                    Beat(26, show = setOf("appi", "map"), light = setOf("map"), pulse = "appi" to "map", card = BoardCard("One confused blob", "Two programs drawn as one node, a single box.")),
-                    Beat(28, show = setOf("role"), light = setOf("role"), pulse = "map" to "role", card = BoardCard("Cloud role name", "OTEL_SERVICE_NAME: coach-api in one, summarize in the other.")),
+                    Beat(34, show = setOf("appi", "map"), light = setOf("map"), pulse = "appi" to "map", card = BoardCard("One confused blob", "Two programs drawn as one node, a single box.")),
+                    Beat(36, show = setOf("role"), light = setOf("role"), pulse = "map" to "role", card = BoardCard("Cloud role name", "OTEL_SERVICE_NAME: coach-api in one, summarize in the other.")),
                 ),
             ),
-            // 29: "And Friday? There's always a Friday."
+            // 37: "And Friday? There's always a Friday."
             Scene(
-                29, "Friday: Priya", sampling(),
+                37, "Friday: Priya", sampling(),
                 beats = listOf(
-                    Beat(30, show = setOf("all", "dropped"), light = setOf("dropped"), pulse = "all" to "dropped", card = BoardCard("A missing request", "Transaction search couldn't find it. Tracing wasn't broken.")),
-                    Beat(32, show = setOf("kept", "ratio"), light = setOf("ratio"), pulse = "kept" to "ratio", card = BoardCard("Sampling", "About 5 traces a second by default; one in ten with a ratio of 0.1.")),
+                    Beat(38, show = setOf("all", "dropped"), light = setOf("dropped"), pulse = "all" to "dropped", card = BoardCard("A missing request", "Transaction search couldn't find it. Tracing wasn't broken.")),
+                    Beat(40, show = setOf("kept", "ratio"), light = setOf("ratio"), pulse = "kept" to "ratio", card = BoardCard("Sampling", "About 5 traces a second by default; one in ten with a ratio of 0.1.")),
                 ),
             ),
-            // 33: "Did they find what was slow, in the end?"
+            // 41: "Did they find what was slow, in the end?"
             Scene(
-                33, "What was slow", spans(),
+                41, "What was slow", spans(),
                 beats = listOf(
-                    Beat(34, show = setOf("s1", "s2"), light = setOf("s2", "s4"), pulse = "s1" to "s2", card = spanCode),
+                    Beat(42, show = setOf("s1", "s2"), light = setOf("s2", "s4"), pulse = "s1" to "s2", card = spanCode),
                 ),
             ),
-            // 35: "So, the gossip I should remember for the exam?"
+            // 45: "So, the gossip I should remember for the exam?"
             Scene(
-                35, "For the exam", exam(),
+                45, "For the exam", exam(),
                 beats = listOf(
-                    Beat(36, show = all6, light = setOf("one", "split", "blob", "tenth"), card = BoardCard("Listen for the phrase", "Tom, the intern, Dana and Priya: one answer each.")),
-                    Beat(38, card = today),
+                    Beat(46, show = all6, light = setOf("one", "split", "blob", "tenth"), card = BoardCard("Listen for the phrase", "Tom, the intern, Dana and Priya: one answer each.")),
+                    Beat(48, card = today),
                 ),
             ),
         ),
@@ -665,75 +707,75 @@ internal object Ai200EpisodesOpenTelemetry {
                     Beat(6, light = setOf("api", "func", "db"), card = BoardCard("Distributed tracing", "One request, followed through every program. OpenTelemetry's rules.")),
                 ),
             ),
-            // 7: "Rules. Tell me the first one."
+            // 9: "Rules. Tell me the first one."
             Scene(
-                7, "Traces and spans", spans(),
+                9, "Traces and spans", spans(),
                 beats = listOf(
-                    Beat(8, show = setOf("trace"), light = setOf("trace"), card = BoardCard("Trace", "The whole journey, with a trace id: the tracking number.")),
-                    Beat(10, show = setOf("s1", "s3", "s4"), light = setOf("s3"), pulse = "s1" to "s3", card = BoardCard("Span", "One stop, stamped in and out: in at 9:00, out at 9:40, so 40 minutes.")),
+                    Beat(10, show = setOf("trace"), light = setOf("trace"), card = BoardCard("Trace", "The whole journey, with a trace id: the tracking number.")),
+                    Beat(12, show = setOf("s1", "s3", "s4"), light = setOf("s3"), pulse = "s1" to "s3", card = BoardCard("Span", "One stop, stamped in and out: in at 9:00, out at 9:40, so 40 minutes.")),
                 ),
             ),
-            // 11: "A family tree of little records. Where do they all go to sleep?"
+            // 13: "A family tree of little records. Where do they all go to sleep?"
             Scene(
-                11, "Where spans sleep", journey("Coach API", "Summarize"),
+                13, "Where spans sleep", journey("Coach API", "Summarize"),
                 beats = listOf(
-                    Beat(12, light = setOf("appi"), pulse = "api" to "appi", card = BoardCard("Application Insights", "Collects telemetry and stitches spans together by trace id.")),
-                    Beat(14, light = setOf("appi", "api"), card = BoardCard("Telemetry", "What the app reports about itself, like a fitness tracker's readings.")),
+                    Beat(14, light = setOf("appi"), pulse = "api" to "appi", card = BoardCard("Application Insights", "Collects telemetry and stitches spans together by trace id.")),
+                    Beat(16, light = setOf("appi", "api"), card = BoardCard("Telemetry", "What the app reports about itself, like a fitness tracker's readings.")),
                 ),
             ),
-            // 15: "But the function is a different program..."
+            // 17: "But the function is a different program..."
             Scene(
-                15, "A note on the envelope", propagation("Coach API", "Summarize"),
+                17, "A note on the envelope", propagation("Coach API", "Summarize"),
                 beats = listOf(
-                    Beat(16, show = setOf("api", "func", "hdr"), light = setOf("hdr"), pulse = "api" to "hdr", card = headerCode),
-                    Beat(18, light = setOf("func"), pulse = "hdr" to "func", card = BoardCard("Instrumentation", "Ready-made code that records spans and writes the envelope.")),
+                    Beat(18, show = setOf("api", "func", "hdr"), light = setOf("hdr"), pulse = "api" to "hdr", card = headerCode),
+                    Beat(22, light = setOf("func"), pulse = "hdr" to "func", card = BoardCard("Instrumentation", "Ready-made code that records spans and writes the envelope.")),
                 ),
             ),
-            // 19: "And how does that get into my Python?"
+            // 23: "And how does that get into my Python?"
             Scene(
-                19, "The meal kit", distro(),
+                23, "The meal kit", distro(),
                 beats = listOf(
-                    Beat(20, show = setOf("pkg", "inst", "otel", "exp"), light = setOf("pkg"), pulse = "pkg" to "inst", card = configureCode),
-                    Beat(22, show = setOf("conn", "appi"), light = setOf("conn"), pulse = "conn" to "appi", card = BoardCard("Connection string", "Where to send: the address of your Application Insights.")),
-                    Beat(24, light = setOf("conn"), card = envCode),
-                    Beat(26, light = setOf("inst"), pulse = "pkg" to "inst", card = traced),
+                    Beat(24, show = setOf("pkg", "inst", "otel", "exp"), light = setOf("pkg"), pulse = "pkg" to "inst", card = configureCode),
+                    Beat(26, show = setOf("conn", "appi"), light = setOf("conn"), pulse = "conn" to "appi", card = BoardCard("Connection string", "Where to send: the address of your Application Insights.")),
+                    Beat(28, light = setOf("conn"), card = envCode),
+                    Beat(30, light = setOf("inst"), pulse = "pkg" to "inst", card = traced),
                 ),
             ),
-            // 27: "And if I want to watch just one part of my own code? Closely."
+            // 31: "And if I want to watch just one part of my own code? Closely."
             Scene(
-                27, "Watching closely", spans(),
+                31, "Watching closely", spans(),
                 beats = listOf(
-                    Beat(28, show = setOf("s1", "s2"), light = setOf("s2"), pulse = "s1" to "s2", card = spanCode),
+                    Beat(32, show = setOf("s1", "s2"), light = setOf("s2"), pulse = "s1" to "s2", card = spanCode),
                 ),
             ),
-            // 29: "Now, where do I actually look?"
+            // 35: "Now, where do I actually look?"
             Scene(
-                29, "Where to look", views(),
+                35, "Where to look", views(),
                 beats = listOf(
-                    Beat(30, show = setOf("appi", "search", "timeline"), light = setOf("search", "timeline"), pulse = "search" to "timeline", card = BoardCard("Transaction search", "One request, then every span as a timeline, bar under bar.")),
-                    Beat(32, show = setOf("map", "role"), light = setOf("map", "role"), pulse = "map" to "role", card = BoardCard("Application map", "One node per program, named by OTEL_SERVICE_NAME.")),
+                    Beat(36, show = setOf("appi", "search", "timeline"), light = setOf("search", "timeline"), pulse = "search" to "timeline", card = BoardCard("Transaction search", "One request, then every span as a timeline, bar under bar.")),
+                    Beat(38, show = setOf("map", "role"), light = setOf("map", "role"), pulse = "map" to "role", card = BoardCard("Application map", "One node per program, named by OTEL_SERVICE_NAME.")),
                 ),
             ),
-            // 33: "Does it keep every request? Every single one?"
+            // 41: "Does it keep every request? Every single one?"
             Scene(
-                33, "Sampling", sampling(),
+                41, "Sampling", sampling(),
                 beats = listOf(
-                    Beat(34, show = setOf("all", "kept", "dropped", "ratio"), light = setOf("ratio"), pulse = "kept" to "ratio", card = BoardCard("Sampling", "Whole traces kept or dropped. One in ten: sampling_ratio=0.1.")),
+                    Beat(42, show = setOf("all", "kept", "dropped", "ratio"), light = setOf("ratio"), pulse = "kept" to "ratio", card = BoardCard("Sampling", "Whole traces kept or dropped. One in ten: sampling_ratio=0.1.")),
                 ),
             ),
-            // 35: "Now the part I've been waiting for. Where does all this stop working?"
+            // 43: "Now the part I've been waiting for. Where does all this stop working?"
             Scene(
-                35, "Where it stops", limits(),
+                43, "Where it stops", limits(),
                 beats = listOf(
-                    Beat(36, light = setOf("blank", "dropped"), pulse = "dropped" to "kql", card = BoardCard("Where tracing stops", "A blank envelope makes two islands; a dropped trace is gone.")),
+                    Beat(44, light = setOf("blank", "dropped"), pulse = "dropped" to "kql", card = BoardCard("Where tracing stops", "A blank envelope makes two islands; a dropped trace is gone.")),
                 ),
             ),
-            // 37: "Mm. Before you send me off to bed. What do I remember for the exam?"
+            // 45: "Mm. Before you send me off to bed. What do I remember for the exam?"
             Scene(
-                37, "For the exam", exam(),
+                45, "For the exam", exam(),
                 beats = listOf(
-                    Beat(38, show = all6, light = setOf("one", "split", "blob", "tenth", "glance"), card = BoardCard("Listen for the phrase", "Each exam phrase points to one answer.")),
-                    Beat(40, card = today),
+                    Beat(46, show = all6, light = setOf("one", "split", "blob", "tenth", "glance"), card = BoardCard("Listen for the phrase", "Each exam phrase points to one answer.")),
+                    Beat(48, card = today),
                 ),
             ),
         ),
@@ -751,72 +793,72 @@ internal object Ai200EpisodesOpenTelemetry {
                     Beat(4, show = setOf("phone", "api", "func", "db"), light = setOf("api", "func"), pulse = "api" to "func", card = BoardCard("The journey", "Phone, Coach API, Summarize, then the database.")),
                 ),
             ),
-            // 6: "Exactly. So each request gets a trace..."
+            // 8: "Exactly. So each request gets a trace..."
             Scene(
-                6, "A family of spans", spans(),
+                8, "A family of spans", spans(),
                 beats = listOf(
-                    Beat(6, show = setOf("trace"), light = setOf("trace"), card = BoardCard("Trace", "One journey, shop to door, under one trace id.")),
-                    Beat(8, show = setOf("s1", "s3", "s4"), light = setOf("s3"), pulse = "s1" to "s3", card = BoardCard("Span", "One stop, stamped in and out: in at 9:00, out at 9:40, so 40 minutes.")),
-                    Beat(10, light = setOf("trace"), card = BoardCard("Telemetry", "What the app reports about itself, like a fitness tracker's readings.")),
+                    Beat(8, show = setOf("trace"), light = setOf("trace"), card = BoardCard("Trace", "One journey, shop to door, under one trace id.")),
+                    Beat(10, show = setOf("s1", "s3", "s4"), light = setOf("s3"), pulse = "s1" to "s3", card = BoardCard("Span", "One stop, stamped in and out: in at 9:00, out at 9:40, so 40 minutes.")),
+                    Beat(12, light = setOf("trace"), card = BoardCard("Telemetry", "What the app reports about itself, like a fitness tracker's readings.")),
                 ),
             ),
-            // 11: "Quiz time, darling, exam style..."
+            // 13: "Quiz time, darling, exam style..."
             Scene(
-                11, "Carrying your number", propagation("Coach API", "Summarize"),
+                13, "Carrying your number", propagation("Coach API", "Summarize"),
                 beats = listOf(
-                    Beat(11, show = setOf("api", "func"), light = setOf("func"), card = BoardCard("Quiz: a separate trace", "Summarize's work shows up as its own trace. What went missing?")),
-                    Beat(12, show = setOf("hdr"), light = setOf("hdr"), pulse = "api" to "hdr", card = headerCode),
-                    Beat(13, light = setOf("hdr", "func"), pulse = "hdr" to "func", card = BoardCard("Right answer", "Traceparent carries the trace id to the next program.")),
-                    Beat(14, light = setOf("api"), card = BoardCard("Instrumentation", "Ready-made code that writes the envelope. A homemade helper won't.")),
+                    Beat(13, show = setOf("api", "func"), light = setOf("func"), card = BoardCard("Quiz: a separate trace", "Summarize's work shows up as its own trace. What went missing?")),
+                    Beat(14, show = setOf("hdr"), light = setOf("hdr"), pulse = "api" to "hdr", card = headerCode),
+                    Beat(15, light = setOf("hdr", "func"), pulse = "hdr" to "func", card = BoardCard("Right answer", "Traceparent carries the trace id to the next program.")),
+                    Beat(16, light = setOf("api"), card = BoardCard("Instrumentation", "Ready-made code that writes the envelope. A homemade helper won't.")),
                 ),
             ),
-            // 15: "So how do I get instrumented, in Python?"
+            // 17: "So how do I get instrumented, in Python?"
             Scene(
-                15, "Timing is everything", distro(),
+                17, "Timing is everything", distro(),
                 beats = listOf(
-                    Beat(16, show = setOf("pkg", "inst", "otel", "exp"), light = setOf("pkg"), pulse = "pkg" to "inst", card = BoardCard("Quiz: one call?", "Which one call sets up the distro in Python?")),
-                    Beat(18, light = setOf("pkg"), card = configureCode),
-                    Beat(20, show = setOf("conn", "appi"), light = setOf("conn"), pulse = "conn" to "appi", card = BoardCard("Connection string", "In an environment variable, never in the code.")),
-                    Beat(22, light = setOf("inst"), pulse = "pkg" to "inst", card = traced),
+                    Beat(18, show = setOf("pkg", "inst", "otel", "exp"), light = setOf("pkg"), pulse = "pkg" to "inst", card = BoardCard("Quiz: one call?", "Which one call sets up the distro in Python?")),
+                    Beat(20, light = setOf("pkg"), card = configureCode),
+                    Beat(22, show = setOf("conn", "appi"), light = setOf("conn"), pulse = "conn" to "appi", card = BoardCard("Connection string", "In an environment variable, never in the code.")),
+                    Beat(24, light = setOf("inst"), pulse = "pkg" to "inst", card = traced),
                 ),
             ),
-            // 23: "And if I only want to watch one part of you closely?"
+            // 27: "And if I only want to watch one part of you closely?"
             Scene(
-                23, "Watching closely", spans(),
+                27, "Watching closely", spans(),
                 beats = listOf(
-                    Beat(24, show = setOf("s1", "s2"), light = setOf("s2"), pulse = "s1" to "s2", card = spanCode),
+                    Beat(28, show = setOf("s1", "s2"), light = setOf("s2"), pulse = "s1" to "s2", card = spanCode),
                 ),
             ),
-            // 25: "Two services, one Application Insights..."
+            // 29: "Two services, one Application Insights..."
             Scene(
-                25, "Two names on the door", views(),
+                29, "Two names on the door", views(),
                 beats = listOf(
-                    Beat(25, show = setOf("appi", "map"), light = setOf("map"), pulse = "appi" to "map", card = BoardCard("Quiz: one blob", "Two services show up on the application map as one blob.")),
-                    Beat(27, show = setOf("role"), light = setOf("role"), pulse = "map" to "role", card = BoardCard("No kiss: set the name", "Not a second resource: OTEL_SERVICE_NAME differs in each.")),
-                    Beat(29, show = setOf("search", "timeline"), light = setOf("search", "timeline"), pulse = "search" to "timeline", card = BoardCard("Right answer", "Transaction search, then the end-to-end details.")),
+                    Beat(29, show = setOf("appi", "map"), light = setOf("map"), pulse = "appi" to "map", card = BoardCard("Quiz: one blob", "Two services show up on the application map as one blob.")),
+                    Beat(31, show = setOf("role"), light = setOf("role"), pulse = "map" to "role", card = BoardCard("No kiss: set the name", "Not a second resource: OTEL_SERVICE_NAME differs in each.")),
+                    Beat(33, show = setOf("search", "timeline"), light = setOf("search", "timeline"), pulse = "search" to "timeline", card = BoardCard("Right answer", "Transaction search, then the end-to-end details.")),
                 ),
             ),
-            // 31: "Last one from me. The bill's too high..."
+            // 35: "Last one from me. The bill's too high..."
             Scene(
-                31, "Every one of yours", sampling(),
+                35, "Every one of yours", sampling(),
                 beats = listOf(
-                    Beat(31, show = setOf("all", "kept"), light = setOf("all"), pulse = "all" to "kept", card = BoardCard("Quiz: one in ten", "The bill's too high; keep one trace in ten. What do you set?")),
-                    Beat(32, show = setOf("dropped", "ratio"), light = setOf("ratio"), pulse = "kept" to "ratio", card = BoardCard("Right answer", "sampling_ratio=0.1. Whole traces, never half a journey.")),
+                    Beat(35, show = setOf("all", "kept"), light = setOf("all"), pulse = "all" to "kept", card = BoardCard("Quiz: one in ten", "The bill's too high; keep one trace in ten. What do you set?")),
+                    Beat(36, show = setOf("dropped", "ratio"), light = setOf("ratio"), pulse = "kept" to "ratio", card = BoardCard("Right answer", "sampling_ratio=0.1. Whole traces, never half a journey.")),
                 ),
             ),
-            // 34: "And where does it all stop working, Rafe?..."
+            // 38: "And where does it all stop working, Rafe?..."
             Scene(
-                34, "Every romance has limits", limits(),
+                38, "Every romance has limits", limits(),
                 beats = listOf(
-                    Beat(35, light = setOf("blank", "dropped", "kql"), pulse = "dropped" to "kql", card = BoardCard("Where tracing stops", "A blank envelope makes a new trace; a dropped trace is gone.")),
+                    Beat(39, light = setOf("blank", "dropped", "kql"), pulse = "dropped" to "kql", card = BoardCard("Where tracing stops", "A blank envelope makes a new trace; a dropped trace is gone.")),
                 ),
             ),
-            // 36: "Last question, for the exam. What do we remember?"
+            // 40: "Last question, for the exam. What do we remember?"
             Scene(
-                36, "For the exam", exam(),
+                40, "For the exam", exam(),
                 beats = listOf(
-                    Beat(37, show = all6, light = setOf("one", "split", "blob", "tenth", "glance"), card = BoardCard("Listen for the phrase", "Five for five.")),
-                    Beat(40, card = today),
+                    Beat(41, show = all6, light = setOf("one", "split", "blob", "tenth", "glance"), card = BoardCard("Listen for the phrase", "Five for five.")),
+                    Beat(44, card = today),
                 ),
             ),
         ),

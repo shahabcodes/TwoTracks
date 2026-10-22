@@ -1,6 +1,6 @@
 {
  "topicId": "ai-pgvector--case-files",
- "seconds": 509.5,
+ "seconds": 525.98,
  "lines": [
   {
    "line": 0,
@@ -18,301 +18,349 @@
    "line": 2,
    "host": "maya",
    "start": 28.71,
-   "end": 43.07
+   "end": 43.63
   },
   {
    "line": 3,
    "host": "leo",
-   "start": 43.39,
-   "end": 46.39
+   "start": 43.95,
+   "end": 46.95
   },
   {
    "line": 4,
    "host": "maya",
-   "start": 46.71,
-   "end": 63.59
+   "start": 47.27,
+   "end": 64.15
   },
   {
    "line": 5,
    "host": "leo",
-   "start": 63.91,
-   "end": 65.95
+   "start": 64.47,
+   "end": 66.51
   },
   {
    "line": 6,
    "host": "maya",
-   "start": 66.27,
-   "end": 81.19
+   "start": 66.83,
+   "end": 82.95
   },
   {
    "line": 7,
    "host": "leo",
-   "start": 81.51,
-   "end": 85.31
+   "start": 83.27,
+   "end": 87.07
   },
   {
    "line": 8,
    "host": "maya",
-   "start": 85.63,
-   "end": 93.71
+   "start": 87.39,
+   "end": 95.47
   },
   {
    "line": 9,
    "host": "leo",
-   "start": 94.03,
-   "end": 100.19
+   "start": 95.79,
+   "end": 102.27
   },
   {
    "line": 10,
    "host": "maya",
-   "start": 100.51,
-   "end": 117.23
+   "start": 102.59,
+   "end": 107.55
   },
   {
    "line": 11,
    "host": "leo",
-   "start": 117.55,
-   "end": 122.71
+   "start": 107.87,
+   "end": 110.31
   },
   {
    "line": 12,
    "host": "maya",
-   "start": 123.03,
-   "end": 138.67
+   "start": 110.63,
+   "end": 124.07
   },
   {
    "line": 13,
    "host": "leo",
-   "start": 138.99,
-   "end": 141.31
+   "start": 124.39,
+   "end": 129.55
   },
   {
    "line": 14,
    "host": "maya",
-   "start": 141.63,
-   "end": 163.67
+   "start": 129.87,
+   "end": 145.51
   },
   {
    "line": 15,
    "host": "leo",
-   "start": 163.99,
-   "end": 169.03
+   "start": 145.83,
+   "end": 148.15
   },
   {
    "line": 16,
    "host": "maya",
-   "start": 169.35,
-   "end": 186.07
+   "start": 148.47,
+   "end": 154.55
   },
   {
    "line": 17,
    "host": "leo",
-   "start": 186.39,
-   "end": 194.15
+   "start": 154.87,
+   "end": 158.83
   },
   {
    "line": 18,
    "host": "maya",
-   "start": 194.47,
-   "end": 211.79
+   "start": 159.15,
+   "end": 175.39
   },
   {
    "line": 19,
    "host": "leo",
-   "start": 212.11,
-   "end": 214.63
+   "start": 175.71,
+   "end": 180.75
   },
   {
    "line": 20,
    "host": "maya",
-   "start": 214.95,
-   "end": 233.47
+   "start": 181.07,
+   "end": 197.79
   },
   {
    "line": 21,
    "host": "leo",
-   "start": 233.79,
-   "end": 234.71
+   "start": 198.11,
+   "end": 205.87
   },
   {
    "line": 22,
    "host": "maya",
-   "start": 235.03,
-   "end": 248.43
+   "start": 206.19,
+   "end": 223.51
   },
   {
    "line": 23,
    "host": "leo",
-   "start": 248.75,
-   "end": 249.87
+   "start": 223.83,
+   "end": 226.35
   },
   {
    "line": 24,
    "host": "maya",
-   "start": 250.19,
-   "end": 265.27
+   "start": 226.67,
+   "end": 233.99
   },
   {
    "line": 25,
    "host": "leo",
-   "start": 265.59,
-   "end": 266.59
+   "start": 234.31,
+   "end": 235.91
   },
   {
    "line": 26,
    "host": "maya",
-   "start": 266.91,
-   "end": 284.23
+   "start": 236.23,
+   "end": 245.95
   },
   {
    "line": 27,
    "host": "leo",
-   "start": 284.55,
-   "end": 286.15
+   "start": 246.27,
+   "end": 247.19
   },
   {
    "line": 28,
    "host": "maya",
-   "start": 286.47,
-   "end": 301.27
+   "start": 247.51,
+   "end": 260.91
   },
   {
    "line": 29,
    "host": "leo",
-   "start": 301.59,
-   "end": 303.75
+   "start": 261.23,
+   "end": 262.35
   },
   {
    "line": 30,
    "host": "maya",
-   "start": 304.07,
-   "end": 313.75
+   "start": 262.67,
+   "end": 278.51
   },
   {
    "line": 31,
    "host": "leo",
-   "start": 314.07,
-   "end": 315.43
+   "start": 278.83,
+   "end": 279.83
   },
   {
    "line": 32,
    "host": "maya",
-   "start": 315.75,
-   "end": 327.07
+   "start": 280.15,
+   "end": 298.35
   },
   {
    "line": 33,
    "host": "leo",
-   "start": 327.39,
-   "end": 330.51
+   "start": 298.67,
+   "end": 300.27
   },
   {
    "line": 34,
    "host": "maya",
-   "start": 330.83,
-   "end": 346.15
+   "start": 300.59,
+   "end": 315.39
   },
   {
    "line": 35,
    "host": "leo",
-   "start": 346.47,
-   "end": 349.23
+   "start": 315.71,
+   "end": 317.87
   },
   {
    "line": 36,
    "host": "maya",
-   "start": 349.55,
-   "end": 368.43
+   "start": 318.19,
+   "end": 327.31
   },
   {
    "line": 37,
    "host": "leo",
-   "start": 368.75,
-   "end": 370.43
+   "start": 327.63,
+   "end": 328.99
   },
   {
    "line": 38,
    "host": "maya",
-   "start": 370.75,
-   "end": 379.23
+   "start": 329.31,
+   "end": 340.63
   },
   {
    "line": 39,
    "host": "leo",
-   "start": 379.55,
-   "end": 381.51
+   "start": 340.95,
+   "end": 344.07
   },
   {
    "line": 40,
    "host": "maya",
-   "start": 381.83,
-   "end": 403.06
+   "start": 344.39,
+   "end": 359.71
   },
   {
    "line": 41,
    "host": "leo",
-   "start": 403.38,
-   "end": 406.42
+   "start": 360.03,
+   "end": 362.79
   },
   {
    "line": 42,
    "host": "maya",
-   "start": 406.74,
-   "end": 419.26
+   "start": 363.11,
+   "end": 381.99
   },
   {
    "line": 43,
    "host": "leo",
-   "start": 419.58,
-   "end": 421.26
+   "start": 382.31,
+   "end": 383.99
   },
   {
    "line": 44,
    "host": "maya",
-   "start": 421.58,
-   "end": 439.02
+   "start": 384.31,
+   "end": 392.79
   },
   {
    "line": 45,
    "host": "leo",
-   "start": 439.34,
-   "end": 441.5
+   "start": 393.11,
+   "end": 395.07
   },
   {
    "line": 46,
    "host": "maya",
-   "start": 441.82,
-   "end": 455.42
+   "start": 395.39,
+   "end": 401.14
   },
   {
    "line": 47,
    "host": "leo",
-   "start": 455.74,
-   "end": 458.14
+   "start": 401.46,
+   "end": 404.02
   },
   {
    "line": 48,
    "host": "maya",
-   "start": 458.46,
-   "end": 484.18
+   "start": 404.34,
+   "end": 418.06
   },
   {
    "line": 49,
    "host": "leo",
-   "start": 484.5,
-   "end": 486.94
+   "start": 418.38,
+   "end": 421.42
   },
   {
    "line": 50,
    "host": "maya",
-   "start": 487.26,
-   "end": 506.02
+   "start": 421.74,
+   "end": 436.3
   },
   {
    "line": 51,
    "host": "leo",
-   "start": 506.34,
-   "end": 509.5
+   "start": 436.62,
+   "end": 438.3
+  },
+  {
+   "line": 52,
+   "host": "maya",
+   "start": 438.62,
+   "end": 456.9
+  },
+  {
+   "line": 53,
+   "host": "leo",
+   "start": 457.22,
+   "end": 459.38
+  },
+  {
+   "line": 54,
+   "host": "maya",
+   "start": 459.7,
+   "end": 473.3
+  },
+  {
+   "line": 55,
+   "host": "leo",
+   "start": 473.62,
+   "end": 476.02
+  },
+  {
+   "line": 56,
+   "host": "maya",
+   "start": 476.34,
+   "end": 499.82
+  },
+  {
+   "line": 57,
+   "host": "leo",
+   "start": 500.14,
+   "end": 502.58
+  },
+  {
+   "line": 58,
+   "host": "maya",
+   "start": 502.9,
+   "end": 522.5
+  },
+  {
+   "line": 59,
+   "host": "leo",
+   "start": 522.82,
+   "end": 525.98
   }
  ]
 }
