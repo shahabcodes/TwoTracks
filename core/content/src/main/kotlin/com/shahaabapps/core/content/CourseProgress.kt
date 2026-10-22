@@ -47,8 +47,10 @@ data class CourseProgress(
 
     /** Questions held at the top of the schedule, for a sense of what has stuck. */
     val questionsHeld: Int get() = QuestionSrs.matureCount(questionCards)
-    val mockBest: Int? get() = bestPercentByModule[Courses.MOCK_MODULE_ID]
-    val mockPassed: Boolean get() = Courses.MOCK_MODULE_ID in passedModuleIds
+    /** The best score across every mock exam of the course. */
+    val mockBest: Int? get() = bestPercentByModule.filterKeys { Courses.isMock(it) }.values.maxOrNull()
+    /** Any of the course's mock exams passed. */
+    val mockPassed: Boolean get() = passedModuleIds.any { Courses.isMock(it) }
 
     companion object {
         fun of(owner: PersonRole, courseId: String, progress: List<TopicProgress>, attempts: List<QuizAttempt>): CourseProgress {
@@ -80,9 +82,9 @@ data class CourseProgress(
         }
 
         /** Older attempts did not record what was asked: assume the whole test of that module. */
-        private fun askedByDefault(course: Course?, moduleId: String): List<String> = when (moduleId) {
-            Courses.MOCK_MODULE_ID -> course?.mockExam?.questions?.map { it.id }.orEmpty()
-            Courses.REVIEW_MODULE_ID, Courses.CHECK_MODULE_ID, Courses.DAILY_MODULE_ID -> emptyList()
+        private fun askedByDefault(course: Course?, moduleId: String): List<String> = when {
+            Courses.isMock(moduleId) -> course?.mockModule(moduleId)?.quiz?.questions?.map { it.id }.orEmpty()
+            moduleId == Courses.REVIEW_MODULE_ID || moduleId == Courses.CHECK_MODULE_ID || moduleId == Courses.DAILY_MODULE_ID -> emptyList()
             else -> course?.modules?.firstOrNull { it.id == moduleId }?.quiz?.questions?.map { it.id }.orEmpty()
         }
     }

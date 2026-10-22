@@ -24,18 +24,28 @@ data class Course(
     val speechLanguage: String? = null,
     /** A timed, course-wide practice exam, when the course has one. */
     val mockExam: Quiz? = null,
+    /** More full mock exams after the first, each its own set of questions. */
+    val extraMocks: List<Quiz> = emptyList(),
 ) {
+    /** Every mock exam, the first one first. */
+    val mockExams: List<Quiz> get() = listOfNotNull(mockExam) + extraMocks
+
     val goalIds: List<String> get() = listOf(goalId) + extraGoalIds
     /** The language the course's voice speaks, for hints in the UI. */
     val languageName: String get() = when (speechLanguage?.substringBefore("-")) { "de" -> "German"; "en" -> "English"; "fr" -> "French"; null -> "the course"; else -> speechLanguage }
     val allTopics: List<Topic> get() = modules.flatMap { it.topics }
     /** Every question in the course: module tests, the mock exam and the in-topic checks. */
     val allQuestions: List<Question>
-        get() = modules.mapNotNull { it.quiz }.flatMap { it.questions } + (mockExam?.questions ?: emptyList()) +
+        get() = modules.mapNotNull { it.quiz }.flatMap { it.questions } + mockExams.flatMap { it.questions } +
             allTopics.flatMap { it.blocks }.filterIsInstance<Block.Check>().map { it.question }
 
-    /** The mock exam wrapped as a module so the quiz screen can run it; logs to the practice component. */
-    fun mockModule(): Module? = mockExam?.let { Module(Courses.MOCK_MODULE_ID, 0, "Mock exam", "A timed practice exam across every module.", "", "practice", allTopics, it) }
+    /** A mock exam wrapped as a module so the quiz screen can run it; logs to the practice component. */
+    fun mockModule(moduleId: String = Courses.MOCK_MODULE_ID): Module? {
+        val index = Courses.mockIndex(moduleId) ?: return null
+        val quiz = mockExams.getOrNull(index) ?: return null
+        val title = if (mockExams.size > 1) "Mock exam ${index + 1}" else "Mock exam"
+        return Module(moduleId, 0, title, "A timed practice exam across every module.", "", "practice", allTopics, quiz)
+    }
 
     /**
      * A short sitting of questions met before and now due again, so the course
@@ -466,6 +476,18 @@ object Courses {
     const val VERSION = 1
     /** Module ids the quiz route accepts besides real modules. */
     const val MOCK_MODULE_ID = "mock-exam"
+
+    /** The module id the [index]th mock exam runs under: the first keeps the original id, so saved scores stay. */
+    fun mockModuleId(index: Int): String = if (index == 0) MOCK_MODULE_ID else "$MOCK_MODULE_ID-${index + 1}"
+
+    /** Which mock exam a module id is, from 0; null when it is not a mock. */
+    fun mockIndex(moduleId: String): Int? = when {
+        moduleId == MOCK_MODULE_ID -> 0
+        moduleId.startsWith("$MOCK_MODULE_ID-") -> moduleId.removePrefix("$MOCK_MODULE_ID-").toIntOrNull()?.minus(1)?.takeIf { it > 0 }
+        else -> null
+    }
+
+    fun isMock(moduleId: String): Boolean = mockIndex(moduleId) != null
     const val REVIEW_MODULE_ID = "review"
     /** A sitting of questions due again on the spaced-repetition schedule. */
     const val DAILY_MODULE_ID = "daily"

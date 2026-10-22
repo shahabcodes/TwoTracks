@@ -23,9 +23,8 @@ class ContentTest {
 
     @Test
     fun `every course with a mock exam has one that points at real topics`() {
-        courses.filter { it.mockExam != null }.forEach { c ->
+        courses.flatMap { c -> c.mockExams.map { c to it } }.forEach { (c, m) ->
             val ids = c.allTopics.map { it.id }.toSet()
-            val m = c.mockExam!!
             assertTrue("${c.id} mock timing", m.timeLimitMinutes != null && !m.instantFeedback)
             // A randomised mock needs a pool bigger than the draw, or a retake is the same paper.
             val draw = m.drawCount
@@ -39,19 +38,26 @@ class ContentTest {
     @Test
     fun `the mock exam covers every module and points at real topics`() {
         listOf(Az204.course, Ai200.course, Az305.course, Psm1.course).forEach { course ->
-            val mock = course.mockExam
-            assertTrue("${course.id} has no mock exam", mock != null)
+            assertTrue("${course.id} has no mock exam", course.mockExams.isNotEmpty())
+            // The PSM I assessment asks true or false questions: two options are fair there.
+            val fewest = if (course.id == Psm1.course.id) 2 else 3
+            course.mockExams.forEach { mock -> checkMock(course, mock, fewest) }
+        }
+    }
+
+    private fun checkMock(course: Course, mock: Quiz, fewest: Int) {
+        run {
             val topicIds = course.allTopics.map { it.id }.toSet()
-            assertTrue("${course.id} mock has ${mock!!.questions.size}", mock.questions.size >= 50)
+            assertTrue("${mock.id} has ${mock.questions.size}", mock.questions.size >= 50)
             assertTrue(mock.timeLimitMinutes != null && !mock.instantFeedback)
             mock.questions.forEach { q ->
                 assertTrue("${q.id} points at ${q.topicId}", q.topicId in topicIds)
-                assertTrue("${q.id} options", q.options.size >= 3 && q.correct.all { it in q.options.indices } && q.correct.isNotEmpty())
+                assertTrue("${q.id} options", q.options.size >= fewest && q.correct.all { it in q.options.indices } && q.correct.isNotEmpty())
                 assertTrue("${q.id} explanation", q.explanation.length > 20)
             }
             course.modules.forEach { m ->
                 val ids = m.topics.map { it.id }.toSet()
-                assertTrue("${course.id} mock has no question for ${m.id}", mock.questions.any { it.topicId in ids })
+                assertTrue("${mock.id} has no question for ${m.id}", mock.questions.any { it.topicId in ids })
             }
         }
     }
@@ -179,7 +185,7 @@ class ContentTest {
         // is the only place a mock can ever show one.
         listOf(Az204.course, GermanA1.course, Ielts.course, Ai200.course, Az305.course, Psm1.course).forEach { course ->
             val papers = course.modules.mapNotNull { m -> m.quiz?.let { m.id to it } } +
-                listOfNotNull(course.mockExam).map { "mock" to it }
+                course.mockExams.map { it.id to it }
             papers.forEach { (where, quiz) ->
                 quiz.questions.forEach { q ->
                     val wrong = q.options.indices.filterNot { it in q.correct }
@@ -202,7 +208,7 @@ class ContentTest {
             course.modules.mapNotNull { it.quiz }.forEach { quiz ->
                 assertTrue("${quiz.id} should give instant feedback", quiz.instantFeedback)
             }
-            course.mockExam?.let { assertFalse("${it.id} should not give instant feedback", it.instantFeedback) }
+            course.mockExams.forEach { assertFalse("${it.id} should not give instant feedback", it.instantFeedback) }
         }
     }
 
@@ -374,7 +380,7 @@ class ContentTest {
         courses.forEach { c ->
             val questions = c.allTopics.flatMap { t -> t.blocks.filterIsInstance<Block.Check>().map { it.question } } +
                 c.modules.mapNotNull { it.quiz }.flatMap { it.questions } +
-                listOfNotNull(c.mockExam).flatMap { it.questions }
+                c.mockExams.flatMap { it.questions }
             questions.forEach { q ->
                 q.whyWrong.keys.forEach { i ->
                     assertTrue("${c.id}/${q.id}: note on option $i, which is out of range", i in q.options.indices)

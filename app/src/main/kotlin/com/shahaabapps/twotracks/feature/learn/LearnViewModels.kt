@@ -151,9 +151,9 @@ class LearningActions @Inject constructor(
         val cap = quiz.timeLimitMinutes ?: 60
         studyActions.logMinutes(myGoalId(course, s.myRole), module.componentId, minutes.coerceIn(2, cap), today, note = "Test: ${module.title}", quiet = true)
         when (module.id) {
+            in course.mockExams.indices.map { Courses.mockModuleId(it) } -> if (passed) celebrations.passed("${module.title} passed") else celebrations.logged("${module.title} logged")
             Courses.DAILY_MODULE_ID -> celebrations.logged("Daily review done")
             Courses.REVIEW_MODULE_ID -> celebrations.logged("Review logged")
-            Courses.MOCK_MODULE_ID -> if (passed) celebrations.passed("Mock exam passed") else celebrations.logged("Mock exam logged")
             else -> if (passed) celebrations.passed("${module.title} passed") else celebrations.logged("Test logged")
         }
         if (passed && module.id in course.modules.map { it.id }) autoPassIfFinished(course, s.myRole, extraAttempt = attempt)
@@ -376,8 +376,7 @@ class QuizViewModel @Inject constructor(
         } else {
             null
         }
-        val (module, kind) = when (moduleId) {
-            Courses.MOCK_MODULE_ID -> course?.mockModule() to QuizKind.MOCK
+        val (module, kind) = if (Courses.isMock(moduleId)) course?.mockModule(moduleId) to QuizKind.MOCK else when (moduleId) {
             Courses.REVIEW_MODULE_ID -> {
                 val missed = course?.let { progressNow()?.reviewQuestions(it) }.orEmpty()
                 course?.takeIf { missed.isNotEmpty() }?.reviewModule(missed) to QuizKind.REVIEW
