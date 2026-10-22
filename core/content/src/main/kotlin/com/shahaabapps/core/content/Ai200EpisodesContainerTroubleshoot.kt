@@ -5,11 +5,13 @@ internal object Ai200EpisodesContainerTroubleshoot {
     private val classic = Podcast(
         "ai-container-troubleshoot",
         listOf(
-            maya("Hi, and welcome back. Today is detective work: finding out why a container won't serve. Say you're building the Two Tracks Coach, a study assistant for an Android app, with a Python backend on Azure. You ship a new version, and the app goes quiet. Where do you look?"),
+            maya("Hi, and welcome back. Today is detective work: finding out why a container won't serve. Say you're building the Two Tracks Coach, a study assistant for an Android app, with a Python backend. You ship a new version, and the app goes quiet. Where do you look?"),
             leo("Usually? Everywhere, in a panic. [chuckle] Is there a better way?"),
-            maya("There is. First, the words. A container is your app packed in a box with everything it needs, so it runs the same anywhere. The Coach runs its backend on Azure Container Apps, a service that runs containers for you, with no machines to look after."),
+            maya("There is. First, the words. A container image packs your code, its Python and libraries, plus a slim copy of an operating system's files. A container is one running copy of that image."),
+            leo("A running copy. So when it breaks, it's just a program on some machine?"),
+            maya("A walled-off one, sharing the machine's kernel, the core of the operating system. That's why its logs are simply what your code prints. The Coach runs its backend on Azure Container Apps, a service that runs containers for you."),
             leo("Just the one place?"),
-            maya("Two. Its nightly worker runs on AKS, Azure Kubernetes Service. Kubernetes is a system that runs lots of containers across lots of machines, and keeps them running, like a restaurant manager keeping enough cooks on shift. The AKS episode covers setting it up. Today is about when things go wrong."),
+            maya("Two. Its nightly worker runs on AKS, Azure Kubernetes Service. Kubernetes is a system that runs lots of containers across lots of machines, and keeps them running, like a restaurant manager keeping enough cooks on shift. The AKS episode covers setting it up."),
             leo("So what's better than panic?"),
             maya("Three questions, in order. Did it start? Why did it stop? Can traffic reach it? Each question has its own place to look. Ask them in that order, and most problems name themselves."),
             leo("Start with AKS, then. Did it start? How do I know?"),
@@ -19,9 +21,11 @@ internal object Ai200EpisodesContainerTroubleshoot {
             leo("And what does the status tell me?"),
             maya("Which question to ask next. Then kubectl describe pod, with the pod's name, gives you its details, ending with a list called Events. Events are the platform's own diary: found a machine, pulled the image, a health check failed, stopped the container."),
             leo("Okay. What statuses will I actually see?"),
-            maya("The big one first. ImagePullBackOff means the machine can't download your image, the ready-to-start copy of your app, so it's backing off, waiting a while before it tries again."),
+            maya("The big one first. ImagePullBackOff means the machine can't pull your image from the registry, so it's backing off, waiting a while before it tries again."),
             leo("Then I read the logs, to see why?"),
-            maya("That's the classic mistake. Logs are what your own code prints, and this container never started, so it has no logs. The pull error is a platform event, so kubectl describe pod shows it, word for word. Usually a wrong tag, the image's version label, or no permission to read your private image shelf."),
+            maya("That's the classic mistake. Logs are what your own code prints, and this container never started, so it has no logs."),
+            leo("Then where's the error?"),
+            maya("The pull error is a platform event, so kubectl describe pod shows it, word for word. Usually a wrong tag, the image's version label, or no permission to read your private image shelf."),
             leo("Got an example?"),
             maya("For example, the event says version 31 not found, and the team had built version 3.1. The tag in the file was missing a dot. Fix the tag, apply the file again, and the pod is running."),
             leo("[laugh] One missing dot. And the other big status?"),
@@ -31,7 +35,7 @@ internal object Ai200EpisodesContainerTroubleshoot {
             leo("Any other statuses?"),
             maya("One more. Pending means no machine has room for the pod yet. Describe shows an event called FailedScheduling, which is Kubernetes for, I couldn't find a place to put it."),
             leo("Now the sneaky one. The pods are running and never restart, but callers get nothing. Ready shows zero of one."),
-            maya("That's a probe. A probe is a check the platform runs against your container, like a nurse checking a pulse. There are three kinds, and the exam loves the difference. Let's take them one at a time."),
+            maya("That's a probe. A probe is a check the platform runs against your container, like a nurse checking a pulse. There are three kinds, and the exam loves the difference."),
             leo("Go on, nurse. Number one?"),
             maya("A liveness probe asks, are you alive? If it fails, the container is stuck, like a frozen screen, so the platform restarts it."),
             leo("Number two?"),
@@ -61,7 +65,9 @@ internal object Ai200EpisodesContainerTroubleshoot {
             leo("And if I want to poke around myself?"),
             maya("In both worlds you can open a console, a command line inside the running container, and test from where the app sits. Calling localhost there means the container calling itself."),
             leo("So what do I remember for the exam?"),
-            maya("If the question says ImagePullBackOff, the answer is kubectl describe pod, not logs. If it says CrashLoopBackOff, kubectl logs with previous. If pods run, never restart, and show zero of one ready, the readiness probe. If a revision is Degraded and the ports differ, fix the target port. And for yesterday's errors, Log Analytics, not the log stream."),
+            maya("If the question says ImagePullBackOff, the answer is kubectl describe pod, not logs. If it says CrashLoopBackOff, kubectl logs with previous. If pods run, never restart, and show zero of one ready, the readiness probe."),
+            leo("And on Container Apps?"),
+            maya("If a revision is Degraded and the ports differ, fix the target port. And for yesterday's errors, Log Analytics, not the log stream."),
             leo("And anything to try today?"),
             maya("Deploy a revision with a wrong target port, and watch it go Degraded. Stream the system logs and find the probe failure. Fix the port, and confirm the revision becomes healthy. Then open a console with az containerapp exec, and call the app on localhost."),
             leo("Get, describe, logs with previous. My new panic plan. See you next time."),
@@ -74,7 +80,9 @@ internal object Ai200EpisodesContainerTroubleshoot {
         listOf(
             maya("Welcome to Case Files. Today's case: The Friday Release. A small Android app called Plant Pal tells you what's wrong with your houseplants. Its Python backend runs in containers on Azure. On Friday afternoon the team shipped a new version of everything. By Friday evening, the app answered nobody."),
             leo("[chuckle] Friday releases. The oldest crime there is. Detective Leo, on the case. Where does the backend live?"),
-            maya("In two places. A container is an app packed in a box with everything it needs. The main backend runs on Azure Container Apps, a service that runs containers for you, with no machines to manage."),
+            maya("In two places. But first, the evidence itself. A container image packs the app's code, Python, libraries and a slim copy of an operating system's files. A container is one running copy of it. The main backend runs on Azure Container Apps, a service that runs containers for you."),
+            leo("So a running container is basically a program on a server?"),
+            maya("A walled-off program, sharing the server's kernel, the core of its operating system. Remember that, Detective: its logs are only what the code prints."),
             leo("And the second place?"),
             maya("The photo worker runs on AKS, Azure Kubernetes Service. Kubernetes is a system that runs lots of containers across lots of machines and keeps them running, like a restaurant manager keeping enough cooks on shift."),
             leo("Two crime scenes. Which first?"),
@@ -82,11 +90,13 @@ internal object Ai200EpisodesContainerTroubleshoot {
             leo("And a pod is what, exactly?"),
             maya("The smallest thing Kubernetes runs. Picture a pea pod: a little wrapper round one or more containers. One pod is one running copy of the worker."),
             leo("And what did it show?"),
-            maya("Status: ImagePullBackOff. That means the machine can't download the image, the ready-to-start copy of the app, so it's backing off, waiting longer between tries."),
+            maya("Status: ImagePullBackOff. That means the machine can't pull the image down from the registry, so it's backing off, waiting longer between tries."),
             leo("Easy. First suspect: the code. I'll read the logs."),
             maya("[pause] Wrong place. Logs are what the code prints, and this container never started. Empty logs, every time. The pull error is a platform event. kubectl describe pod ends with a list called Events, the platform's own diary. And the diary said: version 31 not found."),
             leo("And the team had built..."),
-            maya("Version 3.1. A missing dot in the tag, the image's version label. Under the picture, events are short-lived records Kubernetes writes as it works, kept only about an hour by default, so read them early. If the tag had been right, the next suspect is permission to read the private image shelf. The AKS episode covers that fix."),
+            maya("Version 3.1. A missing dot in the tag, the image's version label. Under the picture, events are short-lived records Kubernetes writes as it works, kept only about an hour by default, so read them early."),
+            leo("And if the tag had been right?"),
+            maya("Then the next suspect is permission to read the private image shelf. The build pushed fine, but the machines may not be allowed to pull. The AKS episode covers that fix."),
             leo("Dot fixed. Case closed?"),
             maya("The pods started, and then the second clue. Status: CrashLoopBackOff. The container starts, crashes, and Kubernetes restarts it, waiting longer each time. How it works: the wait roughly doubles after each crash, up to about five minutes."),
             leo("This time the code ran, so I read the logs. Nothing there."),
@@ -112,13 +122,17 @@ internal object Ai200EpisodesContainerTroubleshoot {
             leo("Fix the target port, then. Case closed?"),
             maya("Port fixed, revision Running. But on Saturday, a third witness. The AKS worker had a second copy behind a Service, the stable address in front of pods, like a shop's phone number. Those pods were running, never restarted, and showed zero of one ready."),
             leo("Suspect: the liveness probe."),
-            maya("A failing liveness probe would restart them, and these never restarted. So it's readiness. A Service's endpoints are just its list of ready pods, the cashiers on shift right now. kubectl get endpoints showed none. The readiness probe pointed at the wrong path. And never point a liveness probe at the database, or one slow database restarts every pod."),
+            maya("A failing liveness probe would restart them, and these never restarted. So it's readiness. A Service's endpoints are just its list of ready pods, the cashiers on shift right now. kubectl get endpoints showed none."),
+            leo("And the cause?"),
+            maya("The readiness probe pointed at the wrong path. And never point a liveness probe at the database, or one slow database restarts every pod."),
             leo("And the boss wants to know what broke on Friday. Can we scroll back the log stream?"),
             maya("No. The log stream is live, like radio. History lives in Log Analytics, Azure's filing room for logs. You search it with KQL, which is its query language; the KQL episode teaches it."),
             leo("And the AKS worker's history?"),
             maya("Switch on Container insights. That's Azure Monitor collecting container logs and Kubernetes events into Log Analytics, so Friday is still there on Monday."),
             leo("So, the case summary for the exam?"),
-            maya("Five rules. If the question says ImagePullBackOff, the answer is kubectl describe pod, not logs. If CrashLoopBackOff, kubectl logs with previous. If pods run, never restart, and show zero of one ready, the readiness probe. If a revision is Degraded and the ports differ, fix the target port. And for yesterday's errors, Log Analytics."),
+            maya("Five rules. If the question says ImagePullBackOff, the answer is kubectl describe pod, not logs. If CrashLoopBackOff, kubectl logs with previous. If pods run, never restart, and show zero of one ready, the readiness probe."),
+            leo("And the Friday revision?"),
+            maya("If a revision is Degraded and the ports differ, fix the target port. And for yesterday's errors, Log Analytics."),
             leo("Case closed. Anything to try today?"),
             maya("Recreate the case, safely. Deploy a revision with a wrong target port, and watch it go Degraded. Stream the system logs and find the probe failure. Fix the port and confirm the revision becomes healthy. Then open a console with az containerapp exec, and call the app on localhost."),
             leo("No more Friday releases. See you next time."),
@@ -132,13 +146,15 @@ internal object Ai200EpisodesContainerTroubleshoot {
         listOf(
             maya("Okay, did you hear about on-call week on the Coach team? Grab a coffee. Every day, something in the Two Tracks Coach broke, the study assistant in the Android app with the Python backend. And every day, someone looked in exactly the wrong place."),
             leo("[laugh] I heard there's a new rule on the wall. Where does the Coach even run?"),
-            maya("In containers. A container is an app packed in a box with everything it needs. The main backend runs on Azure Container Apps, a service that runs containers for you, no machines to manage."),
+            maya("In containers. A container image packs the code, Python, libraries and a slim copy of an operating system's files, and a container is one running copy of it. The main backend runs on Azure Container Apps, a service that runs containers for you, no machines to manage."),
+            leo("And when one breaks, what am I actually looking at?"),
+            maya("A walled-off program on a shared kernel, the core of the machine's operating system. Which is why its logs are just whatever the code prints. Remember that for Monday."),
             leo("And the rest?"),
             maya("The nightly worker runs on AKS, Azure Kubernetes Service. Kubernetes is a system that runs lots of containers across lots of machines and keeps them running, like a restaurant manager keeping enough cooks on shift."),
             leo("Okay. So who went first?"),
             maya("Tom. Monday. The worker's pods said ImagePullBackOff. A pod is the smallest thing Kubernetes runs. Picture a pea pod: a little wrapper round one or more containers."),
             leo("And ImagePullBackOff, in plain words?"),
-            maya("The machine can't download the image, the ready-to-start copy of the app, so it's backing off, waiting longer between tries."),
+            maya("The machine can't pull the image down from the registry, so it's backing off, waiting longer between tries."),
             leo("And Tom did what?"),
             maya("Read the logs. With kubectl, the command-line tool for Kubernetes, like a remote control you type into. For an hour. And they were empty."),
             leo("Why empty?"),
@@ -148,7 +164,9 @@ internal object Ai200EpisodesContainerTroubleshoot {
             leo("[sigh] Poor Tom. And Tuesday?"),
             maya("Tuesday was Dana. The worker came up and fell over, again and again. Status: CrashLoopBackOff. The container starts, crashes, and Kubernetes restarts it, waiting longer each time. Under the hood, the wait roughly doubles, up to about five minutes."),
             leo("So this time the logs help."),
-            maya("They do, if you ask the right container. Dana ran plain kubectl logs, which shows the one starting right now. It hadn't printed anything yet. You need the previous flag, for the one that just died, with its stack trace, Python's crash report. Dana found it after lunch: a missing setting."),
+            maya("They do, if you ask the right container. Dana ran plain kubectl logs, which shows the one starting right now. It hadn't printed anything yet."),
+            leo("So which one should she have asked?"),
+            maya("The one that just died. The previous flag shows it, with its stack trace, Python's crash report. Dana found it after lunch: a missing setting."),
             leo("I sense a Wednesday."),
             maya("[chuckle] Wednesday was Marcus. Marcus had read about probes. A probe is a check the platform runs against your container, like a nurse checking a pulse."),
             leo("That sounds sensible. What went wrong?"),
@@ -178,7 +196,9 @@ internal object Ai200EpisodesContainerTroubleshoot {
             leo("Did anything go right this week?"),
             maya("One thing. Running pods that showed zero of one ready, and never restarted. The new hire said, that's the readiness probe, and kubectl get endpoints, the list of ready pods behind a Service, was empty. Wrong path in the probe. Fixed in five minutes. Everyone's still annoyed."),
             leo("So, the gossip I should remember for the exam?"),
-            maya("Five things. If the question says ImagePullBackOff, kubectl describe pod, not logs. If CrashLoopBackOff, kubectl logs with previous. If pods run, never restart, and show zero of one ready, the readiness probe. If a revision is Degraded and the ports differ, fix the target port. And for yesterday's errors, Log Analytics."),
+            maya("Five things. If the question says ImagePullBackOff, kubectl describe pod, not logs. If CrashLoopBackOff, kubectl logs with previous. If pods run, never restart, and show zero of one ready, the readiness probe."),
+            leo("And Thursday and Friday?"),
+            maya("If a revision is Degraded and the ports differ, fix the target port. And for yesterday's errors, Log Analytics."),
             leo("And something to try today, so I'm not next week's story?"),
             maya("Deploy a revision with a wrong target port, and watch it go Degraded. Stream the system logs and find the probe failure. Fix the port and confirm the revision becomes healthy. Then open a console with az containerapp exec, and call the app on localhost."),
             leo("Get, describe, logs with previous. It's going on my wall too. See you next time."),
@@ -192,7 +212,9 @@ internal object Ai200EpisodesContainerTroubleshoot {
         listOf(
             nova("Hey, you. It's late, the house is quiet, and it's just the three of us. Me, Ivy, and you, still up, still learning. [pause] Tonight, let's talk about the other reason people are awake at this hour. Something's broken, and nobody knows why."),
             ivy("Mm. The three in the morning phone call. Tell me there's a gentler way, Nova."),
-            nova("There is. Picture the Two Tracks Coach, the study assistant in the Android app, with a Python backend on Azure. It runs in containers: the app packed in a box with everything it needs. The backend lives on Azure Container Apps, a service that runs containers for you, no machines to manage."),
+            nova("There is. Picture the Two Tracks Coach, the study assistant in the Android app, with a Python backend. Its image packs the code, Python, libraries and a slim copy of an operating system's files. Each running copy is a container."),
+            ivy("And at three in the morning, what is a container, really?"),
+            nova("[pause] Just a walled-off program, sharing the machine's kernel, the core of its operating system. Its logs are only what your code says out loud. The backend lives on Azure Container Apps, a service that runs containers for you, no machines to manage."),
             ivy("And anywhere else?"),
             nova("A nightly worker, on AKS, which is Azure Kubernetes Service. Kubernetes runs lots of containers across lots of machines, and keeps them running, like a night manager keeping staff on shift. [pause] Tonight, the worker isn't working."),
             ivy("So where do I start? Gently."),
@@ -204,7 +226,7 @@ internal object Ai200EpisodesContainerTroubleshoot {
             ivy("And if the status is something I don't recognise?"),
             nova("Then kubectl describe pod. At the bottom is a list called Events, [pause] the platform's own diary. It found a machine, it pulled the image, a health check failed. Under the picture, events are short-lived records Kubernetes keeps for about an hour by default. Read them while they're fresh."),
             ivy("Tell me the statuses that keep people up."),
-            nova("ImagePullBackOff. The machine can't download your image, the ready-to-start copy of the app, so it's backing off between tries. And here's the trap. People read the logs."),
+            nova("ImagePullBackOff. The machine can't pull your image down from the registry, so it's backing off between tries. And here's the trap. People read the logs."),
             ivy("And the logs are empty."),
             nova("Empty. Logs are what your code prints, and this container never started. The answer is in the events, in describe. A tag, the image's version label, typed wrong. Or no permission to read the private image shelf; the AKS episode covers that."),
             ivy("And the other one? I can hear another one."),
@@ -222,7 +244,9 @@ internal object Ai200EpisodesContainerTroubleshoot {
             ivy("Ready for company. You make health checks sound personal."),
             nova("They are. And where it stops working: a liveness probe that calls the database. One slow database, and every pod is restarted at once. Keep liveness cheap, like a tiny healthz path that just says, I'm here."),
             ivy("And how does readiness keep the callers away, really?"),
-            nova("A Service is the stable address in front of your pods, like one phone number for the whole house. It keeps a list of the ready ones, called its endpoints. Fail readiness, and you're quietly taken off the list. [pause] kubectl get endpoints shows it. Empty means nobody's ready to answer."),
+            nova("A Service is the stable address in front of your pods, like one phone number for the whole house. It keeps a list of the ready ones, called its endpoints."),
+            ivy("And if a pod isn't ready?"),
+            nova("It's quietly taken off the list. [pause] kubectl get endpoints shows it. Empty means nobody's ready to answer."),
             ivy("Now the backend. Container Apps. Same questions?"),
             nova("Same questions, softer tools. Each deploy makes a revision, a saved version of the app's image and settings, like a numbered draft of a letter. You list them with az, the Azure command-line tool."),
             ivy("And a sick one looks like what?"),
@@ -254,7 +278,11 @@ internal object Ai200EpisodesContainerTroubleshoot {
         listOf(
             nova("Tonight is date night, darling. Candles, a little wine, and you and me, Rafe, talking about what to do when things stop working."),
             rafe("On a date? Bold. Is this about us?"),
-            nova("[laugh] It's about containers. A container is an app packed in a box with everything it needs. The Two Tracks Coach, the study assistant in the Android app, runs its Python backend in containers on Azure Container Apps, a service that runs them for you, no machines to manage."),
+            nova("[laugh] It's about containers. A container image packs your code, Python, libraries and a slim copy of an operating system's files. The Two Tracks Coach, the study assistant in the Android app, runs its Python backend that way, on Azure Container Apps, a service that runs containers for you."),
+            rafe("Quiz for you, then. A running container: is it a little virtual machine with its own kernel?"),
+            nova("No. It's one running copy of the image, a walled-off program sharing the host's kernel, the core of the operating system. So its logs are just what the code prints."),
+            rafe("Right answer. Nothing to hide. [kiss]"),
+            nova("Not from you. And the rest of the Coach?"),
             rafe("And the nightly worker runs on AKS, which is Azure Kubernetes Service. Kubernetes keeps lots of containers running on lots of machines, like a manager keeping cooks on shift. I do listen, you know."),
             nova("You do. So, three questions, in order, when something breaks. Did it start? Why did it stop? Can traffic reach it?"),
             rafe("Did it start. On AKS, I'd ask kubectl, the command-line tool for Kubernetes, like a remote control you type into. kubectl get pods."),
@@ -264,7 +292,7 @@ internal object Ai200EpisodesContainerTroubleshoot {
             rafe("The platform's diary. Do I get to read yours?"),
             nova("Only the events. Under the picture, they're short-lived records Kubernetes writes as it works, kept about an hour by default. So read them while they're warm."),
             rafe("Then let me test you, darling. Exam style. A pod shows ImagePullBackOff. Which command shows you the exact error?"),
-            nova("ImagePullBackOff means the machine can't download the image, the ready-to-start copy of the app, so it waits between tries. The container never started, so it has no logs. kubectl describe pod. The pull error is in the Events."),
+            nova("ImagePullBackOff means the machine can't pull the image down from the registry, so it waits between tries. The container never started, so it has no logs. kubectl describe pod. The pull error is in the Events."),
             rafe("Right answer. Some things you only learn from the diary. [kiss]"),
             nova("Mm. My turn. A pod is in CrashLoopBackOff. It starts, crashes, and Kubernetes keeps restarting it, waiting longer each time. Where do you look?"),
             rafe("kubectl logs. Logs are what the code prints."),
@@ -450,89 +478,90 @@ internal object Ai200EpisodesContainerTroubleshoot {
     private fun classicBoard() = PodcastBoard(
         "ai-container-troubleshoot",
         listOf(
-            // 0: "Hi, and welcome back. Today is detective work..."
+            // 0: "Hi, and welcome back. Today is detective work: finding out why a conta..."
             Scene(
                 0, "Why won't it serve?", places(),
                 beats = listOf(
                     Beat(0, show = setOf("phone"), light = setOf("phone"), card = BoardCard("The app goes quiet", "A new version ships, and nothing answers. Where do you look?")),
-                    Beat(2, show = setOf("aca"), light = setOf("aca"), pulse = "phone" to "aca", card = BoardCard("Container Apps", "Runs your containers for you, with no machines to look after.")),
-                    Beat(4, show = setOf("aks"), light = setOf("aks"), card = BoardCard("AKS", "Kubernetes: many containers on many machines, kept running.")),
+                    Beat(2, card = BoardCard("Image and container", "Code, Python, libraries, slim OS files. A container: one running copy.")),
+                    Beat(4, show = setOf("aca"), light = setOf("aca"), pulse = "phone" to "aca", card = BoardCard("Container Apps", "Runs your containers for you: walled-off processes on a shared kernel.")),
+                    Beat(6, show = setOf("aks"), light = setOf("aks"), card = BoardCard("AKS", "Kubernetes: many containers on many machines, kept running.")),
                 ),
             ),
-            // 5: "So what's better than panic?"
+            // 7: "So what's better than panic?"
             Scene(
-                5, "Three questions", questions(),
+                7, "Three questions", questions(),
                 beats = listOf(
-                    Beat(6, light = setOf("q1", "q2", "q3"), pulse = "q1" to "q2", card = BoardCard("Ask them in order", "Did it start? Why did it stop? Can traffic reach it?")),
+                    Beat(8, light = setOf("q1", "q2", "q3"), pulse = "q1" to "q2", card = BoardCard("Ask them in order", "Did it start? Why did it stop? Can traffic reach it?")),
                 ),
             ),
-            // 7: "Start with AKS, then. Did it start?"
+            // 9: "Start with AKS, then. Did it start? How do I know?"
             Scene(
-                7, "Did it start?", aksLadder(),
+                9, "Did it start?", aksLadder(),
                 beats = listOf(
-                    Beat(8, show = setOf("get"), light = setOf("get"), card = BoardCard("kubectl get pods", "Each pod's status, ready count and restarts.")),
-                    Beat(10, card = BoardCard("Pod", "Like a pea pod: a wrapper round containers. One running copy of your app.")),
-                    Beat(12, show = setOf("describe"), light = setOf("describe"), pulse = "get" to "describe", card = BoardCard("Events", "The platform's own diary, at the end of kubectl describe pod.")),
+                    Beat(10, show = setOf("get"), light = setOf("get"), card = BoardCard("kubectl get pods", "Each pod's status, ready count and restarts.")),
+                    Beat(12, card = BoardCard("Pod", "Like a pea pod: a wrapper round containers. One running copy of your app.")),
+                    Beat(14, show = setOf("describe"), light = setOf("describe"), pulse = "get" to "describe", card = BoardCard("Events", "The platform's own diary, at the end of kubectl describe pod.")),
                 ),
             ),
-            // 13: "Okay. What statuses will I actually see?"
+            // 15: "Okay. What statuses will I actually see?"
             Scene(
-                13, "The statuses", statuses(),
+                15, "The statuses", statuses(),
                 beats = listOf(
-                    Beat(14, show = setOf("pod", "pull"), light = setOf("pull"), pulse = "pod" to "pull", card = BoardCard("ImagePullBackOff", "Can't download the image; waiting longer between tries.")),
-                    Beat(16, card = describeCode),
-                    Beat(18, card = BoardCard("One missing dot", "The event said version 31 not found; the team built 3.1.")),
-                    Beat(20, show = setOf("crash"), light = setOf("crash"), pulse = "pod" to "crash", card = BoardCard("CrashLoopBackOff", "Starts, crashes, restarts, waiting longer each time.")),
-                    Beat(22, card = previousCode),
-                    Beat(24, show = setOf("pending"), light = setOf("pending"), pulse = "pod" to "pending", card = BoardCard("Pending", "No machine has room yet. Describe shows FailedScheduling.")),
-                    Beat(25, show = setOf("ready"), light = setOf("ready"), pulse = "pod" to "ready", card = BoardCard("Running, 0/1 ready", "Never restarts, gets no traffic. Something is checking it.")),
+                    Beat(16, show = setOf("pod", "pull"), light = setOf("pull"), pulse = "pod" to "pull", card = BoardCard("ImagePullBackOff", "Can't download the image; waiting longer between tries.")),
+                    Beat(18, card = describeCode),
+                    Beat(22, card = BoardCard("One missing dot", "The event said version 31 not found; the team built 3.1.")),
+                    Beat(24, show = setOf("crash"), light = setOf("crash"), pulse = "pod" to "crash", card = BoardCard("CrashLoopBackOff", "Starts, crashes, restarts, waiting longer each time.")),
+                    Beat(26, card = previousCode),
+                    Beat(28, show = setOf("pending"), light = setOf("pending"), pulse = "pod" to "pending", card = BoardCard("Pending", "No machine has room yet. Describe shows FailedScheduling.")),
+                    Beat(29, show = setOf("ready"), light = setOf("ready"), pulse = "pod" to "ready", card = BoardCard("Running, 0/1 ready", "Never restarts, gets no traffic. Something is checking it.")),
                 ),
             ),
-            // 26: "That's a probe..."
+            // 30: "That's a probe. A probe is a check the platform runs against your cont..."
             Scene(
-                26, "Probes", probes(),
+                30, "Probes", probes(),
                 beats = listOf(
-                    Beat(26, show = setOf("platform"), light = setOf("platform"), card = BoardCard("Probe", "A check the platform runs on your container, like a nurse.")),
-                    Beat(28, show = setOf("live"), light = setOf("live"), pulse = "platform" to "live", card = BoardCard("Liveness", "Are you alive? Failing means stuck, like a frozen screen: restart it.")),
-                    Beat(30, show = setOf("ready"), light = setOf("ready"), pulse = "platform" to "ready", card = BoardCard("Readiness", "Ready for customers? If not: still running, no traffic. Door locked.")),
-                    Beat(32, show = setOf("start"), light = setOf("start"), pulse = "platform" to "start", card = BoardCard("Startup", "Gives a slow starter time before the other two begin checking.")),
-                    Beat(34, light = setOf("ready"), pulse = "platform" to "ready", card = BoardCard("Readiness, failing", "Usually the wrong path or port: the wrong numbered door.")),
-                    Beat(36, light = setOf("live"), pulse = "platform" to "live", card = BoardCard("Keep liveness cheap", "A tiny healthz path. Never the database, or all pods restart.")),
+                    Beat(30, show = setOf("platform"), light = setOf("platform"), card = BoardCard("Probe", "A check the platform runs on your container, like a nurse.")),
+                    Beat(32, show = setOf("live"), light = setOf("live"), pulse = "platform" to "live", card = BoardCard("Liveness", "Are you alive? Failing means stuck, like a frozen screen: restart it.")),
+                    Beat(34, show = setOf("ready"), light = setOf("ready"), pulse = "platform" to "ready", card = BoardCard("Readiness", "Ready for customers? If not: still running, no traffic. Door locked.")),
+                    Beat(36, show = setOf("start"), light = setOf("start"), pulse = "platform" to "start", card = BoardCard("Startup", "Gives a slow starter time before the other two begin checking.")),
+                    Beat(38, light = setOf("ready"), pulse = "platform" to "ready", card = BoardCard("Readiness, failing", "Usually the wrong path or port: the wrong numbered door.")),
+                    Beat(40, light = setOf("live"), pulse = "platform" to "live", card = BoardCard("Keep liveness cheap", "A tiny healthz path. Never the database, or all pods restart.")),
                 ),
             ),
-            // 37: "Ouch. Now Container Apps. Same three questions?"
+            // 41: "Ouch. Now Container Apps. Same three questions?"
             Scene(
-                37, "Container Apps", aca(),
+                41, "Container Apps", aca(),
                 beats = listOf(
-                    Beat(38, show = setOf("rev"), light = setOf("rev"), card = revisionCode),
-                    Beat(40, card = BoardCard("Degraded, 0/1 ready", "A sick revision. A replica is one running copy of the app.")),
-                    Beat(42, show = setOf("sys", "con"), light = setOf("sys", "con"), pulse = "rev" to "sys", card = BoardCard("System and console logs", "The platform's messages, and what your own code prints.")),
-                    Beat(44, show = setOf("la"), light = setOf("la"), pulse = "sys" to "la", card = BoardCard("Log Analytics", "The stream is live radio; history is queried here with KQL.")),
-                    Beat(46, card = BoardCard("Container insights", "Azure Monitor keeping AKS container logs and events in Log Analytics.")),
+                    Beat(42, show = setOf("rev"), light = setOf("rev"), card = revisionCode),
+                    Beat(44, card = BoardCard("Degraded, 0/1 ready", "A sick revision. A replica is one running copy of the app.")),
+                    Beat(46, show = setOf("sys", "con"), light = setOf("sys", "con"), pulse = "rev" to "sys", card = BoardCard("System and console logs", "The platform's messages, and what your own code prints.")),
+                    Beat(48, show = setOf("la"), light = setOf("la"), pulse = "sys" to "la", card = BoardCard("Log Analytics", "The stream is live radio; history is queried here with KQL.")),
+                    Beat(50, card = BoardCard("Container insights", "Azure Monitor keeping AKS container logs and events in Log Analytics.")),
                 ),
             ),
-            // 47: "And the third question? Can traffic reach it?"
+            // 51: "And the third question? Can traffic reach it?"
             Scene(
-                47, "Can traffic reach it?", ingress(),
+                51, "Can traffic reach it?", ingress(),
                 beats = listOf(
-                    Beat(48, show = setOf("caller", "ing"), light = setOf("ing"), pulse = "caller" to "ing", card = BoardCard("Ingress", "The front door. It hands callers to a target port, a numbered door.")),
-                    Beat(50, show = setOf("app"), light = setOf("ing", "app"), pulse = "ing" to "app", card = BoardCard("The target port", "App on 8000, ingress on 80: the probes knock, nobody answers.")),
+                    Beat(52, show = setOf("caller", "ing"), light = setOf("ing"), pulse = "caller" to "ing", card = BoardCard("Ingress", "The front door. It hands callers to a target port, a numbered door.")),
+                    Beat(54, show = setOf("app"), light = setOf("ing", "app"), pulse = "ing" to "app", card = BoardCard("The target port", "App on 8000, ingress on 80: the probes knock, nobody answers.")),
                 ),
             ),
-            // 51: "And on AKS?"
+            // 55: "And on AKS?"
             Scene(
-                51, "On AKS", endpoints(),
+                55, "On AKS", endpoints(),
                 beats = listOf(
-                    Beat(52, light = setOf("ep"), pulse = "svc" to "ep", card = BoardCard("kubectl get endpoints", "The ready pods behind a Service. Empty: no ready pod matches.")),
-                    Beat(54, card = BoardCard("Console", "A command line inside the running container; localhost is itself.")),
+                    Beat(56, light = setOf("ep"), pulse = "svc" to "ep", card = BoardCard("kubectl get endpoints", "The ready pods behind a Service. Empty: no ready pod matches.")),
+                    Beat(58, card = BoardCard("Console", "A command line inside the running container; localhost is itself.")),
                 ),
             ),
-            // 55: "So what do I remember for the exam?"
+            // 59: "So what do I remember for the exam?"
             Scene(
-                55, "For the exam", exam(),
+                59, "For the exam", exam(),
                 beats = listOf(
-                    Beat(56, show = all6, light = setOf("pull", "crash", "ready", "port", "old"), card = BoardCard("Listen for the phrase", "Each exam phrase points to one answer: describe, previous, readiness.")),
-                    Beat(58, card = today),
+                    Beat(60, show = all6, light = setOf("pull", "crash", "ready", "port", "old"), card = BoardCard("Listen for the phrase", "Each exam phrase points to one answer: describe, previous, readiness.")),
+                    Beat(64, card = today),
                 ),
             ),
         ),
@@ -541,91 +570,93 @@ internal object Ai200EpisodesContainerTroubleshoot {
     private fun caseFilesBoard() = PodcastBoard(
         "ai-container-troubleshoot--case-files",
         listOf(
-            // 0: "Welcome to Case Files. Today's case: The Friday Release..."
+            // 0: "Welcome to Case Files. Today's case: The Friday Release. A small Andro..."
             Scene(
                 0, "The Friday Release", places(),
                 beats = listOf(
                     Beat(0, show = setOf("phone", "aca", "aks"), light = setOf("phone"), card = BoardCard("The case", "Plant Pal shipped everything on Friday. By evening, nobody answered.")),
-                    Beat(2, light = setOf("aca", "aks"), card = BoardCard("Two crime scenes", "The backend on Container Apps; the photo worker on AKS.")),
+                    Beat(2, light = setOf("aca"), card = BoardCard("The evidence", "An image: code, Python, libraries, slim OS files. Running: a container.")),
+                    Beat(4, light = setOf("aca"), card = BoardCard("A walled-off program", "It shares the host's kernel. Its logs are only what the code prints.")),
+                    Beat(6, light = setOf("aca", "aks"), card = BoardCard("Two crime scenes", "The backend on Container Apps; the photo worker on AKS.")),
                 ),
             ),
-            // 5: "Two crime scenes. Which first?"
+            // 7: "Two crime scenes. Which first?"
             Scene(
-                5, "Three questions", questions(),
+                7, "Three questions", questions(),
                 beats = listOf(
-                    Beat(6, light = setOf("q1", "q2", "q3"), pulse = "q1" to "q2", card = BoardCard("Ask them in order", "Did it start? Why did it stop? Can traffic reach it?")),
-                    Beat(8, card = BoardCard("Pod", "Like a pea pod: a wrapper round containers. One copy of the worker.")),
+                    Beat(8, light = setOf("q1", "q2", "q3"), pulse = "q1" to "q2", card = BoardCard("Ask them in order", "Did it start? Why did it stop? Can traffic reach it?")),
+                    Beat(10, card = BoardCard("Pod", "Like a pea pod: a wrapper round containers. One copy of the worker.")),
                 ),
             ),
-            // 9: "And what did it show?"
+            // 11: "And what did it show?"
             Scene(
-                9, "Clue one: the worker", statuses(),
+                11, "Clue one: the worker", statuses(),
                 beats = listOf(
-                    Beat(10, show = setOf("pod", "pull"), light = setOf("pull"), pulse = "pod" to "pull", card = BoardCard("ImagePullBackOff", "Can't download the image; backing off between tries.")),
-                    Beat(11, card = BoardCard("Suspect: the code", "Wrong place. The container never started, so its logs are empty.")),
-                    Beat(12, card = BoardCard("The Events diary", "kubectl describe pod said: version 31 not found.")),
-                    Beat(14, card = BoardCard("A missing dot", "The team built 3.1. Events are kept about an hour: read them early.")),
-                    Beat(16, show = setOf("crash"), light = setOf("crash"), pulse = "pod" to "crash", card = BoardCard("CrashLoopBackOff", "Starts, crashes, restarts; the wait doubles, up to about five minutes.")),
-                    Beat(18, card = previousCode),
-                    Beat(20, card = BoardCard("A missing setting", "Added to the settings. Events: the platform. Logs: your code.")),
+                    Beat(12, show = setOf("pod", "pull"), light = setOf("pull"), pulse = "pod" to "pull", card = BoardCard("ImagePullBackOff", "Can't download the image; backing off between tries.")),
+                    Beat(13, card = BoardCard("Suspect: the code", "Wrong place. The container never started, so its logs are empty.")),
+                    Beat(14, card = BoardCard("The Events diary", "kubectl describe pod said: version 31 not found.")),
+                    Beat(16, card = BoardCard("A missing dot", "The team built 3.1. Events are kept about an hour: read them early.")),
+                    Beat(20, show = setOf("crash"), light = setOf("crash"), pulse = "pod" to "crash", card = BoardCard("CrashLoopBackOff", "Starts, crashes, restarts; the wait doubles, up to about five minutes.")),
+                    Beat(22, card = previousCode),
+                    Beat(24, card = BoardCard("A missing setting", "Added to the settings. Events: the platform. Logs: your code.")),
                 ),
             ),
-            // 21: "Now the main backend. Container Apps."
+            // 25: "Now the main backend. Container Apps."
             Scene(
-                21, "Clue two: the backend", aca(),
+                25, "Clue two: the backend", aca(),
                 beats = listOf(
-                    Beat(22, show = setOf("rev"), light = setOf("rev"), card = BoardCard("Revision", "A saved version of the app's image and settings, like a numbered draft.")),
-                    Beat(24, card = BoardCard("Degraded, 0/1 ready", "A replica is one running copy, like a photocopy. None was ready.")),
-                    Beat(25, card = BoardCard("Suspect: a missing image", "It would fail at the pull, and the system logs would say so.")),
-                    Beat(26, show = setOf("sys"), light = setOf("sys"), pulse = "rev" to "sys", card = BoardCard("System logs", "The platform's messages said: the probe got no answer on port 80.")),
+                    Beat(26, show = setOf("rev"), light = setOf("rev"), card = BoardCard("Revision", "A saved version of the app's image and settings, like a numbered draft.")),
+                    Beat(28, card = BoardCard("Degraded, 0/1 ready", "A replica is one running copy, like a photocopy. None was ready.")),
+                    Beat(29, card = BoardCard("Suspect: a missing image", "It would fail at the pull, and the system logs would say so.")),
+                    Beat(30, show = setOf("sys"), light = setOf("sys"), pulse = "rev" to "sys", card = BoardCard("System logs", "The platform's messages said: the probe got no answer on port 80.")),
                 ),
             ),
-            // 27: "Port 80. And what does the app listen on?"
+            // 31: "Port 80. And what does the app listen on?"
             Scene(
-                27, "The wrong door", ingress(),
+                31, "The wrong door", ingress(),
                 beats = listOf(
-                    Beat(28, show = setOf("app"), light = setOf("app"), card = BoardCard("Port", "The numbered door an app listens at. Plant Pal listened at 8000.")),
-                    Beat(30, show = setOf("caller", "ing"), light = setOf("ing", "app"), pulse = "ing" to "app", card = BoardCard("Ingress, target port 80", "The front door sent callers to door 80. Nobody answered there.")),
+                    Beat(32, show = setOf("app"), light = setOf("app"), card = BoardCard("Port", "The numbered door an app listens at. Plant Pal listened at 8000.")),
+                    Beat(34, show = setOf("caller", "ing"), light = setOf("ing", "app"), pulse = "ing" to "app", card = BoardCard("Ingress, target port 80", "The front door sent callers to door 80. Nobody answered there.")),
                 ),
             ),
-            // 31: "Hang on. What's a probe, exactly?"
+            // 35: "Hang on. What's a probe, exactly?"
             Scene(
-                31, "Checking the pulse", probes(),
+                35, "Checking the pulse", probes(),
                 beats = listOf(
-                    Beat(32, show = setOf("live"), light = setOf("live"), pulse = "platform" to "live", card = BoardCard("Liveness", "Are you alive? Failing means stuck, so the container is restarted.")),
-                    Beat(34, show = setOf("ready", "start"), light = setOf("ready", "start"), pulse = "platform" to "ready", card = BoardCard("Readiness and startup", "Readiness: no traffic until ready. Startup: time for a slow starter.")),
+                    Beat(36, show = setOf("live"), light = setOf("live"), pulse = "platform" to "live", card = BoardCard("Liveness", "Are you alive? Failing means stuck, so the container is restarted.")),
+                    Beat(38, show = setOf("ready", "start"), light = setOf("ready", "start"), pulse = "platform" to "ready", card = BoardCard("Readiness and startup", "Readiness: no traffic until ready. Startup: time for a slow starter.")),
                 ),
             ),
-            // 35: "How could they prove it was the port?"
+            // 39: "How could they prove it was the port?"
             Scene(
-                35, "Proof from the inside", ingress(),
+                39, "Proof from the inside", ingress(),
                 beats = listOf(
-                    Beat(36, light = setOf("con", "app"), pulse = "con" to "app", card = execCode),
+                    Beat(40, light = setOf("con", "app"), pulse = "con" to "app", card = execCode),
                 ),
             ),
-            // 37: "Fix the target port, then. Case closed?"
+            // 41: "Fix the target port, then. Case closed?"
             Scene(
-                37, "Saturday's witness", endpoints(),
+                41, "Saturday's witness", endpoints(),
                 beats = listOf(
-                    Beat(38, light = setOf("pod"), card = BoardCard("Running, 0/1 ready", "Never restarted, and no calls reached them.")),
-                    Beat(39, card = BoardCard("Suspect: liveness", "Cleared. A failing liveness probe would have restarted them.")),
-                    Beat(40, light = setOf("ep", "pod"), pulse = "ep" to "pod", card = BoardCard("Readiness, wrong path", "Endpoints empty. And never point liveness at the database.")),
+                    Beat(42, light = setOf("pod"), card = BoardCard("Running, 0/1 ready", "Never restarted, and no calls reached them.")),
+                    Beat(43, card = BoardCard("Suspect: liveness", "Cleared. A failing liveness probe would have restarted them.")),
+                    Beat(44, light = setOf("ep", "pod"), pulse = "ep" to "pod", card = BoardCard("Readiness, wrong path", "Endpoints empty. And never point liveness at the database.")),
                 ),
             ),
-            // 41: "And the boss wants to know what broke on Friday..."
+            // 47: "And the boss wants to know what broke on Friday. Can we scroll back th..."
             Scene(
-                41, "Friday's history", aca(),
+                47, "Friday's history", aca(),
                 beats = listOf(
-                    Beat(42, show = setOf("con", "la"), light = setOf("la"), pulse = "con" to "la", card = BoardCard("Log Analytics", "The stream is live radio. History is queried with KQL.")),
-                    Beat(44, card = BoardCard("Container insights", "Azure Monitor keeping AKS container logs and events in Log Analytics.")),
+                    Beat(48, show = setOf("con", "la"), light = setOf("la"), pulse = "con" to "la", card = BoardCard("Log Analytics", "The stream is live radio. History is queried with KQL.")),
+                    Beat(50, card = BoardCard("Container insights", "Azure Monitor keeping AKS container logs and events in Log Analytics.")),
                 ),
             ),
-            // 45: "So, the case summary for the exam?"
+            // 51: "So, the case summary for the exam?"
             Scene(
-                45, "Case closed", exam(),
+                51, "Case closed", exam(),
                 beats = listOf(
-                    Beat(46, show = all6, light = setOf("pull", "crash", "ready", "port", "old"), card = BoardCard("Listen for the phrase", "Each exam phrase points to one answer. No more Friday releases.")),
-                    Beat(48, card = today),
+                    Beat(52, show = all6, light = setOf("pull", "crash", "ready", "port", "old"), card = BoardCard("Listen for the phrase", "Each exam phrase points to one answer. No more Friday releases.")),
+                    Beat(56, card = today),
                 ),
             ),
         ),
@@ -634,83 +665,85 @@ internal object Ai200EpisodesContainerTroubleshoot {
     private fun gossipBoard() = PodcastBoard(
         "ai-container-troubleshoot--gossip",
         listOf(
-            // 0: "Okay, did you hear about on-call week on the Coach team?..."
+            // 0: "Okay, did you hear about on-call week on the Coach team? Grab a coffee..."
             Scene(
                 0, "On-call week", places(),
                 beats = listOf(
                     Beat(0, show = setOf("phone", "aca"), light = setOf("phone"), card = BoardCard("Every day, a break", "And every day, someone looked in exactly the wrong place.")),
-                    Beat(2, show = setOf("aks"), light = setOf("aca", "aks"), card = BoardCard("Where the Coach runs", "The backend on Container Apps; the nightly worker on AKS.")),
+                    Beat(2, light = setOf("aca"), card = BoardCard("Image and container", "Code, Python, libraries, slim OS files. A container: one running copy.")),
+                    Beat(4, light = setOf("aca"), card = BoardCard("A walled-off program", "On a shared kernel. Its logs are just whatever the code prints.")),
+                    Beat(6, show = setOf("aks"), light = setOf("aca", "aks"), card = BoardCard("Where the Coach runs", "The backend on Container Apps; the nightly worker on AKS.")),
                 ),
             ),
-            // 5: "Okay. So who went first?"
+            // 7: "Okay. So who went first?"
             Scene(
-                5, "Monday: Tom", statuses(),
+                7, "Monday: Tom", statuses(),
                 beats = listOf(
-                    Beat(6, show = setOf("pod"), light = setOf("pod"), card = BoardCard("Pod", "Like a pea pod: a wrapper round one or more containers.")),
-                    Beat(8, show = setOf("pull"), light = setOf("pull"), pulse = "pod" to "pull", card = BoardCard("ImagePullBackOff", "Can't download the image; waiting longer between tries.")),
-                    Beat(10, card = BoardCard("Tom read the logs", "For an hour. They were empty: the container never started.")),
-                    Beat(12, card = describeCode),
-                    Beat(14, card = BoardCard("Fix the tag", "Version 31 should have been 3.1. Apply the file again.")),
+                    Beat(8, show = setOf("pod"), light = setOf("pod"), card = BoardCard("Pod", "Like a pea pod: a wrapper round one or more containers.")),
+                    Beat(10, show = setOf("pull"), light = setOf("pull"), pulse = "pod" to "pull", card = BoardCard("ImagePullBackOff", "Can't download the image; waiting longer between tries.")),
+                    Beat(12, card = BoardCard("Tom read the logs", "For an hour. They were empty: the container never started.")),
+                    Beat(14, card = describeCode),
+                    Beat(16, card = BoardCard("Fix the tag", "Version 31 should have been 3.1. Apply the file again.")),
                 ),
             ),
-            // 15: "Poor Tom. And Tuesday?"
+            // 17: "Poor Tom. And Tuesday?"
             Scene(
-                15, "Tuesday: Dana", statuses(),
+                17, "Tuesday: Dana", statuses(),
                 beats = listOf(
-                    Beat(16, show = setOf("pod", "crash"), light = setOf("crash"), pulse = "pod" to "crash", card = BoardCard("CrashLoopBackOff", "Starts, crashes, restarts; the wait doubles, up to five minutes.")),
-                    Beat(18, card = previousCode),
+                    Beat(18, show = setOf("pod", "crash"), light = setOf("crash"), pulse = "pod" to "crash", card = BoardCard("CrashLoopBackOff", "Starts, crashes, restarts; the wait doubles, up to five minutes.")),
+                    Beat(20, card = previousCode),
                 ),
             ),
-            // 19: "I sense a Wednesday."
+            // 23: "I sense a Wednesday."
             Scene(
-                19, "Wednesday: Marcus", probes(),
+                23, "Wednesday: Marcus", probes(),
                 beats = listOf(
-                    Beat(20, show = setOf("platform"), light = setOf("platform"), card = BoardCard("Probe", "A check the platform runs on your container, like a nurse.")),
-                    Beat(22, show = setOf("live"), light = setOf("live"), pulse = "platform" to "live", card = BoardCard("Liveness called the database", "A slow minute, every probe failed, every pod restarted.")),
-                    Beat(24, show = setOf("ready"), light = setOf("ready"), pulse = "platform" to "ready", card = BoardCard("Readiness", "Ready for customers? If not: still running, no traffic. Door locked.")),
-                    Beat(26, show = setOf("start"), light = setOf("start"), pulse = "platform" to "start", card = BoardCard("Startup", "Gives a slow starter time to wake before the other two check.")),
+                    Beat(24, show = setOf("platform"), light = setOf("platform"), card = BoardCard("Probe", "A check the platform runs on your container, like a nurse.")),
+                    Beat(26, show = setOf("live"), light = setOf("live"), pulse = "platform" to "live", card = BoardCard("Liveness called the database", "A slow minute, every probe failed, every pod restarted.")),
+                    Beat(28, show = setOf("ready"), light = setOf("ready"), pulse = "platform" to "ready", card = BoardCard("Readiness", "Ready for customers? If not: still running, no traffic. Door locked.")),
+                    Beat(30, show = setOf("start"), light = setOf("start"), pulse = "platform" to "start", card = BoardCard("Startup", "Gives a slow starter time to wake before the other two check.")),
                 ),
             ),
-            // 27: "And how does readiness actually keep the traffic away?"
+            // 31: "And how does readiness actually keep the traffic away?"
             Scene(
-                27, "Off the list", endpoints(),
+                31, "Off the list", endpoints(),
                 beats = listOf(
-                    Beat(28, light = setOf("ep", "pod"), pulse = "ep" to "pod", card = BoardCard("Endpoints", "The Service's list of ready pods. Fail readiness, you're off it.")),
+                    Beat(32, light = setOf("ep", "pod"), pulse = "ep" to "pod", card = BoardCard("Endpoints", "The Service's list of ready pods. Fail readiness, you're off it.")),
                 ),
             ),
-            // 29: "Thursday. Go."
+            // 33: "Thursday. Go."
             Scene(
-                29, "Thursday: the intern", ingress(),
+                33, "Thursday: the intern", ingress(),
                 beats = listOf(
-                    Beat(30, show = setOf("app"), light = setOf("app"), card = BoardCard("Revision", "A saved version of the app's image and settings, like a numbered draft.")),
-                    Beat(32, card = BoardCard("Degraded, 0/1 ready", "A replica is one running copy, like a photocopy. None was ready.")),
-                    Beat(34, show = setOf("caller", "ing"), light = setOf("ing", "app"), pulse = "ing" to "app", card = BoardCard("Ingress, target port 80", "The front door hands callers to door 80. The app listens on 8000.")),
-                    Beat(36, light = setOf("ing"), card = BoardCard("System logs", "The platform's messages said: probe failed on port 80.")),
-                    Beat(38, show = setOf("con"), light = setOf("con", "app"), pulse = "con" to "app", card = execCode),
+                    Beat(34, show = setOf("app"), light = setOf("app"), card = BoardCard("Revision", "A saved version of the app's image and settings, like a numbered draft.")),
+                    Beat(36, card = BoardCard("Degraded, 0/1 ready", "A replica is one running copy, like a photocopy. None was ready.")),
+                    Beat(38, show = setOf("caller", "ing"), light = setOf("ing", "app"), pulse = "ing" to "app", card = BoardCard("Ingress, target port 80", "The front door hands callers to door 80. The app listens on 8000.")),
+                    Beat(40, light = setOf("ing"), card = BoardCard("System logs", "The platform's messages said: probe failed on port 80.")),
+                    Beat(42, show = setOf("con"), light = setOf("con", "app"), pulse = "con" to "app", card = execCode),
                 ),
             ),
-            // 39: "And Friday? There's always a Friday."
+            // 43: "And Friday? There's always a Friday."
             Scene(
-                39, "Friday: Priya", aca(),
+                43, "Friday: Priya", aca(),
                 beats = listOf(
-                    Beat(40, show = setOf("con"), light = setOf("con"), card = BoardCard("Scrolling the stream", "Nothing from Tuesday. The log stream is live radio.")),
-                    Beat(42, show = setOf("la"), light = setOf("la"), pulse = "con" to "la", card = BoardCard("Log Analytics", "History, queried with KQL. Container insights for AKS.")),
-                    Beat(44, card = BoardCard("Container insights", "Azure Monitor keeping AKS container logs and events in Log Analytics.")),
+                    Beat(44, show = setOf("con"), light = setOf("con"), card = BoardCard("Scrolling the stream", "Nothing from Tuesday. The log stream is live radio.")),
+                    Beat(46, show = setOf("la"), light = setOf("la"), pulse = "con" to "la", card = BoardCard("Log Analytics", "History, queried with KQL. Container insights for AKS.")),
+                    Beat(48, card = BoardCard("Container insights", "Azure Monitor keeping AKS container logs and events in Log Analytics.")),
                 ),
             ),
-            // 45: "Did anything go right this week?"
+            // 49: "Did anything go right this week?"
             Scene(
-                45, "What went right", statuses(),
+                49, "What went right", statuses(),
                 beats = listOf(
-                    Beat(46, show = setOf("pod", "ready"), light = setOf("ready"), pulse = "pod" to "ready", card = BoardCard("Running, 0/1 ready", "The readiness probe, wrong path. Fixed in five minutes.")),
+                    Beat(50, show = setOf("pod", "ready"), light = setOf("ready"), pulse = "pod" to "ready", card = BoardCard("Running, 0/1 ready", "The readiness probe, wrong path. Fixed in five minutes.")),
                 ),
             ),
-            // 47: "So, the gossip I should remember for the exam?"
+            // 51: "So, the gossip I should remember for the exam?"
             Scene(
-                47, "For the exam", exam(),
+                51, "For the exam", exam(),
                 beats = listOf(
-                    Beat(48, show = all6, light = setOf("pull", "crash", "ready", "port", "old"), card = BoardCard("Listen for the phrase", "Each exam phrase points to one answer. Nobody wants to be the story.")),
-                    Beat(50, card = today),
+                    Beat(52, show = all6, light = setOf("pull", "crash", "ready", "port", "old"), card = BoardCard("Listen for the phrase", "Each exam phrase points to one answer. Nobody wants to be the story.")),
+                    Beat(56, card = today),
                 ),
             ),
         ),
@@ -719,85 +752,86 @@ internal object Ai200EpisodesContainerTroubleshoot {
     private fun lateNightBoard() = PodcastBoard(
         "ai-container-troubleshoot--late-night",
         listOf(
-            // 0: "Hey, you. It's late, the house is quiet..."
+            // 0: "Hey, you. It's late, the house is quiet, and it's just the three of us..."
             Scene(
                 0, "Something's broken", places(),
                 beats = listOf(
                     Beat(0, show = setOf("phone"), card = BoardCard("Tonight", "Something's broken, and nobody knows why.")),
-                    Beat(2, show = setOf("aca"), light = setOf("aca"), pulse = "phone" to "aca", card = BoardCard("Container Apps", "Runs the Coach's backend for you, no machines to manage.")),
-                    Beat(4, show = setOf("aks"), light = setOf("aks"), card = BoardCard("AKS", "The nightly worker. Tonight, it isn't working.")),
+                    Beat(2, card = BoardCard("Image and container", "Code, Python, libraries, slim OS files. Each running copy: a container.")),
+                    Beat(4, show = setOf("aca"), light = setOf("aca"), pulse = "phone" to "aca", card = BoardCard("Container Apps", "Walled-off programs on a shared kernel, run for you. No machines.")),
+                    Beat(6, show = setOf("aks"), light = setOf("aks"), card = BoardCard("AKS", "The nightly worker. Tonight, it isn't working.")),
                 ),
             ),
-            // 5: "So where do I start? Gently."
+            // 7: "So where do I start? Gently."
             Scene(
-                5, "Three questions", questions(),
+                7, "Three questions", questions(),
                 beats = listOf(
-                    Beat(6, light = setOf("q1", "q2", "q3"), pulse = "q1" to "q2", card = BoardCard("Slowly, in order", "Did it start? Why did it stop? Can traffic reach it?")),
+                    Beat(8, light = setOf("q1", "q2", "q3"), pulse = "q1" to "q2", card = BoardCard("Slowly, in order", "Did it start? Why did it stop? Can traffic reach it?")),
                 ),
             ),
-            // 7: "Did it start, then."
+            // 9: "Did it start, then."
             Scene(
-                7, "Did it start?", aksLadder(),
+                9, "Did it start?", aksLadder(),
                 beats = listOf(
-                    Beat(8, show = setOf("get"), light = setOf("get"), card = BoardCard("kubectl get pods", "Each pod's status, how many are ready, how often restarted.")),
-                    Beat(10, card = BoardCard("Pod", "Like a pea pod: a wrapper round one or more containers.")),
-                    Beat(12, show = setOf("describe"), light = setOf("describe"), pulse = "get" to "describe", card = BoardCard("Events", "The platform's diary, kept about an hour. Read it while it's fresh.")),
+                    Beat(10, show = setOf("get"), light = setOf("get"), card = BoardCard("kubectl get pods", "Each pod's status, how many are ready, how often restarted.")),
+                    Beat(12, card = BoardCard("Pod", "Like a pea pod: a wrapper round one or more containers.")),
+                    Beat(14, show = setOf("describe"), light = setOf("describe"), pulse = "get" to "describe", card = BoardCard("Events", "The platform's diary, kept about an hour. Read it while it's fresh.")),
                 ),
             ),
-            // 13: "Tell me the statuses that keep people up."
+            // 15: "Tell me the statuses that keep people up."
             Scene(
-                13, "What keeps people up", statuses(),
+                15, "What keeps people up", statuses(),
                 beats = listOf(
-                    Beat(14, show = setOf("pod", "pull"), light = setOf("pull"), pulse = "pod" to "pull", card = BoardCard("ImagePullBackOff", "Can't download the image. The logs are empty; read describe.")),
-                    Beat(18, show = setOf("crash"), light = setOf("crash"), pulse = "pod" to "crash", card = BoardCard("CrashLoopBackOff", "Starts, crashes, restarts; each wait doubles, to about five minutes.")),
-                    Beat(20, card = previousCode),
-                    Beat(22, show = setOf("pending"), light = setOf("pending"), pulse = "pod" to "pending", card = BoardCard("Pending", "No machine has room yet. Describe shows FailedScheduling.")),
-                    Beat(23, show = setOf("ready"), light = setOf("ready"), pulse = "pod" to "ready", card = BoardCard("Running, and quiet", "Never restarting, zero of one ready. Nobody can reach them.")),
+                    Beat(16, show = setOf("pod", "pull"), light = setOf("pull"), pulse = "pod" to "pull", card = BoardCard("ImagePullBackOff", "Can't download the image. The logs are empty; read describe.")),
+                    Beat(20, show = setOf("crash"), light = setOf("crash"), pulse = "pod" to "crash", card = BoardCard("CrashLoopBackOff", "Starts, crashes, restarts; each wait doubles, to about five minutes.")),
+                    Beat(22, card = previousCode),
+                    Beat(24, show = setOf("pending"), light = setOf("pending"), pulse = "pod" to "pending", card = BoardCard("Pending", "No machine has room yet. Describe shows FailedScheduling.")),
+                    Beat(25, show = setOf("ready"), light = setOf("ready"), pulse = "pod" to "ready", card = BoardCard("Running, and quiet", "Never restarting, zero of one ready. Nobody can reach them.")),
                 ),
             ),
-            // 24: "Then it's a probe..."
+            // 26: "Then it's a probe. A probe is a check the platform runs on your contai..."
             Scene(
-                24, "A pulse in the night", probes(),
+                26, "A pulse in the night", probes(),
                 beats = listOf(
-                    Beat(24, show = setOf("platform", "live"), light = setOf("live"), pulse = "platform" to "live", card = BoardCard("Liveness", "Are you alive? Fail it, and the container is restarted.")),
-                    Beat(26, show = setOf("ready"), light = setOf("ready"), pulse = "platform" to "ready", card = BoardCard("Readiness", "Ready for company? If not: still running, no traffic. Door locked.")),
-                    Beat(28, show = setOf("start"), light = setOf("start"), pulse = "platform" to "start", card = BoardCard("Startup", "Gives a slow riser time before the others begin.")),
-                    Beat(30, light = setOf("live"), card = BoardCard("Keep liveness cheap", "Never the database. A tiny healthz path that says, I'm here.")),
+                    Beat(26, show = setOf("platform", "live"), light = setOf("live"), pulse = "platform" to "live", card = BoardCard("Liveness", "Are you alive? Fail it, and the container is restarted.")),
+                    Beat(28, show = setOf("ready"), light = setOf("ready"), pulse = "platform" to "ready", card = BoardCard("Readiness", "Ready for company? If not: still running, no traffic. Door locked.")),
+                    Beat(30, show = setOf("start"), light = setOf("start"), pulse = "platform" to "start", card = BoardCard("Startup", "Gives a slow riser time before the others begin.")),
+                    Beat(32, light = setOf("live"), card = BoardCard("Keep liveness cheap", "Never the database. A tiny healthz path that says, I'm here.")),
                 ),
             ),
-            // 31: "And how does readiness keep the callers away, really?"
+            // 33: "And how does readiness keep the callers away, really?"
             Scene(
-                31, "Off the list", endpoints(),
+                33, "Off the list", endpoints(),
                 beats = listOf(
-                    Beat(32, light = setOf("ep", "pod"), pulse = "ep" to "pod", card = BoardCard("kubectl get endpoints", "The ready pods behind a Service. Empty: nobody's ready to answer.")),
+                    Beat(34, light = setOf("ep", "pod"), pulse = "ep" to "pod", card = BoardCard("kubectl get endpoints", "The ready pods behind a Service. Empty: nobody's ready to answer.")),
                 ),
             ),
-            // 33: "Now the backend. Container Apps. Same questions?"
+            // 37: "Now the backend. Container Apps. Same questions?"
             Scene(
-                33, "Container Apps", aca(),
+                37, "Container Apps", aca(),
                 beats = listOf(
-                    Beat(34, show = setOf("rev"), light = setOf("rev"), card = BoardCard("Revision", "A saved version of the app's image and settings, like a numbered draft.")),
-                    Beat(36, card = BoardCard("Degraded, 0/1 ready", "A replica is one running copy, like a photocopy. None answering.")),
-                    Beat(38, show = setOf("sys", "con"), light = setOf("sys", "con"), pulse = "rev" to "sys", card = BoardCard("Two voices", "System logs: the platform. Console logs: your app.")),
-                    Beat(40, show = setOf("la"), light = setOf("la"), pulse = "con" to "la", card = BoardCard("Log Analytics", "When the live show is over, history is queried with KQL.")),
-                    Beat(42, card = BoardCard("Container insights", "Azure Monitor keeping AKS container logs and events in Log Analytics.")),
+                    Beat(38, show = setOf("rev"), light = setOf("rev"), card = BoardCard("Revision", "A saved version of the app's image and settings, like a numbered draft.")),
+                    Beat(40, card = BoardCard("Degraded, 0/1 ready", "A replica is one running copy, like a photocopy. None answering.")),
+                    Beat(42, show = setOf("sys", "con"), light = setOf("sys", "con"), pulse = "rev" to "sys", card = BoardCard("Two voices", "System logs: the platform. Console logs: your app.")),
+                    Beat(44, show = setOf("la"), light = setOf("la"), pulse = "con" to "la", card = BoardCard("Log Analytics", "When the live show is over, history is queried with KQL.")),
+                    Beat(46, card = BoardCard("Container insights", "Azure Monitor keeping AKS container logs and events in Log Analytics.")),
                 ),
             ),
-            // 43: "And the third question. Can traffic reach it?"
+            // 47: "And the third question. Can traffic reach it?"
             Scene(
-                43, "The front door", ingress(),
+                47, "The front door", ingress(),
                 beats = listOf(
-                    Beat(44, show = setOf("caller", "ing"), light = setOf("ing"), pulse = "caller" to "ing", card = BoardCard("Ingress", "The front door. It hands callers to a target port, a numbered door.")),
-                    Beat(46, show = setOf("app"), light = setOf("ing", "app"), pulse = "ing" to "app", card = BoardCard("Target port", "App on 8000, ingress on 80: the probes knock, nobody answers.")),
-                    Beat(48, show = setOf("con"), light = setOf("con", "app"), pulse = "con" to "app", card = execCode),
+                    Beat(48, show = setOf("caller", "ing"), light = setOf("ing"), pulse = "caller" to "ing", card = BoardCard("Ingress", "The front door. It hands callers to a target port, a numbered door.")),
+                    Beat(50, show = setOf("app"), light = setOf("ing", "app"), pulse = "ing" to "app", card = BoardCard("Target port", "App on 8000, ingress on 80: the probes knock, nobody answers.")),
+                    Beat(52, show = setOf("con"), light = setOf("con", "app"), pulse = "con" to "app", card = execCode),
                 ),
             ),
-            // 49: "Mm. Before you send me off to bed..."
+            // 53: "Mm. Before you send me off to bed. What do I remember for the exam?"
             Scene(
-                49, "For the exam", exam(),
+                53, "For the exam", exam(),
                 beats = listOf(
-                    Beat(50, show = all6, light = setOf("pull", "crash", "ready", "port", "old"), card = BoardCard("Listen for the phrase", "Each exam phrase points to one answer: five little things.")),
-                    Beat(52, card = today),
+                    Beat(54, show = all6, light = setOf("pull", "crash", "ready", "port", "old"), card = BoardCard("Listen for the phrase", "Each exam phrase points to one answer: five little things.")),
+                    Beat(56, card = today),
                 ),
             ),
         ),
@@ -806,89 +840,90 @@ internal object Ai200EpisodesContainerTroubleshoot {
     private fun couplesBoard() = PodcastBoard(
         "ai-container-troubleshoot--couples",
         listOf(
-            // 0: "Tonight is date night, darling..."
+            // 0: "Tonight is date night, darling. Candles, a little wine, and you and me..."
             Scene(
                 0, "Date night", places(),
                 beats = listOf(
                     Beat(0, show = setOf("phone"), card = BoardCard("Date night", "What to do when things stop working.")),
                     Beat(2, show = setOf("aca"), light = setOf("aca"), pulse = "phone" to "aca", card = BoardCard("Container Apps", "The Coach's backend, run for you, no machines to manage.")),
-                    Beat(3, show = setOf("aks"), light = setOf("aks"), card = BoardCard("AKS", "The nightly worker, on Kubernetes.")),
+                    Beat(3, light = setOf("aca"), card = BoardCard("Quiz: its own kernel?", "No: a walled-off program on the host's kernel. Logs: what it prints.")),
+                    Beat(7, show = setOf("aks"), light = setOf("aks"), card = BoardCard("AKS", "The nightly worker, on Kubernetes.")),
                 ),
             ),
-            // 4: "You do. So, three questions..."
+            // 8: "You do. So, three questions, in order, when something breaks. Did it s..."
             Scene(
-                4, "Three questions", questions(),
+                8, "Three questions", questions(),
                 beats = listOf(
-                    Beat(4, light = setOf("q1", "q2", "q3"), pulse = "q1" to "q2", card = BoardCard("In order", "Did it start? Why did it stop? Can traffic reach it?")),
+                    Beat(8, light = setOf("q1", "q2", "q3"), pulse = "q1" to "q2", card = BoardCard("In order", "Did it start? Why did it stop? Can traffic reach it?")),
                 ),
             ),
-            // 5: "Did it start. On AKS, I'd ask kubectl..."
+            // 9: "Did it start. On AKS, I'd ask kubectl, the command-line tool for Kuber..."
             Scene(
-                5, "The diary", aksLadder(),
+                9, "The diary", aksLadder(),
                 beats = listOf(
-                    Beat(5, show = setOf("get"), light = setOf("get"), card = BoardCard("kubectl get pods", "Status, ready count, restarts.")),
-                    Beat(7, card = BoardCard("Pod", "Like a pea pod: a wrapper round containers. Two peas, like us.")),
-                    Beat(8, show = setOf("describe"), light = setOf("describe"), pulse = "get" to "describe", card = BoardCard("Events", "The platform's own diary, at the end of describe.")),
-                    Beat(10, card = BoardCard("Read them while warm", "Short-lived records, kept about an hour by default.")),
+                    Beat(9, show = setOf("get"), light = setOf("get"), card = BoardCard("kubectl get pods", "Status, ready count, restarts.")),
+                    Beat(11, card = BoardCard("Pod", "Like a pea pod: a wrapper round containers. Two peas, like us.")),
+                    Beat(12, show = setOf("describe"), light = setOf("describe"), pulse = "get" to "describe", card = BoardCard("Events", "The platform's own diary, at the end of describe.")),
+                    Beat(14, card = BoardCard("Read them while warm", "Short-lived records, kept about an hour by default.")),
                 ),
             ),
-            // 11: "Then let me test you, darling..."
+            // 15: "Then let me test you, darling. Exam style. A pod shows ImagePullBackOf..."
             Scene(
-                11, "Quiz: the statuses", statuses(),
+                15, "Quiz: the statuses", statuses(),
                 beats = listOf(
-                    Beat(11, show = setOf("pod", "pull"), light = setOf("pull"), pulse = "pod" to "pull", card = BoardCard("Quiz: ImagePullBackOff", "Which command shows the exact error?")),
-                    Beat(12, card = BoardCard("Right answer: describe", "The container never started, so no logs. The error is in Events.")),
-                    Beat(14, show = setOf("crash"), light = setOf("crash"), pulse = "pod" to "crash", card = BoardCard("Quiz: CrashLoopBackOff", "Starts, crashes, restarts. Where do you look?")),
-                    Beat(16, card = BoardCard("No kiss: use previous", "Plain logs show the new container. You need the one that died.")),
-                    Beat(18, card = previousCode),
+                    Beat(15, show = setOf("pod", "pull"), light = setOf("pull"), pulse = "pod" to "pull", card = BoardCard("Quiz: ImagePullBackOff", "Which command shows the exact error?")),
+                    Beat(16, card = BoardCard("Right answer: describe", "The container never started, so no logs. The error is in Events.")),
+                    Beat(18, show = setOf("crash"), light = setOf("crash"), pulse = "pod" to "crash", card = BoardCard("Quiz: CrashLoopBackOff", "Starts, crashes, restarts. Where do you look?")),
+                    Beat(20, card = BoardCard("No kiss: use previous", "Plain logs show the new container. You need the one that died.")),
+                    Beat(22, card = previousCode),
                 ),
             ),
-            // 19: "Fine. Let me win one back. What's a probe?"
+            // 23: "Fine. Let me win one back. What's a probe?"
             Scene(
-                19, "Are you ready?", probes(),
+                23, "Are you ready?", probes(),
                 beats = listOf(
-                    Beat(20, show = setOf("platform", "live"), light = setOf("live"), pulse = "platform" to "live", card = BoardCard("Liveness probe", "A nurse's check: are you alive? Fail it, and you're restarted.")),
-                    Beat(22, show = setOf("ready"), light = setOf("ready"), pulse = "platform" to "ready", card = BoardCard("Readiness", "Not ready: still running, no traffic. Lights on, door locked.")),
-                    Beat(24, card = BoardCard("Quiz: 0/1 ready", "Running, never restarting, no callers. What's failing?")),
-                    Beat(25, light = setOf("ready"), pulse = "platform" to "ready", card = BoardCard("Right answer: readiness", "Liveness would restart them. These are running, just not open.")),
-                    Beat(27, show = setOf("start"), light = setOf("start"), pulse = "platform" to "start", card = BoardCard("Startup", "Gives a slow starter time before the other two check.")),
-                    Beat(28, card = BoardCard("Endpoints", "The Service's list of ready pods. Fail readiness, you're off it.")),
-                    Beat(30, light = setOf("live"), card = BoardCard("Keep liveness light", "Never the database. A tiny healthz path is enough.")),
+                    Beat(24, show = setOf("platform", "live"), light = setOf("live"), pulse = "platform" to "live", card = BoardCard("Liveness probe", "A nurse's check: are you alive? Fail it, and you're restarted.")),
+                    Beat(26, show = setOf("ready"), light = setOf("ready"), pulse = "platform" to "ready", card = BoardCard("Readiness", "Not ready: still running, no traffic. Lights on, door locked.")),
+                    Beat(28, card = BoardCard("Quiz: 0/1 ready", "Running, never restarting, no callers. What's failing?")),
+                    Beat(29, light = setOf("ready"), pulse = "platform" to "ready", card = BoardCard("Right answer: readiness", "Liveness would restart them. These are running, just not open.")),
+                    Beat(31, show = setOf("start"), light = setOf("start"), pulse = "platform" to "start", card = BoardCard("Startup", "Gives a slow starter time before the other two check.")),
+                    Beat(32, card = BoardCard("Endpoints", "The Service's list of ready pods. Fail readiness, you're off it.")),
+                    Beat(34, light = setOf("live"), card = BoardCard("Keep liveness light", "Never the database. A tiny healthz path is enough.")),
                 ),
             ),
-            // 31: "One more for you. A pod just sits there, Pending."
+            // 35: "One more for you. A pod just sits there, Pending. What's going on?"
             Scene(
-                31, "Can't get a table", statuses(),
+                35, "Can't get a table", statuses(),
                 beats = listOf(
-                    Beat(31, show = setOf("pod", "pending"), light = setOf("pending"), pulse = "pod" to "pending", card = BoardCard("Pending", "No machine has room yet. Describe shows FailedScheduling.")),
+                    Beat(35, show = setOf("pod", "pending"), light = setOf("pending"), pulse = "pod" to "pending", card = BoardCard("Pending", "No machine has room yet. Describe shows FailedScheduling.")),
                 ),
             ),
-            // 33: "Noted. Now Container Apps..."
+            // 37: "Noted. Now Container Apps. Each deploy makes a revision, a saved versi..."
             Scene(
-                33, "The right door", ingress(),
+                37, "The right door", ingress(),
                 beats = listOf(
-                    Beat(33, card = BoardCard("Revision", "A saved version of the app's image and settings, like a numbered draft.")),
-                    Beat(34, show = setOf("caller", "ing", "app"), light = setOf("ing", "app"), card = BoardCard("Quiz: 8000 and 80", "The app listens on 8000; ingress targets 80. What's wrong?")),
-                    Beat(35, pulse = "ing" to "app", card = BoardCard("Right answer: target port", "The default probes knock on 80, and nobody's home.")),
+                    Beat(37, card = BoardCard("Revision", "A saved version of the app's image and settings, like a numbered draft.")),
+                    Beat(38, show = setOf("caller", "ing", "app"), light = setOf("ing", "app"), card = BoardCard("Quiz: 8000 and 80", "The app listens on 8000; ingress targets 80. What's wrong?")),
+                    Beat(39, pulse = "ing" to "app", card = BoardCard("Right answer: target port", "The default probes knock on 80, and nobody's home.")),
                 ),
             ),
-            // 37: "And how would you have spotted it, darling?"
+            // 41: "And how would you have spotted it, darling?"
             Scene(
-                37, "Seeing for yourself", aca(),
+                41, "Seeing for yourself", aca(),
                 beats = listOf(
-                    Beat(38, show = setOf("rev", "sys"), light = setOf("sys"), pulse = "rev" to "sys", card = BoardCard("System logs", "The platform's messages: the probe failing on port 80.")),
-                    Beat(40, card = execCode),
-                    Beat(41, show = setOf("con", "la"), light = setOf("con"), card = BoardCard("Quiz: last Tuesday", "The log stream shows nothing. Where do you look?")),
-                    Beat(42, light = setOf("la"), pulse = "con" to "la", card = BoardCard("Right answer: Log Analytics", "The stream is live; history is queried with KQL.")),
-                    Beat(44, card = BoardCard("Container insights", "Azure Monitor keeping AKS container logs and events in Log Analytics.")),
+                    Beat(42, show = setOf("rev", "sys"), light = setOf("sys"), pulse = "rev" to "sys", card = BoardCard("System logs", "The platform's messages: the probe failing on port 80.")),
+                    Beat(44, card = execCode),
+                    Beat(45, show = setOf("con", "la"), light = setOf("con"), card = BoardCard("Quiz: last Tuesday", "The log stream shows nothing. Where do you look?")),
+                    Beat(46, light = setOf("la"), pulse = "con" to "la", card = BoardCard("Right answer: Log Analytics", "The stream is live; history is queried with KQL.")),
+                    Beat(48, card = BoardCard("Container insights", "Azure Monitor keeping AKS container logs and events in Log Analytics.")),
                 ),
             ),
-            // 46: "Last question, for the exam. What do we remember?"
+            // 50: "Last question, for the exam. What do we remember?"
             Scene(
-                46, "For the exam", exam(),
+                50, "For the exam", exam(),
                 beats = listOf(
-                    Beat(47, show = all6, light = setOf("pull", "crash", "ready", "port", "old"), card = BoardCard("Listen for the phrase", "Each exam phrase points to one answer. Five for five.")),
-                    Beat(50, card = today),
+                    Beat(51, show = all6, light = setOf("pull", "crash", "ready", "port", "old"), card = BoardCard("Listen for the phrase", "Each exam phrase points to one answer. Five for five.")),
+                    Beat(54, card = today),
                 ),
             ),
         ),
