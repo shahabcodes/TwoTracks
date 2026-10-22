@@ -5,7 +5,7 @@ internal object Ai200EpisodesCosmosPerf {
     private val classic = Podcast(
         "ai-cosmos-perf",
         listOf(
-            maya("Hi, and welcome back. Today is about making a database cheaper and faster. The database is Azure Cosmos DB, Microsoft's cloud database. It keeps your app's data as lots of small records, and each record is called an item."),
+            maya("Hi, and welcome back. Today: making a database cheaper and faster. Azure Cosmos DB, Microsoft's cloud database. It keeps your app's data as lots of small records, and each record is called an item."),
             leo("Cheaper and faster. Two of my favourite words. Where do we start?"),
             maya("With an app. Say you're building the Two Tracks Coach, a study assistant in an Android app, with a small Python backend on Azure. The learners' notes live in Cosmos DB, in a container called notes. A container is like one folder that holds one kind of item."),
             leo("And using that folder costs money?"),
@@ -15,7 +15,9 @@ internal object Ai200EpisodesCosmosPerf {
             leo("And if the app wants 1,500 in one second?"),
             maya("The jar runs dry, so some calls are turned away with 429. That's a status code, a short number the database sends back. It means too many requests, like a busy café saying come back in a minute. The reply even says how many milliseconds to wait."),
             leo("So my app just falls over?"),
-            maya("Usually not. The SDK, the ready-made Python library your code uses to talk to Cosmos DB, waits and retries a 429 for you a few times. A few under load are normal. Lots of them mean you need a bigger budget, a cheaper search, or a better partition key."),
+            maya("Usually not. The SDK, the ready-made Python library your code uses to talk to Cosmos DB, waits and retries a 429 for you a few times."),
+            leo("So my backend never even sees it? The phone just waits a moment longer?"),
+            maya("Mostly. A few under load are normal. Lots of them mean you need a bigger budget, a cheaper search, or a better partition key."),
             leo("Partition key. What's that, in plain words?"),
             maya("Picture a filing cabinet. Each drawer is a partition, and the partition key is the label that decides which drawer an item goes in. The Coach uses the learner's id, so all of Asha's notes share one drawer, and all of Ben's another."),
             leo("And why do drawers matter for the bill?"),
@@ -27,27 +29,33 @@ internal object Ai200EpisodesCosmosPerf {
             leo("Got it. And is there only one way to buy the budget?"),
             maya("Three. Manual is a fixed number of RUs per second, from 400 up, that you change yourself; it suits steady load. Serverless has no budget at all: you pay for each RU used. It suits testing, or a small app that's busy now and then."),
             leo("And the third?"),
-            maya("Autoscale. You set only a maximum, and the budget moves between ten percent of it and the maximum, following the load. You're billed for the highest point each hour. For example, the Coach is quiet all day, then learners log in at nine and 429s appear. Autoscale to 4,000 covers that peak, and drops back to 400."),
+            maya("Autoscale. You set only a maximum, and the budget moves between ten percent of it and the maximum, following the load. You're billed for the highest point each hour."),
+            leo("When would the Coach want that?"),
+            maya("For example, it's quiet all day, then learners open the app at nine and 429s appear. Autoscale to 4,000 covers that peak, and drops back to 400."),
             leo("Nice. So that's buying. How do I make each call cheaper?"),
             maya("Two settings. The first is the indexing policy. An index is like the index at the back of a book: to find kettle, you look it up, see page 212, and go straight there, instead of reading every page. The indexing policy says which fields of an item go into that index."),
             leo("And what goes in by default?"),
-            maya("Every field of every item. Filters are fast, but each save must update the index for every field. Picture a book index that lists every single word, even the and and. Add one page, and you rewrite pages of index. The Coach's long note text was just that, and nobody ever filters on it."),
+            maya("Every field of every item. Filters are fast, but each save must update the index for every field. Picture a book index that lists every single word, even the and and. Add one page, and you rewrite pages of index. The Coach indexed its long note text, and nobody filters on it."),
             leo("So I tell it to skip the text."),
             maya("Exactly. You exclude that path. A path is just where a field sits in the item, here slash text. The team excluded it, and saving a note dropped from about 14 RUs to 9. Measured with the request charge, not guessed."),
             leo("What else goes in the policy?"),
             maya("A composite index. Picture a small app screen listing a learner's notes by topic, then newest first. That sort is an ORDER BY, the part of a query that puts results in order, here on two fields at once. And it fails with a missing index error."),
             leo("Why? Every field is already indexed."),
-            maya("Each on its own, like two separate lists: one by topic, one by date. Neither reads as topic, then newest. A composite index is one list sorted on both, like a phone book sorted by surname, then first name. All the Containers notes, Tuesday's before Monday's, then all the Security notes. It must match the query's order and direction."),
+            maya("Each on its own, like two separate lists: one by topic, one by date. Neither reads as topic, then newest. A composite index is one list sorted on both, like a phone book sorted by surname, then first name. It must match the query's order and direction."),
             leo("You said the second setting was about how strict a read is."),
             maya("That's consistency. Cosmos DB keeps several copies of your data, like one price list pinned up in several shop branches. A change takes a moment to reach every branch. Consistency is the promise about what a reader may see in that moment. Five levels, strictest first."),
             leo("Five. Of course there are. [pause] One at a time, with an example each."),
-            maya("Strong: a save counts only once every copy has it. Asha saves a note, and Ben, anywhere, sees it on his very next read. The safest, and reads cost about twice as much. Then bounded staleness: copies may lag, but never by more than a set limit, like a news ticker promised to be at most ten seconds behind."),
+            maya("Strong: a save counts only once every copy has it. Asha saves a note, and Ben, anywhere, sees it on his very next read. The safest, and reads cost about twice as much."),
+            leo("Twice, just to be sure? What's one step looser?"),
+            maya("Bounded staleness: copies may lag, but never by more than a set limit, like a news ticker promised to be at most ten seconds behind."),
             leo("And the one in the middle?"),
             maya("Session, the default. You always see your own saves, in order, like your own notebook. Others may see a slightly older photocopy for a moment. Asha saves a note and sees it at once; Ben may see it a second later, and that's fine."),
             leo("And the two loosest?"),
             maya("Consistent prefix: you may be behind, but never out of order, like a football match on a delay. You never see the second goal before the first. Eventual is cheapest: no order promised, like holiday postcards arriving in any order. But they all arrive, eventually."),
             leo("Which one do I want?"),
-            maya("Session, for most apps. You set the default on the account, the top-level Cosmos DB resource. A client, the object your code connects with, can then ask for a weaker level, never a stronger one. The Coach's nightly report uses an eventual client, because it can lag and costs less."),
+            maya("Session, for most apps. You set the default on the account, the top-level Cosmos DB resource."),
+            leo("And my backend code can't override that?"),
+            maya("A client, the object your code connects with, can ask for a weaker level, never a stronger one. The Coach's nightly report uses an eventual client: it can lag, and costs less."),
             leo("So what do I remember for the exam?"),
             maya("If the question says 429s at a morning peak and quiet the rest of the day, the answer is autoscale. If an ORDER BY on two fields fails, a composite index. If saves cost too much and fields are never filtered, exclude those paths. If users must see their own saves and nothing stricter, session. And a client can only weaken consistency."),
             leo("And anything to try today?"),
@@ -66,7 +74,9 @@ internal object Ai200EpisodesCosmosPerf {
             leo("A price on every call? What is an RU, in plain words?"),
             maya("The price tag on one call. Reading one small item by its id, about a page of text, costs about 1 RU. Saving costs more; searching more again. Under the price tag, an RU rolls the processor time, memory and disk reads a call uses into one number."),
             leo("And Revise Owl pays how?"),
-            maya("With throughput. Picture a jar refilled with coins every second: that's a budget of RUs per second. The cards container, a folder for one kind of item, gets a fixed 1,000. If the calls in one second need more, the jar runs dry, and the extra calls get 429, with a note saying how many milliseconds to wait."),
+            maya("With throughput. Picture a jar refilled with coins every second: that's a budget of RUs per second. The cards container, a folder for one kind of item, gets a fixed 1,000."),
+            leo("And at nine on Monday, every student opens the app at once."),
+            maya("So the calls in one second need more than 1,000. The jar runs dry, and the extra calls get 429, with a note saying how many milliseconds to wait."),
             leo("Then my first suspect is obvious. Cosmos DB is down. It's an outage."),
             maya("[pause] Wrong suspect. The SDK, the ready-made Python library the backend uses, waits and retries a 429 by itself a few times. A few under load are normal. Lots of them, every Monday at nine, mean the jar is too small for that hour, and fine for the rest of the week."),
             leo("Then buy a bigger budget. Set it to 4,000, all week."),
@@ -90,9 +100,13 @@ internal object Ai200EpisodesCosmosPerf {
             leo("Walk me through the line-up. One at a time."),
             maya("Strong: a save counts only once every copy has it, so everyone sees it on their next read. The safest, and reads cost about twice as much. That made Monday worse. Bounded staleness: copies may lag, but only by a set limit, like a news ticker promised to be at most ten seconds behind."),
             leo("And the rest?"),
-            maya("Session, the default: you always see your own saves, in order, like your own notebook, while others may see an older photocopy for a moment. Consistent prefix: maybe late, never out of order, like a match on a delay; you never see the second goal first. Eventual: cheapest, any order, like holiday postcards, but everything arrives."),
+            maya("Session, the default: you always see your own saves, in order, like your own notebook, while others may see an older photocopy for a moment."),
+            leo("And the two loosest suspects?"),
+            maya("Consistent prefix: maybe late, never out of order, like a match on a delay; you never see the second goal first. Eventual: cheapest, any order, like holiday postcards, but everything arrives."),
             leo("So which should Revise Owl use? And can the code ask for stricter than the account's setting?"),
-            maya("Session. A student saves a card and sees it at once; a classmate may see it a second later. Under the hood, the SDK carries a session token, a small receipt for your last save. And no: a client, the object your code connects with, may ask for weaker than the account's default, never stronger."),
+            maya("Session. A student saves a card and sees it at once; a classmate may see it a second later. Under the hood, the SDK carries a session token, a small receipt for your last save."),
+            leo("And the second half of my question? Stricter in code?"),
+            maya("No. A client, the object your code connects with, may ask for weaker than the account's default, never stronger."),
             leo("Any loose ends?"),
             maya("One, and it's where autoscale stops working. Picture a filing cabinet. Each drawer is a partition, and the partition key is the label that picks an item's drawer; here, the student's id. The budget is split between drawers. Four drawers sharing 4,000 get about 1,000 each."),
             leo("So if one drawer gets all the traffic..."),
@@ -116,13 +130,17 @@ internal object Ai200EpisodesCosmosPerf {
             leo("[laugh] I heard finance sent an email with three question marks. How do you even pay for a database?"),
             maya("Per call. Every call has a price, counted in request units, RUs. An RU is the price tag on one call. Reading one small item by its id, about a page of text, costs about 1 RU. Under the picture, an RU rolls processor time, memory and disk reads into one number."),
             leo("And you pay for each RU as you go?"),
-            maya("Mostly you buy throughput: picture a jar refilled with coins every second, a budget of RUs per second. The notes container, a folder for one kind of item, had 1,000. Run the jar dry in a second, and calls get 429, a status code meaning too many requests, like a café saying come back in a minute."),
+            maya("Mostly you buy throughput: picture a jar refilled with coins every second, a budget of RUs per second. The notes container, a folder for one kind of item, had 1,000."),
+            leo("And if the app spends more than that in one second?"),
+            maya("The jar runs dry, and calls get 429, a status code meaning too many requests, like a café saying come back in a minute."),
             leo("Okay. So who went first?"),
             maya("Tom. Monday. Tom was asked what a note search costs, and he guessed. Said two RUs, very confident. It was twelve."),
             leo("How was he supposed to know?"),
             maya("Every reply carries a header, a small label on the response, called the request charge. It says exactly how many RUs that call used. You print it on real calls. Tom does now. It's on a sticky note on his screen."),
             leo("[chuckle] What else is on the sticky note?"),
-            maya("Which calls are cheapest. Picture a filing cabinet: each drawer is a partition, and the partition key is the label that picks an item's drawer, here the learner's id. A point read takes one item by its id and key, from a known drawer. A single-partition query searches one drawer. A cross-partition query opens every drawer, and costs most."),
+            maya("Which calls are cheapest. Picture a filing cabinet: each drawer is a partition, and the partition key is the label that picks an item's drawer, here the learner's id."),
+            leo("So when the app opens one learner's note, the backend already knows the drawer."),
+            maya("And that's a point read: one item by its id and key, the cheapest. A single-partition query searches one drawer. A cross-partition query opens every drawer, and costs most."),
             leo("Very tidy. And Tuesday?"),
             maya("Tuesday was Dana. Dana noticed that saving one note cost about 14 RUs. The cause was the index. An index is like the index at the back of a book: look up kettle, see page 212, go straight there. And by default, Cosmos DB indexes every field of every item."),
             leo("So every save updates the index for every field."),
@@ -130,7 +148,9 @@ internal object Ai200EpisodesCosmosPerf {
             leo("Good for Dana. Wednesday?"),
             maya("Wednesday, Marcus. Marcus set the account, the top-level Cosmos DB resource, to strong consistency, because strong sounds safe. Consistency is a promise about what a reader may see while a save travels. Cosmos DB keeps several copies, like one price list pinned up in several shop branches, and a change takes a moment to reach them all."),
             leo("And strong means?"),
-            maya("A save counts only once every copy has it, so every reader sees it next time. Lovely, and about twice the cost per read. The default is session: you always see your own saves, like your own notebook, while others may see an older photocopy for a moment. The SDK, the library the code uses, carries a session token, a receipt for your last save."),
+            maya("A save counts only once every copy has it, so every reader sees it next time. Lovely, and about twice the cost per read."),
+            leo("And what did Marcus have before he changed it?"),
+            maya("Session, the default: you always see your own saves, like your own notebook, while others may see an older photocopy for a moment. The SDK, the library the code uses, carries a session token, a receipt for your last save."),
             leo("And the other three? Marcus will want to know."),
             maya("Bounded staleness: may lag, but only by a set limit, like a news ticker promised to be at most ten seconds behind. Consistent prefix: maybe late, never out of order, like a match on a delay; you never see the second goal first. Eventual: cheapest, like holiday postcards arriving in any order, but they all arrive. Marcus went back to session."),
             leo("Thursday. I can feel it."),
@@ -178,7 +198,9 @@ internal object Ai200EpisodesCosmosPerf {
             ivy("Mm. And which calls are cheapest?"),
             nova("Picture a filing cabinet. Each drawer is a partition, and the partition key is the label that picks an item's drawer; for the Coach, the learner's id. A point read takes one item by its id and key, from a drawer you know. A single-partition query searches one drawer. A cross-partition query opens every drawer, the dearest."),
             ivy("And the budget. Is it always a fixed number?"),
-            nova("Three ways. Manual: a fixed number, from 400 up, that you change yourself. Serverless: no budget, you pay per RU used, for testing or a tiny app. [pause] And autoscale. You set a maximum, and the budget moves between ten percent of it and the maximum, following the load. Billed for the highest point each hour."),
+            nova("Three ways. Manual: a fixed number, from 400 up, that you change yourself. Serverless: no budget, you pay per RU used, for testing or a tiny app."),
+            ivy("And the third? I can hear it coming."),
+            nova("Autoscale. [pause] You set a maximum, and the budget moves between ten percent of it and the maximum, following the load. Billed for the highest point each hour."),
             ivy("So when learners all log in at nine..."),
             nova("Autoscale rises to meet them, and settles back when they've gone. [pause] But it stops working when one drawer gets all the traffic. The budget is split between drawers: four drawers sharing 4,000 get about 1,000 each. A hot one still gets 429s. Then you need a better partition key."),
             ivy("Tell me how to make each call cheaper. Slowly."),
@@ -192,7 +214,9 @@ internal object Ai200EpisodesCosmosPerf {
             ivy("And the last setting? You promised me consistency. What is it, in plain words?"),
             nova("Cosmos DB keeps several copies of your data, like one price list pinned up in several shop branches. A change takes a moment to reach every branch. Consistency is the promise about what you may see in that moment. [pause] Five levels, strictest first."),
             ivy("Tell me each one. Like a bedtime story."),
-            nova("Strong: a save counts only once every copy has it, so everyone sees it next read; reads cost about twice as much. Bounded staleness: copies may lag, but only by a set limit, like a news ticker at most ten seconds behind. [pause] Consistent prefix: maybe late, never out of order, like a match on a delay. Eventual: cheapest, like postcards arriving in any order."),
+            nova("Strong: a save counts only once every copy has it, so everyone sees it next read; reads cost about twice as much. Bounded staleness: copies may lag, but only by a set limit, like a news ticker at most ten seconds behind."),
+            ivy("Those are the strict ones. And the sleepy ones?"),
+            nova("Consistent prefix: maybe late, never out of order, like a match on a delay. [pause] Eventual: cheapest, like postcards arriving in any order."),
             ivy("You skipped one. The one in the middle."),
             nova("Session, the default. You always see your own saves, in order, like your own notebook, while others may see an older photocopy for a moment. The SDK carries a session token, a little receipt for your last save. [pause] A client, the object your code connects with, may ask for weaker than the account's default, never stronger."),
             ivy("And the nightly report, while we sleep?"),
@@ -226,7 +250,9 @@ internal object Ai200EpisodesCosmosPerf {
             rafe("And how do I know what a call really cost me? I don't like surprises on the bill."),
             nova("Every reply carries a header, a small label on the response, called the request charge, with the RUs that call used. Print it on real calls. Never guess."),
             rafe("Which calls are cheapest, then?"),
-            nova("Picture a filing cabinet. Each drawer is a partition, and the partition key is the label that picks an item's drawer, here the learner's id. A point read takes one item by its id and key, from a known drawer. A single-partition query searches one drawer. A cross-partition query opens every drawer. Some people just can't commit to one drawer."),
+            nova("Picture a filing cabinet. Each drawer is a partition, and the partition key is the label that picks an item's drawer, here the learner's id."),
+            rafe("So if I know your id and your drawer, I come straight to you."),
+            nova("That's a point read, the cheapest. A single-partition query searches one drawer. A cross-partition query opens every drawer. Some people just can't commit to one drawer."),
             rafe("[chuckle] Not me. And where does autoscale stop working? Every romance has its limits."),
             nova("When one drawer gets all the traffic. The budget is split between drawers: four drawers sharing 4,000 get about 1,000 each. A hot one still gets 429s, however high the maximum. Then you need a better partition key, one that spreads the love."),
             rafe("Now, the index. Tell me something I don't know."),
@@ -405,58 +431,58 @@ internal object Ai200EpisodesCosmosPerf {
                     Beat(10, show = setOf("ok"), light = setOf("ok", "busy"), card = BoardCard("The SDK retries", "A few 429s under load are normal. Lots mean something must change.")),
                 ),
             ),
-            // 11: "Partition key. What's that, in plain words?"
+            // 13: "Partition key. What's that, in plain words?"
             Scene(
-                11, "Drawers", drawers(),
+                13, "Drawers", drawers(),
                 beats = listOf(
-                    Beat(12, light = setOf("p2", "p3"), card = drawerCard),
-                    Beat(14, light = setOf("hot"), pulse = "budget" to "hot", card = BoardCard("The budget is split", "Four drawers sharing 1,000 RU/s get about 250 each. A hot one gets 429s.")),
+                    Beat(14, light = setOf("p2", "p3"), card = drawerCard),
+                    Beat(16, light = setOf("hot"), pulse = "budget" to "hot", card = BoardCard("The budget is split", "Four drawers sharing 1,000 RU/s get about 250 each. A hot one gets 429s.")),
                 ),
             ),
-            // 15: "Okay. And how do I know what each call costs? Do I guess?"
+            // 17: "Okay. And how do I know what each call costs? Do I guess?"
             Scene(
-                15, "What did it cost?", calls(),
+                17, "What did it cost?", calls(),
                 beats = listOf(
-                    Beat(16, show = setOf("header"), light = setOf("header"), card = chargeCode),
-                    Beat(18, show = setOf("point", "single", "cross"), light = setOf("point"), pulse = "header" to "point", card = BoardCard("Point read", "One item by its id and partition key: a folder from a known drawer.")),
+                    Beat(18, show = setOf("header"), light = setOf("header"), card = chargeCode),
+                    Beat(20, show = setOf("point", "single", "cross"), light = setOf("point"), pulse = "header" to "point", card = BoardCard("Point read", "One item by its id and partition key: a folder from a known drawer.")),
                 ),
             ),
-            // 19: "Got it. And is there only one way to buy the budget?"
+            // 21: "Got it. And is there only one way to buy the budget?"
             Scene(
-                19, "Three ways to buy", throughput(),
+                21, "Three ways to buy", throughput(),
                 beats = listOf(
-                    Beat(20, show = setOf("manual", "serverless"), light = setOf("manual", "serverless"), card = BoardCard("Manual and serverless", "Manual: fixed, from 400. Serverless: pay per RU, for tests and small apps.")),
-                    Beat(22, show = setOf("autoscale", "load"), light = setOf("autoscale"), pulse = "load" to "autoscale", card = BoardCard("Autoscale", "Set a maximum: it moves between 10% of it and the max, billed per hour.")),
+                    Beat(22, show = setOf("manual", "serverless"), light = setOf("manual", "serverless"), card = BoardCard("Manual and serverless", "Manual: fixed, from 400. Serverless: pay per RU, for tests and small apps.")),
+                    Beat(24, show = setOf("autoscale", "load"), light = setOf("autoscale"), pulse = "load" to "autoscale", card = BoardCard("Autoscale", "Set a maximum: it moves between 10% of it and the max, billed per hour.")),
                 ),
             ),
-            // 23: "Nice. So that's buying. How do I make each call cheaper?"
+            // 27: "Nice. So that's buying. How do I make each call cheaper?"
             Scene(
-                23, "The indexing policy", indexing(),
+                27, "The indexing policy", indexing(),
                 beats = listOf(
-                    Beat(24, show = setOf("item", "index", "policy"), light = setOf("index", "policy"), card = bookCard),
-                    Beat(26, light = setOf("item", "index"), pulse = "item" to "index", card = everyWordCard),
-                    Beat(28, show = setOf("excl"), light = setOf("excl"), pulse = "policy" to "excl", card = BoardCard("Exclude /text", "Saving a note: about 14 RUs down to 9, measured.")),
-                    Beat(30, show = setOf("comp"), light = setOf("comp"), pulse = "policy" to "comp", card = sortCode),
-                    Beat(32, light = setOf("comp"), card = phoneBookCard),
+                    Beat(28, show = setOf("item", "index", "policy"), light = setOf("index", "policy"), card = bookCard),
+                    Beat(30, light = setOf("item", "index"), pulse = "item" to "index", card = everyWordCard),
+                    Beat(32, show = setOf("excl"), light = setOf("excl"), pulse = "policy" to "excl", card = BoardCard("Exclude /text", "Saving a note: about 14 RUs down to 9, measured.")),
+                    Beat(34, show = setOf("comp"), light = setOf("comp"), pulse = "policy" to "comp", card = sortCode),
+                    Beat(36, light = setOf("comp"), card = phoneBookCard),
                 ),
             ),
-            // 33: "You said the second setting was about how strict a read is."
+            // 37: "You said the second setting was about how strict a read is."
             Scene(
-                33, "Consistency", consistency(),
+                37, "Consistency", consistency(),
                 beats = listOf(
-                    Beat(34, light = setOf("cost"), card = branchesCard),
-                    Beat(36, light = setOf("strong", "bounded"), card = strictCard),
-                    Beat(38, light = setOf("session"), card = sessionCard),
-                    Beat(40, light = setOf("prefix", "eventual"), card = looseCard),
-                    Beat(42, light = setOf("session", "eventual"), card = weakerCard),
+                    Beat(38, light = setOf("cost"), card = branchesCard),
+                    Beat(40, light = setOf("strong", "bounded"), card = strictCard),
+                    Beat(44, light = setOf("session"), card = sessionCard),
+                    Beat(46, light = setOf("prefix", "eventual"), card = looseCard),
+                    Beat(50, light = setOf("session", "eventual"), card = weakerCard),
                 ),
             ),
-            // 43: "So what do I remember for the exam?"
+            // 51: "So what do I remember for the exam?"
             Scene(
-                43, "For the exam", exam(),
+                51, "For the exam", exam(),
                 beats = listOf(
-                    Beat(44, show = all6, light = setOf("peak", "sort", "own"), card = BoardCard("Listen for the phrase", "Peak: autoscale. Two-field sort: composite. Own saves: session.")),
-                    Beat(46, card = today),
+                    Beat(52, show = all6, light = setOf("peak", "sort", "own"), card = BoardCard("Listen for the phrase", "Peak: autoscale. Two-field sort: composite. Own saves: session.")),
+                    Beat(54, card = today),
                 ),
             ),
         ),
@@ -494,70 +520,70 @@ internal object Ai200EpisodesCosmosPerf {
                 5, "The budget", budget("Revise Owl API", "cards container", "1,000 RU/s"),
                 beats = listOf(
                     Beat(6, show = setOf("app", "cont"), light = setOf("cont"), pulse = "app" to "cont", card = jarCard),
-                    Beat(7, show = setOf("busy"), light = setOf("busy"), pulse = "cont" to "busy", card = BoardCard("Suspect one: an outage", "Cosmos DB is down?")),
-                    Beat(8, show = setOf("ok"), light = setOf("ok", "busy"), card = BoardCard("Cleared", "The SDK retries 429s. Lots at one hour: the jar is too small then.")),
+                    Beat(9, show = setOf("busy"), light = setOf("busy"), pulse = "cont" to "busy", card = BoardCard("Suspect one: an outage", "Cosmos DB is down?")),
+                    Beat(10, show = setOf("ok"), light = setOf("ok", "busy"), card = BoardCard("Cleared", "The SDK retries 429s. Lots at one hour: the jar is too small then.")),
                 ),
             ),
-            // 9: "Then buy a bigger budget. Set it to 4,000, all week."
+            // 11: "Then buy a bigger budget. Set it to 4,000, all week."
             Scene(
-                9, "The fix", throughput(),
+                11, "The fix", throughput(),
                 beats = listOf(
-                    Beat(9, show = setOf("manual"), light = setOf("manual"), card = BoardCard("Suspect: 4,000 all week", "Peak prices for every quiet hour.")),
-                    Beat(10, show = setOf("autoscale", "load"), light = setOf("autoscale"), pulse = "load" to "autoscale", card = BoardCard("Autoscale", "Max 4,000: up at nine, back to 400 by ten. Billed per hour's peak.")),
-                    Beat(12, show = setOf("serverless"), light = setOf("serverless"), card = BoardCard("Serverless", "Pay per RU used: tests or a tiny app, not heavy daily load.")),
+                    Beat(11, show = setOf("manual"), light = setOf("manual"), card = BoardCard("Suspect: 4,000 all week", "Peak prices for every quiet hour.")),
+                    Beat(12, show = setOf("autoscale", "load"), light = setOf("autoscale"), pulse = "load" to "autoscale", card = BoardCard("Autoscale", "Max 4,000: up at nine, back to 400 by ten. Billed per hour's peak.")),
+                    Beat(14, show = setOf("serverless"), light = setOf("serverless"), card = BoardCard("Serverless", "Pay per RU used: tests or a tiny app, not heavy daily load.")),
                 ),
             ),
-            // 13: "Case closed, then. Autoscale. Lunch?"
+            // 15: "Case closed, then. Autoscale. Lunch?"
             Scene(
-                13, "The second witness", indexing(),
+                15, "The second witness", indexing(),
                 beats = listOf(
-                    Beat(14, show = setOf("item"), light = setOf("item"), card = BoardCard("14 RUs a save", "Finance expected half that.")),
-                    Beat(16, show = setOf("index"), light = setOf("index"), pulse = "item" to "index", card = bookCard),
-                    Beat(18, show = setOf("policy"), light = setOf("index", "policy"), card = everyWordCard),
-                    Beat(19, card = BoardCard("Suspect: indexing off", "Then every search reads every card. Far worse.")),
-                    Beat(20, show = setOf("excl"), light = setOf("excl"), pulse = "policy" to "excl", card = BoardCard("Exclude /text", "Saving dropped from about 14 RUs to 9.")),
+                    Beat(16, show = setOf("item"), light = setOf("item"), card = BoardCard("14 RUs a save", "Finance expected half that.")),
+                    Beat(18, show = setOf("index"), light = setOf("index"), pulse = "item" to "index", card = bookCard),
+                    Beat(20, show = setOf("policy"), light = setOf("index", "policy"), card = everyWordCard),
+                    Beat(21, card = BoardCard("Suspect: indexing off", "Then every search reads every card. Far worse.")),
+                    Beat(22, show = setOf("excl"), light = setOf("excl"), pulse = "policy" to "excl", card = BoardCard("Exclude /text", "Saving dropped from about 14 RUs to 9.")),
                 ),
             ),
-            // 21: "Any more clues in the file?"
+            // 23: "Any more clues in the file?"
             Scene(
-                21, "The sorted deck", indexing(),
+                23, "The sorted deck", indexing(),
                 beats = listOf(
-                    Beat(22, light = setOf("item"), card = BoardCard("Query", "SELECT * FROM c ORDER BY c.deck ASC, c.dueAt ASC", code = true)),
-                    Beat(24, show = setOf("comp"), light = setOf("comp"), pulse = "policy" to "comp", card = BoardCard("Composite: a phone book", "One list on two fields: surname, then first name. Deck, then due date.")),
+                    Beat(24, light = setOf("item"), card = BoardCard("Query", "SELECT * FROM c ORDER BY c.deck ASC, c.dueAt ASC", code = true)),
+                    Beat(26, show = setOf("comp"), light = setOf("comp"), pulse = "policy" to "comp", card = BoardCard("Composite: a phone book", "One list on two fields: surname, then first name. Deck, then due date.")),
                 ),
             ),
-            // 25: "And the last suspect. A teammate set the account... to strong consistency..."
+            // 27: "And the last suspect. A teammate set the account... to strong consistency..."
             Scene(
-                25, "The last suspect", consistency(),
+                27, "The last suspect", consistency(),
                 beats = listOf(
-                    Beat(25, light = setOf("strong"), card = BoardCard("Suspect: strong", "Always the latest save, at about twice the read cost.")),
-                    Beat(26, light = setOf("cost"), card = branchesCard),
-                    Beat(28, light = setOf("strong", "bounded"), card = strictCard),
-                    Beat(30, light = setOf("session", "prefix", "eventual"), card = looseCard),
-                    Beat(32, light = setOf("session"), card = BoardCard("Session, and only weaker", "Your own saves, like your own notebook. A client may only weaken it.")),
+                    Beat(27, light = setOf("strong"), card = BoardCard("Suspect: strong", "Always the latest save, at about twice the read cost.")),
+                    Beat(28, light = setOf("cost"), card = branchesCard),
+                    Beat(30, light = setOf("strong", "bounded"), card = strictCard),
+                    Beat(34, light = setOf("session", "prefix", "eventual"), card = looseCard),
+                    Beat(36, light = setOf("session"), card = BoardCard("Session, and only weaker", "Your own saves, like your own notebook. A client may only weaken it.")),
                 ),
             ),
-            // 33: "Any loose ends?"
+            // 39: "Any loose ends?"
             Scene(
-                33, "Loose ends", drawers(),
+                39, "Loose ends", drawers(),
                 beats = listOf(
-                    Beat(34, light = setOf("p2", "p3"), card = drawerCard),
-                    Beat(36, light = setOf("hot"), pulse = "budget" to "hot", card = BoardCard("A hot drawer", "One shared deck, thousands at nine: 429s whatever the maximum.")),
+                    Beat(40, light = setOf("p2", "p3"), card = drawerCard),
+                    Beat(42, light = setOf("hot"), pulse = "budget" to "hot", card = BoardCard("A hot drawer", "One shared deck, thousands at nine: 429s whatever the maximum.")),
                 ),
             ),
-            // 37: "And which calls are cheapest, for the record?"
+            // 43: "And which calls are cheapest, for the record?"
             Scene(
-                37, "Cheapest calls", calls(),
+                43, "Cheapest calls", calls(),
                 beats = listOf(
-                    Beat(38, light = setOf("point"), pulse = "header" to "point", card = BoardCard("Point read", "A folder from a known drawer. The Cosmos SDK episode has the Python.")),
+                    Beat(44, light = setOf("point"), pulse = "header" to "point", card = BoardCard("Point read", "A folder from a known drawer. The Cosmos SDK episode has the Python.")),
                 ),
             ),
-            // 39: "So, the case summary for the exam?"
+            // 45: "So, the case summary for the exam?"
             Scene(
-                39, "Case closed", exam(),
+                45, "Case closed", exam(),
                 beats = listOf(
-                    Beat(40, show = all6, light = setOf("peak", "writes", "sort"), card = BoardCard("Listen for the phrase", "Peak: autoscale. Pricey saves: exclude. Two-field sort: composite.")),
-                    Beat(42, card = today),
+                    Beat(46, show = all6, light = setOf("peak", "writes", "sort"), card = BoardCard("Listen for the phrase", "Peak: autoscale. Pricey saves: exclude. Two-field sort: composite.")),
+                    Beat(48, card = today),
                 ),
             ),
         ),
@@ -575,70 +601,70 @@ internal object Ai200EpisodesCosmosPerf {
                     Beat(4, show = setOf("ok", "busy"), light = setOf("busy"), pulse = "cont" to "busy", card = jarCard),
                 ),
             ),
-            // 5: "Okay. So who went first?"
+            // 7: "Okay. So who went first?"
             Scene(
-                5, "Monday: Tom", calls(),
+                7, "Monday: Tom", calls(),
                 beats = listOf(
-                    Beat(6, show = setOf("header"), light = setOf("header"), card = BoardCard("Tom guessed 2 RUs", "It was 12.")),
-                    Beat(8, card = chargeCode),
-                    Beat(10, show = setOf("point", "single", "cross"), light = setOf("point"), pulse = "header" to "point", card = drawerCard),
+                    Beat(8, show = setOf("header"), light = setOf("header"), card = BoardCard("Tom guessed 2 RUs", "It was 12.")),
+                    Beat(10, card = chargeCode),
+                    Beat(12, show = setOf("point", "single", "cross"), light = setOf("point"), pulse = "header" to "point", card = drawerCard),
                 ),
             ),
-            // 11: "Very tidy. And Tuesday?"
+            // 15: "Very tidy. And Tuesday?"
             Scene(
-                11, "Tuesday: Dana", indexing(),
+                15, "Tuesday: Dana", indexing(),
                 beats = listOf(
-                    Beat(12, show = setOf("item", "index"), light = setOf("item", "index"), pulse = "item" to "index", card = bookCard),
-                    Beat(14, show = setOf("policy", "excl"), light = setOf("excl"), pulse = "policy" to "excl", card = BoardCard("Exclude /text", "No more indexing every word. Saves dropped to 9 RUs. Dana got a cake.")),
+                    Beat(16, show = setOf("item", "index"), light = setOf("item", "index"), pulse = "item" to "index", card = bookCard),
+                    Beat(18, show = setOf("policy", "excl"), light = setOf("excl"), pulse = "policy" to "excl", card = BoardCard("Exclude /text", "No more indexing every word. Saves dropped to 9 RUs. Dana got a cake.")),
                 ),
             ),
-            // 15: "Good for Dana. Wednesday?"
+            // 19: "Good for Dana. Wednesday?"
             Scene(
-                15, "Wednesday: Marcus", consistency(),
+                19, "Wednesday: Marcus", consistency(),
                 beats = listOf(
-                    Beat(16, light = setOf("cost"), card = branchesCard),
-                    Beat(18, light = setOf("strong", "session"), card = sessionCard),
-                    Beat(20, light = setOf("bounded", "prefix", "eventual"), card = looseCard),
+                    Beat(20, light = setOf("cost"), card = branchesCard),
+                    Beat(24, light = setOf("strong", "session"), card = sessionCard),
+                    Beat(26, light = setOf("bounded", "prefix", "eventual"), card = looseCard),
                 ),
             ),
-            // 21: "Thursday. I can feel it."
+            // 27: "Thursday. I can feel it."
             Scene(
-                21, "Thursday: the intern", throughput(),
+                27, "Thursday: the intern", throughput(),
                 beats = listOf(
-                    Beat(22, show = setOf("load"), light = setOf("load"), card = BoardCard("An outage ticket", "429s at nine every morning. The SDK had already retried.")),
-                    Beat(24, show = setOf("autoscale"), light = setOf("autoscale"), pulse = "load" to "autoscale", card = BoardCard("Autoscale", "Set a maximum of 4,000: it moves between 10% of it and the max.")),
-                    Beat(26, show = setOf("manual", "serverless"), light = setOf("manual", "serverless"), card = BoardCard("Manual and serverless", "Fixed, from 400; or pay per RU, for tests and tiny apps.")),
+                    Beat(28, show = setOf("load"), light = setOf("load"), card = BoardCard("An outage ticket", "429s at nine every morning. The SDK had already retried.")),
+                    Beat(30, show = setOf("autoscale"), light = setOf("autoscale"), pulse = "load" to "autoscale", card = BoardCard("Autoscale", "Set a maximum of 4,000: it moves between 10% of it and the max.")),
+                    Beat(32, show = setOf("manual", "serverless"), light = setOf("manual", "serverless"), card = BoardCard("Manual and serverless", "Fixed, from 400; or pay per RU, for tests and tiny apps.")),
                 ),
             ),
-            // 27: "And Friday? There's always a Friday."
+            // 33: "And Friday? There's always a Friday."
             Scene(
-                27, "Friday: Priya", consistency(),
+                33, "Friday: Priya", consistency(),
                 beats = listOf(
-                    Beat(28, light = setOf("strong", "session"), card = BoardCard("Strong from the client?", "The account default was session.")),
-                    Beat(30, light = setOf("eventual"), card = BoardCard("Only weaker", "A client may weaken the default, never strengthen it. Report: eventual.")),
+                    Beat(34, light = setOf("strong", "session"), card = BoardCard("Strong from the client?", "The account default was session.")),
+                    Beat(36, light = setOf("eventual"), card = BoardCard("Only weaker", "A client may weaken the default, never strengthen it. Report: eventual.")),
                 ),
             ),
-            // 31: "Did anything else come up?"
+            // 37: "Did anything else come up?"
             Scene(
-                31, "Where autoscale stops", drawers(),
+                37, "Where autoscale stops", drawers(),
                 beats = listOf(
-                    Beat(32, light = setOf("hot"), pulse = "budget" to "hot", card = splitCard),
+                    Beat(38, light = setOf("hot"), pulse = "budget" to "hot", card = splitCard),
                 ),
             ),
-            // 33: "And the sorted notes list? I heard someone shouting at it."
+            // 39: "And the sorted notes list? I heard someone shouting at it."
             Scene(
-                33, "Tom again", indexing(),
+                39, "Tom again", indexing(),
                 beats = listOf(
-                    Beat(34, show = setOf("comp"), light = setOf("comp"), pulse = "policy" to "comp", card = sortCode),
-                    Beat(36, light = setOf("comp"), card = phoneBookCard),
+                    Beat(40, show = setOf("comp"), light = setOf("comp"), pulse = "policy" to "comp", card = sortCode),
+                    Beat(42, light = setOf("comp"), card = phoneBookCard),
                 ),
             ),
-            // 37: "So, the gossip I should remember for the exam?"
+            // 43: "So, the gossip I should remember for the exam?"
             Scene(
-                37, "For the exam", exam(),
+                43, "For the exam", exam(),
                 beats = listOf(
-                    Beat(38, show = all6, light = setOf("peak", "own", "stronger"), card = BoardCard("Listen for the phrase", "Each phrase points to one answer. Measure first, like Tom does now.")),
-                    Beat(40, card = today),
+                    Beat(44, show = all6, light = setOf("peak", "own", "stronger"), card = BoardCard("Listen for the phrase", "Each phrase points to one answer. Measure first, like Tom does now.")),
+                    Beat(46, card = today),
                 ),
             ),
         ),
@@ -672,35 +698,35 @@ internal object Ai200EpisodesCosmosPerf {
                 15, "Buying the budget", throughput(),
                 beats = listOf(
                     Beat(16, show = setOf("manual", "autoscale", "serverless"), light = setOf("autoscale"), card = BoardCard("Manual, serverless, autoscale", "Autoscale: between 10% of a maximum and the max, billed per hour.")),
-                    Beat(18, show = setOf("load"), light = setOf("autoscale", "load"), pulse = "load" to "autoscale", card = splitCard),
+                    Beat(20, show = setOf("load"), light = setOf("autoscale", "load"), pulse = "load" to "autoscale", card = splitCard),
                 ),
             ),
-            // 19: "Tell me how to make each call cheaper. Slowly."
+            // 21: "Tell me how to make each call cheaper. Slowly."
             Scene(
-                19, "The indexing policy", indexing(),
+                21, "The indexing policy", indexing(),
                 beats = listOf(
-                    Beat(20, show = setOf("item", "index", "policy"), light = setOf("index", "policy"), card = bookCard),
-                    Beat(22, show = setOf("excl"), light = setOf("excl"), pulse = "policy" to "excl", card = BoardCard("Exclude /text", "No more indexing every word: a save went from about 14 RUs to 9.")),
-                    Beat(24, show = setOf("comp"), light = setOf("comp"), pulse = "policy" to "comp", card = sortCode),
-                    Beat(26, light = setOf("comp"), card = phoneBookCard),
+                    Beat(22, show = setOf("item", "index", "policy"), light = setOf("index", "policy"), card = bookCard),
+                    Beat(24, show = setOf("excl"), light = setOf("excl"), pulse = "policy" to "excl", card = BoardCard("Exclude /text", "No more indexing every word: a save went from about 14 RUs to 9.")),
+                    Beat(26, show = setOf("comp"), light = setOf("comp"), pulse = "policy" to "comp", card = sortCode),
+                    Beat(28, light = setOf("comp"), card = phoneBookCard),
                 ),
             ),
-            // 27: "And the last setting? You promised me consistency..."
+            // 29: "And the last setting? You promised me consistency..."
             Scene(
-                27, "Consistency", consistency(),
+                29, "Consistency", consistency(),
                 beats = listOf(
-                    Beat(28, light = setOf("cost"), card = branchesCard),
-                    Beat(30, light = setOf("strong", "bounded", "prefix", "eventual"), card = looseCard),
-                    Beat(32, light = setOf("session"), card = sessionCard),
-                    Beat(34, light = setOf("eventual"), card = BoardCard("The nightly report: eventual", "It can lag a little, and costs less.")),
+                    Beat(30, light = setOf("cost"), card = branchesCard),
+                    Beat(32, light = setOf("strong", "bounded", "prefix", "eventual"), card = looseCard),
+                    Beat(36, light = setOf("session"), card = sessionCard),
+                    Beat(38, light = setOf("eventual"), card = BoardCard("The nightly report: eventual", "It can lag a little, and costs less.")),
                 ),
             ),
-            // 35: "Mm. Before I drift off. What do I remember for the exam?"
+            // 39: "Mm. Before I drift off. What do I remember for the exam?"
             Scene(
-                35, "For the exam", exam(),
+                39, "For the exam", exam(),
                 beats = listOf(
-                    Beat(36, show = all6, light = setOf("peak", "sort", "own"), card = BoardCard("Listen for the phrase", "Peak: autoscale. Two-field sort: composite. Own saves: session.")),
-                    Beat(38, card = today),
+                    Beat(40, show = all6, light = setOf("peak", "sort", "own"), card = BoardCard("Listen for the phrase", "Peak: autoscale. Two-field sort: composite. Own saves: session.")),
+                    Beat(42, card = today),
                 ),
             ),
         ),
@@ -737,43 +763,43 @@ internal object Ai200EpisodesCosmosPerf {
                     Beat(16, show = setOf("point", "single", "cross"), light = setOf("point"), pulse = "header" to "point", card = drawerCard),
                 ),
             ),
-            // 17: "Not me. And where does autoscale stop working?..."
+            // 19: "Not me. And where does autoscale stop working?..."
             Scene(
-                17, "Every romance has limits", drawers(),
+                19, "Every romance has limits", drawers(),
                 beats = listOf(
-                    Beat(18, light = setOf("hot"), pulse = "budget" to "hot", card = splitCard),
+                    Beat(20, light = setOf("hot"), pulse = "budget" to "hot", card = splitCard),
                 ),
             ),
-            // 19: "Now, the index. Tell me something I don't know."
+            // 21: "Now, the index. Tell me something I don't know."
             Scene(
-                19, "The index", indexing(),
+                21, "The index", indexing(),
                 beats = listOf(
-                    Beat(20, show = setOf("item", "index"), light = setOf("index"), pulse = "item" to "index", card = bookCard),
-                    Beat(21, show = setOf("policy"), light = setOf("item"), card = BoardCard("Quiz: 14 RUs a save", "The long text field is never filtered on. What do we do?")),
-                    Beat(22, show = setOf("excl"), light = setOf("excl"), pulse = "policy" to "excl", card = BoardCard("Right answer: exclude /text", "Saves dropped to about 9 RUs.")),
-                    Beat(24, light = setOf("item"), card = BoardCard("Quiz: a two-field sort", "ORDER BY topic, then newest first, fails. Why?")),
-                    Beat(26, show = setOf("comp"), light = setOf("comp"), pulse = "policy" to "comp", card = phoneBookCard),
+                    Beat(22, show = setOf("item", "index"), light = setOf("index"), pulse = "item" to "index", card = bookCard),
+                    Beat(23, show = setOf("policy"), light = setOf("item"), card = BoardCard("Quiz: 14 RUs a save", "The long text field is never filtered on. What do we do?")),
+                    Beat(24, show = setOf("excl"), light = setOf("excl"), pulse = "policy" to "excl", card = BoardCard("Right answer: exclude /text", "Saves dropped to about 9 RUs.")),
+                    Beat(26, light = setOf("item"), card = BoardCard("Quiz: a two-field sort", "ORDER BY topic, then newest first, fails. Why?")),
+                    Beat(28, show = setOf("comp"), light = setOf("comp"), pulse = "policy" to "comp", card = phoneBookCard),
                 ),
             ),
-            // 27: "Fine. Now, consistency. Something I'm famous for..."
+            // 29: "Fine. Now, consistency. Something I'm famous for..."
             Scene(
-                27, "Consistency", consistency(),
+                29, "Consistency", consistency(),
                 beats = listOf(
-                    Beat(28, light = setOf("cost"), card = branchesCard),
-                    Beat(30, light = setOf("strong", "bounded"), card = strictCard),
-                    Beat(32, light = setOf("prefix", "eventual"), card = looseCard),
-                    Beat(33, light = setOf("cost"), card = BoardCard("Quiz: see your own saves", "Nothing stricter is needed. Which level?")),
-                    Beat(34, light = setOf("session"), card = sessionCard),
-                    Beat(36, light = setOf("strong", "session"), card = BoardCard("Quiz: strong from the client?", "The account defaults to session.")),
-                    Beat(37, light = setOf("eventual"), card = BoardCard("Right answer: only weaker", "Never stronger. The nightly report uses eventual.")),
+                    Beat(30, light = setOf("cost"), card = branchesCard),
+                    Beat(32, light = setOf("strong", "bounded"), card = strictCard),
+                    Beat(34, light = setOf("prefix", "eventual"), card = looseCard),
+                    Beat(35, light = setOf("cost"), card = BoardCard("Quiz: see your own saves", "Nothing stricter is needed. Which level?")),
+                    Beat(36, light = setOf("session"), card = sessionCard),
+                    Beat(38, light = setOf("strong", "session"), card = BoardCard("Quiz: strong from the client?", "The account defaults to session.")),
+                    Beat(39, light = setOf("eventual"), card = BoardCard("Right answer: only weaker", "Never stronger. The nightly report uses eventual.")),
                 ),
             ),
-            // 39: "Last question, for the exam. What do we remember?"
+            // 41: "Last question, for the exam. What do we remember?"
             Scene(
-                39, "For the exam", exam(),
+                41, "For the exam", exam(),
                 beats = listOf(
-                    Beat(40, show = all6, light = setOf("peak", "writes", "own"), card = BoardCard("Listen for the phrase", "Each phrase points to one answer. Five for five.")),
-                    Beat(43, card = today),
+                    Beat(42, show = all6, light = setOf("peak", "writes", "own"), card = BoardCard("Listen for the phrase", "Each phrase points to one answer. Five for five.")),
+                    Beat(45, card = today),
                 ),
             ),
         ),
