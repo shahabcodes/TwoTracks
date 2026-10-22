@@ -62,15 +62,19 @@ internal fun EpisodeBoard(
 ) {
     val frame = board.frameAt(line)
     Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(14.dp)) {
+        // The board travels with its scene: switching telling hands this a new
+        // board while the old scene is still fading out, and that scene must be
+        // drawn from its own board. Looked up in the new one by number, a scene
+        // past the new board's end crashed the app.
         AnimatedContent(
-            targetState = frame.sceneIndex, label = "scene",
+            targetState = board to frame.sceneIndex, label = "scene",
             transitionSpec = { fadeIn(tween(450)) togetherWith fadeOut(tween(300)) },
             modifier = Modifier.fillMaxWidth(),
-        ) { index ->
-            val scene = board.scenes[index]
+        ) { (ownBoard, index) ->
+            val scene = ownBoard.scenes[index]
             // Only the scene on screen follows the line; one fading out keeps
             // the state it left with.
-            val here = if (index == frame.sceneIndex) frame else board.frameAt(scene.fromLine)
+            val here = if (ownBoard === board && index == frame.sceneIndex) frame else ownBoard.frameAt(scene.fromLine)
             Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 heading(scene.heading)
                 SceneDiagram(scene, here.shown, here.lit, here.pulse.takeIf { playing }, palette.diagram)
