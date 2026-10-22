@@ -88,9 +88,10 @@ fun BoardLabel(
     weight: FontWeight = FontWeight.SemiBold,
     spacing: TextUnit = 0.14.em,
     textAlign: TextAlign? = null,
+    maxLines: Int = 2,
 ) {
     Text(
-        caps(text), modifier = modifier, color = color, textAlign = textAlign, maxLines = 2,
+        caps(text), modifier = modifier, color = color, textAlign = textAlign, maxLines = maxLines, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
         style = TextStyle(fontFamily = CondensedFamily, fontWeight = weight, fontSize = size, letterSpacing = spacing, lineHeight = size * 1.25f),
     )
 }

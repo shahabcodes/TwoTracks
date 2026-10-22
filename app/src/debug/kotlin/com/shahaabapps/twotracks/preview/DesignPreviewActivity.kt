@@ -132,6 +132,8 @@ class DesignPreviewActivity : ComponentActivity() {
                             },
                             onBack = {}, onPlayPause = {}, onBack15 = {}, onForward30 = {}, onSeek = {}, onSpeed = {}, onStop = {}, onLine = {},
                             transcriptFirst = intent?.getBooleanExtra("transcript", false) == true,
+                            // --ez hidden true draws the controls folded away.
+                            controlsHidden = intent?.getBooleanExtra("hidden", false) == true,
                         )
                         // The real player, not a picture of it: the service, the notification and the
                         // lock screen, for an episode the app carries. --es topic az-apim picks another.

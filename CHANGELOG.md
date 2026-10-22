@@ -5,6 +5,11 @@ build number is appended by CI (for example `0.1.0 (build 12)`).
 
 ## [Unreleased]
 
+## [0.91.0] - 2026-10-22
+### Changed
+- The podcast player gives the board the screen: it scrolls at full size, the subtitles stay pinned above the controls, and the controls fold away to one row (remembered; short screens start folded).
+- Departures player: the board and transcript switch is a link in the header, and the speed is one key beside play.
+
 ## [0.90.5] - 2026-10-21
 ### Added
 - The rest of AZ-305: all 70 podcast episodes, 14 topics in five tellings.
