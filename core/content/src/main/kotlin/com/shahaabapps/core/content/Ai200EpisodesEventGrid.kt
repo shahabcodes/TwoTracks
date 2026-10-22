@@ -9,19 +9,21 @@ internal object Ai200EpisodesEventGrid {
             leo("A pushy notice board. I've worked in offices like that. What counts as a notice?"),
             maya("An event. A small message that says something happened. A note was updated. A file was uploaded. It's news, not a job. It doesn't tell anyone what to do. It just says what happened."),
             leo("News, not a job. Why does that difference matter?"),
-            maya("Because Azure has another service for jobs, called Service Bus. Think of its queue as a to-do list, where each job is picked up by one worker and finished. Event Grid is more like a town crier. It calls out the news to everyone who signed up, and moves on."),
+            maya("Because Azure has another service for jobs, Service Bus. Its queue is a to-do list: your worker asks for the next job and pulls it off, one worker per job. Event Grid works the other way round. It calls your code, with a web request, the moment there's news, and tells everyone who signed up."),
             leo("Okay. So who puts the notice up?"),
             maya("The publisher. Say you're building the Two Tracks Coach, a study assistant for an Android app, with a Python backend on Azure. The backend is the server code the app talks to. When a learner edits a note, the backend sends out an event called NoteUpdated. That makes it the publisher."),
             leo("And where does it send it? Straight onto the board?"),
             maya("Onto a topic. A topic is one notice board, with its own web address. The Coach's board is a custom topic: a board your own code posts to, with news you invent, like NoteUpdated."),
             leo("Is there any other kind?"),
-            maya("A system topic. That's a board where an Azure service posts news about itself. For example, a storage account, Azure's place for keeping files. When a PDF is uploaded there, Storage posts a BlobCreated event by itself. A blob is just a file in storage. You don't publish that one. You only sign up to hear it."),
+            maya("A system topic. That's a board where an Azure service posts news about itself. Say the Android app uploads a PDF to a storage account, Azure's place for keeping files."),
+            leo("And my backend has to announce that upload?"),
+            maya("No. Storage posts a BlobCreated event by itself; a blob is just a file in storage. You only sign up to hear it."),
             leo("Sign up how? I can't exactly follow a notice board."),
             maya("[chuckle] You can, with a subscription. A subscription is a standing order: send me these events, at this address. Whatever sits at that address is the handler, the code that receives the event."),
             leo("What kind of code can be a handler?"),
             maya("Most often a small function. Azure Functions runs a piece of code only when something happens, so nothing sits idle waiting. For the Coach, a re-embed function listens for NoteUpdated and rebuilds the note's search entry, so search finds the new words."),
             leo("And if it isn't a function?"),
-            maya("A webhook, which is just a web address on your own server that accepts the event, like a letterbox Event Grid can post into. Or a Service Bus queue. One topic can have many subscriptions, and each gets its own copy."),
+            maya("A webhook, which is just a web address on your own server that accepts the event, like a letterbox Event Grid can post into. Or a Service Bus queue: Event Grid pushes the event in, and your worker pulls it out later. One topic can have many subscriptions, and each gets its own copy."),
             leo("What does an event actually look like?"),
             maya("Like a letter in a standard envelope. The layout of the envelope is called the schema. The one to prefer is CloudEvents 1.0, an open standard, which means a layout many companies agreed on, so many systems can read it. You choose it when you create the topic."),
             leo("And what's written on the envelope?"),
@@ -35,7 +37,9 @@ internal object Ai200EpisodesEventGrid {
             leo("And a third? There's always a third."),
             maya("An advanced filter. It looks inside the data and compares a field using an operator, which is a test like greater than, or is one of. For example, only re-embed notes longer than 20 words: data dot wordCount, NumberGreaterThan, 20. A subject filter can't do that. It only reads the start and end of the subject."),
             leo("Got it. Now the scary part. What if my handler is down?"),
-            maya("Then Event Grid is patient. Delivery is at least once, which means every event gets there, sometimes more than once. The handler has to answer with a success code, a number like 200 that means OK, within 30 seconds. Anything else counts as a failure, and Event Grid tries again later, waiting a little longer each time."),
+            maya("Then Event Grid is patient. Your handler has to answer with a success code, a number like 200 that means OK, within 30 seconds. Anything else is a failure, and Event Grid tries again later, waiting a little longer each time."),
+            leo("Like my Android app retrying a failed call, with a longer wait each time?"),
+            maya("Exactly that, but Event Grid does it for you. And delivery is at least once, which means every event gets there, sometimes more than once."),
             leo("How long does it keep trying?"),
             maya("By default, 30 attempts or 24 hours, whichever comes first. You can lower both on the subscription. Some errors aren't retried at all, like the error code 400, which means the event itself was bad, so trying again won't help."),
             leo("And after 24 hours, it keeps the event somewhere safe?"),
@@ -43,7 +47,9 @@ internal object Ai200EpisodesEventGrid {
             leo("Dead letters. Like the post office's pile of letters nobody could deliver."),
             maya("Exactly that. Now, back to at least once. It means an event can arrive twice. Say the handler did the work, but its answer got lost on the way back. Event Grid can't tell, so it sends the event again."),
             leo("So my function refreshes the same note twice. Is that bad?"),
-            maya("Only if the second time changes something. That's why handlers must be idempotent. It's a long word for safe to run twice: the same event again leaves the same result. Writing the note's search data by its id, replacing what's there, is safe. Adding one to a counter is not, so keep the ids of the events you've done."),
+            maya("Only if the second time changes something. That's why handlers must be idempotent, a long word for safe to run twice: the same event again leaves the same result."),
+            leo("Like a PUT from my app, not a POST? Send it twice, same result?"),
+            maya("Nice, yes. Writing the note's search data by its id, replacing what's there, is safe. Adding one to a counter is not, so keep the ids of events you've done."),
             leo("Anything else that can catch me out?"),
             maya("Two things. First, order. Event Grid doesn't promise events arrive in the order they were sent. Second, a webhook must prove it wants the events before any arrive. That's called endpoint validation."),
             leo("Endpoint validation. In plain words?"),
@@ -64,13 +70,17 @@ internal object Ai200EpisodesEventGrid {
         listOf(
             maya("Welcome to Case Files. Today's case: The Edits That Vanished. WordWise is a small Android app for learning vocabulary, with a Python backend on Azure. When a learner edits a word list, the backend announces it, and a search function and a weekly report both react. On Tuesday, learners noticed that Monday's edits never showed up in search."),
             leo("Detective Leo, reporting. What's a backend, and announces it how, in plain words?"),
-            maya("The backend is the server code the app talks to. It announces through Event Grid. Picture a notice board that pushes. The backend posts a notice, an event, saying a list was updated. Event Grid then hands a copy to everyone who signed up for that news. An event is news, not a job. It says what happened, not what to do."),
+            maya("The backend is the server code the app talks to. It announces through Event Grid. Picture a notice board that pushes: the backend posts a notice, an event, saying a list was updated."),
+            leo("And the search function checks that board every few seconds?"),
+            maya("No checking at all. Event Grid hands a copy to everyone who signed up, the moment it arrives. An event is news, not a job. It says what happened, not what to do."),
             leo("And what is Event Grid, really, under the notice board?"),
             maya("A service Azure runs for you. The backend sends each event to a topic, which is one board with its own web address, using a secure web call. Event Grid checks every subscription on that topic, a standing order that says send me these, here. Then it makes a web call to each handler, the code that receives it."),
             leo("Then here's my first suspect. The backend never sent Monday's events."),
             maya("[pause] Wrong suspect. The backend's logs, its own diary of what it did, show every event went out, and the topic accepted them. Here's the first clue. On Monday the search function, a small piece of code that runs when something happens, was down while a new version was installed. Thirty-one hours, start to finish."),
             leo("So Event Grid knocked, and nobody was home."),
-            maya("Right. The handler must answer with a success code, a number like 200 that means OK, within 30 seconds. Otherwise Event Grid tries again, waiting longer each time: ten seconds, thirty, a minute, and on up to hours. By default it gives up after 30 attempts or 24 hours, whichever comes first."),
+            maya("Right. The handler must answer with a success code, a number like 200 that means OK, within 30 seconds. Otherwise Event Grid tries again, waiting longer each time: ten seconds, thirty, a minute, on up to hours."),
+            leo("For thirty-one hours?"),
+            maya("No. By default it gives up after 30 attempts or 24 hours, whichever comes first."),
             leo("And when it gives up, it keeps the events somewhere, surely."),
             maya("That's the second clue, and the culprit. Nobody had turned on dead-lettering. Without it, when the retries run out, the event is dropped. Gone. Dead-lettering points the subscription at a blob container, a folder in Azure's file storage, and undelivered events are written there instead."),
             leo("So with a dead-letter container, they could have read Monday's events back and replayed them."),
@@ -90,7 +100,9 @@ internal object Ai200EpisodesEventGrid {
             leo("Fourth witness. I can feel it."),
             maya("[chuckle] The report team moved to a webhook, which is just a web address that accepts events. Nothing ever arrived. Not one event."),
             leo("A filter typo. They filtered out everything."),
-            maya("No. The webhook never answered the handshake. Before Event Grid pushes anything to a webhook, the webhook must prove it wants the events. That's endpoint validation: the endpoint is just the receiving address, and Event Grid knocks there first. A function's Event Grid trigger, the setting that wakes it, answers for you. That's why the search function never had the problem."),
+            maya("No. The webhook never answered the handshake. Before Event Grid pushes anything to a webhook, the webhook must prove it wants the events."),
+            leo("Why would a webhook need to prove that?"),
+            maya("So nobody can point Event Grid at someone else's server and flood it. That's endpoint validation: the endpoint is just the receiving address, and Event Grid knocks there first. A function's Event Grid trigger, the setting that wakes it, answers for you. That's why the search function never had the problem."),
             leo("What format are these events in, anyway?"),
             maya("CloudEvents 1.0. The envelope's layout is called the schema, and CloudEvents is the one to prefer for new work: an open standard, which means a layout many companies agreed on. You pick it when you create the topic. The envelope carries an id, a source saying who sent it, a type, the subject, a time, and the data inside."),
             leo("Last loose end. The report also had lists out of order. Edited on Monday, counted after Tuesday's edit."),
@@ -112,7 +124,9 @@ internal object Ai200EpisodesEventGrid {
         listOf(
             maya("Okay, did you hear what happened on the Coach team this week? Sit down. They wired the Two Tracks Coach, the study assistant in the Android app, with its Python backend on Azure, to Event Grid. And it was a week."),
             leo("[laugh] I heard someone called a post office. What's Event Grid, in plain words?"),
-            maya("A notice board that pushes. When something happens, like a learner editing a note, the backend, which is the server code the app talks to, posts an event, a small message saying so. Event Grid hands a copy to everyone who signed up for that news. It's news, not a job: it says what happened, not what to do."),
+            maya("A notice board that pushes. When a learner edits a note, the backend, which is the server code the app talks to, posts an event, a small message saying so."),
+            leo("And then everyone keeps checking the board? Polling, like my app refreshing a feed?"),
+            maya("That's the best part: nobody checks. Event Grid runs over and hands a copy to everyone who signed up. It's news, not a job: it says what happened, not what to do."),
             leo("And under the notice board?"),
             maya("A service Azure runs. The backend sends the event to a topic, one board with its own web address. Each subscription on it is a standing order: send me these events, here. Event Grid checks each one, and makes a web call to its handler, the code that receives the event."),
             leo("Okay. So who went first?"),
@@ -146,7 +160,9 @@ internal object Ai200EpisodesEventGrid {
             leo("I heard there's a third, fancier kind."),
             maya("An advanced filter. It looks inside the event's data and tests a field, like word count greater than 20. That's the one when a number in the data decides. Priya had that too. Perfect filters."),
             leo("Then what went wrong?"),
-            maya("The handshake. Before Event Grid pushes to a webhook, the webhook must prove it wants the events. The endpoint is just the receiving address, so this is endpoint validation. Event Grid knocks first, and her webhook didn't answer the right way. A function's Event Grid trigger, the setting that wakes it, answers for you. The Functions episode shows how."),
+            maya("The handshake. Before Event Grid pushes to a webhook, the webhook must prove it wants the events. That's endpoint validation; the endpoint is just the receiving address."),
+            leo("So Event Grid knocked, and Priya's webhook didn't open the door?"),
+            maya("It didn't answer the right way, so nothing ever flowed. A function's Event Grid trigger, the setting that wakes it, answers for you. The Functions episode shows how."),
             leo("How does it know who to tell, under the hood?"),
             maya("Each time an event arrives, Event Grid checks it against every subscription's filters on that topic, and sends a copy to each one that matches, as a web call. Every copy has its own retries. So Dana's failed copies never stopped Marcus's counter getting its own."),
             leo("So where does Event Grid stop being the answer, really?"),
@@ -178,7 +194,9 @@ internal object Ai200EpisodesEventGrid {
             ivy("And who's listening, on the Coach?"),
             nova("A small function. That's Azure Functions, a bit of code that wakes only when something happens. This one is the re-embed function, and it refreshes a note's search data whenever the note changes. One topic can have many subscriptions, and each gets its own copy."),
             ivy("What does a single event look like? Up close."),
-            nova("Like a letter in a standard envelope. The envelope's layout is the schema, and the one to prefer is CloudEvents 1.0, an open standard, a layout many companies agreed on. On it, a type says what happened, a source says who sent it, and a subject says what it happened to, written like a path. Slash notes, slash german, slash 42."),
+            nova("Like a letter in a standard envelope. The envelope's layout is the schema, and the one to prefer is CloudEvents 1.0, an open standard, a layout many companies agreed on."),
+            ivy("And what's written on the front?"),
+            nova("A type says what happened, a source says who sent it, and a subject says what it happened to, written like a path. [pause] Slash notes, slash german, slash 42."),
             ivy("Paths. So you can choose which letters you open."),
             nova("Exactly. With a filter, a rule on the subscription. An event type filter takes only certain kinds, like NoteUpdated. A subject filter checks how the subject begins or ends, so a German service takes only slash notes slash german."),
             ivy("And the actual news? The details?"),
@@ -186,7 +204,9 @@ internal object Ai200EpisodesEventGrid {
             ivy("And if I'm fussier than that?"),
             nova("[pause] Then an advanced filter. It looks inside the data and tests a field. Only notes with a word count greater than 20, say. That's the one for a number in the data."),
             ivy("Now, the part that keeps me up. What if the handler's asleep?"),
-            nova("Then Event Grid is patient with it. It wants a success code, a number like 200 that means OK, within 30 seconds. Otherwise it tries again, and waits a little longer each time. Ten seconds, thirty, a minute, then on up to hours. By default, 30 attempts or 24 hours, whichever comes first."),
+            nova("Then Event Grid is patient with it. It knocks with a web request, and wants a success code, a number like 200 that means OK, within 30 seconds. Otherwise it tries again, a little later each time."),
+            ivy("How much later?"),
+            nova("Ten seconds, thirty, a minute, then on up to hours. By default, 30 attempts or 24 hours, whichever comes first."),
             ivy("Can I make it give up sooner?"),
             nova("You can. Each subscription has a retry policy: fewer attempts, or a shorter time to live, meaning how long an event is worth trying. And some errors aren't retried at all. A 400 means the event itself was bad, [pause] so knocking again won't help."),
             ivy("And when it finally gives up? It tucks the event away somewhere safe?"),
@@ -200,7 +220,9 @@ internal object Ai200EpisodesEventGrid {
             ivy("Where does all of this stop working, Nova?"),
             nova("Here. [pause] Event Grid doesn't promise order. And it tells everyone. Work that one worker must finish, job by job, in order, belongs on a Service Bus queue, a to-do list for workers. The Service Bus episode is your next late night for that."),
             ivy("And a webhook? Can anyone just receive events?"),
-            nova("A webhook is just a web address that accepts events. But first it must prove it wants them. The endpoint is just the receiving address, so this is endpoint validation, a little handshake. Event Grid knocks, and the webhook must answer the right way. A function's Event Grid trigger, the setting that wakes it, answers for you; the Functions episode shows the handler side."),
+            nova("A webhook is just a web address on your server that accepts events. But first it must prove it wants them. That's endpoint validation, a little handshake."),
+            ivy("A handshake. With whom?"),
+            nova("Event Grid knocks at the endpoint, the receiving address, and the webhook must answer the right way. [pause] A function's Event Grid trigger, the setting that wakes it, answers for you; the Functions episode shows the handler side."),
             ivy("[sigh] Mm. Before you send me off to bed. What do I remember for the exam?"),
             nova("Five little things. If undelivered events must be kept, a dead-letter blob container. If only one branch, like German notes, a subject begins-with filter. If a number in the data decides, an advanced filter. If the same event arrives twice, an idempotent handler. And Azure's own events, a system topic."),
             ivy("And something to try today, before I sleep?"),
@@ -216,7 +238,7 @@ internal object Ai200EpisodesEventGrid {
         listOf(
             nova("Tonight is date night, darling. Candles, a little wine, and you and me, Rafe, talking about news that just can't wait."),
             rafe("Let me guess. You've heard something, and you have to tell everyone."),
-            nova("[laugh] Event Grid. A notice board that pushes. The moment a notice goes up, it carries a copy to everyone who asked for that kind of news."),
+            nova("[laugh] Event Grid. A notice board that pushes. The moment a notice goes up, it carries a copy to everyone who asked for that kind of news. Nobody has to keep checking."),
             rafe("Like you, after our first date. So what's a notice, here?"),
             nova("An event. A small message that says something happened. A note was edited, a file was uploaded. It's news, not a job. It never tells anyone what to do."),
             rafe("Nobody tells you what to do. And under the notice board, what is it really?"),
@@ -240,7 +262,9 @@ internal object Ai200EpisodesEventGrid {
             rafe("An advanced filter. Data dot wordCount, NumberGreaterThan, 20. The subject can't see inside the data."),
             nova("Right answer. Size does matter, to that filter. [kiss]"),
             rafe("Behave. Now, what if the handler doesn't answer? Asking for a friend."),
-            nova("Event Grid wants a success code, a number like 200 meaning OK, within 30 seconds. If not, it tries again, waiting longer each time. By default, up to 30 attempts or 24 hours, whichever comes first. You can lower both on the subscription, its retry policy. And a 400 isn't retried at all: it means the event itself was bad. Persistent, but not forever."),
+            nova("Event Grid wants a success code, a number like 200 meaning OK, within 30 seconds. If not, it tries again, waiting longer each time. By default, up to 30 attempts or 24 hours, whichever comes first."),
+            rafe("And if I want it to give up sooner? Not that I ever would."),
+            nova("Lower both on the subscription, its retry policy. And a 400 isn't retried at all: it means the event itself was bad. Persistent, but not forever."),
             rafe("Persistent. I respect that. And after 24 hours?"),
             nova("That's my question for you. The handler was down for two days. Afterwards, the events must still be there. What do you set up?"),
             rafe("Dead-lettering. Point the subscription at a blob container, a folder in storage. Undelivered events are written there instead of dropped, because by default they're simply dropped."),
@@ -410,58 +434,58 @@ internal object Ai200EpisodesEventGrid {
                     Beat(10, show = setOf("storage", "sys"), light = setOf("sys"), pulse = "storage" to "sys", card = BoardCard("System topic", "An Azure service posts news about itself, like BlobCreated.")),
                 ),
             ),
-            // 12: "You can, with a subscription..."
+            // 14: "You can, with a subscription..."
             Scene(
-                12, "Subscriptions", subs(),
+                14, "Subscriptions", subs(),
                 beats = listOf(
-                    Beat(12, show = setOf("topic", "fn"), light = setOf("fn"), pulse = "topic" to "fn", card = BoardCard("Subscription", "A standing order: send me these events, at this address.")),
-                    Beat(16, show = setOf("hook", "q", "note"), light = setOf("fn", "hook", "q"), card = BoardCard("Handlers", "A function, a webhook or a Service Bus queue. Each gets its own copy.")),
+                    Beat(14, show = setOf("topic", "fn"), light = setOf("fn"), pulse = "topic" to "fn", card = BoardCard("Subscription", "A standing order: send me these events, at this address.")),
+                    Beat(18, show = setOf("hook", "q", "note"), light = setOf("fn", "hook", "q"), card = BoardCard("Handlers", "A function, a webhook or a Service Bus queue. Each gets its own copy.")),
                 ),
             ),
-            // 17: "What does an event actually look like?"
+            // 19: "What does an event actually look like?"
             Scene(
-                17, "The envelope", topics(),
+                19, "The envelope", topics(),
                 beats = listOf(
-                    Beat(18, show = setOf("api", "cust", "ce"), light = setOf("ce"), pulse = "cust" to "ce", card = BoardCard("CloudEvents 1.0", "The open standard schema to prefer; chosen when you create the topic.")),
-                    Beat(20, light = setOf("ce"), card = cloudEvent),
-                    Beat(22, light = setOf("cust"), card = BoardCard("Subjects as paths", "Write them as paths on purpose: subscribers filter on them.")),
+                    Beat(20, show = setOf("api", "cust", "ce"), light = setOf("ce"), pulse = "cust" to "ce", card = BoardCard("CloudEvents 1.0", "The open standard schema to prefer; chosen when you create the topic.")),
+                    Beat(22, light = setOf("ce"), card = cloudEvent),
+                    Beat(24, light = setOf("cust"), card = BoardCard("Subjects as paths", "Write them as paths on purpose: subscribers filter on them.")),
                 ),
             ),
-            // 23: "Filter. So a subscriber doesn't have to take everything?"
+            // 25: "Filter. So a subscriber doesn't have to take everything?"
             Scene(
-                23, "Filters", filters(),
+                25, "Filters", filters(),
                 beats = listOf(
-                    Beat(24, show = setOf("topic", "type"), light = setOf("type"), pulse = "topic" to "type", card = BoardCard("Event type filter", "Only the listed kinds of event, such as NoteUpdated.")),
-                    Beat(26, show = setOf("subj"), light = setOf("subj"), pulse = "topic" to "subj", card = BoardCard("Subject filter", "Begins with /notes/german/, or ends with .pdf.")),
-                    Beat(28, show = setOf("adv", "handler"), light = setOf("adv"), pulse = "topic" to "adv", card = BoardCard("Advanced filter", "data.wordCount NumberGreaterThan 20: a test on a field in the data.")),
+                    Beat(26, show = setOf("topic", "type"), light = setOf("type"), pulse = "topic" to "type", card = BoardCard("Event type filter", "Only the listed kinds of event, such as NoteUpdated.")),
+                    Beat(28, show = setOf("subj"), light = setOf("subj"), pulse = "topic" to "subj", card = BoardCard("Subject filter", "Begins with /notes/german/, or ends with .pdf.")),
+                    Beat(30, show = setOf("adv", "handler"), light = setOf("adv"), pulse = "topic" to "adv", card = BoardCard("Advanced filter", "data.wordCount NumberGreaterThan 20: a test on a field in the data.")),
                 ),
             ),
-            // 29: "Got it. Now the scary part. What if my handler is down?"
+            // 31: "Got it. Now the scary part. What if my handler is down?"
             Scene(
-                29, "Delivery and retries", delivery(),
+                31, "Delivery and retries", delivery(),
                 beats = listOf(
-                    Beat(30, show = setOf("topic", "handler"), light = setOf("handler"), pulse = "topic" to "handler", card = BoardCard("At least once", "The handler must answer OK within 30 seconds, or it's a failure.")),
-                    Beat(32, show = setOf("retry"), light = setOf("retry"), pulse = "handler" to "retry", card = BoardCard("Retries", "30 attempts or 24 hours by default. A 400 is not retried.")),
-                    Beat(34, show = setOf("dl"), light = setOf("dl"), pulse = "retry" to "dl", card = BoardCard("Dead-lettering", "Off by default, so events are dropped. Point it at a blob container.")),
-                    Beat(36, light = setOf("handler"), pulse = "topic" to "handler", card = BoardCard("Twice is normal", "A lost answer means Event Grid sends the event again.")),
-                    Beat(38, show = setOf("idem"), light = setOf("idem"), card = BoardCard("Idempotent", "Safe to run twice: write by id, or keep the ids you've done.")),
+                    Beat(32, show = setOf("topic", "handler"), light = setOf("handler"), pulse = "topic" to "handler", card = BoardCard("At least once", "The handler must answer OK within 30 seconds, or it's a failure.")),
+                    Beat(36, show = setOf("retry"), light = setOf("retry"), pulse = "handler" to "retry", card = BoardCard("Retries", "30 attempts or 24 hours by default. A 400 is not retried.")),
+                    Beat(38, show = setOf("dl"), light = setOf("dl"), pulse = "retry" to "dl", card = BoardCard("Dead-lettering", "Off by default, so events are dropped. Point it at a blob container.")),
+                    Beat(40, light = setOf("handler"), pulse = "topic" to "handler", card = BoardCard("Twice is normal", "A lost answer means Event Grid sends the event again.")),
+                    Beat(42, show = setOf("idem"), light = setOf("idem"), card = BoardCard("Idempotent", "Safe to run twice: write by id, or keep the ids you've done.")),
                 ),
             ),
-            // 39: "Anything else that can catch me out?"
+            // 45: "Anything else that can catch me out?"
             Scene(
-                39, "Where it stops", limits(),
+                45, "Where it stops", limits(),
                 beats = listOf(
-                    Beat(40, show = setOf("order", "hs"), light = setOf("order", "hs"), card = BoardCard("Order and handshakes", "No order promised. A webhook must answer the validation handshake.")),
-                    Beat(42, light = setOf("hs"), card = BoardCard("Endpoint validation", "The endpoint is the receiving address. It must answer Event Grid's knock first.")),
-                    Beat(44, show = setOf("jobs", "sb"), light = setOf("sb"), pulse = "jobs" to "sb", card = BoardCard("Jobs: a queue", "Work one worker must finish, job by job, goes on a Service Bus queue.")),
+                    Beat(46, show = setOf("order", "hs"), light = setOf("order", "hs"), card = BoardCard("Order and handshakes", "No order promised. A webhook must answer the validation handshake.")),
+                    Beat(48, light = setOf("hs"), card = BoardCard("Endpoint validation", "The endpoint is the receiving address. It must answer Event Grid's knock first.")),
+                    Beat(50, show = setOf("jobs", "sb"), light = setOf("sb"), pulse = "jobs" to "sb", card = BoardCard("Jobs: a queue", "Work one worker must finish, job by job, goes on a Service Bus queue.")),
                 ),
             ),
-            // 45: "So what do I remember for the exam?"
+            // 51: "So what do I remember for the exam?"
             Scene(
-                45, "For the exam", exam(),
+                51, "For the exam", exam(),
                 beats = listOf(
-                    Beat(46, show = all6, light = setOf("kept", "branch", "number", "twice", "azure"), card = BoardCard("Listen for the phrase", "Each exam phrase points to one answer: dead letters, filters, idempotent.")),
-                    Beat(48, card = today),
+                    Beat(52, show = all6, light = setOf("kept", "branch", "number", "twice", "azure"), card = BoardCard("Listen for the phrase", "Each exam phrase points to one answer: dead letters, filters, idempotent.")),
+                    Beat(54, card = today),
                 ),
             ),
         ),
@@ -491,73 +515,73 @@ internal object Ai200EpisodesEventGrid {
                 beats = listOf(
                     Beat(0, show = setOf("phone", "api", "fn"), light = setOf("fn"), pulse = "phone" to "api", card = BoardCard("The case", "Monday's word list edits never showed up in search.")),
                     Beat(2, show = setOf("topic"), light = setOf("topic"), pulse = "api" to "topic", card = BoardCard("Event Grid", "A notice board that pushes. An event is news, not a job.")),
-                    Beat(4, light = setOf("topic", "fn"), pulse = "topic" to "fn", card = BoardCard("Under the picture", "A topic takes events over HTTPS; each subscription gets a web call.")),
+                    Beat(6, light = setOf("topic", "fn"), pulse = "topic" to "fn", card = BoardCard("Under the picture", "A topic takes events over HTTPS; each subscription gets a web call.")),
                 ),
             ),
-            // 5: "Then here's my first suspect..."
+            // 7: "Then here's my first suspect..."
             Scene(
-                5, "Nobody home", delivery(),
+                7, "Nobody home", delivery(),
                 beats = listOf(
-                    Beat(5, show = setOf("topic"), light = setOf("topic"), card = BoardCard("Suspect one", "The backend never sent them? Its logs say every event went out.")),
-                    Beat(6, show = setOf("handler"), light = setOf("handler"), pulse = "topic" to "handler", card = BoardCard("The first clue", "The search function was down for 31 hours.")),
-                    Beat(8, show = setOf("retry"), light = setOf("retry"), pulse = "handler" to "retry", card = BoardCard("Retries", "Growing gaps, up to 30 attempts or 24 hours by default.")),
-                    Beat(10, show = setOf("dl"), light = setOf("dl"), pulse = "retry" to "dl", card = BoardCard("The culprit", "No dead-letter container, so the events were dropped.")),
-                    Beat(12, light = setOf("retry", "dl"), card = BoardCard("Retry policy", "Fewer attempts or a shorter time to live; never past 24 hours.")),
+                    Beat(7, show = setOf("topic"), light = setOf("topic"), card = BoardCard("Suspect one", "The backend never sent them? Its logs say every event went out.")),
+                    Beat(8, show = setOf("handler"), light = setOf("handler"), pulse = "topic" to "handler", card = BoardCard("The first clue", "The search function was down for 31 hours.")),
+                    Beat(12, show = setOf("retry"), light = setOf("retry"), pulse = "handler" to "retry", card = BoardCard("Retries", "Growing gaps, up to 30 attempts or 24 hours by default.")),
+                    Beat(14, show = setOf("dl"), light = setOf("dl"), pulse = "retry" to "dl", card = BoardCard("The culprit", "No dead-letter container, so the events were dropped.")),
+                    Beat(16, light = setOf("retry", "dl"), card = BoardCard("Retry policy", "Fewer attempts or a shorter time to live; never past 24 hours.")),
                 ),
             ),
-            // 14: "One down. But the case file has a second witness..."
+            // 18: "One down. But the case file has a second witness..."
             Scene(
-                14, "The second witness", delivery(),
+                18, "The second witness", delivery(),
                 beats = listOf(
-                    Beat(14, show = setOf("topic", "handler"), light = setOf("handler"), card = BoardCard("Double counts", "The weekly report shows some learners editing twice the words.")),
-                    Beat(16, light = setOf("topic"), pulse = "topic" to "handler", card = BoardCard("At least once", "A lost answer means a resend. Duplicates are normal, not a bug.")),
-                    Beat(18, show = setOf("idem"), light = setOf("idem"), card = BoardCard("Idempotent", "Safe to run twice: keep the ids of events already counted.")),
+                    Beat(18, show = setOf("topic", "handler"), light = setOf("handler"), card = BoardCard("Double counts", "The weekly report shows some learners editing twice the words.")),
+                    Beat(20, light = setOf("topic"), pulse = "topic" to "handler", card = BoardCard("At least once", "A lost answer means a resend. Duplicates are normal, not a bug.")),
+                    Beat(22, show = setOf("idem"), light = setOf("idem"), card = BoardCard("Idempotent", "Safe to run twice: keep the ids of events already counted.")),
                 ),
             ),
-            // 19: "Third witness?"
+            // 23: "Third witness?"
             Scene(
-                19, "The third witness", filters(),
+                23, "The third witness", filters(),
                 beats = listOf(
-                    Beat(20, show = setOf("topic", "handler"), light = setOf("handler"), card = BoardCard("Every language arrives", "The German service got every list, and wanted German only.")),
-                    Beat(22, show = setOf("subj"), light = setOf("subj"), pulse = "topic" to "subj", card = BoardCard("Subject filter", "Begins with /lists/german/: German lists only.")),
-                    Beat(24, show = setOf("type", "adv"), light = setOf("adv", "type"), pulse = "topic" to "adv", card = BoardCard("Advanced filter", "data.wordCount NumberGreaterThan 20. Event type: ListUpdated only.")),
+                    Beat(24, show = setOf("topic", "handler"), light = setOf("handler"), card = BoardCard("Every language arrives", "The German service got every list, and wanted German only.")),
+                    Beat(26, show = setOf("subj"), light = setOf("subj"), pulse = "topic" to "subj", card = BoardCard("Subject filter", "Begins with /lists/german/: German lists only.")),
+                    Beat(28, show = setOf("type", "adv"), light = setOf("adv", "type"), pulse = "topic" to "adv", card = BoardCard("Advanced filter", "data.wordCount NumberGreaterThan 20. Event type: ListUpdated only.")),
                 ),
             ),
-            // 25: "Fourth witness. I can feel it."
+            // 29: "Fourth witness. I can feel it."
             Scene(
-                25, "The fourth witness", limits(),
+                29, "The fourth witness", limits(),
                 beats = listOf(
-                    Beat(26, show = setOf("hs"), light = setOf("hs"), card = BoardCard("Nothing arrived", "A new webhook got no events at all.")),
-                    Beat(28, light = setOf("hs"), card = BoardCard("Endpoint validation", "The webhook must answer the handshake. Functions do it for you.")),
+                    Beat(30, show = setOf("hs"), light = setOf("hs"), card = BoardCard("Nothing arrived", "A new webhook got no events at all.")),
+                    Beat(34, light = setOf("hs"), card = BoardCard("Endpoint validation", "The webhook must answer the handshake. Functions do it for you.")),
                 ),
             ),
-            // 29: "What format are these events in, anyway?"
+            // 35: "What format are these events in, anyway?"
             Scene(
-                29, "The envelope", topics(),
+                35, "The envelope", topics(),
                 beats = listOf(
-                    Beat(30, show = setOf("api", "cust", "ce"), light = setOf("ce"), pulse = "cust" to "ce", card = cloudEvent),
+                    Beat(36, show = setOf("api", "cust", "ce"), light = setOf("ce"), pulse = "cust" to "ce", card = cloudEvent),
                 ),
             ),
-            // 31: "Last loose end. The report also had lists out of order."
+            // 37: "Last loose end. The report also had lists out of order."
             Scene(
-                31, "Loose ends", limits(),
+                37, "Loose ends", limits(),
                 beats = listOf(
-                    Beat(32, show = setOf("order", "jobs", "sb"), light = setOf("order", "sb"), pulse = "jobs" to "sb", card = BoardCard("Jobs: a queue", "No order promised. One worker per job is a Service Bus queue.")),
+                    Beat(38, show = setOf("order", "jobs", "sb"), light = setOf("order", "sb"), pulse = "jobs" to "sb", card = BoardCard("Jobs: a queue", "No order promised. One worker per job is a Service Bus queue.")),
                 ),
             ),
-            // 33: "And the upload of a photo?"
+            // 39: "And the upload of a photo?"
             Scene(
-                33, "Azure's own news", topics(),
+                39, "Azure's own news", topics(),
                 beats = listOf(
-                    Beat(34, show = setOf("storage", "sys", "api", "cust"), light = setOf("sys"), pulse = "storage" to "sys", card = BoardCard("System topic", "Storage posts BlobCreated itself. Your own news: a custom topic.")),
+                    Beat(40, show = setOf("storage", "sys", "api", "cust"), light = setOf("sys"), pulse = "storage" to "sys", card = BoardCard("System topic", "Storage posts BlobCreated itself. Your own news: a custom topic.")),
                 ),
             ),
-            // 35: "So, the case summary for the exam?"
+            // 41: "So, the case summary for the exam?"
             Scene(
-                35, "Case closed", exam(),
+                41, "Case closed", exam(),
                 beats = listOf(
-                    Beat(36, show = all6, light = setOf("kept", "twice", "branch", "number"), card = BoardCard("Listen for the phrase", "Dead letters, idempotent, subject and advanced filters, the handshake.")),
-                    Beat(38, card = today),
+                    Beat(42, show = all6, light = setOf("kept", "twice", "branch", "number"), card = BoardCard("Listen for the phrase", "Dead letters, idempotent, subject and advanced filters, the handshake.")),
+                    Beat(44, card = today),
                 ),
             ),
         ),
@@ -572,69 +596,69 @@ internal object Ai200EpisodesEventGrid {
                 beats = listOf(
                     Beat(0, show = setOf("pub", "topic"), light = setOf("topic"), pulse = "pub" to "topic", card = BoardCard("Event Grid", "A notice board that pushes, for the Coach's Python backend.")),
                     Beat(2, light = setOf("pub"), card = BoardCard("An event", "A small message that something happened. News, not a job.")),
-                    Beat(4, show = setOf("fn", "q"), light = setOf("fn", "q"), pulse = "topic" to "fn", card = BoardCard("Subscriptions", "Standing orders: Event Grid makes a web call to each handler.")),
+                    Beat(6, show = setOf("fn", "q"), light = setOf("fn", "q"), pulse = "topic" to "fn", card = BoardCard("Subscriptions", "Standing orders: Event Grid makes a web call to each handler.")),
                 ),
             ),
-            // 5: "Okay. So who went first?"
+            // 7: "Okay. So who went first?"
             Scene(
-                5, "Monday: Tom", topics(),
+                7, "Monday: Tom", topics(),
                 beats = listOf(
-                    Beat(6, show = setOf("api", "cust", "ce"), light = setOf("ce"), pulse = "cust" to "ce", card = BoardCard("CloudEvents 1.0", "Tom's custom topic uses the open standard schema. Good choice.")),
-                    Beat(8, light = setOf("ce"), card = cloudEvent),
-                    Beat(10, show = setOf("storage"), light = setOf("storage"), card = BoardCard("Publishing BlobCreated?", "Tom wrote a routine to publish upload events himself.")),
-                    Beat(12, show = setOf("sys"), light = setOf("sys"), pulse = "storage" to "sys", card = BoardCard("System topic", "Storage posts its own events. You only subscribe.")),
+                    Beat(8, show = setOf("api", "cust", "ce"), light = setOf("ce"), pulse = "cust" to "ce", card = BoardCard("CloudEvents 1.0", "Tom's custom topic uses the open standard schema. Good choice.")),
+                    Beat(10, light = setOf("ce"), card = cloudEvent),
+                    Beat(12, show = setOf("storage"), light = setOf("storage"), card = BoardCard("Publishing BlobCreated?", "Tom wrote a routine to publish upload events himself.")),
+                    Beat(14, show = setOf("sys"), light = setOf("sys"), pulse = "storage" to "sys", card = BoardCard("System topic", "Storage posts its own events. You only subscribe.")),
                 ),
             ),
-            // 13: "Poor Tom. Tuesday?"
+            // 15: "Poor Tom. Tuesday?"
             Scene(
-                13, "Tuesday: Dana", delivery(),
+                15, "Tuesday: Dana", delivery(),
                 beats = listOf(
-                    Beat(14, show = setOf("topic", "handler"), light = setOf("handler"), pulse = "topic" to "handler", card = BoardCard("Down for 30 hours", "Dana's re-embed function missed a day of note edits.")),
-                    Beat(16, show = setOf("retry"), light = setOf("retry"), pulse = "handler" to "retry", card = BoardCard("Retries", "OK within 30 seconds, or retry: 30 attempts or 24 hours.")),
-                    Beat(18, show = setOf("dl"), light = setOf("dl"), pulse = "retry" to "dl", card = BoardCard("Dead-lettering", "Off by default, so they were dropped. A blob container keeps them.")),
-                    Beat(20, light = setOf("retry"), card = BoardCard("Retry policy", "Fewer attempts or a shorter time to live; 24 hours is the ceiling.")),
+                    Beat(16, show = setOf("topic", "handler"), light = setOf("handler"), pulse = "topic" to "handler", card = BoardCard("Down for 30 hours", "Dana's re-embed function missed a day of note edits.")),
+                    Beat(18, show = setOf("retry"), light = setOf("retry"), pulse = "handler" to "retry", card = BoardCard("Retries", "OK within 30 seconds, or retry: 30 attempts or 24 hours.")),
+                    Beat(20, show = setOf("dl"), light = setOf("dl"), pulse = "retry" to "dl", card = BoardCard("Dead-lettering", "Off by default, so they were dropped. A blob container keeps them.")),
+                    Beat(22, light = setOf("retry"), card = BoardCard("Retry policy", "Fewer attempts or a shorter time to live; 24 hours is the ceiling.")),
                 ),
             ),
-            // 21: "Ouch. Wednesday?"
+            // 23: "Ouch. Wednesday?"
             Scene(
-                21, "Wednesday: Marcus", delivery(),
+                23, "Wednesday: Marcus", delivery(),
                 beats = listOf(
-                    Beat(22, show = setOf("topic", "handler"), light = setOf("handler"), card = BoardCard("Double streaks", "Marcus added one to a total for every NoteUpdated event.")),
-                    Beat(24, show = setOf("idem"), light = setOf("idem"), pulse = "topic" to "handler", card = BoardCard("Idempotent", "At least once means repeats. Keep the ids of events counted.")),
+                    Beat(24, show = setOf("topic", "handler"), light = setOf("handler"), card = BoardCard("Double streaks", "Marcus added one to a total for every NoteUpdated event.")),
+                    Beat(26, show = setOf("idem"), light = setOf("idem"), pulse = "topic" to "handler", card = BoardCard("Idempotent", "At least once means repeats. Keep the ids of events counted.")),
                 ),
             ),
-            // 25: "And Thursday, I'm guessing, the intern."
+            // 27: "And Thursday, I'm guessing, the intern."
             Scene(
-                25, "Thursday: the intern", limits(),
+                27, "Thursday: the intern", limits(),
                 beats = listOf(
-                    Beat(26, show = setOf("jobs"), light = setOf("jobs"), card = BoardCard("Essays, one at a time", "Each marked exactly once, in order. That's jobs, not news.")),
-                    Beat(28, show = setOf("sb", "order"), light = setOf("sb", "order"), pulse = "jobs" to "sb", card = BoardCard("A Service Bus queue", "Event Grid promises no order; one worker per job is a queue.")),
+                    Beat(28, show = setOf("jobs"), light = setOf("jobs"), card = BoardCard("Essays, one at a time", "Each marked exactly once, in order. That's jobs, not news.")),
+                    Beat(30, show = setOf("sb", "order"), light = setOf("sb", "order"), pulse = "jobs" to "sb", card = BoardCard("A Service Bus queue", "Event Grid promises no order; one worker per job is a queue.")),
                 ),
             ),
-            // 29: "And Friday? There's always a Friday."
+            // 31: "And Friday? There's always a Friday."
             Scene(
-                29, "Friday: Priya", filters(),
+                31, "Friday: Priya", filters(),
                 beats = listOf(
-                    Beat(30, show = setOf("topic", "handler"), light = setOf("handler"), card = BoardCard("Nothing arrived", "Priya's webhook got no events for a whole day.")),
-                    Beat(32, show = setOf("type", "subj"), light = setOf("type", "subj"), pulse = "topic" to "subj", card = BoardCard("Her filters were fine", "NoteUpdated only, and a subject that begins with /notes/german/.")),
-                    Beat(34, show = setOf("adv"), light = setOf("adv"), pulse = "topic" to "adv", card = BoardCard("Advanced filter", "data.wordCount NumberGreaterThan 20: a number in the data decides.")),
-                    Beat(36, light = setOf("handler"), card = BoardCard("The handshake", "Endpoint validation: the webhook must prove it wants the events.")),
+                    Beat(32, show = setOf("topic", "handler"), light = setOf("handler"), card = BoardCard("Nothing arrived", "Priya's webhook got no events for a whole day.")),
+                    Beat(34, show = setOf("type", "subj"), light = setOf("type", "subj"), pulse = "topic" to "subj", card = BoardCard("Her filters were fine", "NoteUpdated only, and a subject that begins with /notes/german/.")),
+                    Beat(36, show = setOf("adv"), light = setOf("adv"), pulse = "topic" to "adv", card = BoardCard("Advanced filter", "data.wordCount NumberGreaterThan 20: a number in the data decides.")),
+                    Beat(38, light = setOf("handler"), card = BoardCard("The handshake", "Endpoint validation: the webhook must prove it wants the events.")),
                 ),
             ),
-            // 37: "How does it know who to tell, under the hood?"
+            // 41: "How does it know who to tell, under the hood?"
             Scene(
-                37, "Under the hood", flow(),
+                41, "Under the hood", flow(),
                 beats = listOf(
-                    Beat(38, show = setOf("pub", "topic", "fn", "q"), light = setOf("fn", "q"), pulse = "topic" to "q", card = BoardCard("A copy each", "Every matching subscription gets its own copy, with its own retries.")),
-                    Beat(40, show = setOf("dl"), light = setOf("dl"), pulse = "topic" to "dl", card = BoardCard("Where it stops", "Order or one worker per job: a queue. Keeping failures: turn it on.")),
+                    Beat(42, show = setOf("pub", "topic", "fn", "q"), light = setOf("fn", "q"), pulse = "topic" to "q", card = BoardCard("A copy each", "Every matching subscription gets its own copy, with its own retries.")),
+                    Beat(44, show = setOf("dl"), light = setOf("dl"), pulse = "topic" to "dl", card = BoardCard("Where it stops", "Order or one worker per job: a queue. Keeping failures: turn it on.")),
                 ),
             ),
-            // 41: "So, the gossip I should remember for the exam?"
+            // 45: "So, the gossip I should remember for the exam?"
             Scene(
-                41, "For the exam", exam(),
+                45, "For the exam", exam(),
                 beats = listOf(
-                    Beat(42, show = all6, light = setOf("kept", "branch", "number", "twice", "azure"), card = BoardCard("Listen for the phrase", "Each exam phrase points to one answer. One colleague, one lesson.")),
-                    Beat(44, card = today),
+                    Beat(46, show = all6, light = setOf("kept", "branch", "number", "twice", "azure"), card = BoardCard("Listen for the phrase", "Each exam phrase points to one answer. One colleague, one lesson.")),
+                    Beat(48, card = today),
                 ),
             ),
         ),
@@ -675,41 +699,41 @@ internal object Ai200EpisodesEventGrid {
                     Beat(14, show = setOf("api", "cust", "ce"), light = setOf("ce"), pulse = "cust" to "ce", card = BoardCard("CloudEvents 1.0", "Type, source, and a subject written like a path.")),
                 ),
             ),
-            // 15: "Paths. So you can choose which letters you open."
+            // 17: "Paths. So you can choose which letters you open."
             Scene(
-                15, "Choosing your letters", filters(),
+                17, "Choosing your letters", filters(),
                 beats = listOf(
-                    Beat(16, show = setOf("topic", "type", "subj"), light = setOf("type", "subj"), pulse = "topic" to "subj", card = BoardCard("Type and subject filters", "NoteUpdated only; subject begins with /notes/german/.")),
-                    Beat(18, show = setOf("handler"), light = setOf("handler"), card = BoardCard("The data", "The note's id and word count ride inside the envelope.")),
-                    Beat(20, show = setOf("adv"), light = setOf("adv"), pulse = "topic" to "adv", card = BoardCard("Advanced filter", "Tests a field in the data: a word count greater than 20.")),
+                    Beat(18, show = setOf("topic", "type", "subj"), light = setOf("type", "subj"), pulse = "topic" to "subj", card = BoardCard("Type and subject filters", "NoteUpdated only; subject begins with /notes/german/.")),
+                    Beat(20, show = setOf("handler"), light = setOf("handler"), card = BoardCard("The data", "The note's id and word count ride inside the envelope.")),
+                    Beat(22, show = setOf("adv"), light = setOf("adv"), pulse = "topic" to "adv", card = BoardCard("Advanced filter", "Tests a field in the data: a word count greater than 20.")),
                 ),
             ),
-            // 21: "Now, the part that keeps me up..."
+            // 23: "Now, the part that keeps me up..."
             Scene(
-                21, "If the handler sleeps", delivery(),
+                23, "If the handler sleeps", delivery(),
                 beats = listOf(
-                    Beat(22, show = setOf("topic", "handler", "retry"), light = setOf("retry"), pulse = "handler" to "retry", card = BoardCard("Retries", "OK within 30 seconds, or retry: 30 attempts or 24 hours.")),
-                    Beat(24, light = setOf("retry"), card = BoardCard("Retry policy", "Fewer attempts or a shorter time to live. A 400 is not retried.")),
-                    Beat(26, show = setOf("dl"), light = setOf("dl"), pulse = "retry" to "dl", card = BoardCard("Dead-lettering", "Off by default: dropped. A blob container keeps them for you.")),
-                    Beat(28, light = setOf("handler"), pulse = "topic" to "handler", card = BoardCard("At least once", "A lost answer means a knock again. Repeats happen.")),
-                    Beat(30, show = setOf("idem"), light = setOf("idem"), card = BoardCard("Idempotent", "Safe to run twice: replace by id, or keep the ids you've seen.")),
+                    Beat(26, show = setOf("topic", "handler", "retry"), light = setOf("retry"), pulse = "handler" to "retry", card = BoardCard("Retries", "OK within 30 seconds, or retry: 30 attempts or 24 hours.")),
+                    Beat(28, light = setOf("retry"), card = BoardCard("Retry policy", "Fewer attempts or a shorter time to live. A 400 is not retried.")),
+                    Beat(30, show = setOf("dl"), light = setOf("dl"), pulse = "retry" to "dl", card = BoardCard("Dead-lettering", "Off by default: dropped. A blob container keeps them for you.")),
+                    Beat(32, light = setOf("handler"), pulse = "topic" to "handler", card = BoardCard("At least once", "A lost answer means a knock again. Repeats happen.")),
+                    Beat(34, show = setOf("idem"), light = setOf("idem"), card = BoardCard("Idempotent", "Safe to run twice: replace by id, or keep the ids you've seen.")),
                 ),
             ),
-            // 31: "How does Event Grid decide who gets what, so quickly?"
+            // 35: "How does Event Grid decide who gets what, so quickly?"
             Scene(
-                31, "Where it stops", limits(),
+                35, "Where it stops", limits(),
                 beats = listOf(
-                    Beat(32, card = BoardCard("A copy each", "Every match gets its own copy and its own retries.")),
-                    Beat(34, show = setOf("jobs", "sb", "order"), light = setOf("jobs", "sb"), pulse = "jobs" to "sb", card = BoardCard("Jobs: a queue", "No order promised. Work for one worker goes on a Service Bus queue.")),
-                    Beat(36, show = setOf("hs"), light = setOf("hs"), card = BoardCard("Endpoint validation", "A webhook must answer the handshake first. Functions do it for you.")),
+                    Beat(36, card = BoardCard("A copy each", "Every match gets its own copy and its own retries.")),
+                    Beat(38, show = setOf("jobs", "sb", "order"), light = setOf("jobs", "sb"), pulse = "jobs" to "sb", card = BoardCard("Jobs: a queue", "No order promised. Work for one worker goes on a Service Bus queue.")),
+                    Beat(40, show = setOf("hs"), light = setOf("hs"), card = BoardCard("Endpoint validation", "A webhook must answer the handshake first. Functions do it for you.")),
                 ),
             ),
-            // 37: "Before you send me off to bed. What do I remember for the exam?"
+            // 43: "Before you send me off to bed. What do I remember for the exam?"
             Scene(
-                37, "For the exam", exam(),
+                43, "For the exam", exam(),
                 beats = listOf(
-                    Beat(38, show = all6, light = setOf("kept", "branch", "number", "twice", "azure"), card = BoardCard("Listen for the phrase", "Each exam phrase points to one answer: five little things.")),
-                    Beat(40, card = today),
+                    Beat(44, show = all6, light = setOf("kept", "branch", "number", "twice", "azure"), card = BoardCard("Listen for the phrase", "Each exam phrase points to one answer: five little things.")),
+                    Beat(46, card = today),
                 ),
             ),
         ),
@@ -761,28 +785,28 @@ internal object Ai200EpisodesEventGrid {
                 25, "Persistent", delivery(),
                 beats = listOf(
                     Beat(26, show = setOf("topic", "handler", "retry"), light = setOf("retry"), pulse = "handler" to "retry", card = BoardCard("Retries", "OK within 30 seconds, or retry: 30 attempts or 24 hours.")),
-                    Beat(28, light = setOf("handler"), card = BoardCard("Quiz: down for two days", "The events must still be there afterwards. What do you set up?")),
-                    Beat(29, show = setOf("dl"), light = setOf("dl"), pulse = "retry" to "dl", card = BoardCard("Right answer", "Dead-lettering to a blob container. By default, events are dropped.")),
-                    Beat(31, light = setOf("handler"), pulse = "topic" to "handler", card = BoardCard("Quiz: the same event twice", "A handler gets the same NoteUpdated twice. The right response?")),
-                    Beat(32, show = setOf("idem"), light = setOf("idem"), card = BoardCard("Right answer", "Make it idempotent: safe to run twice. Keep the ids you've handled.")),
+                    Beat(30, light = setOf("handler"), card = BoardCard("Quiz: down for two days", "The events must still be there afterwards. What do you set up?")),
+                    Beat(31, show = setOf("dl"), light = setOf("dl"), pulse = "retry" to "dl", card = BoardCard("Right answer", "Dead-lettering to a blob container. By default, events are dropped.")),
+                    Beat(33, light = setOf("handler"), pulse = "topic" to "handler", card = BoardCard("Quiz: the same event twice", "A handler gets the same NoteUpdated twice. The right response?")),
+                    Beat(34, show = setOf("idem"), light = setOf("idem"), card = BoardCard("Right answer", "Make it idempotent: safe to run twice. Keep the ids you've handled.")),
                 ),
             ),
-            // 34: "Under the hood, each time an event arrives..."
+            // 36: "Under the hood, each time an event arrives..."
             Scene(
-                34, "Every romance has limits", limits(),
+                36, "Every romance has limits", limits(),
                 beats = listOf(
-                    Beat(34, card = BoardCard("A copy each", "Every match gets its own copy and its own retries.")),
-                    Beat(37, show = setOf("jobs", "sb", "order"), light = setOf("jobs", "sb"), pulse = "jobs" to "sb", card = BoardCard("Jobs: a queue", "No order promised. Work for one worker goes on a Service Bus queue.")),
-                    Beat(39, show = setOf("hs"), light = setOf("hs"), card = BoardCard("Quiz: a silent webhook", "A new webhook gets no events, and the filters are fine. Why?")),
-                    Beat(40, light = setOf("hs"), card = BoardCard("Right answer", "Endpoint validation: the webhook must answer the handshake first.")),
+                    Beat(36, card = BoardCard("A copy each", "Every match gets its own copy and its own retries.")),
+                    Beat(39, show = setOf("jobs", "sb", "order"), light = setOf("jobs", "sb"), pulse = "jobs" to "sb", card = BoardCard("Jobs: a queue", "No order promised. Work for one worker goes on a Service Bus queue.")),
+                    Beat(41, show = setOf("hs"), light = setOf("hs"), card = BoardCard("Quiz: a silent webhook", "A new webhook gets no events, and the filters are fine. Why?")),
+                    Beat(42, light = setOf("hs"), card = BoardCard("Right answer", "Endpoint validation: the webhook must answer the handshake first.")),
                 ),
             ),
-            // 42: "Last question, for the exam. What do we remember?"
+            // 44: "Last question, for the exam. What do we remember?"
             Scene(
-                42, "For the exam", exam(),
+                44, "For the exam", exam(),
                 beats = listOf(
-                    Beat(43, show = all6, light = setOf("kept", "branch", "number", "twice", "azure"), card = BoardCard("Listen for the phrase", "Each exam phrase points to one answer. Five for five.")),
-                    Beat(46, card = today),
+                    Beat(45, show = all6, light = setOf("kept", "branch", "number", "twice", "azure"), card = BoardCard("Listen for the phrase", "Each exam phrase points to one answer. Five for five.")),
+                    Beat(48, card = today),
                 ),
             ),
         ),
