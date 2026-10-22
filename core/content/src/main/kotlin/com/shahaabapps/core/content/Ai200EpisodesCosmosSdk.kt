@@ -9,19 +9,31 @@ internal object Ai200EpisodesCosmosSdk {
             leo("In a database, I'm guessing. [chuckle] But which one?"),
             maya("Azure Cosmos DB for NoSQL. It's a database that stores documents instead of rows in fixed tables. Each document is JSON, a plain-text format of labelled values, like a filled-in form: id, user, topic, text."),
             leo("And one of those documents is called what?"),
-            maya("An item. One study note is one item. Items live in a container, containers live in a database, and the database lives in an account. Picture a building, a room, a filing cabinet, and the cards inside it."),
+            maya("An item. One study note is one item. Items live in a container, containers in a database, and the database in an account."),
+            leo("That's a lot of boxes inside boxes."),
+            maya("Picture a building, a room, a filing cabinet, and the cards inside it. The account is the building; one note is one card."),
             leo("Building, room, cabinet, card. What's special about the cabinet?"),
-            maya("Every container has a partition key. That's one property, such as userId, whose value decides which drawer an item lives in. A partition is just a drawer: one slice of storage. Picture one drawer per learner. All of learner 42's notes sit in learner 42's drawer."),
+            maya("Every container has a partition key. That's one property, such as userId, whose value decides which drawer an item lives in. A partition is just a drawer: one slice of storage."),
+            leo("So with userId, one drawer per learner?"),
+            maya("That's the picture. All of learner 42's notes sit in learner 42's drawer."),
             leo("Why should I care which drawer?"),
-            maya("Because going to one drawer is cheap, and opening every drawer is not. In Cosmos DB, every call is priced in request units, RUs, which is the price tag on each operation. The Cosmos performance episode goes deep on RUs. For today, fewer drawers opened means fewer RUs."),
+            maya("Because going to one drawer is cheap, and opening every drawer is not. In Cosmos DB, every call is priced in request units, RUs, which is the price tag on each operation."),
+            leo("Like paying per API call, the way some map services bill my Android app?"),
+            maya("Just like that. The Cosmos performance episode goes deep on RUs. For today, fewer drawers opened means fewer RUs."),
             leo("So how do I pick a good partition key?"),
-            maya("Pick a property with many different values, that most of your queries filter on. For the Coach, userId: thousands of learners, and each one reads their own notes. A classic mistake is topic. There are only a few topics, so a few drawers take all the load."),
+            maya("Pick a property with many different values, that most of your queries filter on. For the Coach, userId: thousands of learners, and each one reads their own notes."),
+            leo("What about topic? Every note has one."),
+            maya("A classic mistake. There are only a few topics, so a few drawers take all the load."),
             leo("Got it. How does my Python code actually connect?"),
             maya("Through the azure cosmos package, Microsoft's Python library for Cosmos DB: ready-made code you install, so you don't write the network calls yourself. From it you make a CosmosClient, the object that talks to your account."),
-            leo("And how does the client prove it's allowed in?"),
+            leo("One per request, like opening a connection?"),
+            maya("No, one for the whole app. Make it once at start-up and reuse it, like a single Retrofit instance in your Android app. A new client per request wastes time and connections."),
+            leo("Got it. And how does the client prove it's allowed in?"),
             maya("It signs in with Entra ID, which is Microsoft's sign-in service, like the front desk that checks badges. Not with a key."),
             leo("What's wrong with a key?"),
-            maya("An account key is a master password for the whole account. If it leaks, anyone can read everything. So instead you pass DefaultAzureCredential, a helper that finds whatever sign-in is around. On your laptop, that's your az login, from the Azure command-line tool."),
+            maya("An account key is a master password for the whole account. If it leaks, anyone can read everything."),
+            leo("So what goes in its place?"),
+            maya("DefaultAzureCredential, a helper that finds whatever sign-in is around. On your laptop, that's your az login, from the Azure command-line tool."),
             leo("And once the backend runs in Azure?"),
             maya("Then it finds the app's managed identity. That's a login Azure gives your app, like a staff badge, with no password anywhere to leak."),
             leo("Badge in hand. Can I do anything I like now?"),
@@ -29,13 +41,17 @@ internal object Ai200EpisodesCosmosSdk {
             leo("Data plane. What does that mean, in plain words?"),
             maya("The data itself: reading and writing items. It's a key to the filing cabinets, not to the builders' yard where new rooms get built."),
             leo("Meaning?"),
-            maya("It can't create databases or containers. A classic exam question: the app's start-up code calls create database if not exists, and fails with 403, which means forbidden. The fix isn't a key. Create the database and container ahead of time, with az, the Azure command-line tool, or a template, a file that describes what to build."),
+            maya("It can't create databases or containers. A classic exam question: the app's start-up code calls create database if not exists, and fails with 403, which means forbidden."),
+            leo("So I swap in the account key to get past it?"),
+            maya("No, the fix isn't a key. Create the database and container ahead of time, with az, the Azure command-line tool, or a template, a file that describes what to build."),
             leo("Makes sense. Now let me save a note."),
             maya("Call upsert item, with the note as a Python dictionary. Upsert means update or insert: it inserts the note, or replaces it if one with the same id and partition key is already there."),
             leo("Same id and partition key. Why both?"),
             maya("Because an item's identity is the pair. The same id can exist in two different drawers. Note one for learner 42 and note one for learner 7 are different items."),
             leo("And to read a note back?"),
-            maya("If you know both halves, the id and the partition key value, do a point read, with read item. It goes straight to the right drawer and the right card, no searching. For a small note, about one RU. It's the cheapest thing Cosmos DB offers."),
+            maya("If you know both halves, the id and the partition key value, do a point read, with read item. It goes straight to the right drawer and the right card, no searching."),
+            leo("And what does that cost me?"),
+            maya("For a small note, about one RU. It's the cheapest thing Cosmos DB offers."),
             leo("And if I don't know the id?"),
             maya("Then you query. Cosmos DB speaks SQL, the classic language for asking a database questions: select these fields, from here, where this is true. You call query items. It costs more than a point read, but it can filter and sort."),
             leo("So I write, where the user equals, and paste in the learner's id?"),
@@ -43,11 +59,15 @@ internal object Ai200EpisodesCosmosSdk {
             leo("And that has a name?"),
             maya("Injection. Like someone writing extra orders onto your shopping list. The fix is parameters: blanks in the query, filled in separately, like fields on a form. Whatever is typed stays a value, never a command."),
             leo("Blanks on a form. Anything else about queries?"),
-            maya("Give the partition key when you can. Then it's a single-partition query: one drawer. Leave it off, filtering on something else, and it's a cross-partition query, which opens every drawer and costs more. For example, the Coach's nightly topic report is its one cross-partition query."),
+            maya("Give the partition key when you can. Then it's a single-partition query: one drawer."),
+            leo("And if I filter on something else, like topic?"),
+            maya("Then it's a cross-partition query, which opens every drawer and costs more. For example, the Coach's nightly topic report is its one cross-partition query."),
             leo("And if a learner has five hundred notes? I don't want them all at once."),
             maya("Then you page: ask for, say, fifty at a time. Each page comes with a continuation token, which is a bookmark. Hand it to the app, and when the learner scrolls, pass the bookmark back. The query resumes exactly where it stopped."),
             leo("Why not just remember the last note's id?"),
-            maya("Because an id alone doesn't tell the query engine where it was, especially across drawers. The bookmark does. One last call: patch item. It changes a few fields without sending the whole note back, like adding one to a view counter."),
+            maya("Because an id alone doesn't tell the query engine where it was, especially across drawers. The bookmark does."),
+            leo("And if I only want to bump one field, like a view counter?"),
+            maya("That's patch item. It changes a few fields without sending the whole note back."),
             leo("So what do I remember for the exam?"),
             maya("If the question says the cheapest way to get one item whose id and key you know, a point read. If a data role gets 403 creating a database, data-plane roles can't create; use az or a template. If user text goes into a query, parameters, not f-strings. If the next page comes later, the continuation token. A filter off the partition key means cross-partition, which costs more."),
             leo("And anything to try today?"),
@@ -74,7 +94,9 @@ internal object Ai200EpisodesCosmosSdk {
             leo("First suspect: the badge isn't enough. Give it the account key as well."),
             maya("[pause] Wrong suspect. An account key is a master password for the whole account. Adding one puts back the very secret the team removed. And the badge worked fine for reading cards. Only creating things was refused."),
             leo("Second suspect: managed identities just can't use Cosmos DB."),
-            maya("They can. Look at the role, the set of permissions on the badge, like the doors it opens. It was Cosmos DB Built-in Data Contributor, a data-plane role. Data plane means the data itself: reading and writing items. It's a key to the cabinets, not to the builders' yard. It can't create databases or containers."),
+            maya("They can. Look at the role, the set of permissions on the badge, like the doors it opens. It was Cosmos DB Built-in Data Contributor, a data-plane role."),
+            leo("Data plane. Is that a clue or just jargon?"),
+            maya("The clue. Data plane means the data itself: reading and writing items. It's a key to the cabinets, not to the builders' yard. It can't create databases or containers."),
             leo("So how do you create them?"),
             maya("Ahead of time, with az, the Azure command-line tool, or a template, a file that describes what to build. The start-up code just uses what's there."),
             leo("And under the picture? How does Cosmos DB know the badge's role?"),
@@ -82,7 +104,9 @@ internal object Ai200EpisodesCosmosSdk {
             leo("Crime two. It was slow."),
             maya("Every container has a partition key: one property whose value decides which drawer an item lives in. A partition is just a drawer, one slice of storage. The team chose topic. Pocket Quiz has about six topics, and half the students revise maths."),
             leo("So one drawer did all the work."),
-            maya("Exactly. Under the hood, Cosmos DB turns the key's value into a number, like a fingerprint, and that number picks a physical partition, a real slice of storage. Few values, few slices, and the busy ones get hot. A good key has many values that most queries filter on. Like userId: thousands of students, each reading their own cards."),
+            maya("Exactly. Under the hood, Cosmos DB turns the key's value into a number, like a fingerprint, and that number picks a physical partition, a real slice of storage. Few values, few slices, and the busy ones get hot."),
+            leo("So what should the key have been?"),
+            maya("Something with many values that most queries filter on. Like userId: thousands of students, each reading their own cards."),
             leo("Can they just change the key?"),
             maya("Not on the same container. The partition key is set when a container is made. They made a new container on userId and copied the cards across. Which brings us to crime three. The bill."),
             leo("Suspect: too many students. Success is expensive."),
@@ -90,7 +114,9 @@ internal object Ai200EpisodesCosmosSdk {
             leo("So what was so pricey?"),
             maya("The most common call, opening one card, was a query: a question written in SQL, the classic database language. Select from the cards where id equals this id."),
             leo("What's wrong with a query? It found the card."),
-            maya("The app already knew both halves of the card's identity: its id, and the student's id, the partition key value. With both, you do a point read, with read item. Straight to the drawer and the card, no query engine at all. About one RU for a small card. The cheapest call there is."),
+            maya("The app already knew both halves of the card's identity: its id, and the student's id, the partition key value."),
+            leo("Like knowing the exact row and drawer, instead of asking the librarian to search?"),
+            maya("Exactly. With both, you do a point read, with read item. Straight to the drawer and the card, no query engine at all. About one RU for a small card. The cheapest call there is."),
             leo("And the queries that are left?"),
             maya("Give the partition key when you can, and it's a single-partition query, one drawer. Leave it off, filtering on something else, and it's a cross-partition query, which opens every drawer and costs more. That's where a partition key stops helping."),
             leo("Any loose ends in the file?"),
@@ -98,9 +124,13 @@ internal object Ai200EpisodesCosmosSdk {
             leo("Suspect: base64-encode the input first."),
             maya("That hides the text, but it's still treated as part of the query. The fix is parameters: blanks in the query, filled in separately, like fields on a form. The values never touch the query text."),
             leo("And the second loose end?"),
-            maya("The load more button. The app remembered the last card's id and started again from there, and cards went missing. An id alone doesn't tell the engine where it was. Each page comes with a continuation token, which is a bookmark. Hand that back, and the query resumes exactly where it stopped."),
+            maya("The load more button. The app remembered the last card's id and started again from there, and cards went missing."),
+            leo("Why? The id was right there."),
+            maya("An id alone doesn't tell the engine where it was. Each page comes with a continuation token, which is a bookmark. The phone hands that back, and the query resumes exactly where it stopped."),
             leo("And the phone app? Should it just talk to Cosmos DB directly?"),
-            maya("Never with a key. A phone can't keep a secret. It calls your backend, and the backend, with its badge, talks to Cosmos DB. The change feed episode shows how to react when cards are added or changed."),
+            maya("Never with a key. A phone can't keep a secret; anyone can unpack the app and find it. It calls your backend, and the backend, with its badge, talks to Cosmos DB. One more thing in the file: the backend made a new CosmosClient per request."),
+            leo("Is that bad?"),
+            maya("Slow and wasteful. Make one client at start-up and reuse it for the whole app. And the change feed episode shows how to react when cards are added or changed."),
             leo("So, the case summary for the exam?"),
             maya("Five rules. If the question says one item whose id and key you know, the answer is a point read. If a data role gets 403 creating a database, data-plane roles can't create; use az or a template. If user text goes into a query, parameters. If the next page comes later, the continuation token. And a filter off the partition key is cross-partition, which costs more."),
             leo("Case closed. Anything to try today?"),
@@ -118,7 +148,9 @@ internal object Ai200EpisodesCosmosSdk {
             leo("[laugh] I heard the word invoice said very slowly in a meeting. Start at the start. What's Cosmos DB?"),
             maya("Azure Cosmos DB for NoSQL is a database that stores documents instead of rows in fixed tables. Each document is JSON, a plain-text format of labelled values, like a filled-in form. One note is one document, called an item."),
             leo("And where do items live?"),
-            maya("In a container, inside a database, inside an account. Picture a filing cabinet in a room in a building. Every container has a partition key, one property, like userId, whose value decides which drawer an item lives in. A partition is just a drawer: one drawer per learner."),
+            maya("In a container, inside a database, inside an account. Picture a filing cabinet in a room in a building."),
+            leo("And which drawer does a note go in?"),
+            maya("Every container has a partition key, one property, like userId, whose value decides which drawer an item lives in. A partition is just a drawer: one drawer per learner."),
             leo("And how does the backend reach the cabinet?"),
             maya("Through the azure cosmos package, Microsoft's Python library: ready-made code you install. From it you make a CosmosClient, the object that talks to the account."),
             leo("And how does it sign in? With a password?"),
@@ -128,13 +160,17 @@ internal object Ai200EpisodesCosmosSdk {
             leo("Okay. So who went first?"),
             maya("Tom. Monday. Every time a learner opened a note, Tom's code ran a query, a question written in SQL, the classic database language: select from notes where the id equals this id."),
             leo("That sounds reasonable."),
-            maya("It works. But every call in Cosmos DB costs request units, RUs, which is the price tag on each operation. And Tom already knew the note's id and the learner's id, the partition key value. With both halves, you do a point read, read item. Straight to the right card. About one RU for a small note, far cheaper than any query."),
+            maya("It works. But every call in Cosmos DB costs request units, RUs, which is the price tag on each operation. And Tom already knew the note's id and the learner's id, the partition key value."),
+            leo("So he could have skipped the question?"),
+            maya("Yes. With both halves, you do a point read, read item. Straight to the right card. About one RU for a small note, far cheaper than any query."),
             leo("Why does it need both ids?"),
             maya("Because an item's identity is the pair: the id plus the partition key value. The same id can exist in two different drawers. Saving works the same way. Upsert item, which means update or insert, puts the note in, or replaces the one with the same id and key."),
             leo("[sigh] Poor Tom. And Tuesday?"),
             maya("Tuesday was Dana. Dana built the search box. She dropped the learner's text straight into the query with an f-string, which is Python's way of pasting values into text."),
             leo("And someone typed something sneaky."),
-            maya("The intern did, to be fair, on purpose. That's injection: user text that becomes part of the query, like someone writing extra orders onto your shopping list. The fix is parameters, blanks in the query that are filled in separately, like fields on a form. Dana fixed it by lunch, and bought the intern a muffin."),
+            maya("The intern did, to be fair, on purpose. That's injection: user text that becomes part of the query, like someone writing extra orders onto your shopping list."),
+            leo("How did Dana fix it?"),
+            maya("Parameters: blanks in the query that are filled in separately, like fields on a form. Fixed by lunch, and she bought the intern a muffin."),
             leo("I sense a Wednesday."),
             maya("[chuckle] Wednesday was Marcus. Marcus gave the backend's badge a role, a set of permissions, like the doors a badge opens: Cosmos DB Built-in Data Contributor. Then his start-up code called create container if not exists. And got 403. Forbidden."),
             leo("He had the contributor role, though."),
@@ -144,7 +180,9 @@ internal object Ai200EpisodesCosmosSdk {
             leo("And Marcus tried the account key, didn't he."),
             maya("He did. An account key is a master password for everything. Security had words. Thursday, the intern again, bless them, made a test container with topic as the partition key."),
             leo("Is that bad?"),
-            maya("There are six topics, and half the notes are about one of them. So one drawer did half the work. A good partition key has many different values that most queries filter on, like userId. Under the hood, the key's value is turned into a number, like a fingerprint, that picks a physical slice of storage. Few values, few slices."),
+            maya("There are six topics, and half the notes are about one of them. So one drawer did half the work."),
+            leo("Why can't the database just spread it out?"),
+            maya("Because the key's value is turned into a number, like a fingerprint, that picks a physical slice of storage. Few values, few slices. A good key has many values that most queries filter on, like userId."),
             leo("Can't the intern just change the key?"),
             maya("Not on that container. The partition key is set when a container is made. So it's a new container on userId, and copy the notes across. Luckily it was only a test."),
             leo("And Friday? There's always a Friday."),
@@ -174,7 +212,9 @@ internal object Ai200EpisodesCosmosSdk {
             ivy("And how does the cabinet know where to put each card?"),
             nova("The partition key. One property, like userId, whose value decides which drawer an item lives in. A partition is just a drawer, one slice of storage. Think of one drawer per learner. All your notes, tucked into your drawer."),
             ivy("Tell me what's really happening there."),
-            nova("Under the picture, Cosmos DB turns the key's value into a number, like a fingerprint, and that number picks a physical partition, a real slice of storage. So pick a key with many different values, that most queries filter on. Like userId. Pick topic, with only a few values, and a few drawers do all the work."),
+            nova("Under the picture, Cosmos DB turns the key's value into a number, like a fingerprint, and that number picks a physical partition, a real slice of storage."),
+            ivy("So which key should I choose?"),
+            nova("One with many different values, that most queries filter on. Like userId. [pause] Pick topic, with only a few values, and a few drawers do all the work."),
             ivy("And why does it matter which drawer I open?"),
             nova("Because every call has a price. Request units, RUs, are the price tag on each operation. One drawer is cheap. Every drawer is not. [pause] The Cosmos performance episode is another long night on RUs."),
             ivy("So how does my Python code get in? Quietly, I hope."),
@@ -190,19 +230,25 @@ internal object Ai200EpisodesCosmosSdk {
             ivy("And if my start-up code tries to build a room anyway?"),
             nova("Then create database if not exists comes back 403. Forbidden. That's where a data-plane role stops working. Create databases and containers ahead of time, with az, the Azure command-line tool, or a template, a file that describes what to build. Your code just uses them."),
             ivy("Now, saving a note. Gently."),
-            nova("Upsert item. Upsert means update or insert. It puts the note in, or replaces it if one with the same id and partition key is already there. Because an item's identity is the pair. The same id can live in two different drawers."),
+            nova("Upsert item. Upsert means update or insert. It puts the note in, or replaces it if one with the same id and partition key is already there."),
+            ivy("Why both? Isn't the id enough?"),
+            nova("Because an item's identity is the pair. [pause] The same id can live in two different drawers."),
             ivy("And reading it back? Under the covers?"),
             nova("If you know both halves, the id and the partition key value, a point read, with read item. [pause] Straight to the drawer, straight to the card. About one RU for a small note. The cheapest thing Cosmos DB offers."),
             ivy("And why is a point read so cheap, really?"),
             nova("Because there's nothing to search. The key's number names the slice of storage, and the id names the card inside it. [pause] No query engine involved, so nothing to plan and nothing to scan."),
             ivy("And when I don't know the id?"),
-            nova("You query. Cosmos DB speaks SQL, the classic language for asking a database questions: select this, from there, where that. Give the partition key, and it's a single-partition query, one drawer. Leave it off, and it's a cross-partition query. It opens every drawer, and costs more."),
+            nova("You query. Cosmos DB speaks SQL, the classic language for asking a database questions: select this, from there, where that."),
+            ivy("And the drawers?"),
+            nova("Give the partition key, and it's a single-partition query, one drawer. Leave it off, and it's a cross-partition query. [pause] It opens every drawer, and costs more."),
             ivy("And if a stranger types into my search box?"),
             nova("Never drop their words into the query with an f-string, which is Python's way of pasting values into text. That invites injection, where their text becomes part of your query, like a stranger adding lines to your letter. Use parameters instead: blanks in the query, filled in separately, like fields on a form."),
             ivy("And when there are too many notes for one screen?"),
             nova("You page. Fifty at a time. Each page carries a continuation token, which is a bookmark. Hand it back later, and the query picks up exactly where it stopped. [pause] Like a book left open on the pillow."),
             ivy("And small changes? Just one little detail?"),
-            nova("Patch item. It changes a few fields without sending the whole note, like adding one to a view counter. And one last edge: the phone app never talks to Cosmos DB with a key. It calls your backend, and the backend wears the badge. The change feed episode is for the night you want to react the moment a note changes."),
+            nova("Patch item. It changes a few fields without sending the whole note, like adding one to a view counter."),
+            ivy("And can my phone app just talk to Cosmos DB itself?"),
+            nova("Never with a key. It calls your backend, and the backend wears the badge. [pause] The change feed episode is for the night you want to react the moment a note changes."),
             ivy("[sigh] Mm. Before you send me off to bed. What do I remember for the exam?"),
             nova("Five little things. One item, id and key known: a point read. A data role, 403 creating a database: data-plane roles can't create, so az or a template. User text in a query: parameters, not f-strings. The next page later: the continuation token. A filter off the partition key: cross-partition, which costs more."),
             ivy("And something to try today, before I sleep?"),
@@ -220,13 +266,17 @@ internal object Ai200EpisodesCosmosSdk {
             rafe("Secrets on a first date? I like where this is going."),
             nova("[laugh] Cosmos DB. Azure Cosmos DB for NoSQL is a database that stores documents, not rows in fixed tables. Each one is JSON, a plain-text format of labelled values, like a filled-in form. One document is called an item."),
             rafe("And our app is the Two Tracks Coach, the study assistant in the Android app, with a Python backend. One study note, one item. Where do they all live?"),
-            nova("In a container, in a database, in an account. A card, in a filing cabinet, in a room, in a building. And every container has a partition key, one property whose value decides which drawer an item lives in. A partition is just a drawer. One drawer per learner."),
+            nova("In a container, in a database, in an account. A card, in a filing cabinet, in a room, in a building."),
+            rafe("And which drawer is mine?"),
+            nova("Every container has a partition key, one property whose value decides which drawer an item lives in. A partition is just a drawer. One drawer per learner."),
             rafe("I've always wanted my own drawer at your place."),
             nova("Then choose the key well. Many different values, that most queries filter on. Like userId. Under the hood, the value is turned into a number, like a fingerprint, that picks a physical slice of storage. Few values, and a few drawers do all the work."),
             rafe("Then let me test you, darling. Exam style. The backend signs in with a managed identity, which is a login Azure gives the app, like a staff badge. The badge holds Cosmos DB Built-in Data Contributor. Start-up calls create database if not exists, and gets 403, forbidden. Why?"),
             nova("Because Data Contributor is a data-plane role. A role is a set of permissions, like the doors a badge opens, and data plane means the data itself, reading and writing items. It opens the cabinets; it can't build new rooms. Create databases and containers ahead of time, with az, the Azure command-line tool, or a template, a file that describes what to build."),
             rafe("Right answer. Knowing your role is everything. [kiss]"),
-            nova("Mm. And the badge itself. DefaultAzureCredential is a helper that finds whatever sign-in is around: your az login at home, the managed identity in Azure. No account key, the master password for everything."),
+            nova("Mm. And the badge itself. DefaultAzureCredential is a helper that finds whatever sign-in is around."),
+            rafe("At home and away?"),
+            nova("Your az login at home, the managed identity in Azure. No account key, the master password for everything."),
             rafe("And who checks the badge at the door?"),
             nova("Entra ID, which is Microsoft's sign-in service. It gives the badge a token, a short-lived signed pass, like a wristband at a festival. Cosmos DB checks the wristband on every call."),
             rafe("No keys under the doormat. Agreed. My turn to be tested."),
@@ -415,73 +465,74 @@ internal object Ai200EpisodesCosmosSdk {
                     Beat(4, show = setOf("acct", "db", "cont"), light = setOf("cont"), pulse = "db" to "cont", card = BoardCard("Account, database, container", "A building, a room, a filing cabinet. One note is one item.")),
                 ),
             ),
-            // 6: "Every container has a partition key..."
+            // 8: "Every container has a partition key..."
             Scene(
-                6, "One drawer per learner", drawers(),
+                8, "One drawer per learner", drawers(),
                 beats = listOf(
-                    Beat(6, show = setOf("key", "d1"), light = setOf("key", "d1"), pulse = "key" to "d1", card = BoardCard("Partition key", "A partition is a drawer. One property, like userId, picks the drawer.")),
-                    Beat(8, show = setOf("d2", "d3"), light = setOf("d1"), card = BoardCard("RUs", "Request units: the price tag on every call. One drawer is cheap.")),
-                    Beat(10, light = setOf("key"), card = BoardCard("A good key", "Many values, used by most queries: userId. Not topic.")),
+                    Beat(8, show = setOf("key", "d1"), light = setOf("key", "d1"), pulse = "key" to "d1", card = BoardCard("Partition key", "A partition is a drawer. One property, like userId, picks the drawer.")),
+                    Beat(12, show = setOf("d2", "d3"), light = setOf("d1"), card = BoardCard("RUs", "Request units: the price tag on every call. One drawer is cheap.")),
+                    Beat(16, light = setOf("key"), card = BoardCard("A good key", "Many values, used by most queries: userId. Not topic.")),
                 ),
             ),
-            // 11: "Got it. How does my Python code actually connect?"
+            // 19: "Got it. How does my Python code actually connect?"
             Scene(
-                11, "Signing in", signin(),
+                19, "Signing in", signin(),
                 beats = listOf(
-                    Beat(12, show = setOf("app"), light = setOf("app"), card = clientCode),
-                    Beat(14, card = BoardCard("Entra ID", "Microsoft's sign-in service: the front desk that checks badges.")),
-                    Beat(16, show = setOf("key", "mi", "entra"), light = setOf("key"), card = BoardCard("No account key", "DefaultAzureCredential finds a sign-in: az login on a laptop.")),
-                    Beat(18, light = setOf("mi"), pulse = "app" to "mi", card = BoardCard("Managed identity", "In Azure: a login Azure gives your app, like a staff badge.")),
+                    Beat(20, show = setOf("app"), light = setOf("app"), card = clientCode),
+                    Beat(22, card = BoardCard("One client per app", "Make CosmosClient once and reuse it, like one Retrofit instance.")),
+                    Beat(24, card = BoardCard("Entra ID", "Microsoft's sign-in service: the front desk that checks badges.")),
+                    Beat(26, show = setOf("key", "mi", "entra"), light = setOf("key"), card = BoardCard("No account key", "DefaultAzureCredential finds a sign-in: az login on a laptop.")),
+                    Beat(30, light = setOf("mi"), pulse = "app" to "mi", card = BoardCard("Managed identity", "In Azure: a login Azure gives your app, like a staff badge.")),
                 ),
             ),
-            // 19: "Badge in hand. Can I do anything I like now?"
+            // 31: "Badge in hand. Can I do anything I like now?"
             Scene(
-                19, "What the role allows", roles(),
+                31, "What the role allows", roles(),
                 beats = listOf(
-                    Beat(20, show = setOf("dp", "items"), light = setOf("dp", "items"), pulse = "dp" to "items", card = BoardCard("Data-plane role", "Built-in Data Contributor: read and write items.")),
-                    Beat(22, card = BoardCard("Data plane", "The data itself: the filing cabinets, not the builders' yard.")),
-                    Beat(24, show = setOf("create", "cli"), light = setOf("create", "cli"), pulse = "dp" to "create", card = BoardCard("403 at start-up", "Data-plane roles can't create. Use az or a template, ahead of time.")),
+                    Beat(32, show = setOf("dp", "items"), light = setOf("dp", "items"), pulse = "dp" to "items", card = BoardCard("Data-plane role", "Built-in Data Contributor: read and write items.")),
+                    Beat(34, card = BoardCard("Data plane", "The data itself: the filing cabinets, not the builders' yard.")),
+                    Beat(36, show = setOf("create", "cli"), light = setOf("create", "cli"), pulse = "dp" to "create", card = BoardCard("403 at start-up", "Data-plane roles can't create. Use az or a template, ahead of time.")),
                 ),
             ),
-            // 25: "Makes sense. Now let me save a note."
+            // 39: "Makes sense. Now let me save a note."
             Scene(
-                25, "Save and read", reads(),
+                39, "Save and read", reads(),
                 beats = listOf(
-                    Beat(26, light = setOf("cont"), card = upsertCode),
-                    Beat(28, card = BoardCard("Id plus partition key", "An item's identity. The same id can sit in two drawers.")),
-                    Beat(30, show = setOf("pr"), light = setOf("pr"), pulse = "cont" to "pr", card = readCode),
-                    Beat(32, show = setOf("q1"), light = setOf("q1"), pulse = "cont" to "q1", card = BoardCard("Query", "SQL: select, from, where. Costs more, but can filter and sort.")),
+                    Beat(40, light = setOf("cont"), card = upsertCode),
+                    Beat(42, card = BoardCard("Id plus partition key", "An item's identity. The same id can sit in two drawers.")),
+                    Beat(44, show = setOf("pr"), light = setOf("pr"), pulse = "cont" to "pr", card = readCode),
+                    Beat(48, show = setOf("q1"), light = setOf("q1"), pulse = "cont" to "q1", card = BoardCard("Query", "SQL: select, from, where. Costs more, but can filter and sort.")),
                 ),
             ),
-            // 33: "So I write, where the user equals, and paste in the learner's id?"
+            // 49: "So I write, where the user equals, and paste in the learner's id?"
             Scene(
-                33, "Never paste", query(),
+                49, "Never paste", query(),
                 beats = listOf(
-                    Beat(34, show = setOf("search", "fstr", "params", "sql"), light = setOf("params"), pulse = "search" to "params", card = queryCode),
-                    Beat(36, card = BoardCard("Injection", "User text that becomes part of the query. Parameters keep it a value.")),
+                    Beat(50, show = setOf("search", "fstr", "params", "sql"), light = setOf("params"), pulse = "search" to "params", card = queryCode),
+                    Beat(52, card = BoardCard("Injection", "User text that becomes part of the query. Parameters keep it a value.")),
                 ),
             ),
-            // 37: "Blanks on a form. Anything else about queries?"
+            // 53: "Blanks on a form. Anything else about queries?"
             Scene(
-                37, "One drawer or all", reads(),
+                53, "One drawer or all", reads(),
                 beats = listOf(
-                    Beat(38, show = setOf("q1", "qx"), light = setOf("q1", "qx"), pulse = "cont" to "qx", card = BoardCard("Cross-partition query", "No partition key: it fans out to every drawer and costs more.")),
+                    Beat(54, show = setOf("q1", "qx"), light = setOf("q1", "qx"), pulse = "cont" to "qx", card = BoardCard("Cross-partition query", "No partition key: it fans out to every drawer and costs more.")),
                 ),
             ),
-            // 39: "And if a learner has five hundred notes?..."
+            // 57: "And if a learner has five hundred notes?..."
             Scene(
-                39, "A bookmark", paging(),
+                57, "A bookmark", paging(),
                 beats = listOf(
-                    Beat(40, show = setOf("page1", "token"), light = setOf("token"), pulse = "page1" to "token", card = BoardCard("Continuation token", "A bookmark with each page. Pass it back to resume.")),
-                    Beat(42, show = setOf("app", "page2"), light = setOf("page2"), pulse = "app" to "page2", card = BoardCard("And patch item", "Changes a few fields, like a view counter, without the whole note.")),
+                    Beat(58, show = setOf("page1", "token"), light = setOf("token"), pulse = "page1" to "token", card = BoardCard("Continuation token", "A bookmark with each page. Pass it back to resume.")),
+                    Beat(62, show = setOf("app", "page2"), light = setOf("page2"), pulse = "app" to "page2", card = BoardCard("And patch item", "Changes a few fields, like a view counter, without the whole note.")),
                 ),
             ),
-            // 43: "So what do I remember for the exam?"
+            // 63: "So what do I remember for the exam?"
             Scene(
-                43, "For the exam", exam(),
+                63, "For the exam", exam(),
                 beats = listOf(
-                    Beat(44, show = all6, light = setOf("pr", "role", "prm", "tok", "cross"), card = BoardCard("Listen for the phrase", "Each exam phrase points to one answer: point read, parameters, token.")),
-                    Beat(46, card = today),
+                    Beat(64, show = all6, light = setOf("pr", "role", "prm", "tok", "cross"), card = BoardCard("Listen for the phrase", "Each exam phrase points to one answer: point read, parameters, token.")),
+                    Beat(66, card = today),
                 ),
             ),
         ),
@@ -515,52 +566,52 @@ internal object Ai200EpisodesCosmosSdk {
                 14, "The role", roles(),
                 beats = listOf(
                     Beat(14, show = setOf("dp", "items"), light = setOf("dp"), pulse = "dp" to "items", card = BoardCard("Data-plane role", "Data Contributor reads and writes items. It can't build new rooms.")),
-                    Beat(16, show = setOf("create", "cli"), light = setOf("cli"), pulse = "cli" to "create", card = BoardCard("Create ahead of time", "With az or a template. Cosmos DB checks the token's role every call.")),
-                    Beat(18, card = BoardCard("Token", "Entra ID's short-lived signed pass, like a festival wristband.")),
+                    Beat(18, show = setOf("create", "cli"), light = setOf("cli"), pulse = "cli" to "create", card = BoardCard("Create ahead of time", "With az or a template. Cosmos DB checks the token's role every call.")),
+                    Beat(20, card = BoardCard("Token", "Entra ID's short-lived signed pass, like a festival wristband.")),
                 ),
             ),
-            // 19: "Crime two. It was slow."
+            // 21: "Crime two. It was slow."
             Scene(
-                19, "Crime two: slow", drawers(),
+                21, "Crime two: slow", drawers(),
                 beats = listOf(
-                    Beat(20, show = setOf("key", "d1", "d2", "d3"), light = setOf("key"), card = BoardCard("Partition key: topic", "Six topics, half the students on maths. One drawer did the work.")),
-                    Beat(22, light = setOf("d1"), pulse = "key" to "d1", card = BoardCard("Under the hood", "The key's value becomes a number that picks a physical slice.")),
-                    Beat(24, light = setOf("key"), card = BoardCard("A new container", "The key is set at creation. New container on userId, cards copied.")),
+                    Beat(22, show = setOf("key", "d1", "d2", "d3"), light = setOf("key"), card = BoardCard("Partition key: topic", "Six topics, half the students on maths. One drawer did the work.")),
+                    Beat(24, light = setOf("d1"), pulse = "key" to "d1", card = BoardCard("Under the hood", "The key's value becomes a number that picks a physical slice.")),
+                    Beat(28, light = setOf("key"), card = BoardCard("A new container", "The key is set at creation. New container on userId, cards copied.")),
                 ),
             ),
-            // 25: "Suspect: too many students. Success is expensive."
+            // 29: "Suspect: too many students. Success is expensive."
             Scene(
-                25, "Crime three: the bill", reads(),
+                29, "Crime three: the bill", reads(),
                 beats = listOf(
-                    Beat(26, light = setOf("cont"), card = BoardCard("RUs", "Request units: the price tag on every call. The bill climbed.")),
-                    Beat(28, card = BoardCard("A query by id", "Every card opened with a query: where id equals this id.")),
-                    Beat(30, show = setOf("pr"), light = setOf("pr"), pulse = "cont" to "pr", card = readCode),
-                    Beat(32, show = setOf("q1", "qx"), light = setOf("q1", "qx"), pulse = "cont" to "qx", card = BoardCard("One drawer or every drawer", "With the key: single-partition. Without: cross-partition.")),
+                    Beat(30, light = setOf("cont"), card = BoardCard("RUs", "Request units: the price tag on every call. The bill climbed.")),
+                    Beat(32, card = BoardCard("A query by id", "Every card opened with a query: where id equals this id.")),
+                    Beat(36, show = setOf("pr"), light = setOf("pr"), pulse = "cont" to "pr", card = readCode),
+                    Beat(38, show = setOf("q1", "qx"), light = setOf("q1", "qx"), pulse = "cont" to "qx", card = BoardCard("One drawer or every drawer", "With the key: single-partition. Without: cross-partition.")),
                 ),
             ),
-            // 33: "Any loose ends in the file?"
+            // 39: "Any loose ends in the file?"
             Scene(
-                33, "Loose ends", query(),
+                39, "Loose ends", query(),
                 beats = listOf(
-                    Beat(34, show = setOf("search", "fstr"), light = setOf("fstr"), pulse = "search" to "fstr", card = BoardCard("An f-string", "Type something sneaky and it becomes part of the query: injection.")),
-                    Beat(35, card = BoardCard("Suspect: base64", "Hides the text, but it's still treated as part of the query.")),
-                    Beat(36, show = setOf("params", "sql"), light = setOf("params"), pulse = "search" to "params", card = queryCode),
+                    Beat(40, show = setOf("search", "fstr"), light = setOf("fstr"), pulse = "search" to "fstr", card = BoardCard("An f-string", "Type something sneaky and it becomes part of the query: injection.")),
+                    Beat(41, card = BoardCard("Suspect: base64", "Hides the text, but it's still treated as part of the query.")),
+                    Beat(42, show = setOf("params", "sql"), light = setOf("params"), pulse = "search" to "params", card = queryCode),
                 ),
             ),
-            // 37: "And the second loose end?"
+            // 43: "And the second loose end?"
             Scene(
-                37, "The load more button", paging(),
+                43, "The load more button", paging(),
                 beats = listOf(
-                    Beat(38, show = setOf("page1", "token", "app", "page2"), light = setOf("token"), pulse = "page1" to "token", card = BoardCard("Continuation token", "Not the last id: a bookmark that resumes exactly where it stopped.")),
-                    Beat(40, light = setOf("app"), card = BoardCard("The phone app", "Never a key on a phone. It calls the backend, which wears the badge.")),
+                    Beat(46, show = setOf("page1", "token", "app", "page2"), light = setOf("token"), pulse = "page1" to "token", card = BoardCard("Continuation token", "Not the last id: a bookmark that resumes exactly where it stopped.")),
+                    Beat(48, light = setOf("app"), card = BoardCard("The phone app", "Never a key on a phone. It calls the backend, which wears the badge.")),
                 ),
             ),
-            // 41: "So, the case summary for the exam?"
+            // 51: "So, the case summary for the exam?"
             Scene(
-                41, "Case closed", exam(),
+                51, "Case closed", exam(),
                 beats = listOf(
-                    Beat(42, show = all6, light = setOf("pr", "role", "prm", "tok", "cross"), card = BoardCard("Listen for the phrase", "Each exam phrase points to one answer. One drawer at a time.")),
-                    Beat(44, card = today),
+                    Beat(52, show = all6, light = setOf("pr", "role", "prm", "tok", "cross"), card = BoardCard("Listen for the phrase", "Each exam phrase points to one answer. One drawer at a time.")),
+                    Beat(54, card = today),
                 ),
             ),
         ),
@@ -576,67 +627,67 @@ internal object Ai200EpisodesCosmosSdk {
                     Beat(0, show = setOf("app"), light = setOf("app"), card = BoardCard("Notes into Cosmos DB", "And the finance team now knows everyone's name.")),
                     Beat(2, show = setOf("item"), light = setOf("item"), card = BoardCard("An item", "One note: a JSON document, like a filled-in form.")),
                     Beat(4, show = setOf("acct", "db", "cont"), light = setOf("cont"), pulse = "db" to "cont", card = BoardCard("Partition key", "One property, like userId, decides the drawer. One per learner.")),
-                    Beat(6, light = setOf("app", "acct"), pulse = "app" to "acct", card = clientCode),
-                    Beat(8, card = BoardCard("DefaultAzureCredential", "Finds whatever sign-in is around: az login on a laptop.")),
-                    Beat(10, card = BoardCard("Managed identity", "In Azure: a login Azure gives your app, like a staff badge.")),
+                    Beat(8, light = setOf("app", "acct"), pulse = "app" to "acct", card = clientCode),
+                    Beat(10, card = BoardCard("DefaultAzureCredential", "Finds whatever sign-in is around: az login on a laptop.")),
+                    Beat(12, card = BoardCard("Managed identity", "In Azure: a login Azure gives your app, like a staff badge.")),
                 ),
             ),
-            // 11: "Okay. So who went first?"
+            // 13: "Okay. So who went first?"
             Scene(
-                11, "Monday: Tom", reads(),
+                13, "Monday: Tom", reads(),
                 beats = listOf(
-                    Beat(12, show = setOf("q1"), light = setOf("q1"), pulse = "cont" to "q1", card = BoardCard("A query by id", "Every note opened with a query: where id equals this id.")),
-                    Beat(14, show = setOf("pr"), light = setOf("pr"), pulse = "cont" to "pr", card = readCode),
-                    Beat(16, card = upsertCode),
+                    Beat(14, show = setOf("q1"), light = setOf("q1"), pulse = "cont" to "q1", card = BoardCard("A query by id", "Every note opened with a query: where id equals this id.")),
+                    Beat(18, show = setOf("pr"), light = setOf("pr"), pulse = "cont" to "pr", card = readCode),
+                    Beat(20, card = upsertCode),
                 ),
             ),
-            // 17: "Poor Tom. And Tuesday?"
+            // 21: "Poor Tom. And Tuesday?"
             Scene(
-                17, "Tuesday: Dana", query(),
+                21, "Tuesday: Dana", query(),
                 beats = listOf(
-                    Beat(18, show = setOf("search", "fstr"), light = setOf("fstr"), pulse = "search" to "fstr", card = BoardCard("An f-string", "The learner's text pasted straight into the query.")),
-                    Beat(20, show = setOf("params", "sql"), light = setOf("params"), pulse = "search" to "params", card = queryCode),
+                    Beat(22, show = setOf("search", "fstr"), light = setOf("fstr"), pulse = "search" to "fstr", card = BoardCard("An f-string", "The learner's text pasted straight into the query.")),
+                    Beat(26, show = setOf("params", "sql"), light = setOf("params"), pulse = "search" to "params", card = queryCode),
                 ),
             ),
-            // 21: "I sense a Wednesday."
+            // 27: "I sense a Wednesday."
             Scene(
-                21, "Wednesday: Marcus", roles(),
+                27, "Wednesday: Marcus", roles(),
                 beats = listOf(
-                    Beat(22, show = setOf("dp", "create"), light = setOf("create"), pulse = "dp" to "create", card = BoardCard("403 at start-up", "Create container if not exists, with Data Contributor: forbidden.")),
-                    Beat(24, show = setOf("items", "cli"), light = setOf("dp", "items"), pulse = "dp" to "items", card = BoardCard("Data-plane role", "Reads and writes items only. Create containers with az or a template.")),
-                    Beat(26, card = BoardCard("Token", "Entra ID's short-lived signed pass, like a festival wristband.")),
-                    Beat(28, light = setOf("cli"), card = BoardCard("Not the account key", "A master password for everything. Security had words.")),
+                    Beat(28, show = setOf("dp", "create"), light = setOf("create"), pulse = "dp" to "create", card = BoardCard("403 at start-up", "Create container if not exists, with Data Contributor: forbidden.")),
+                    Beat(30, show = setOf("items", "cli"), light = setOf("dp", "items"), pulse = "dp" to "items", card = BoardCard("Data-plane role", "Reads and writes items only. Create containers with az or a template.")),
+                    Beat(32, card = BoardCard("Token", "Entra ID's short-lived signed pass, like a festival wristband.")),
+                    Beat(34, light = setOf("cli"), card = BoardCard("Not the account key", "A master password for everything. Security had words.")),
                 ),
             ),
-            // 29: "Is that bad?"
+            // 35: "Is that bad?"
             Scene(
-                29, "Thursday: the intern", drawers(),
+                35, "Thursday: the intern", drawers(),
                 beats = listOf(
-                    Beat(30, show = setOf("key", "d1", "d2", "d3"), light = setOf("d1"), pulse = "key" to "d1", card = BoardCard("Partition key: topic", "Six topics, half the notes in one. One drawer did half the work.")),
-                    Beat(32, light = setOf("key"), card = BoardCard("A new container", "The key is set at creation: a new container on userId.")),
+                    Beat(36, show = setOf("key", "d1", "d2", "d3"), light = setOf("d1"), pulse = "key" to "d1", card = BoardCard("Partition key: topic", "Six topics, half the notes in one. One drawer did half the work.")),
+                    Beat(40, light = setOf("key"), card = BoardCard("A new container", "The key is set at creation: a new container on userId.")),
                 ),
             ),
-            // 33: "And Friday? There's always a Friday."
+            // 41: "And Friday? There's always a Friday."
             Scene(
-                33, "Friday: Priya", reads(),
+                41, "Friday: Priya", reads(),
                 beats = listOf(
-                    Beat(34, show = setOf("q1", "qx"), light = setOf("qx"), pulse = "cont" to "qx", card = BoardCard("No partition key passed", "A cross-partition query: every drawer, more RUs.")),
+                    Beat(42, show = setOf("q1", "qx"), light = setOf("qx"), pulse = "cont" to "qx", card = BoardCard("No partition key passed", "A cross-partition query: every drawer, more RUs.")),
                 ),
             ),
-            // 35: "Did anything go right?"
+            // 43: "Did anything go right?"
             Scene(
-                35, "What went right", paging(),
+                43, "What went right", paging(),
                 beats = listOf(
-                    Beat(36, show = setOf("page1", "token", "app", "page2"), light = setOf("token"), pulse = "page1" to "token", card = pageCode),
-                    Beat(38, light = setOf("app"), card = BoardCard("The phone app", "Never a key on a phone. It calls the backend, which has the badge.")),
+                    Beat(44, show = setOf("page1", "token", "app", "page2"), light = setOf("token"), pulse = "page1" to "token", card = pageCode),
+                    Beat(46, light = setOf("app"), card = BoardCard("The phone app", "Never a key on a phone. It calls the backend, which has the badge.")),
                 ),
             ),
-            // 39: "So, the gossip I should remember for the exam?"
+            // 47: "So, the gossip I should remember for the exam?"
             Scene(
-                39, "For the exam", exam(),
+                47, "For the exam", exam(),
                 beats = listOf(
-                    Beat(40, show = all6, light = setOf("pr", "role", "prm", "tok", "cross"), card = BoardCard("Listen for the phrase", "Each exam phrase points to one answer. Nobody wants to be the story.")),
-                    Beat(42, card = today),
+                    Beat(48, show = all6, light = setOf("pr", "role", "prm", "tok", "cross"), card = BoardCard("Listen for the phrase", "Each exam phrase points to one answer. Nobody wants to be the story.")),
+                    Beat(50, card = today),
                 ),
             ),
         ),
@@ -660,58 +711,58 @@ internal object Ai200EpisodesCosmosSdk {
                 beats = listOf(
                     Beat(6, show = setOf("key", "d1"), light = setOf("key", "d1"), pulse = "key" to "d1", card = BoardCard("Partition key", "One property, like userId, decides which drawer an item lives in.")),
                     Beat(8, show = setOf("d2", "d3"), light = setOf("key"), card = BoardCard("Under the picture", "The value becomes a number that picks a physical slice of storage.")),
-                    Beat(10, light = setOf("d1"), card = BoardCard("RUs", "Request units: the price tag on every call. One drawer is cheap.")),
+                    Beat(12, light = setOf("d1"), card = BoardCard("RUs", "Request units: the price tag on every call. One drawer is cheap.")),
                 ),
             ),
-            // 11: "So how does my Python code get in? Quietly, I hope."
+            // 13: "So how does my Python code get in? Quietly, I hope."
             Scene(
-                11, "Getting in quietly", signin(),
+                13, "Getting in quietly", signin(),
                 beats = listOf(
-                    Beat(12, show = setOf("app", "key"), light = setOf("app", "key"), card = clientCode),
-                    Beat(14, card = BoardCard("DefaultAzureCredential", "Finds whatever sign-in is around: az login on your laptop.")),
-                    Beat(16, show = setOf("mi"), light = setOf("mi"), card = BoardCard("Managed identity", "A login Azure gives your app, like a staff badge. No password.")),
-                    Beat(18, show = setOf("entra"), light = setOf("mi", "entra"), pulse = "mi" to "entra", card = BoardCard("Token", "Entra ID's short-lived signed pass, like a festival wristband.")),
+                    Beat(14, show = setOf("app", "key"), light = setOf("app", "key"), card = clientCode),
+                    Beat(16, card = BoardCard("DefaultAzureCredential", "Finds whatever sign-in is around: az login on your laptop.")),
+                    Beat(18, show = setOf("mi"), light = setOf("mi"), card = BoardCard("Managed identity", "A login Azure gives your app, like a staff badge. No password.")),
+                    Beat(20, show = setOf("entra"), light = setOf("mi", "entra"), pulse = "mi" to "entra", card = BoardCard("Token", "Entra ID's short-lived signed pass, like a festival wristband.")),
                 ),
             ),
-            // 19: "And what does the badge let me do?"
+            // 21: "And what does the badge let me do?"
             Scene(
-                19, "What the badge allows", roles(),
+                21, "What the badge allows", roles(),
                 beats = listOf(
-                    Beat(20, show = setOf("dp", "items"), light = setOf("dp", "items"), pulse = "dp" to "items", card = BoardCard("Data-plane role", "Opens the cabinets: read and write items.")),
-                    Beat(22, show = setOf("create", "cli"), light = setOf("create"), pulse = "dp" to "create", card = BoardCard("403, forbidden", "It doesn't build rooms. Create them ahead with az or a template.")),
+                    Beat(22, show = setOf("dp", "items"), light = setOf("dp", "items"), pulse = "dp" to "items", card = BoardCard("Data-plane role", "Opens the cabinets: read and write items.")),
+                    Beat(24, show = setOf("create", "cli"), light = setOf("create"), pulse = "dp" to "create", card = BoardCard("403, forbidden", "It doesn't build rooms. Create them ahead with az or a template.")),
                 ),
             ),
-            // 23: "Now, saving a note. Gently."
+            // 25: "Now, saving a note. Gently."
             Scene(
-                23, "Saving and reading", reads(),
+                25, "Saving and reading", reads(),
                 beats = listOf(
-                    Beat(24, light = setOf("cont"), card = upsertCode),
-                    Beat(26, show = setOf("pr"), light = setOf("pr"), pulse = "cont" to "pr", card = readCode),
-                    Beat(28, card = BoardCard("Why so cheap", "The key names the slice, the id names the card. Nothing to scan.")),
-                    Beat(30, show = setOf("q1", "qx"), light = setOf("q1", "qx"), pulse = "cont" to "qx", card = BoardCard("One drawer or every drawer", "With the key: single-partition. Without: cross-partition, more RUs.")),
+                    Beat(26, light = setOf("cont"), card = upsertCode),
+                    Beat(30, show = setOf("pr"), light = setOf("pr"), pulse = "cont" to "pr", card = readCode),
+                    Beat(32, card = BoardCard("Why so cheap", "The key names the slice, the id names the card. Nothing to scan.")),
+                    Beat(36, show = setOf("q1", "qx"), light = setOf("q1", "qx"), pulse = "cont" to "qx", card = BoardCard("One drawer or every drawer", "With the key: single-partition. Without: cross-partition, more RUs.")),
                 ),
             ),
-            // 31: "And if a stranger types into my search box?"
+            // 37: "And if a stranger types into my search box?"
             Scene(
-                31, "Strangers at the door", query(),
+                37, "Strangers at the door", query(),
                 beats = listOf(
-                    Beat(32, show = setOf("search", "fstr", "params", "sql"), light = setOf("params"), pulse = "search" to "params", card = queryCode),
+                    Beat(38, show = setOf("search", "fstr", "params", "sql"), light = setOf("params"), pulse = "search" to "params", card = queryCode),
                 ),
             ),
-            // 33: "And when there are too many notes for one screen?"
+            // 39: "And when there are too many notes for one screen?"
             Scene(
-                33, "A book left open", paging(),
+                39, "A book left open", paging(),
                 beats = listOf(
-                    Beat(34, show = setOf("page1", "token", "app", "page2"), light = setOf("token"), pulse = "page1" to "token", card = BoardCard("Continuation token", "A bookmark. Hand it back later; the query resumes there.")),
-                    Beat(36, light = setOf("app"), card = BoardCard("Patch, and the phone", "Patch one field. The phone never holds a key; the backend does.")),
+                    Beat(40, show = setOf("page1", "token", "app", "page2"), light = setOf("token"), pulse = "page1" to "token", card = BoardCard("Continuation token", "A bookmark. Hand it back later; the query resumes there.")),
+                    Beat(42, light = setOf("app"), card = BoardCard("Patch, and the phone", "Patch one field. The phone never holds a key; the backend does.")),
                 ),
             ),
-            // 37: "Mm. Before you send me off to bed..."
+            // 45: "Mm. Before you send me off to bed..."
             Scene(
-                37, "For the exam", exam(),
+                45, "For the exam", exam(),
                 beats = listOf(
-                    Beat(38, show = all6, light = setOf("pr", "role", "prm", "tok", "cross"), card = BoardCard("Listen for the phrase", "Each exam phrase points to one answer: five little things.")),
-                    Beat(40, card = today),
+                    Beat(46, show = all6, light = setOf("pr", "role", "prm", "tok", "cross"), card = BoardCard("Listen for the phrase", "Each exam phrase points to one answer: five little things.")),
+                    Beat(48, card = today),
                 ),
             ),
         ),
@@ -729,79 +780,79 @@ internal object Ai200EpisodesCosmosSdk {
                     Beat(4, show = setOf("acct", "db", "cont"), light = setOf("cont"), pulse = "db" to "cont", card = BoardCard("A card in a cabinet", "Item, container, database, account. One drawer per learner.")),
                 ),
             ),
-            // 5: "I've always wanted my own drawer at your place."
+            // 7: "I've always wanted my own drawer at your place."
             Scene(
-                5, "My own drawer", drawers(),
+                7, "My own drawer", drawers(),
                 beats = listOf(
-                    Beat(6, light = setOf("key", "d1"), pulse = "key" to "d1", card = BoardCard("Choose the key well", "Many values, used by most queries: userId. Few values, hot drawers.")),
+                    Beat(8, light = setOf("key", "d1"), pulse = "key" to "d1", card = BoardCard("Choose the key well", "Many values, used by most queries: userId. Few values, hot drawers.")),
                 ),
             ),
-            // 7: "Then let me test you, darling..."
+            // 9: "Then let me test you, darling..."
             Scene(
-                7, "Knowing your role", roles(),
+                9, "Knowing your role", roles(),
                 beats = listOf(
-                    Beat(7, show = setOf("dp", "create"), light = setOf("create"), card = BoardCard("Quiz: 403 at start-up", "Data Contributor calls create database if not exists. Why 403?")),
-                    Beat(8, show = setOf("items", "cli"), light = setOf("dp", "cli"), pulse = "dp" to "create", card = BoardCard("Right answer", "A data-plane role reads and writes items. Create with az or a template.")),
+                    Beat(9, show = setOf("dp", "create"), light = setOf("create"), card = BoardCard("Quiz: 403 at start-up", "Data Contributor calls create database if not exists. Why 403?")),
+                    Beat(10, show = setOf("items", "cli"), light = setOf("dp", "cli"), pulse = "dp" to "create", card = BoardCard("Right answer", "A data-plane role reads and writes items. Create with az or a template.")),
                 ),
             ),
-            // 10: "Mm. And the badge itself..."
+            // 12: "Mm. And the badge itself..."
             Scene(
-                10, "The badge", signin(),
+                12, "The badge", signin(),
                 beats = listOf(
-                    Beat(10, light = setOf("mi", "entra"), pulse = "mi" to "entra", card = BoardCard("DefaultAzureCredential", "az login at home, managed identity in Azure. No account key.")),
-                    Beat(12, card = BoardCard("Token", "Entra ID's short-lived signed pass, like a festival wristband.")),
+                    Beat(12, light = setOf("mi", "entra"), pulse = "mi" to "entra", card = BoardCard("DefaultAzureCredential", "az login at home, managed identity in Azure. No account key.")),
+                    Beat(16, card = BoardCard("Token", "Entra ID's short-lived signed pass, like a festival wristband.")),
                 ),
             ),
-            // 14: "You know a note's id and the learner's id..."
+            // 18: "You know a note's id and the learner's id..."
             Scene(
-                14, "Straight to the point", reads(),
+                18, "Straight to the point", reads(),
                 beats = listOf(
-                    Beat(14, light = setOf("cont"), card = BoardCard("Quiz: id and key known", "What is the cheapest way to fetch the note?")),
-                    Beat(15, show = setOf("q1"), light = setOf("q1"), pulse = "cont" to "q1", card = BoardCard("A query?", "It works, but it costs more RUs.")),
-                    Beat(16, card = BoardCard("RUs", "Request units: the price tag on every call. A query costs more.")),
-                    Beat(18, show = setOf("pr"), light = setOf("pr"), pulse = "cont" to "pr", card = readCode),
-                    Beat(20, card = upsertCode),
-                    Beat(22, card = BoardCard("Patch item", "Changes one field, like a view counter, without the whole note.")),
+                    Beat(18, light = setOf("cont"), card = BoardCard("Quiz: id and key known", "What is the cheapest way to fetch the note?")),
+                    Beat(19, show = setOf("q1"), light = setOf("q1"), pulse = "cont" to "q1", card = BoardCard("A query?", "It works, but it costs more RUs.")),
+                    Beat(20, card = BoardCard("RUs", "Request units: the price tag on every call. A query costs more.")),
+                    Beat(22, show = setOf("pr"), light = setOf("pr"), pulse = "cont" to "pr", card = readCode),
+                    Beat(24, card = upsertCode),
+                    Beat(26, card = BoardCard("Patch item", "Changes one field, like a view counter, without the whole note.")),
                 ),
             ),
-            // 23: "So, darling. A search box puts the learner's text into a query..."
+            // 27: "So, darling. A search box puts the learner's text into a query..."
             Scene(
-                23, "Finishing sentences", query(),
+                27, "Finishing sentences", query(),
                 beats = listOf(
-                    Beat(23, show = setOf("search"), light = setOf("search"), card = BoardCard("Quiz: a search box", "How should the learner's text get into the query?")),
-                    Beat(24, show = setOf("fstr", "params", "sql"), light = setOf("params"), pulse = "search" to "params", card = queryCode),
+                    Beat(27, show = setOf("search"), light = setOf("search"), card = BoardCard("Quiz: a search box", "How should the learner's text get into the query?")),
+                    Beat(28, show = setOf("fstr", "params", "sql"), light = setOf("params"), pulse = "search" to "params", card = queryCode),
                 ),
             ),
-            // 26: "Then here's yours. The note list filters on the learner..."
+            // 30: "Then here's yours. The note list filters on the learner..."
             Scene(
-                26, "One drawer at a time", reads(),
+                30, "One drawer at a time", reads(),
                 beats = listOf(
-                    Beat(26, show = setOf("qx"), light = setOf("qx"), pulse = "cont" to "qx", card = BoardCard("Quiz: no partition key", "The note list leaves off the key. What happens?")),
-                    Beat(27, show = setOf("q1"), light = setOf("q1"), pulse = "cont" to "q1", card = BoardCard("Right answer", "Cross-partition: every drawer. Pass the key: one drawer.")),
+                    Beat(30, show = setOf("qx"), light = setOf("qx"), pulse = "cont" to "qx", card = BoardCard("Quiz: no partition key", "The note list leaves off the key. What happens?")),
+                    Beat(31, show = setOf("q1"), light = setOf("q1"), pulse = "cont" to "q1", card = BoardCard("Right answer", "Cross-partition: every drawer. Pass the key: one drawer.")),
                 ),
             ),
-            // 29: "Now, a long list..."
+            // 33: "Now, a long list..."
             Scene(
-                29, "Where we left off", paging(),
+                33, "Where we left off", paging(),
                 beats = listOf(
-                    Beat(29, show = setOf("page1"), light = setOf("page1"), card = BoardCard("Quiz: the next page, later", "What does the backend hand back to the app?")),
-                    Beat(30, show = setOf("token", "app", "page2"), light = setOf("token"), pulse = "page1" to "token", card = pageCode),
+                    Beat(33, show = setOf("page1"), light = setOf("page1"), card = BoardCard("Quiz: the next page, later", "What does the backend hand back to the app?")),
+                    Beat(34, show = setOf("token", "app", "page2"), light = setOf("token"), pulse = "page1" to "token", card = pageCode),
                 ),
             ),
-            // 32: "And where does it all stop working, Rafe?..."
+            // 36: "And where does it all stop working, Rafe?..."
             Scene(
-                32, "Every romance has limits", signin(),
+                36, "Every romance has limits", signin(),
                 beats = listOf(
-                    Beat(33, light = setOf("key"), card = BoardCard("No key on a phone", "The phone calls the backend; the backend wears the badge.")),
-                    Beat(35, light = setOf("cosmos"), card = BoardCard("The change feed", "An ordered record of every change. Another episode.")),
+                    Beat(37, light = setOf("key"), card = BoardCard("No key on a phone", "The phone calls the backend; the backend wears the badge.")),
+                    Beat(39, light = setOf("cosmos"), card = BoardCard("The change feed", "An ordered record of every change. Another episode.")),
                 ),
             ),
-            // 36: "Last question, for the exam. What do we remember?"
+            // 40: "Last question, for the exam. What do we remember?"
             Scene(
-                36, "For the exam", exam(),
+                40, "For the exam", exam(),
                 beats = listOf(
-                    Beat(37, show = all6, light = setOf("pr", "role", "prm", "tok", "cross"), card = BoardCard("Listen for the phrase", "Each exam phrase points to one answer. Five for five.")),
-                    Beat(40, card = today),
+                    Beat(41, show = all6, light = setOf("pr", "role", "prm", "tok", "cross"), card = BoardCard("Listen for the phrase", "Each exam phrase points to one answer. Five for five.")),
+                    Beat(44, card = today),
                 ),
             ),
         ),

@@ -5,43 +5,53 @@ internal object Ai200EpisodesFunctions {
     private val classic = Podcast(
         "ai-functions",
         listOf(
-            maya("Hi, and welcome back. Today is Azure Functions. Picture a porch light with a motion sensor. It stays off and costs nothing. The moment someone walks up, it switches on, does its job, and goes dark again. Functions is that, for your code."),
+            maya("Hi, and welcome back. Today is Azure Functions. Picture a porch light with a motion sensor. It stays off and costs nothing. Someone walks up, it switches on, does its job, and goes dark. Functions is that, for your code."),
             leo("A porch light for code. So what does it actually do, in plain words?"),
-            maya("It runs small pieces of code when something happens, and you pay for the time they run. People call that serverless. There are still servers, but they're Azure's problem: it starts copies of your code only when they're needed."),
+            maya("It runs small pieces of your code when something happens, and you pay only while they run. People call that serverless. There are still servers, but they're Azure's problem, not yours."),
             leo("And what's the something that happens?"),
-            maya("That's the trigger, whatever starts a function. Think of it as the doorbell. Each function has exactly one. The commonest is an HTTP trigger. HTTP is how apps and browsers talk to servers, so a web request arrives, and the function answers it."),
+            maya("That's the trigger, whatever starts a function, like a doorbell. Each function has exactly one. The commonest is an HTTP trigger: your app sends a web request, the same kind of call your Android app already makes, and the function answers it."),
             leo("So a function can be a tiny web API?"),
-            maya("Exactly, a serverless API, which is just a set of web addresses your app calls to ask for things. Say you're building the Two Tracks Coach, a study assistant for an Android app, with a Python backend, the server code the app talks to, on Azure. The phone's search request arrives at an HTTP function."),
+            maya("Exactly, a serverless API, which is just a set of web addresses your app calls. Say you're building the Two Tracks Coach, a study assistant in an Android app, with a Python backend on Azure. The phone's search request arrives at an HTTP function."),
             leo("What other doorbells are there?"),
-            maya("A Service Bus trigger. It starts when a message lands on a queue, which is a to-do list of jobs. The function takes the job and does it. When the function finishes without an error, the message is marked done."),
+            maya("A Service Bus trigger, for a queue, which is a to-do list of jobs. And here's the direction people get backwards: Service Bus never calls your function."),
+            leo("Then who does? Something has to wake it."),
+            maya("The Functions host, the program Azure runs around your code. It keeps asking the queue, anything for me? It pulls the next message and calls your function with it."),
+            leo("So it's like my app polling a server, except Azure writes the loop for me."),
+            maya("Exactly. When your function returns without an error, the host marks the message done."),
             leo("And if the job fails halfway?"),
-            maya("If your code raises an error, the message is abandoned. It goes back on the list to be tried again. After too many tries, it's moved aside, to the dead-letter queue, a side shelf for failed jobs. So never catch every error and carry on quietly. Then the message is marked done, and the failed job is simply lost."),
+            maya("If your code throws, the host abandons the message: it goes back on the queue for another try. After too many tries, it moves to the dead-letter queue, a side shelf for failed jobs."),
+            leo("So I wrap it all in a try and catch and log the error, like I do in my app?"),
+            maya("That's the trap. Catch everything and return quietly, and the host thinks it worked. The message is marked done, and the job is lost."),
             leo("Noted. Next doorbell?"),
-            maya("An Event Grid trigger. Event Grid pushes news to whoever signed up, like, a file was uploaded. The function wakes for each event. And Functions handles the little hello that Event Grid insists on before it sends anything."),
+            maya("An Event Grid trigger, and this one runs the other way. Event Grid pushes each piece of news, like, a file was uploaded, straight to your function, the way a push notification lands on a phone. Functions even handles the little hello Event Grid insists on first."),
             leo("Any more?"),
-            maya("A Cosmos DB trigger. Cosmos DB is Azure's database for documents, each one like a filled-in form. The trigger starts when items are created or changed. It reads the change feed, which is a running list of every change, in order."),
+            maya("A Cosmos DB trigger. Cosmos DB is Azure's database for documents, each one like a filled-in form. It starts when items are created or changed: the host reads the change feed, a running list of every change, in order, and hands your function each new batch."),
             leo("And how does it know where it got up to in that list?"),
             maya("It keeps its place in a lease container. A container is like a table in that database. The lease container is a small extra one that works like a bookmark: it notes how far through the change feed the trigger has read."),
             leo("A bookmark, so it never loses its page. Okay. A function starts. How does it talk to other services?"),
-            maya("With bindings. A binding is a connection you declare, instead of code you write. Picture plumbing that's already fitted. You don't lay pipes, you just turn the tap. Data arrives as a parameter, or leaves when you set one, with no SDK code."),
+            maya("With bindings. A binding is a connection you declare, instead of code you write, like plumbing that's already fitted. Data arrives as a parameter, or leaves when you set one, with no SDK code."),
             leo("No SDK code? Remind me what an SDK is."),
-            maya("A software development kit: the library you'd normally use for each service. For Service Bus, that's a client, a sender, a send. With an output binding, sending a message to a queue is one line. You set a value, and Functions sends it when your function ends."),
+            maya("A software development kit: the library you'd normally use, like the Service Bus client in your server code. Client, sender, send. With an output binding, sending to a queue is one line: you set a value, and Functions sends it when your function ends."),
             leo("Output binding. So there's an input one too?"),
             maya("Yes. An input binding reads data in, say a document from Cosmos DB, and hands it to the function as a parameter. Data in is input, data out is output, and what starts it is the trigger. For example, the Coach's search request is an HTTP trigger plus an output binding that puts a job on a queue, and it answers at once: accepted."),
             leo("Where do I write all of this? A settings file for every function?"),
-            maya("Not any more. That's the v2 programming model for Python, the newer, second way of writing them. Everything lives in one file, function app dot py. Each function is a normal Python function, with decorators on top. A decorator is a line just above it, starting with the at sign, that labels it, like a sticky note saying what it's for."),
+            maya("Not any more. In the v2 programming model for Python, the newer way, everything lives in one file, function app dot py. Each function is a normal Python function with decorators on top: a line just above it, starting with the at sign, like a sticky note saying what it's for."),
             leo("So the sticky notes say what starts it, and what it connects to."),
             maya("Exactly. App dot route makes it an HTTP function. App dot service bus queue trigger makes it start on a queue message. The older v1 model had a separate file per function, function dot json. For Python v2, that file doesn't exist."),
             leo("Now the bit I always get wrong. Connections. Where does the password go?"),
-            maya("[pause] Here's the trap. In the decorator, connection equals ServiceBusConnection is not a connection string, an address with a password baked in. It's the name of an app setting. An app setting is a named value Azure hands your app while it runs, like a labelled envelope on its desk. The binding opens the envelope with that name."),
-            leo("And what's inside the envelope? A password?"),
-            maya("Ideally, no secret at all. With a managed identity, a badge Azure gives your app so it can prove who it is without a password, the setting holds just the address of your Service Bus. Then you give the badge a Service Bus data role, a named permission, like a job title. The Key Vault episode covers identities in depth."),
+            maya("[pause] Here's the trap. In the decorator, connection equals ServiceBusConnection is not a connection string, an address with a password baked in."),
+            leo("Then what is it?"),
+            maya("The name of an app setting, a named value Azure hands your app while it runs, like an environment variable on your own server. The binding looks the value up by that name."),
+            leo("And what's inside the setting? A password?"),
+            maya("Ideally, no secret at all. With a managed identity, a badge Azure gives your app so it proves who it is without a password, the setting holds just your Service Bus address. Then give the badge a Service Bus data role, a named permission. The Key Vault episode covers identities."),
             leo("And on my laptop? There's no badge on my laptop."),
-            maya("On your laptop, the same settings live in a file called local settings dot json. And this is the second trap. That file is for your machine only. It is never deployed, which means it's never copied up to Azure. So every setting in it must also be created in Azure, as an app setting on the function app."),
+            maya("On your laptop, the same settings live in local settings dot json. And that's the second trap: the file is never deployed, never copied up to Azure. So every setting in it must also be created in Azure, as an app setting."),
             leo("So it works on my laptop, and fails in Azure with a missing setting."),
-            maya("[sigh] The classic. Core Tools publishes your code, not that file. Core Tools is the func command on your laptop. Func init makes a new project. Func start runs it locally and lists each function's address. And func azure functionapp publish sends the code up."),
+            maya("[sigh] The classic. Core Tools publishes your code, not that file."),
+            leo("Core Tools being?"),
+            maya("The func command on your laptop. Func init makes a project, func start runs it locally and lists each function's address, and func azure functionapp publish sends the code up."),
             leo("Where does it run in Azure? Do I pick a machine?"),
-            maya("You pick a hosting plan, which is how you rent the machines. For new serverless apps, the default is Flex Consumption. It scales to zero, so when nobody's calling, nothing runs and you pay nothing. And it can reach into a virtual network, a private network that only your own resources share."),
+            maya("You pick a hosting plan, how you rent the machines. For new serverless apps the default is Flex Consumption. It scales to zero: nobody calling, nothing running, nothing paid. And it can join a virtual network, a private network only your own resources share."),
             leo("And if I hate waiting? Doesn't a sleeping app take a moment to wake up?"),
             maya("That pause is a cold start. Flex Consumption lets you keep a few always-ready copies to cut it. If the rule is no cold start at all, always warm, that's the Premium plan, billed per copy even when idle."),
             leo("And if I already rent my own servers?"),
@@ -68,7 +78,9 @@ internal object Ai200EpisodesFunctions {
             leo("Trigger. In plain words?"),
             maya("The thing that starts a function, like a doorbell. Each function has exactly one. When it rings, the host calls your Python function."),
             leo("So FlashFox has two functions?"),
-            maya("Two. An HTTP function, HTTP being how apps talk to servers: a web request from the phone arrives, asking for a deck to be prepared. It puts a job on a Service Bus queue, a to-do list of jobs, and answers at once, accepted. Then a worker function with a Service Bus trigger should wake for each job on that queue."),
+            maya("Two. An HTTP function: the phone sends a web request, asking for a deck to be prepared. It puts a job on a Service Bus queue, a to-do list of jobs, and answers at once, accepted."),
+            leo("And the second?"),
+            maya("A worker function with a Service Bus trigger. It should wake for each job on that queue."),
             leo("Then my first suspect: the decorators. They work on the laptop, but Azure ignores them."),
             maya("[pause] Wrong suspect. A decorator is a line just above a Python function, starting with the at sign, that labels what it does. In the v2 programming model, every function lives in function app dot py, with its decorators. They work the same on a laptop and in Azure."),
             leo("Suspect two. Functions can't use Service Bus in Azure. Only on laptops."),
@@ -80,7 +92,9 @@ internal object Ai200EpisodesFunctions {
             leo("So Sam adds ServiceBusConnection as an app setting, and pastes the connection string in. Case closed?"),
             maya("Not so fast. The connection in the decorator is just the name of a setting. What goes inside it matters. A connection string is an address with a password baked in. That's one more secret to leak and to change."),
             leo("So what goes in instead?"),
-            maya("An identity-based connection. The function app gets a managed identity, a badge Azure gives it, so it proves who it is with no password. The setting holds only the address of Sam's Service Bus, no password. Then the badge gets the Service Bus data roles it needs, sender and receiver, named permissions like job titles, and nothing broader."),
+            maya("An identity-based connection. The function app gets a managed identity, a badge Azure gives it, so it proves who it is with no password."),
+            leo("But my code still needs something to connect with. On my own server I'd keep a password in an environment variable."),
+            maya("Here the setting holds only the address of Sam's Service Bus. The badge does the proving. Then the badge gets the data roles it needs, sender and receiver, named permissions like job titles, and nothing broader."),
             leo("Second witness?"),
             maya("The testers. Once the worker woke up, some flashcard decks were never built, though the phone said they had been requested. And the queue said every single job was done."),
             leo("Suspect: Service Bus is losing messages."),
@@ -88,11 +102,15 @@ internal object Ai200EpisodesFunctions {
             leo("So let the error escape?"),
             maya("Yes. If the function raises, the message is abandoned and tried again. After too many tries it moves to the dead-letter queue, where someone can look at it. The Service Bus episode covers that queue in depth."),
             leo("How does the host know it finished, under the hood?"),
-            maya("The host watches the queue for you. It takes a message with a lock on it, so no other copy grabs the same job, and calls your function. Function returns, and the host completes the message. Function raises, and the host abandons it, letting the lock go."),
+            maya("The host pulls for you. Service Bus never calls your code. The host keeps asking the queue for the next message, takes it with a lock, so no other copy grabs the same job, and calls your function."),
+            leo("Like a loop on my server that polls for work, and I only write the body."),
+            maya("Exactly. Your function returns, and the host completes the message. It raises, and the host abandons it, letting the lock go."),
             leo("Third clue. I can feel one."),
             maya("[chuckle] Sam's HTTP function had twenty lines of SDK code to send the job. An SDK, a software development kit, is the library you'd normally use for a service. A client, a sender, a send, tidy-up."),
             leo("And there's a shorter way."),
-            maya("An output binding. A binding is a connection you declare, not code you write, like plumbing that's already fitted. Add an output decorator for the queue, set one value, and the host sends the message when the function ends. An input binding reads data in. The trigger starts it."),
+            maya("An output binding. A binding is a connection you declare, not code you write, like plumbing that's already fitted. Add an output decorator for the queue, and set one value."),
+            leo("And who actually sends it?"),
+            maya("The host, when the function ends. An input binding is the mirror: it reads data in. And the trigger is what starts the run."),
             leo("Last witness: the bill, or the network?"),
             maya("The network. The worker must also read a database inside a virtual network, a private network only Sam's resources share. And he wants it to scale to zero, so nothing runs, and nothing's paid, when it's quiet. He was on the legacy Consumption plan."),
             leo("Dedicated, then. Proper servers."),
@@ -120,7 +138,9 @@ internal object Ai200EpisodesFunctions {
             leo("And under the porch light?"),
             maya("A function app holds several functions that share settings and a hosting plan. Inside, the Functions host, a program Azure runs for you, watches for each function's trigger, the thing that starts it. When one fires, the host calls your Python function."),
             leo("Okay. So who went first?"),
-            maya("Tom. Monday. Tom built the embed API, the web address the phone calls to add a note to the smart search. It's an HTTP function: HTTP is how apps talk to servers, so a web request comes in, and it answers. He wrote it in the v2 programming model, the newer way of writing them: one file, function app dot py, every function labelled with decorators."),
+            maya("Tom. Monday. Tom built the embed API, the web address the phone calls to add a note to the smart search. It's an HTTP function: the phone sends a web request, and the function answers."),
+            leo("So far, so normal. Like any route on my own server."),
+            maya("He wrote it in the v2 programming model, the newer way of writing them: one file, function app dot py, every function labelled with decorators."),
             leo("Decorators, for those of us at the back?"),
             maya("A line just above a Python function, starting with the at sign, that labels what it does. App dot route, and it's an HTTP function. It ran beautifully on his laptop, with func start. Then he published it, and everything that touched Service Bus fell over."),
             leo("Why?"),
@@ -128,15 +148,19 @@ internal object Ai200EpisodesFunctions {
             leo("[sigh] Poor Tom. Tuesday?"),
             maya("Tuesday was Dana. Dana fixed Tom's setting. Helpfully. She pasted the whole Service Bus connection string, its address with the password baked in, straight into the decorator, where it says connection equals."),
             leo("Is that not where it goes?"),
-            maya("No. That connection is the name of an app setting, not the value. And better still, put no secret in the setting at all. Give the function app a managed identity, a badge Azure gives it so it proves who it is with no password. Keep only the Service Bus address in the setting, and give the badge a Service Bus data role."),
+            maya("No. That connection is the name of an app setting, not the value. Like an environment variable in your code: you write its name, never the password."),
+            leo("So the setting holds the connection string instead?"),
+            maya("Better still, no secret at all. Give the function app a managed identity, a badge Azure gives it so it proves who it is with no password. The setting keeps only the Service Bus address, and the badge gets a Service Bus data role."),
             leo("A role being?"),
             maya("A named permission, like a job title. Sender, receiver, nothing broader. Dana took it well. The Key Vault episode has the rest of the identity story."),
             leo("Wednesday?"),
             maya("Wednesday was Marcus. Marcus needed Tom's function to put a job on a queue, a to-do list of jobs. So he wrote twenty lines of SDK code. An SDK, a software development kit, is a service's own library. A client, a sender, a send, cleanup."),
             leo("And that's gossip because?"),
-            maya("Because one line would have done it. An output binding. A binding is a connection you declare instead of code you write, like plumbing that's already fitted. Add the queue output decorator, set a value, and the host sends the message when the function ends. Input bindings read data in, outputs send it out."),
+            maya("Because one line would have done it. An output binding. A binding is a connection you declare instead of code you write, like plumbing that's already fitted."),
+            leo("Meaning Marcus never touches the Service Bus client at all?"),
+            maya("Never. Add the queue output decorator, set a value, and the host sends the message when the function ends. Input bindings read data in; outputs send it out."),
             leo("Thursday, I'm guessing, the intern."),
-            maya("[chuckle] The intern. Bless them. They wrote the worker, the function with a Service Bus trigger, which starts when a job lands on the queue. And they were so proud: it never failed. Not once. Wrapped the whole thing in a catch for every error."),
+            maya("[chuckle] The intern. Bless them. They wrote the worker, the function with a Service Bus trigger: the host pulls each job off the queue and hands it to the function. And they were so proud: it never failed. Not once. Wrapped the whole thing in a catch for every error."),
             leo("That sounds responsible."),
             maya("It sounds it. But when the function ends without an error, the message is marked done. So failed jobs were marked done too, and lost. Let the error escape, and the message is abandoned and tried again. After too many tries, it goes to the dead-letter queue, where someone can look at it."),
             leo("And Friday? There's always a Friday."),
@@ -168,27 +192,35 @@ internal object Ai200EpisodesFunctions {
             ivy("Mm. Code that sleeps. My kind of code, at this hour."),
             nova("[chuckle] Picture a porch light with a motion sensor. Dark, costing nothing. Someone walks up, it switches on, does its job, and goes dark again. That's Azure Functions."),
             ivy("Tell me what it really is, under the porch light."),
-            nova("Small pieces of code that run when something happens, and you pay for the time they run. It's called serverless, because the servers are Azure's to look after. A function app holds your functions, and inside it, the Functions host, a program Azure keeps running, watches for each function's trigger."),
+            nova("Small pieces of code that run when something happens, and you pay for the time they run. It's called serverless, because the servers are Azure's to look after."),
+            ivy("So who's awake, if my code is asleep?"),
+            nova("The Functions host, a program Azure keeps running inside your function app. It watches for each function's trigger."),
             ivy("Trigger. Say that one slowly."),
             nova("The thing that starts a function. The doorbell. [pause] Each function has exactly one. The commonest is an HTTP trigger. HTTP is how apps talk to servers, so a web request arrives, the kind of call your Android app already makes, and the function answers."),
             ivy("Who's ringing, in our story?"),
             nova("Take the Two Tracks Coach, the study assistant in the Android app, with a Python backend, the server code the app talks to, on Azure. The phone asks for a note to be added to the smart search. An HTTP function takes that request, puts a job on a queue, and answers at once: accepted."),
             ivy("A queue. Tell me."),
-            nova("A Service Bus queue, a to-do list of jobs. And a second function, with a Service Bus trigger, wakes for each job on it. When it finishes without an error, the job is marked done."),
+            nova("A Service Bus queue, a to-do list of jobs. And a second function, with a Service Bus trigger, wakes for each job on it."),
+            ivy("Does the queue knock on its door?"),
+            nova("[pause] No, the other way round. The host keeps asking the queue, gently, anything for me? It pulls the next job and hands it to your function. Finish without an error, and the job is marked done."),
             ivy("And when it doesn't finish? Late night, tired code."),
             nova("Then let it fail out loud. If the function raises an error, the message is abandoned and tried again. After too many tries, it moves aside to the dead-letter queue, a side shelf for failed jobs. [pause] But catch every error and carry on quietly, and the job is marked done, and lost."),
             ivy("Any other doorbells?"),
-            nova("Two more. An Event Grid trigger wakes for each piece of news Event Grid pushes, like, a file was uploaded. And a Cosmos DB trigger wakes when items in Azure's document database are created or changed."),
+            nova("Two more. An Event Grid trigger works the opposite way: Event Grid pushes each piece of news straight to your function, like, a file was uploaded. And a Cosmos DB trigger wakes when items in Azure's document database are created or changed."),
             ivy("How does it know which changes it's already seen?"),
             nova("It reads the change feed, which is a running list of changes. And it keeps its place in a lease container, a small extra container that works like a bookmark."),
             ivy("A bookmark. Sweet. And how do these little functions talk to anything else?"),
             nova("With bindings. A binding is a connection you declare, instead of code you write. Plumbing that's already fitted: you don't lay the pipes, you just turn the tap. Data comes in as a parameter, or goes out when you set one."),
             ivy("No code at all?"),
-            nova("No SDK code. An SDK, a software development kit, is the library you'd normally use for a service. With an output binding, sending a message to the queue is one line. You set a value, and the host sends it when the function ends. An input binding reads data in."),
+            nova("No SDK code. An SDK, a software development kit, is the library you'd normally use for a service, the client you'd set up in your server code."),
+            ivy("And instead?"),
+            nova("With an output binding, sending a message to the queue is one line. You set a value, and the host sends it when the function ends. An input binding reads data in."),
             ivy("Show me one, for the Coach."),
             nova("The search request. An HTTP trigger, plus a Service Bus output binding. The function sets one value, the job, and answers, accepted. [pause] The host puts the job on the queue as the function ends."),
             ivy("And where do I write all this? Somewhere cosy?"),
-            nova("One file. In the v2 programming model, the newer way of writing them, every Python function lives in function app dot py, with decorators on top. A decorator is a line just above the function, starting with the at sign, a little sticky note. App dot route, for an HTTP function. App dot service bus queue trigger, for the worker."),
+            nova("One file. In the v2 programming model, the newer way of writing them, every Python function lives in function app dot py, with decorators on top."),
+            ivy("Decorators. Like little name tags?"),
+            nova("Little sticky notes: a line just above the function, starting with the at sign. App dot route, for an HTTP function. App dot service bus queue trigger, for the worker."),
             ivy("Now the part that keeps me up. Passwords. Where do they go?"),
             nova("Ideally, nowhere. In the decorator, connection equals ServiceBusConnection is not a connection string, an address with a password baked in. It's the name of an app setting, a named value Azure hands your app while it runs."),
             ivy("And what's inside that setting? Whisper it."),
@@ -224,13 +256,15 @@ internal object Ai200EpisodesFunctions {
             rafe("Romantic lighting. So what is it really, under the porch light?"),
             nova("Small pieces of code that run when something happens, and you pay for the time they run. That's serverless: the servers are Azure's to look after. Inside a function app, the Functions host, a program Azure runs for you, watches for each function's trigger, and calls your Python function when one fires."),
             rafe("Trigger. The thing that gets things started."),
-            nova("Exactly. The doorbell. Each function has exactly one. An HTTP trigger starts on a web request, HTTP being how apps talk to servers. A Service Bus trigger starts when a job lands on a queue, a to-do list of jobs."),
+            nova("Exactly. The doorbell. Each function has exactly one. An HTTP trigger starts when a web request comes in, HTTP being how apps talk to servers. A Service Bus trigger starts on a job in a queue, a to-do list of jobs: the host pulls each one off for you."),
             rafe("Picture the Two Tracks Coach, then, the study assistant in the Android app, with a Python backend, the server code the app talks to, on Azure. The phone asks for a note to join the smart search. An HTTP function takes it, puts a job on a queue, and says accepted."),
             nova("And a worker with a Service Bus trigger does the job. So, darling, exam style. In the Python v2 programming model, the newer way to write them, where do you say that a function starts on a Service Bus message?"),
             rafe("In function app dot py, with a decorator. A line just above the function, starting with the at sign, like a little label. App dot service bus queue trigger. No function dot json; that was the old v1 model."),
             nova("Right answer. I do love a man who labels things properly. [kiss]"),
             rafe("Mm. My turn. How does a function talk to other services, without me writing pages of code?"),
-            nova("Bindings. A binding is a connection you declare, instead of code you write. Plumbing that's already fitted: you just turn the tap. An input binding brings data in as a parameter. An output binding sends data out when you set a value. The Coach's search request is an HTTP trigger plus a queue output binding: set one value, and the job is on the queue."),
+            nova("Bindings. A binding is a connection you declare, instead of code you write. Plumbing that's already fitted: you just turn the tap."),
+            rafe("So no Service Bus client, no sender, no tidy-up in my code?"),
+            nova("None. An input binding brings data in as a parameter. An output binding sends data out when you set a value. The Coach's search request is an HTTP trigger plus a queue output binding."),
             rafe("Then my question. The worker must save a summary to Cosmos DB, our document database, again with no SDK code. What do you add?"),
             nova("An SDK? That's a software development kit, the library you'd normally call. So, no library. I'd add a Cosmos DB input binding."),
             rafe("[sigh] No kiss for that one. Data leaving is an output binding. A Cosmos DB output decorator, set the document, and the host writes it when the function ends. Input is for reading in."),
@@ -247,8 +281,8 @@ internal object Ai200EpisodesFunctions {
             nova("So let your feelings out, Rafe. And let your errors out too. One more doorbell. A Cosmos DB trigger, when items change. Where does it keep its place?"),
             rafe("In a lease container, a little bookmark container, while it reads the change feed, the running list of changes."),
             nova("Right answer. You never lose your place with me. [kiss]"),
-            rafe("And the Event Grid trigger? The one that hears all the gossip?"),
-            nova("It wakes for each piece of news Event Grid pushes, like, a file was uploaded. And it handles the little hello Event Grid wants before it sends anything. Polite. Like you, on our first date."),
+            rafe("And the Event Grid trigger? Quick one, love: does Event Grid push to the function, or does the function go and fetch?"),
+            nova("Event Grid pushes, like a notification landing on your phone. It's Service Bus where the host pulls jobs off the queue. And Functions handles the little hello Event Grid wants before it sends anything. Polite. Like you, on our first date."),
             rafe("Now plans. How we rent the machines. Your question, darling. A new function app must scale to zero when idle, but reach a database inside a virtual network. Which plan?"),
             nova("A virtual network being a private network only our own things share. That's Flex Consumption. The default for new serverless apps: scales to zero, joins the network. The legacy Consumption plan can't join one, and Dedicated never scales to zero."),
             rafe("Right answer. Private, and never more than we need. [kiss]"),
@@ -311,7 +345,7 @@ internal object Ai200EpisodesFunctions {
         "Four triggers the exam names: an HTTP request, a queue message, a pushed event, and changed items read from the change feed with a lease container.",
         nodes = listOf(
             DNode("http", "HTTP", 0.26f, 0.15f, w = 0.44f, h = 0.2f, tone = 1, sub = "a web request"),
-            DNode("sb", "Service Bus", 0.76f, 0.15f, w = 0.44f, h = 0.2f, tone = 1, sub = "a queue message"),
+            DNode("sb", "Service Bus", 0.76f, 0.15f, w = 0.44f, h = 0.2f, tone = 1, sub = "pulled from a queue"),
             DNode("eg", "Event Grid", 0.26f, 0.48f, w = 0.44f, h = 0.2f, tone = 1, sub = "a pushed event"),
             DNode("cosmos", "Cosmos DB", 0.76f, 0.48f, w = 0.44f, h = 0.2f, tone = 1, sub = "changed items"),
             DNode("one", "One trigger each", 0.26f, 0.84f, w = 0.44f, h = 0.2f, kind = NodeKind.NOTE),
@@ -386,61 +420,61 @@ internal object Ai200EpisodesFunctions {
                 5, "A serverless API", embedFlow(),
                 beats = listOf(
                     Beat(6, show = setOf("phone", "http"), light = setOf("http"), pulse = "phone" to "http", card = BoardCard("The Coach's request", "The phone asks for a note to join the smart search.")),
-                    Beat(8, show = setOf("queue", "worker"), light = setOf("worker"), pulse = "queue" to "worker", card = BoardCard("Service Bus trigger", "Starts when a job lands on the queue; done when it ends cleanly.")),
-                    Beat(10, show = setOf("dlq"), light = setOf("dlq"), pulse = "worker" to "dlq", card = BoardCard("Errors", "Raise, and the message is retried, then dead-lettered. Never swallow.")),
+                    Beat(8, show = setOf("queue", "worker"), light = setOf("worker"), pulse = "queue" to "worker", card = BoardCard("Service Bus trigger", "The host pulls each job off the queue and calls your code.")),
+                    Beat(14, show = setOf("dlq"), light = setOf("dlq"), pulse = "worker" to "dlq", card = BoardCard("Errors", "Raise, and the message is retried, then dead-lettered. Never swallow.")),
                 ),
             ),
-            // 11: "Noted. Next doorbell?"
+            // 17: "Noted. Next doorbell?"
             Scene(
-                11, "More doorbells", triggers(),
+                17, "More doorbells", triggers(),
                 beats = listOf(
-                    Beat(12, show = setOf("http", "sb", "eg"), light = setOf("eg"), card = BoardCard("Event Grid trigger", "Wakes for each pushed event; the handshake is handled for you.")),
-                    Beat(14, show = setOf("cosmos", "lease"), light = setOf("cosmos", "lease"), pulse = "cosmos" to "lease", card = BoardCard("Cosmos DB trigger", "Reads the change feed; a lease container keeps its place.")),
-                    Beat(16, light = setOf("lease"), card = BoardCard("Lease container", "A bookmark: how far through the change feed the trigger has read.")),
+                    Beat(18, show = setOf("http", "sb", "eg"), light = setOf("eg"), card = BoardCard("Event Grid trigger", "Wakes for each pushed event; the handshake is handled for you.")),
+                    Beat(20, show = setOf("cosmos", "lease"), light = setOf("cosmos", "lease"), pulse = "cosmos" to "lease", card = BoardCard("Cosmos DB trigger", "Reads the change feed; a lease container keeps its place.")),
+                    Beat(22, light = setOf("lease"), card = BoardCard("Lease container", "A bookmark: how far through the change feed the trigger has read.")),
                 ),
             ),
-            // 17: "A bookmark, so it never loses its page..."
+            // 23: "A bookmark, so it never loses its page..."
             Scene(
-                17, "Bindings", overview(),
+                23, "Bindings", overview(),
                 beats = listOf(
-                    Beat(18, show = setOf("app", "out", "cosmos"), light = setOf("out", "cosmos"), card = BoardCard("Binding", "A declared connection: data in as a parameter, out by setting one.")),
-                    Beat(20, light = setOf("out"), pulse = "app" to "out", card = setJob),
-                    Beat(22, show = setOf("http"), light = setOf("http", "cosmos"), pulse = "cosmos" to "app", card = BoardCard("In, out, trigger", "Input reads data in, output sends it out, the trigger starts it.")),
+                    Beat(24, show = setOf("app", "out", "cosmos"), light = setOf("out", "cosmos"), card = BoardCard("Binding", "A declared connection: data in as a parameter, out by setting one.")),
+                    Beat(26, light = setOf("out"), pulse = "app" to "out", card = setJob),
+                    Beat(28, show = setOf("http"), light = setOf("http", "cosmos"), pulse = "cosmos" to "app", card = BoardCard("In, out, trigger", "Input reads data in, output sends it out, the trigger starts it.")),
                 ),
             ),
-            // 23: "Where do I write all of this?..."
+            // 29: "Where do I write all of this?..."
             Scene(
-                23, "The v2 programming model", overview(),
+                29, "The v2 programming model", overview(),
                 beats = listOf(
-                    Beat(24, show = setOf("app"), light = setOf("app"), card = BoardCard("function_app.py", "One file, a decorator per trigger and binding. No function.json.")),
-                    Beat(26, show = setOf("http", "sb", "out"), light = setOf("http", "sb"), pulse = "http" to "app", card = route),
+                    Beat(30, show = setOf("app"), light = setOf("app"), card = BoardCard("function_app.py", "One file, a decorator per trigger and binding. No function.json.")),
+                    Beat(32, show = setOf("http", "sb", "out"), light = setOf("http", "sb"), pulse = "http" to "app", card = route),
                 ),
             ),
-            // 27: "Now the bit I always get wrong. Connections..."
+            // 33: "Now the bit I always get wrong. Connections..."
             Scene(
-                27, "Connections and settings", settings(),
+                33, "Connections and settings", settings(),
                 beats = listOf(
-                    Beat(28, show = setOf("azure", "appset"), light = setOf("appset"), pulse = "azure" to "appset", card = BoardCard("Names an app setting", "connection=\"ServiceBusConnection\" is a setting's name, not a value.")),
-                    Beat(30, show = setOf("mi"), light = setOf("mi"), pulse = "appset" to "mi", card = BoardCard("Identity-based", "The setting holds only the address; the identity gets a data role.")),
-                    Beat(32, show = setOf("laptop", "local"), light = setOf("local"), pulse = "laptop" to "local", card = BoardCard("local.settings.json", "For your machine only. It is never deployed.")),
-                    Beat(34, light = setOf("laptop"), pulse = "laptop" to "azure", card = BoardCard("Core Tools", "func init, func start, func azure functionapp publish.")),
+                    Beat(36, show = setOf("azure", "appset"), light = setOf("appset"), pulse = "azure" to "appset", card = BoardCard("Names an app setting", "connection=\"ServiceBusConnection\" is a setting's name, not a value.")),
+                    Beat(38, show = setOf("mi"), light = setOf("mi"), pulse = "appset" to "mi", card = BoardCard("Identity-based", "The setting holds only the address; the identity gets a data role.")),
+                    Beat(40, show = setOf("laptop", "local"), light = setOf("local"), pulse = "laptop" to "local", card = BoardCard("local.settings.json", "For your machine only. It is never deployed.")),
+                    Beat(42, light = setOf("laptop"), pulse = "laptop" to "azure", card = BoardCard("Core Tools", "func init, func start, func azure functionapp publish.")),
                 ),
             ),
-            // 35: "Where does it run in Azure?..."
+            // 45: "Where does it run in Azure?..."
             Scene(
-                35, "Hosting plans", plans(),
+                45, "Hosting plans", plans(),
                 beats = listOf(
-                    Beat(36, show = setOf("flex"), light = setOf("flex"), card = BoardCard("Flex Consumption", "The default: scale to zero, fast scale-out, a virtual network.")),
-                    Beat(38, show = setOf("premium", "dedicated"), light = setOf("premium", "dedicated"), card = BoardCard("Premium and Dedicated", "Premium: always warm. Dedicated: an App Service plan, never zero.")),
-                    Beat(42, show = setOf("legacy"), light = setOf("legacy"), card = BoardCard("Legacy Consumption", "Scales to zero, but no virtual network.")),
+                    Beat(46, show = setOf("flex"), light = setOf("flex"), card = BoardCard("Flex Consumption", "The default: scale to zero, fast scale-out, a virtual network.")),
+                    Beat(48, show = setOf("premium", "dedicated"), light = setOf("premium", "dedicated"), card = BoardCard("Premium and Dedicated", "Premium: always warm. Dedicated: an App Service plan, never zero.")),
+                    Beat(52, show = setOf("legacy"), light = setOf("legacy"), card = BoardCard("Legacy Consumption", "Scales to zero, but no virtual network.")),
                 ),
             ),
-            // 43: "So what do I remember for the exam?"
+            // 53: "So what do I remember for the exam?"
             Scene(
-                43, "For the exam", exam(),
+                53, "For the exam", exam(),
                 beats = listOf(
-                    Beat(44, show = all6, light = setOf("v2", "missing", "send", "vnet", "warm"), card = BoardCard("Listen for the phrase", "Each exam phrase points to one answer: decorator, setting, binding, plan.")),
-                    Beat(46, card = today),
+                    Beat(54, show = all6, light = setOf("v2", "missing", "send", "vnet", "warm"), card = BoardCard("Listen for the phrase", "Each exam phrase points to one answer: decorator, setting, binding, plan.")),
+                    Beat(56, card = today),
                 ),
             ),
         ),
@@ -460,58 +494,58 @@ internal object Ai200EpisodesFunctions {
                     Beat(8, light = setOf("http", "queue"), pulse = "http" to "queue", card = BoardCard("Two functions", "An HTTP function queues the job; a queue-triggered worker does it.")),
                 ),
             ),
-            // 9: "Then my first suspect: the decorators..."
+            // 11: "Then my first suspect: the decorators..."
             Scene(
-                9, "The suspects", overview(),
+                11, "The suspects", overview(),
                 beats = listOf(
-                    Beat(9, show = setOf("app"), light = setOf("app"), card = BoardCard("Suspect one: decorators", "Ignored in Azure? No: they work the same everywhere.")),
-                    Beat(10, card = queueTrigger),
-                    Beat(11, show = setOf("sb"), light = setOf("sb"), pulse = "sb" to "app", card = BoardCard("Suspect two: Service Bus", "Not supported in Azure? It's fully supported.")),
+                    Beat(11, show = setOf("app"), light = setOf("app"), card = BoardCard("Suspect one: decorators", "Ignored in Azure? No: they work the same everywhere.")),
+                    Beat(12, card = queueTrigger),
+                    Beat(13, show = setOf("sb"), light = setOf("sb"), pulse = "sb" to "app", card = BoardCard("Suspect two: Service Bus", "Not supported in Azure? It's fully supported.")),
                 ),
             ),
-            // 12: "No, the Service Bus trigger is fully supported. Here's the first clue..."
+            // 14: "No, the Service Bus trigger is fully supported. Here's the first clue..."
             Scene(
-                12, "The first clue", settings(),
+                14, "The first clue", settings(),
                 beats = listOf(
-                    Beat(12, show = setOf("azure", "appset"), light = setOf("appset"), pulse = "azure" to "appset", card = BoardCard("ServiceBusConnection missing", "The host's log in Azure: the setting doesn't exist.")),
-                    Beat(15, show = setOf("laptop", "local"), light = setOf("local"), pulse = "laptop" to "local", card = BoardCard("local.settings.json", "Made by func init. For your machine only.")),
-                    Beat(16, light = setOf("laptop"), pulse = "laptop" to "azure", card = BoardCard("The culprit", "Core Tools publishes the code, not that file. Add an app setting.")),
-                    Beat(18, light = setOf("appset"), card = BoardCard("Not a connection string", "connection= names a setting. A connection string is a secret to leak.")),
-                    Beat(20, show = setOf("mi"), light = setOf("mi"), pulse = "appset" to "mi", card = BoardCard("Identity-based", "A managed identity, the address only, sender and receiver roles.")),
+                    Beat(14, show = setOf("azure", "appset"), light = setOf("appset"), pulse = "azure" to "appset", card = BoardCard("ServiceBusConnection missing", "The host's log in Azure: the setting doesn't exist.")),
+                    Beat(17, show = setOf("laptop", "local"), light = setOf("local"), pulse = "laptop" to "local", card = BoardCard("local.settings.json", "Made by func init. For your machine only.")),
+                    Beat(18, light = setOf("laptop"), pulse = "laptop" to "azure", card = BoardCard("The culprit", "Core Tools publishes the code, not that file. Add an app setting.")),
+                    Beat(20, light = setOf("appset"), card = BoardCard("Not a connection string", "connection= names a setting. A connection string is a secret to leak.")),
+                    Beat(22, show = setOf("mi"), light = setOf("mi"), pulse = "appset" to "mi", card = BoardCard("Identity-based", "A managed identity, the address only, sender and receiver roles.")),
                 ),
             ),
-            // 21: "Second witness?"
+            // 25: "Second witness?"
             Scene(
-                21, "The second witness", embedFlow(),
+                25, "The second witness", embedFlow(),
                 beats = listOf(
-                    Beat(22, show = setOf("phone", "http", "queue", "worker"), light = setOf("worker"), card = BoardCard("Decks never built", "Yet the queue said every job was done.")),
-                    Beat(24, light = setOf("worker"), pulse = "queue" to "worker", card = BoardCard("Catching every error", "Ends without an error, so the message is marked done, and lost.")),
-                    Beat(26, show = setOf("dlq"), light = setOf("dlq"), pulse = "worker" to "dlq", card = BoardCard("Let it raise", "Abandoned, retried, then the dead-letter queue.")),
-                    Beat(28, light = setOf("queue", "worker"), pulse = "queue" to "worker", card = BoardCard("Under the hood", "A lock while it works; complete on return, abandon on an error.")),
+                    Beat(26, show = setOf("phone", "http", "queue", "worker"), light = setOf("worker"), card = BoardCard("Decks never built", "Yet the queue said every job was done.")),
+                    Beat(28, light = setOf("worker"), pulse = "queue" to "worker", card = BoardCard("Catching every error", "Ends without an error, so the message is marked done, and lost.")),
+                    Beat(30, show = setOf("dlq"), light = setOf("dlq"), pulse = "worker" to "dlq", card = BoardCard("Let it raise", "Abandoned, retried, then the dead-letter queue.")),
+                    Beat(32, light = setOf("queue", "worker"), pulse = "queue" to "worker", card = BoardCard("Under the hood", "The host pulls it with a lock; complete on return, abandon on an error.")),
                 ),
             ),
-            // 29: "Third clue. I can feel one."
+            // 35: "Third clue. I can feel one."
             Scene(
-                29, "The third clue", overview(),
+                35, "The third clue", overview(),
                 beats = listOf(
-                    Beat(30, show = setOf("app", "out"), light = setOf("app"), card = BoardCard("Twenty lines of SDK code", "A client, a sender, a send, tidy-up.")),
-                    Beat(32, show = setOf("cosmos"), light = setOf("out"), pulse = "app" to "out", card = BoardCard("Output binding", "Declare it, set one value; the host sends it when the function ends.")),
+                    Beat(36, show = setOf("app", "out"), light = setOf("app"), card = BoardCard("Twenty lines of SDK code", "A client, a sender, a send, tidy-up.")),
+                    Beat(38, show = setOf("cosmos"), light = setOf("out"), pulse = "app" to "out", card = BoardCard("Output binding", "Declare it, set one value; the host sends it when the function ends.")),
                 ),
             ),
-            // 33: "Last witness: the bill, or the network?"
+            // 41: "Last witness: the bill, or the network?"
             Scene(
-                33, "The last witness", plans(),
+                41, "The last witness", plans(),
                 beats = listOf(
-                    Beat(34, show = setOf("legacy"), light = setOf("legacy"), card = BoardCard("Legacy Consumption", "Scales to zero, but can't join a virtual network.")),
-                    Beat(36, show = setOf("flex", "premium", "dedicated"), light = setOf("flex"), card = BoardCard("Flex Consumption", "Zero and a network. Premium: warm. Dedicated: never zero.")),
+                    Beat(42, show = setOf("legacy"), light = setOf("legacy"), card = BoardCard("Legacy Consumption", "Scales to zero, but can't join a virtual network.")),
+                    Beat(44, show = setOf("flex", "premium", "dedicated"), light = setOf("flex"), card = BoardCard("Flex Consumption", "Zero and a network. Premium: warm. Dedicated: never zero.")),
                 ),
             ),
-            // 39: "So, the case summary for the exam?"
+            // 47: "So, the case summary for the exam?"
             Scene(
-                39, "Case closed", exam(),
+                47, "Case closed", exam(),
                 beats = listOf(
-                    Beat(40, show = all6, light = setOf("missing", "conn", "send", "vnet"), card = BoardCard("Listen for the phrase", "Settings, connections, errors, bindings, plans: one answer each.")),
-                    Beat(42, card = today),
+                    Beat(48, show = all6, light = setOf("missing", "conn", "send", "vnet"), card = BoardCard("Listen for the phrase", "Settings, connections, errors, bindings, plans: one answer each.")),
+                    Beat(50, card = today),
                 ),
             ),
         ),
@@ -535,58 +569,58 @@ internal object Ai200EpisodesFunctions {
                 7, "Monday: Tom", settings(),
                 beats = listOf(
                     Beat(8, show = setOf("laptop"), light = setOf("laptop"), card = BoardCard("The embed API", "An HTTP function in function_app.py, labelled with decorators.")),
-                    Beat(10, card = route),
-                    Beat(12, show = setOf("local", "azure"), light = setOf("local"), pulse = "laptop" to "local", card = BoardCard("local.settings.json", "Never deployed. Add every value in Azure as an app setting.")),
+                    Beat(12, card = route),
+                    Beat(14, show = setOf("local", "azure"), light = setOf("local"), pulse = "laptop" to "local", card = BoardCard("local.settings.json", "Never deployed. Add every value in Azure as an app setting.")),
                 ),
             ),
-            // 13: "Poor Tom. Tuesday?"
+            // 15: "Poor Tom. Tuesday?"
             Scene(
-                13, "Tuesday: Dana", settings(),
+                15, "Tuesday: Dana", settings(),
                 beats = listOf(
-                    Beat(14, show = setOf("azure", "appset"), light = setOf("appset"), pulse = "azure" to "appset", card = BoardCard("A connection string pasted in", "Dana put the secret where the setting's name should go.")),
-                    Beat(16, show = setOf("mi"), light = setOf("mi"), pulse = "appset" to "mi", card = BoardCard("Identity-based", "The setting holds the Service Bus address; the badge needs a role.")),
-                    Beat(18, light = setOf("mi"), card = BoardCard("The smallest role", "Service Bus data sender and receiver, nothing broader.")),
+                    Beat(16, show = setOf("azure", "appset"), light = setOf("appset"), pulse = "azure" to "appset", card = BoardCard("A connection string pasted in", "Dana put the secret where the setting's name should go.")),
+                    Beat(20, show = setOf("mi"), light = setOf("mi"), pulse = "appset" to "mi", card = BoardCard("Identity-based", "The setting holds the Service Bus address; the badge needs a role.")),
+                    Beat(22, light = setOf("mi"), card = BoardCard("The smallest role", "Service Bus data sender and receiver, nothing broader.")),
                 ),
             ),
-            // 19: "Wednesday?"
+            // 23: "Wednesday?"
             Scene(
-                19, "Wednesday: Marcus", overview(),
+                23, "Wednesday: Marcus", overview(),
                 beats = listOf(
-                    Beat(20, show = setOf("app"), light = setOf("app"), card = BoardCard("Twenty lines of SDK code", "A client, a sender, a send, cleanup, to put one job on a queue.")),
-                    Beat(22, show = setOf("out"), light = setOf("out"), pulse = "app" to "out", card = setJob),
+                    Beat(24, show = setOf("app"), light = setOf("app"), card = BoardCard("Twenty lines of SDK code", "A client, a sender, a send, cleanup, to put one job on a queue.")),
+                    Beat(28, show = setOf("out"), light = setOf("out"), pulse = "app" to "out", card = setJob),
                 ),
             ),
-            // 23: "Thursday, I'm guessing, the intern."
+            // 29: "Thursday, I'm guessing, the intern."
             Scene(
-                23, "Thursday: the intern", embedFlow(),
+                29, "Thursday: the intern", embedFlow(),
                 beats = listOf(
-                    Beat(24, show = setOf("queue", "worker"), light = setOf("worker"), pulse = "queue" to "worker", card = BoardCard("Never failed. Not once.", "Every error caught, logged and ignored.")),
-                    Beat(26, show = setOf("dlq"), light = setOf("dlq"), pulse = "worker" to "dlq", card = BoardCard("Let it raise", "Failed jobs were marked done. Raise: retried, then dead-lettered.")),
+                    Beat(30, show = setOf("queue", "worker"), light = setOf("worker"), pulse = "queue" to "worker", card = BoardCard("Never failed. Not once.", "Every error caught, logged and ignored.")),
+                    Beat(32, show = setOf("dlq"), light = setOf("dlq"), pulse = "worker" to "dlq", card = BoardCard("Let it raise", "Failed jobs were marked done. Raise: retried, then dead-lettered.")),
                 ),
             ),
-            // 27: "And Friday? There's always a Friday."
+            // 33: "And Friday? There's always a Friday."
             Scene(
-                27, "Friday: Priya", plans(),
+                33, "Friday: Priya", plans(),
                 beats = listOf(
-                    Beat(28, card = BoardCard("Cosmos DB trigger", "Starts on created or changed items, read from the change feed.")),
-                    Beat(30, show = setOf("legacy"), light = setOf("legacy"), card = BoardCard("Legacy Consumption", "Scale to zero, but no virtual network.")),
-                    Beat(32, show = setOf("flex", "premium", "dedicated"), light = setOf("flex"), card = BoardCard("Flex Consumption", "Scale to zero and a virtual network: the default for new apps.")),
-                    Beat(36, card = BoardCard("Lease container", "Where the Cosmos DB trigger keeps its place in the change feed.")),
+                    Beat(34, card = BoardCard("Cosmos DB trigger", "Starts on created or changed items, read from the change feed.")),
+                    Beat(36, show = setOf("legacy"), light = setOf("legacy"), card = BoardCard("Legacy Consumption", "Scale to zero, but no virtual network.")),
+                    Beat(38, show = setOf("flex", "premium", "dedicated"), light = setOf("flex"), card = BoardCard("Flex Consumption", "Scale to zero and a virtual network: the default for new apps.")),
+                    Beat(42, card = BoardCard("Lease container", "Where the Cosmos DB trigger keeps its place in the change feed.")),
                 ),
             ),
-            // 37: "So where does Functions stop being the answer?"
+            // 43: "So where does Functions stop being the answer?"
             Scene(
-                37, "Where it stops", plans(),
+                43, "Where it stops", plans(),
                 beats = listOf(
-                    Beat(38, show = setOf("flex", "premium"), light = setOf("premium"), card = BoardCard("Cold starts", "If nothing may wait, Premium. Queues and news: other episodes.")),
+                    Beat(44, show = setOf("flex", "premium"), light = setOf("premium"), card = BoardCard("Cold starts", "If nothing may wait, Premium. Queues and news: other episodes.")),
                 ),
             ),
-            // 39: "So, the gossip I should remember for the exam?"
+            // 45: "So, the gossip I should remember for the exam?"
             Scene(
-                39, "For the exam", exam(),
+                45, "For the exam", exam(),
                 beats = listOf(
-                    Beat(40, show = all6, light = setOf("v2", "missing", "conn", "send", "vnet"), card = BoardCard("Listen for the phrase", "Each exam phrase points to one answer. One colleague, one lesson.")),
-                    Beat(42, card = today),
+                    Beat(46, show = all6, light = setOf("v2", "missing", "conn", "send", "vnet"), card = BoardCard("Listen for the phrase", "Each exam phrase points to one answer. One colleague, one lesson.")),
+                    Beat(48, card = today),
                 ),
             ),
         ),
@@ -602,66 +636,66 @@ internal object Ai200EpisodesFunctions {
                     Beat(0, card = BoardCard("Tonight", "Code that sleeps until it's needed.")),
                     Beat(2, show = setOf("app"), light = setOf("app"), card = BoardCard("Azure Functions", "A porch light with a motion sensor, for your code.")),
                     Beat(4, card = BoardCard("Under the picture", "The Functions host watches each trigger and calls your function.")),
-                    Beat(6, show = setOf("http"), light = setOf("http"), pulse = "http" to "app", card = BoardCard("Trigger", "What starts a function: the doorbell. Exactly one each.")),
+                    Beat(8, show = setOf("http"), light = setOf("http"), pulse = "http" to "app", card = BoardCard("Trigger", "What starts a function: the doorbell. Exactly one each.")),
                 ),
             ),
-            // 7: "Who's ringing, in our story?"
+            // 9: "Who's ringing, in our story?"
             Scene(
-                7, "Who's ringing", embedFlow(),
+                9, "Who's ringing", embedFlow(),
                 beats = listOf(
-                    Beat(8, show = setOf("phone", "http", "queue"), light = setOf("http"), pulse = "phone" to "http", card = BoardCard("The Coach's request", "An HTTP function puts a job on a queue and answers: accepted.")),
-                    Beat(10, show = setOf("worker"), light = setOf("worker"), pulse = "queue" to "worker", card = BoardCard("Service Bus trigger", "A worker wakes for each job; ends cleanly, and it's marked done.")),
-                    Beat(12, show = setOf("dlq"), light = setOf("dlq"), pulse = "worker" to "dlq", card = BoardCard("Fail out loud", "Raise, and it's retried, then dead-lettered. Never swallow errors.")),
+                    Beat(10, show = setOf("phone", "http", "queue"), light = setOf("http"), pulse = "phone" to "http", card = BoardCard("The Coach's request", "An HTTP function puts a job on a queue and answers: accepted.")),
+                    Beat(12, show = setOf("worker"), light = setOf("worker"), pulse = "queue" to "worker", card = BoardCard("Service Bus trigger", "The host pulls each job off the queue; ends cleanly, marked done.")),
+                    Beat(16, show = setOf("dlq"), light = setOf("dlq"), pulse = "worker" to "dlq", card = BoardCard("Fail out loud", "Raise, and it's retried, then dead-lettered. Never swallow errors.")),
                 ),
             ),
-            // 13: "Any other doorbells?"
+            // 17: "Any other doorbells?"
             Scene(
-                13, "Other doorbells", triggers(),
+                17, "Other doorbells", triggers(),
                 beats = listOf(
-                    Beat(14, show = setOf("http", "sb", "eg", "cosmos", "lease"), light = setOf("eg", "cosmos"), pulse = "cosmos" to "lease", card = BoardCard("Event Grid and Cosmos DB", "Pushed news; changed items, with a lease container as bookmark.")),
-                    Beat(16, light = setOf("lease"), card = BoardCard("Lease container", "A bookmark: how far through the change feed the trigger has read.")),
+                    Beat(18, show = setOf("http", "sb", "eg", "cosmos", "lease"), light = setOf("eg", "cosmos"), pulse = "cosmos" to "lease", card = BoardCard("Event Grid and Cosmos DB", "Pushed news; changed items, with a lease container as bookmark.")),
+                    Beat(20, light = setOf("lease"), card = BoardCard("Lease container", "A bookmark: how far through the change feed the trigger has read.")),
                 ),
             ),
-            // 17: "A bookmark. Sweet..."
+            // 21: "A bookmark. Sweet..."
             Scene(
-                17, "Plumbing already fitted", overview(),
+                21, "Plumbing already fitted", overview(),
                 beats = listOf(
-                    Beat(18, show = setOf("app", "out", "cosmos"), light = setOf("out", "cosmos"), card = BoardCard("Binding", "A declared connection: data in as a parameter, out by setting one.")),
-                    Beat(20, light = setOf("out"), pulse = "app" to "out", card = BoardCard("Output binding", "One line: set a value; the host sends it when the function ends.")),
-                    Beat(22, show = setOf("http"), light = setOf("http", "out"), pulse = "http" to "app", card = setJob),
+                    Beat(22, show = setOf("app", "out", "cosmos"), light = setOf("out", "cosmos"), card = BoardCard("Binding", "A declared connection: data in as a parameter, out by setting one.")),
+                    Beat(26, light = setOf("out"), pulse = "app" to "out", card = BoardCard("Output binding", "One line: set a value; the host sends it when the function ends.")),
+                    Beat(28, show = setOf("http"), light = setOf("http", "out"), pulse = "http" to "app", card = setJob),
                 ),
             ),
-            // 23: "And where do I write all this? Somewhere cosy?"
+            // 29: "And where do I write all this? Somewhere cosy?"
             Scene(
-                23, "One cosy file", overview(),
+                29, "One cosy file", overview(),
                 beats = listOf(
-                    Beat(24, show = setOf("app", "http", "sb"), light = setOf("app"), pulse = "http" to "app", card = route),
+                    Beat(32, show = setOf("app", "http", "sb"), light = setOf("app"), pulse = "http" to "app", card = route),
                 ),
             ),
-            // 25: "Now the part that keeps me up. Passwords..."
+            // 33: "Now the part that keeps me up. Passwords..."
             Scene(
-                25, "Passwords", settings(),
+                33, "Passwords", settings(),
                 beats = listOf(
-                    Beat(26, show = setOf("azure", "appset", "mi"), light = setOf("appset", "mi"), pulse = "appset" to "mi", card = BoardCard("Names an app setting", "With a managed identity, the setting holds only the address.")),
-                    Beat(30, show = setOf("laptop", "local"), light = setOf("local"), pulse = "laptop" to "local", card = BoardCard("local.settings.json", "Never deployed. Add every setting in Azure too.")),
-                    Beat(32, light = setOf("laptop"), pulse = "laptop" to "azure", card = BoardCard("Core Tools", "func init, func start, func azure functionapp publish.")),
+                    Beat(34, show = setOf("azure", "appset", "mi"), light = setOf("appset", "mi"), pulse = "appset" to "mi", card = BoardCard("Names an app setting", "With a managed identity, the setting holds only the address.")),
+                    Beat(38, show = setOf("laptop", "local"), light = setOf("local"), pulse = "laptop" to "local", card = BoardCard("local.settings.json", "Never deployed. Add every setting in Azure too.")),
+                    Beat(40, light = setOf("laptop"), pulse = "laptop" to "azure", card = BoardCard("Core Tools", "func init, func start, func azure functionapp publish.")),
                 ),
             ),
-            // 33: "Where does it all run, in Azure?"
+            // 41: "Where does it all run, in Azure?"
             Scene(
-                33, "Where it runs", plans(),
+                41, "Where it runs", plans(),
                 beats = listOf(
-                    Beat(34, show = setOf("flex"), light = setOf("flex"), card = BoardCard("Flex Consumption", "The default: scale to zero, and a virtual network.")),
-                    Beat(36, show = setOf("premium", "dedicated", "legacy"), light = setOf("premium", "legacy"), card = BoardCard("Where it stops", "Cold starts: Premium. Dedicated never sleeps. Legacy: no network.")),
-                    Beat(40, card = BoardCard("Your next late night", "Service Bus for the jobs; Event Grid for the news.")),
+                    Beat(42, show = setOf("flex"), light = setOf("flex"), card = BoardCard("Flex Consumption", "The default: scale to zero, and a virtual network.")),
+                    Beat(44, show = setOf("premium", "dedicated", "legacy"), light = setOf("premium", "legacy"), card = BoardCard("Where it stops", "Cold starts: Premium. Dedicated never sleeps. Legacy: no network.")),
+                    Beat(48, card = BoardCard("Your next late night", "Service Bus for the jobs; Event Grid for the news.")),
                 ),
             ),
-            // 41: "Before you send me off to bed. What do I remember for the exam?"
+            // 49: "Before you send me off to bed. What do I remember for the exam?"
             Scene(
-                41, "For the exam", exam(),
+                49, "For the exam", exam(),
                 beats = listOf(
-                    Beat(42, show = all6, light = setOf("v2", "missing", "conn", "send", "vnet"), card = BoardCard("Listen for the phrase", "Each exam phrase points to one answer: five little things.")),
-                    Beat(44, card = today),
+                    Beat(50, show = all6, light = setOf("v2", "missing", "conn", "send", "vnet"), card = BoardCard("Listen for the phrase", "Each exam phrase points to one answer: five little things.")),
+                    Beat(52, card = today),
                 ),
             ),
         ),
@@ -694,52 +728,52 @@ internal object Ai200EpisodesFunctions {
                 11, "Plumbing", overview(),
                 beats = listOf(
                     Beat(12, show = setOf("app", "out", "cosmos"), light = setOf("out"), pulse = "app" to "out", card = BoardCard("Binding", "Declared, not coded: input brings data in, output sends it out.")),
-                    Beat(13, light = setOf("cosmos"), card = BoardCard("Quiz: save to Cosmos DB", "Save a summary to Cosmos DB with no SDK code. What do you add?")),
-                    Beat(15, light = setOf("out"), card = BoardCard("No kiss: an output binding", "Data leaving is an output binding. Input is for reading in.")),
+                    Beat(15, light = setOf("cosmos"), card = BoardCard("Quiz: save to Cosmos DB", "Save a summary to Cosmos DB with no SDK code. What do you add?")),
+                    Beat(17, light = setOf("out"), card = BoardCard("No kiss: an output binding", "Data leaving is an output binding. Input is for reading in.")),
                 ),
             ),
-            // 16: "Out, not in. I'll remember. Now, settings..."
+            // 18: "Out, not in. I'll remember. Now, settings..."
             Scene(
-                16, "Better left unsaid", settings(),
+                18, "Better left unsaid", settings(),
                 beats = listOf(
-                    Beat(16, show = setOf("azure", "appset"), light = setOf("appset"), pulse = "azure" to "appset", card = BoardCard("Quiz: connection=", "Is connection=\"ServiceBusConnection\" a connection string?")),
-                    Beat(17, show = setOf("mi"), light = setOf("mi"), pulse = "appset" to "mi", card = BoardCard("Right answer", "It names an app setting; with an identity, it holds no secret.")),
-                    Beat(21, show = setOf("laptop", "local"), light = setOf("local"), pulse = "laptop" to "local", card = BoardCard("Quiz: missing in Azure", "Works with func start, but the setting is missing in Azure. Why?")),
-                    Beat(22, light = setOf("laptop"), pulse = "laptop" to "azure", card = BoardCard("Right answer", "local.settings.json is never deployed. Add an app setting.")),
+                    Beat(18, show = setOf("azure", "appset"), light = setOf("appset"), pulse = "azure" to "appset", card = BoardCard("Quiz: connection=", "Is connection=\"ServiceBusConnection\" a connection string?")),
+                    Beat(19, show = setOf("mi"), light = setOf("mi"), pulse = "appset" to "mi", card = BoardCard("Right answer", "It names an app setting; with an identity, it holds no secret.")),
+                    Beat(23, show = setOf("laptop", "local"), light = setOf("local"), pulse = "laptop" to "local", card = BoardCard("Quiz: missing in Azure", "Works with func start, but the setting is missing in Azure. Why?")),
+                    Beat(24, light = setOf("laptop"), pulse = "laptop" to "azure", card = BoardCard("Right answer", "local.settings.json is never deployed. Add an app setting.")),
                 ),
             ),
-            // 24: "Under the hood, though. When the worker throws an error..."
+            // 26: "Under the hood, though. When the worker throws an error..."
             Scene(
-                24, "Let it out", embedFlow(),
+                26, "Let it out", embedFlow(),
                 beats = listOf(
-                    Beat(24, show = setOf("phone", "http", "queue", "worker"), light = setOf("worker"), pulse = "queue" to "worker", card = BoardCard("Quiz: an error", "When the worker throws, what happens to the message?")),
-                    Beat(25, show = setOf("dlq"), light = setOf("dlq"), pulse = "worker" to "dlq", card = BoardCard("Retried, then dead-lettered", "Never catch every error: the message would be marked done.")),
+                    Beat(26, show = setOf("phone", "http", "queue", "worker"), light = setOf("worker"), pulse = "queue" to "worker", card = BoardCard("Quiz: an error", "When the worker throws, what happens to the message?")),
+                    Beat(27, show = setOf("dlq"), light = setOf("dlq"), pulse = "worker" to "dlq", card = BoardCard("Retried, then dead-lettered", "Never catch every error: the message would be marked done.")),
                 ),
             ),
-            // 26: "So let your feelings out, Rafe..."
+            // 28: "So let your feelings out, Rafe..."
             Scene(
-                26, "Never lose your place", triggers(),
+                28, "Never lose your place", triggers(),
                 beats = listOf(
-                    Beat(26, show = setOf("cosmos"), light = setOf("cosmos"), card = BoardCard("Quiz: the bookmark", "A Cosmos DB trigger: where does it keep its place?")),
-                    Beat(27, show = setOf("lease"), light = setOf("lease"), pulse = "cosmos" to "lease", card = BoardCard("Right answer", "A lease container, while it reads the change feed.")),
-                    Beat(30, show = setOf("eg"), light = setOf("eg"), card = BoardCard("Event Grid trigger", "Wakes for pushed news; the hello is handled for you.")),
+                    Beat(28, show = setOf("cosmos"), light = setOf("cosmos"), card = BoardCard("Quiz: the bookmark", "A Cosmos DB trigger: where does it keep its place?")),
+                    Beat(29, show = setOf("lease"), light = setOf("lease"), pulse = "cosmos" to "lease", card = BoardCard("Right answer", "A lease container, while it reads the change feed.")),
+                    Beat(32, show = setOf("eg"), light = setOf("eg"), card = BoardCard("Event Grid trigger", "Wakes for pushed news; the hello is handled for you.")),
                 ),
             ),
-            // 31: "Now plans. How we rent the machines..."
+            // 33: "Now plans. How we rent the machines..."
             Scene(
-                31, "Private", plans(),
+                33, "Private", plans(),
                 beats = listOf(
-                    Beat(31, show = setOf("legacy", "dedicated"), light = setOf("legacy", "dedicated"), card = BoardCard("Quiz: zero, plus a network", "Scale to zero, but reach a database in a virtual network. Which plan?")),
-                    Beat(32, show = setOf("flex"), light = setOf("flex"), card = BoardCard("Right answer", "Flex Consumption: scale to zero, and a virtual network.")),
-                    Beat(35, show = setOf("premium"), light = setOf("premium"), card = BoardCard("Every romance has limits", "No cold start allowed: Premium, always warm, billed when idle.")),
+                    Beat(33, show = setOf("legacy", "dedicated"), light = setOf("legacy", "dedicated"), card = BoardCard("Quiz: zero, plus a network", "Scale to zero, but reach a database in a virtual network. Which plan?")),
+                    Beat(34, show = setOf("flex"), light = setOf("flex"), card = BoardCard("Right answer", "Flex Consumption: scale to zero, and a virtual network.")),
+                    Beat(37, show = setOf("premium"), light = setOf("premium"), card = BoardCard("Every romance has limits", "No cold start allowed: Premium, always warm, billed when idle.")),
                 ),
             ),
-            // 36: "Last question, for the exam. What do we remember?"
+            // 38: "Last question, for the exam. What do we remember?"
             Scene(
-                36, "For the exam", exam(),
+                38, "For the exam", exam(),
                 beats = listOf(
-                    Beat(37, show = all6, light = setOf("v2", "missing", "conn", "send", "vnet"), card = BoardCard("Listen for the phrase", "Each exam phrase points to one answer. Five for five.")),
-                    Beat(40, card = today),
+                    Beat(39, show = all6, light = setOf("v2", "missing", "conn", "send", "vnet"), card = BoardCard("Listen for the phrase", "Each exam phrase points to one answer. Five for five.")),
+                    Beat(42, card = today),
                 ),
             ),
         ),
