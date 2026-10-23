@@ -29,7 +29,7 @@ class BoardLearnWordsTest {
     fun `a service says its modules, or whose line it is`() {
         val course = GermanA1.course
         val n = course.modules.size
-        val tail = if (course.mockExam != null) ", then a mock exam" else ""
+        val tail = when (val m = course.mockExams.size) { 0 -> ""; 1 -> ", then a mock exam"; else -> ", then $m mock exams" }
         assertEquals("$n modules$tail", serviceLine(course, partnerOnly = null))
         assertEquals("Sanya's line · $n modules", serviceLine(course, partnerOnly = "Sanya"))
     }

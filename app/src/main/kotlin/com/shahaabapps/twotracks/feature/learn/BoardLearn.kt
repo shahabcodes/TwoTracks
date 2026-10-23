@@ -70,6 +70,7 @@ import java.util.Locale
 /** The two letters a course runs under on the board: AZ, DE, IE. */
 internal fun lineCode(course: Course): String = when {
     course.id == "az-305" -> "SA"
+    course.id == "psm-1" -> "SM"
     course.id.startsWith("az") -> "AZ"
     course.id.startsWith("ai") -> "AI"
     course.id.startsWith("de") -> "DE"
@@ -82,6 +83,7 @@ internal fun boardExam(course: Course): String = when (course.id) {
     "az-204" -> "AZ-204"
     "ai-200" -> "AI-200"
     "az-305" -> "AZ-305"
+    "psm-1" -> "PSM I"
     "de-a1" -> "Goethe A1"
     "ielts" -> "IELTS"
     else -> course.title
@@ -93,7 +95,7 @@ internal fun servicesLine(total: Int, mine: Int): String = "$total service${if (
 /** "5 modules, then a mock exam", or "Sanya's line · 5 modules" for a course that is only your partner's. */
 internal fun serviceLine(course: Course, partnerOnly: String?): String {
     val modules = "${course.modules.size} module${if (course.modules.size == 1) "" else "s"}"
-    val rest = if (course.mockExam != null) ", then a mock exam" else ""
+    val rest = when (val n = course.mockExams.size) { 0 -> ""; 1 -> ", then a mock exam"; else -> ", then $n mock exams" }
     return if (partnerOnly != null) "$partnerOnly's line · $modules" else modules + rest
 }
 
@@ -387,22 +389,23 @@ private fun Stop(title: String, status: String, statusInk: Color, titleInk: Colo
 /** The paper practice at the end of the line, outlined, and the review sets under it when anything waits there. */
 @Composable
 private fun Terminal(course: Course, p: CourseProgress?, dailyDue: Int, onOpenQuiz: (String, String) -> Unit) {
-    val mock = course.mockExam
     val review = p?.reviewQuestions(course).orEmpty()
     val passedAll = p != null && p.modulesPassed(course) == course.modules.count { it.available }
     Column(modifier = Modifier.padding(start = BoardGutter, end = BoardGutter, top = 14.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-        if (mock != null) {
+        course.mockExams.forEachIndexed { index, mock ->
+            val id = Courses.mockModuleId(index)
+            val best = p?.bestPercentByModule?.get(id)
             val shape = RoundedCornerShape(14.dp)
             Column(
                 verticalArrangement = Arrangement.spacedBy(4.dp),
-                modifier = Modifier.fillMaxWidth().clip(shape).border(2.dp, AppTheme.colors.ink, shape).clickable { onOpenQuiz(course.id, Courses.MOCK_MODULE_ID) }.padding(14.dp),
+                modifier = Modifier.fillMaxWidth().padding(bottom = 6.dp).clip(shape).border(2.dp, AppTheme.colors.ink, shape).clickable { onOpenQuiz(course.id, id) }.padding(14.dp),
             ) {
-                BoardLabel("Terminal · paper practice", size = 13.sp, weight = FontWeight.Bold, spacing = 0.12.em)
+                BoardLabel(if (course.mockExams.size > 1) "Terminal · paper practice ${index + 1}" else "Terminal · paper practice", size = 13.sp, weight = FontWeight.Bold, spacing = 0.12.em)
                 Text(mock.title, color = AppTheme.colors.ink, style = TextStyle(fontFamily = CondensedFamily, fontWeight = FontWeight.SemiBold, fontSize = 22.sp, lineHeight = 24.sp))
                 BoardText(
                     when {
-                        p?.mockPassed == true -> "Passed, best ${p.mockBest}%."
-                        p?.mockBest != null -> "Best ${p.mockBest}%, need ${mock.passPercent}%."
+                        p != null && id in p.passedModuleIds -> "Passed, best $best%."
+                        best != null -> "Best $best%, need ${mock.passPercent}%."
                         !passedAll -> "${mock.drawCount ?: mock.questions.size} questions, ${mock.timeLimitMinutes} minutes. Clear the module tests first for a fair reading."
                         else -> "${mock.drawCount ?: mock.questions.size} questions, ${mock.timeLimitMinutes} minutes, pass at ${mock.passPercent}%."
                     },

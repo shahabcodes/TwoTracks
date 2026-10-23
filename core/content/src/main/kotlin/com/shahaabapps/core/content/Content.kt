@@ -1,6 +1,7 @@
 package com.shahaabapps.core.content
 
 import com.shahaabapps.core.planner.Pace
+import kotlin.random.Random
 
 /**
  * A course a person can study inside the app. Content ships with the app
@@ -24,18 +25,28 @@ data class Course(
     val speechLanguage: String? = null,
     /** A timed, course-wide practice exam, when the course has one. */
     val mockExam: Quiz? = null,
+    /** More full mock exams after the first, each its own set of questions. */
+    val extraMocks: List<Quiz> = emptyList(),
 ) {
+    /** Every mock exam, the first one first. */
+    val mockExams: List<Quiz> get() = listOfNotNull(mockExam) + extraMocks
+
     val goalIds: List<String> get() = listOf(goalId) + extraGoalIds
     /** The language the course's voice speaks, for hints in the UI. */
     val languageName: String get() = when (speechLanguage?.substringBefore("-")) { "de" -> "German"; "en" -> "English"; "fr" -> "French"; null -> "the course"; else -> speechLanguage }
     val allTopics: List<Topic> get() = modules.flatMap { it.topics }
     /** Every question in the course: module tests, the mock exam and the in-topic checks. */
     val allQuestions: List<Question>
-        get() = modules.mapNotNull { it.quiz }.flatMap { it.questions } + (mockExam?.questions ?: emptyList()) +
+        get() = modules.mapNotNull { it.quiz }.flatMap { it.questions } + mockExams.flatMap { it.questions } +
             allTopics.flatMap { it.blocks }.filterIsInstance<Block.Check>().map { it.question }
 
-    /** The mock exam wrapped as a module so the quiz screen can run it; logs to the practice component. */
-    fun mockModule(): Module? = mockExam?.let { Module(Courses.MOCK_MODULE_ID, 0, "Mock exam", "A timed practice exam across every module.", "", "practice", allTopics, it) }
+    /** A mock exam wrapped as a module so the quiz screen can run it; logs to the practice component. */
+    fun mockModule(moduleId: String = Courses.MOCK_MODULE_ID): Module? {
+        val index = Courses.mockIndex(moduleId) ?: return null
+        val quiz = mockExams.getOrNull(index) ?: return null
+        val title = if (mockExams.size > 1) "Mock exam ${index + 1}" else "Mock exam"
+        return Module(moduleId, 0, title, "A timed practice exam across every module.", "", "practice", allTopics, quiz)
+    }
 
     /**
      * A short sitting of questions met before and now due again, so the course
@@ -421,6 +432,28 @@ object B {
         )
     }
 
+    /** Puts old option [order]`[j]` in slot j, every index into options moving with it. */
+    private fun reorder(q: Question, order: List<Int>): Question {
+        val to = IntArray(order.size).also { order.forEachIndexed { j, old -> it[old] = j } }
+        return q.copy(
+            options = order.map { q.options[it] },
+            correct = q.correct.map { to[it] }.toSet(),
+            whyWrong = q.whyWrong.mapKeys { (k, _) -> to[k] },
+        )
+    }
+
+    /**
+     * Shuffles a multiple-answer question's options, keyed on its id.
+     *
+     * Rotation keeps the order the author typed, and authors list the right
+     * answers together: across the mocks the pair was two neighbouring options
+     * nearly every time, which is a pattern worth guessing on. A seeded shuffle
+     * (Kotlin's own generator, the same on every device) breaks it and still
+     * gives the same order every time the question is opened.
+     */
+    private fun mix(q: Question): Question =
+        if (q.correct.size < 2) q else reorder(q, q.options.indices.shuffled(Random(q.id.hashCode())))
+
     /**
      * Rotates each question's options by its position, so the right answer is
      * not usually in the same slot. Explanations never mention letters, so
@@ -428,7 +461,7 @@ object B {
      */
     fun spread(questions: List<Question>): List<Question> = questions.mapIndexed { i, q ->
         if (q.options.size < 3 || q.options.first().uppercase() in FIXED_ORDER) return@mapIndexed q
-        rotateBy(q, i % q.options.size)
+        rotateBy(mix(q), i % q.options.size)
     }
 
     /**
@@ -441,7 +474,7 @@ object B {
      */
     private fun settle(q: Question): Question {
         if (q.options.size < 3 || q.options.first().uppercase() in FIXED_ORDER) return q
-        return rotateBy(q, q.id.hashCode().mod(q.options.size))
+        return rotateBy(mix(q), q.id.hashCode().mod(q.options.size))
     }
 
     fun q(
@@ -466,13 +499,25 @@ object Courses {
     const val VERSION = 1
     /** Module ids the quiz route accepts besides real modules. */
     const val MOCK_MODULE_ID = "mock-exam"
+
+    /** The module id the [index]th mock exam runs under: the first keeps the original id, so saved scores stay. */
+    fun mockModuleId(index: Int): String = if (index == 0) MOCK_MODULE_ID else "$MOCK_MODULE_ID-${index + 1}"
+
+    /** Which mock exam a module id is, from 0; null when it is not a mock. */
+    fun mockIndex(moduleId: String): Int? = when {
+        moduleId == MOCK_MODULE_ID -> 0
+        moduleId.startsWith("$MOCK_MODULE_ID-") -> moduleId.removePrefix("$MOCK_MODULE_ID-").toIntOrNull()?.minus(1)?.takeIf { it > 0 }
+        else -> null
+    }
+
+    fun isMock(moduleId: String): Boolean = mockIndex(moduleId) != null
     const val REVIEW_MODULE_ID = "review"
     /** A sitting of questions due again on the spaced-repetition schedule. */
     const val DAILY_MODULE_ID = "daily"
     /** Attempts recorded for the one-question checks inside a topic. */
     const val CHECK_MODULE_ID = "checks"
     /** Built once; the courses behind it are immutable and so is this. */
-    val all: List<Course> by lazy { listOf(Az204.course, GermanA1.course, Ielts.course, Ai200.course, Az305.course) }
+    val all: List<Course> by lazy { listOf(Az204.course, GermanA1.course, Ielts.course, Ai200.course, Az305.course, Psm1.course) }
     fun forGoal(goalId: String): Course? = all.firstOrNull { it.feeds(goalId) }
 
     /**

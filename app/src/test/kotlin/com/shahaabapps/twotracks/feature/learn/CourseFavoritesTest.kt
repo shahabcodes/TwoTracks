@@ -11,13 +11,13 @@ class CourseFavoritesTest {
         CourseFavorites.sorted(Courses.all, CourseFavorites.starting(role), role).map { it.id }
 
     @Test
-    fun `the developer starts with AI-200, AZ-305 and German A1 on top`() {
-        assertEquals(listOf("ai-200", "az-305", "de-a1", "az-204", "ielts"), startingOrder(PersonRole.TECH))
+    fun `the developer starts with AI-200, AZ-305, PSM I and German A1 on top`() {
+        assertEquals(listOf("ai-200", "az-305", "psm-1", "de-a1", "az-204", "ielts"), startingOrder(PersonRole.TECH))
     }
 
     @Test
     fun `the teacher starts with IELTS, then German A1, on top`() {
-        assertEquals(listOf("ielts", "de-a1", "az-204", "ai-200", "az-305"), startingOrder(PersonRole.TEACHER))
+        assertEquals(listOf("ielts", "de-a1", "az-204", "ai-200", "az-305", "psm-1"), startingOrder(PersonRole.TEACHER))
     }
 
     @Test

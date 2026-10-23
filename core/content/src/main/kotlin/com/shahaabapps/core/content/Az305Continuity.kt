@@ -133,9 +133,9 @@ internal object Az305Continuity {
             B.table(
                 listOf("Option", "Data loss (RPO)", "Downtime (RTO)", "Cost"),
                 listOf("Backup, restore in place", "Hours (since last backup)", "Hours", "Low"),
-                listOf("Geo-restore of SQL", "Minutes to hours", "Minutes to hours", "Lowest"),
+                listOf("Geo-restore of SQL", "Up to an hour", "Hours (up to about 12)", "Lowest"),
                 listOf("Site Recovery for VMs", "Seconds to minutes", "Minutes", "Medium"),
-                listOf("SQL failover group (a standby database in another region)", "Seconds: changes not yet copied", "Typically under 60 seconds", "Higher: a second database"),
+                listOf("SQL failover group (a standby database in another region)", "Seconds: changes not yet copied", "Seconds by hand; about an hour automatically (the default grace period)", "Higher: a second database"),
             ),
             B.check(
                 "sa-backup-dr-k3", "sa-backup-dr",
@@ -488,8 +488,8 @@ internal object Az305Continuity {
             B.q("sa-b7", BDR,
                 "The cheapest way to recover Azure SQL Database from a region outage, when hours of downtime are acceptable, is:",
                 listOf("Geo-restore from geo-redundant backups", "A failover group", "Active geo-replication with four secondaries"),
-                setOf(0), "Geo-restore needs no standing replica, so it costs least, but RPO and RTO are minutes to hours.",
-                whyWrong = mapOf(1 to "A failover group pays for a running secondary database, which buys seconds, not hours.", 2 to "Four replicas are the most expensive choice of all."),
+                setOf(0), "Geo-restore needs no standing replica, so it costs least, but it can lose up to an hour of data and takes hours to bring back.",
+                whyWrong = mapOf(1 to "A failover group pays for a running secondary database. That buys a fast recovery, which is more than this case needs.", 2 to "Four replicas are the most expensive choice of all."),
             ),
             B.q("sa-b8", BDR,
                 "On-premises VMware VMs must fail over to Azure within an hour, losing only minutes of data. What do you recommend?",

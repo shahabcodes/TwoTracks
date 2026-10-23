@@ -267,7 +267,7 @@ internal object Az305Infra3 {
                     listOf("Azure Functions on the Flex Consumption or Consumption plan", "A virtual machine scale set", "Azure Kubernetes Service"), setOf(0),
                     "Event-driven, short tasks that should cost nothing when idle point to serverless Functions with a blob trigger.",
                     whyWrong = mapOf(
-                        1 to "A scale set keeps at least one VM running and billed, and you manage the operating system.",
+                        1 to "A scale set can shrink to zero VMs, but it has no built-in way to run code each time a file lands. You would build the event handling and scaling yourself, and you still manage whole VMs and their operating system.",
                         2 to "AKS is powerful but you run a cluster all the time; it is far more than this job needs.",
                     ),
                 ),
@@ -385,9 +385,9 @@ internal object Az305Infra3 {
                 ),
                 B.q(
                     "sa-n14", "sa-migrations",
-                    "In the Cloud Adoption Framework, which phase sets out the business reasons, outcomes and first projects for moving to Azure?",
+                    "In the Cloud Adoption Framework, which phase sets out the business reasons for moving to Azure and the outcomes that will measure success?",
                     listOf("Strategy", "Ready", "Manage"), setOf(0),
-                    "The Strategy phase records the motivations and expected business outcomes; Plan, Ready and Adopt follow it.",
+                    "The Strategy phase records the motivations and expected business outcomes; Plan, Ready and Adopt follow it. Choosing which workloads move first happens later, in Plan.",
                     whyWrong = mapOf(
                         1 to "Ready prepares the landing zone, the Azure environment workloads move into.",
                         2 to "Manage covers running the estate once workloads are in Azure.",

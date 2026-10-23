@@ -1,0 +1,234 @@
+{
+ "topicId": "psm-empiricism--late-night",
+ "seconds": 379.43,
+ "lines": [
+  {
+   "line": 0,
+   "host": "nova",
+   "start": 0.0,
+   "end": 13.19
+  },
+  {
+   "line": 1,
+   "host": "ivy",
+   "start": 13.51,
+   "end": 18.43
+  },
+  {
+   "line": 2,
+   "host": "nova",
+   "start": 18.75,
+   "end": 33.75
+  },
+  {
+   "line": 3,
+   "host": "ivy",
+   "start": 34.07,
+   "end": 37.03
+  },
+  {
+   "line": 4,
+   "host": "nova",
+   "start": 37.35,
+   "end": 50.7
+  },
+  {
+   "line": 5,
+   "host": "ivy",
+   "start": 51.02,
+   "end": 53.3
+  },
+  {
+   "line": 6,
+   "host": "nova",
+   "start": 53.62,
+   "end": 67.7
+  },
+  {
+   "line": 7,
+   "host": "ivy",
+   "start": 68.02,
+   "end": 70.14
+  },
+  {
+   "line": 8,
+   "host": "nova",
+   "start": 70.46,
+   "end": 89.09
+  },
+  {
+   "line": 9,
+   "host": "ivy",
+   "start": 89.41,
+   "end": 93.01
+  },
+  {
+   "line": 10,
+   "host": "nova",
+   "start": 93.33,
+   "end": 107.45
+  },
+  {
+   "line": 11,
+   "host": "ivy",
+   "start": 107.77,
+   "end": 110.13
+  },
+  {
+   "line": 12,
+   "host": "nova",
+   "start": 110.45,
+   "end": 118.96
+  },
+  {
+   "line": 13,
+   "host": "ivy",
+   "start": 119.28,
+   "end": 122.08
+  },
+  {
+   "line": 14,
+   "host": "nova",
+   "start": 122.4,
+   "end": 141.04
+  },
+  {
+   "line": 15,
+   "host": "ivy",
+   "start": 141.36,
+   "end": 143.12
+  },
+  {
+   "line": 16,
+   "host": "nova",
+   "start": 143.44,
+   "end": 160.6
+  },
+  {
+   "line": 17,
+   "host": "ivy",
+   "start": 160.92,
+   "end": 162.44
+  },
+  {
+   "line": 18,
+   "host": "nova",
+   "start": 162.76,
+   "end": 178.91
+  },
+  {
+   "line": 19,
+   "host": "ivy",
+   "start": 179.23,
+   "end": 182.23
+  },
+  {
+   "line": 20,
+   "host": "nova",
+   "start": 182.55,
+   "end": 196.39
+  },
+  {
+   "line": 21,
+   "host": "ivy",
+   "start": 196.71,
+   "end": 199.39
+  },
+  {
+   "line": 22,
+   "host": "nova",
+   "start": 199.71,
+   "end": 212.42
+  },
+  {
+   "line": 23,
+   "host": "ivy",
+   "start": 212.74,
+   "end": 214.02
+  },
+  {
+   "line": 24,
+   "host": "nova",
+   "start": 214.34,
+   "end": 233.94
+  },
+  {
+   "line": 25,
+   "host": "ivy",
+   "start": 234.26,
+   "end": 236.46
+  },
+  {
+   "line": 26,
+   "host": "nova",
+   "start": 236.78,
+   "end": 250.89
+  },
+  {
+   "line": 27,
+   "host": "ivy",
+   "start": 251.21,
+   "end": 253.89
+  },
+  {
+   "line": 28,
+   "host": "nova",
+   "start": 254.21,
+   "end": 272.65
+  },
+  {
+   "line": 29,
+   "host": "ivy",
+   "start": 272.97,
+   "end": 276.73
+  },
+  {
+   "line": 30,
+   "host": "nova",
+   "start": 277.05,
+   "end": 300.89
+  },
+  {
+   "line": 31,
+   "host": "ivy",
+   "start": 301.21,
+   "end": 303.85
+  },
+  {
+   "line": 32,
+   "host": "nova",
+   "start": 304.17,
+   "end": 319.96
+  },
+  {
+   "line": 33,
+   "host": "ivy",
+   "start": 320.28,
+   "end": 326.56
+  },
+  {
+   "line": 34,
+   "host": "nova",
+   "start": 326.88,
+   "end": 351.48
+  },
+  {
+   "line": 35,
+   "host": "ivy",
+   "start": 351.8,
+   "end": 354.36
+  },
+  {
+   "line": 36,
+   "host": "nova",
+   "start": 354.68,
+   "end": 374.91
+  },
+  {
+   "line": 37,
+   "host": "ivy",
+   "start": 375.23,
+   "end": 379.43
+  }
+ ]
+}

@@ -23,9 +23,8 @@ class ContentTest {
 
     @Test
     fun `every course with a mock exam has one that points at real topics`() {
-        courses.filter { it.mockExam != null }.forEach { c ->
+        courses.flatMap { c -> c.mockExams.map { c to it } }.forEach { (c, m) ->
             val ids = c.allTopics.map { it.id }.toSet()
-            val m = c.mockExam!!
             assertTrue("${c.id} mock timing", m.timeLimitMinutes != null && !m.instantFeedback)
             // A randomised mock needs a pool bigger than the draw, or a retake is the same paper.
             val draw = m.drawCount
@@ -38,20 +37,27 @@ class ContentTest {
 
     @Test
     fun `the mock exam covers every module and points at real topics`() {
-        listOf(Az204.course, Ai200.course, Az305.course).forEach { course ->
-            val mock = course.mockExam
-            assertTrue("${course.id} has no mock exam", mock != null)
+        listOf(Az204.course, Ai200.course, Az305.course, Psm1.course).forEach { course ->
+            assertTrue("${course.id} has no mock exam", course.mockExams.isNotEmpty())
+            // The PSM I assessment asks true or false questions: two options are fair there.
+            val fewest = if (course.id == Psm1.course.id) 2 else 3
+            course.mockExams.forEach { mock -> checkMock(course, mock, fewest) }
+        }
+    }
+
+    private fun checkMock(course: Course, mock: Quiz, fewest: Int) {
+        run {
             val topicIds = course.allTopics.map { it.id }.toSet()
-            assertTrue("${course.id} mock has ${mock!!.questions.size}", mock.questions.size >= 50)
+            assertTrue("${mock.id} has ${mock.questions.size}", mock.questions.size >= 50)
             assertTrue(mock.timeLimitMinutes != null && !mock.instantFeedback)
             mock.questions.forEach { q ->
                 assertTrue("${q.id} points at ${q.topicId}", q.topicId in topicIds)
-                assertTrue("${q.id} options", q.options.size >= 3 && q.correct.all { it in q.options.indices } && q.correct.isNotEmpty())
+                assertTrue("${q.id} options", q.options.size >= fewest && q.correct.all { it in q.options.indices } && q.correct.isNotEmpty())
                 assertTrue("${q.id} explanation", q.explanation.length > 20)
             }
             course.modules.forEach { m ->
                 val ids = m.topics.map { it.id }.toSet()
-                assertTrue("${course.id} mock has no question for ${m.id}", mock.questions.any { it.topicId in ids })
+                assertTrue("${mock.id} has no question for ${m.id}", mock.questions.any { it.topicId in ids })
             }
         }
     }
@@ -89,7 +95,9 @@ class ContentTest {
                 // section furniture: the same two links under every topic.
                 assertTrue("${t.id} has ${t.references.size} reference(s), wanted 4 or more", t.references.size >= 4)
                 assertEquals("${t.id} repeats a reference", t.references.size, t.references.map { it.url }.distinct().size)
-                t.references.forEach { r -> assertTrue("${t.id}: ${r.url}", r.url.startsWith("https://learn.microsoft.com/") || r.url.startsWith("https://www.goethe.de/") || r.url.startsWith("https://ielts.org/")) }
+                t.references.forEach { r -> assertTrue("${t.id}: ${r.url}", r.url.startsWith("https://learn.microsoft.com/") || r.url.startsWith("https://www.goethe.de/") || r.url.startsWith("https://ielts.org/") ||
+                    // PSM I: the Scrum Guide and Scrum.org, the assessment's own sources.
+                    r.url.startsWith("https://scrumguides.org/") || r.url.startsWith("https://www.scrum.org/")) }
                 assertTrue("${t.id} needs a glossary", t.blocks.any { it is Block.Glossary })
                 t.blocks.filterIsInstance<Block.Check>().forEach { c -> assertTrue("${c.question.id} topic", c.question.topicId == t.id) }
             }
@@ -122,6 +130,9 @@ class ContentTest {
         // AZ-305: identity, data, continuity, infrastructure, practice.
         val sa = setOf("identity", "data", "continuity", "infrastructure", "practice")
         Az305.course.modules.forEach { m -> assertTrue(m.componentId, m.componentId in sa) }
+        // PSM I: the Scrum Guide, the team, events and artifacts, and the open assessments.
+        val psm = setOf("guide", "roles", "assessments")
+        Psm1.course.modules.forEach { m -> assertTrue(m.componentId, m.componentId in psm) }
         // IELTS goals are seeded with the four paper components only.
         val ielts = setOf("listening", "reading", "writing", "speaking")
         Ielts.course.modules.forEach { m -> assertTrue(m.componentId, m.componentId in ielts) }
@@ -174,9 +185,9 @@ class ContentTest {
         // nothing can show is how 44 notes sat invisible until 0.43.0. The
         // results page shows the note for the option you picked now, which
         // is the only place a mock can ever show one.
-        listOf(Az204.course, GermanA1.course, Ielts.course, Ai200.course, Az305.course).forEach { course ->
+        listOf(Az204.course, GermanA1.course, Ielts.course, Ai200.course, Az305.course, Psm1.course).forEach { course ->
             val papers = course.modules.mapNotNull { m -> m.quiz?.let { m.id to it } } +
-                listOfNotNull(course.mockExam).map { "mock" to it }
+                course.mockExams.map { it.id to it }
             papers.forEach { (where, quiz) ->
                 quiz.questions.forEach { q ->
                     val wrong = q.options.indices.filterNot { it in q.correct }
@@ -195,11 +206,11 @@ class ContentTest {
         // rehearsal of the real sitting, which tells you nothing until the
         // end. The note on the option you picked is how a mock says it
         // afterwards instead.
-        listOf(Az204.course, GermanA1.course, Ielts.course, Ai200.course, Az305.course).forEach { course ->
+        listOf(Az204.course, GermanA1.course, Ielts.course, Ai200.course, Az305.course, Psm1.course).forEach { course ->
             course.modules.mapNotNull { it.quiz }.forEach { quiz ->
                 assertTrue("${quiz.id} should give instant feedback", quiz.instantFeedback)
             }
-            course.mockExam?.let { assertFalse("${it.id} should not give instant feedback", it.instantFeedback) }
+            course.mockExams.forEach { assertFalse("${it.id} should not give instant feedback", it.instantFeedback) }
         }
     }
 
@@ -307,7 +318,7 @@ class ContentTest {
         // deliberate act: add it here and the rule starts holding it. All
         // three courses are now in, which means a fourth would have to be
         // written up to the rule rather than quietly skipping it.
-        listOf(Az204.course, GermanA1.course, Ielts.course, Ai200.course, Az305.course).forEach { course -> warmupsHold(course) }
+        listOf(Az204.course, GermanA1.course, Ielts.course, Ai200.course, Az305.course, Psm1.course).forEach { course -> warmupsHold(course) }
     }
 
     private fun warmupsHold(course: Course) {
@@ -371,7 +382,7 @@ class ContentTest {
         courses.forEach { c ->
             val questions = c.allTopics.flatMap { t -> t.blocks.filterIsInstance<Block.Check>().map { it.question } } +
                 c.modules.mapNotNull { it.quiz }.flatMap { it.questions } +
-                listOfNotNull(c.mockExam).flatMap { it.questions }
+                c.mockExams.flatMap { it.questions }
             questions.forEach { q ->
                 q.whyWrong.keys.forEach { i ->
                     assertTrue("${c.id}/${q.id}: note on option $i, which is out of range", i in q.options.indices)

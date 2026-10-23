@@ -310,7 +310,7 @@ fun ColumnScope.BoardSpaceStep(
     BoardSegments(listOf(false to "Start new", true to "Join your partner's"), joining, onJoining, modifier = Modifier.padding(top = 18.dp))
     if (!joining) {
         BoardText(
-            "Both plans come already loaded: ten levels, five courses, six countries and the paperwork. Once the terminal is open, this code brings your partner's line in.",
+            "Both plans come already loaded: ten levels, six courses, six countries and the paperwork. Once the terminal is open, this code brings your partner's line in.",
             modifier = Modifier.padding(top = 18.dp),
         )
         Column(

@@ -539,10 +539,11 @@ internal object Ai200Data3 {
                 ),
             ),
             B.q("ai-d7", "ai-cosmos-vector", "What must a Cosmos DB for NoSQL container define to store and search embeddings?",
-                listOf("A vector embedding policy with path, data type, dimensions and distance function, plus a vector index", "Only a composite index on the embedding path", "A TTL on the embedding property", "A second container for vectors"), setOf(0),
-                "The vector embedding policy describes the vectors and the vector index (flat, quantizedFlat or diskANN) makes VectorDistance queries fast.",
+                listOf("A vector embedding policy with path, data type, dimensions and distance function; a vector index is optional but recommended", "Only a composite index on the embedding path", "A TTL on the embedding property", "A second container for vectors"), setOf(0),
+                "The vector embedding policy is the required part: it describes the vectors so VectorDistance can compare them. A vector index (flat, quantizedFlat or diskANN) is optional but recommended, because it makes those queries faster and cheaper in RUs. Without one, the search does a full scan of every vector, which costs more RUs.",
                 whyWrong = mapOf(
                     1 to "Composite indexes are for multi-property ORDER BY, not similarity search.",
+                    2 to "TTL only expires items. It does nothing for similarity search.",
                     3 to "Embeddings sit beside the data they describe, in the same item.",
                 ),
             ),

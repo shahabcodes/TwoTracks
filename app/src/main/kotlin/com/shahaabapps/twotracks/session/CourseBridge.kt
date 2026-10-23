@@ -37,7 +37,7 @@ object CourseBridge {
 
     /** True when the course's mock exam has been passed, or there is no mock exam to pass. */
     fun mockPassed(course: Course, owner: PersonRole, attempts: List<QuizAttempt>): Boolean =
-        course.mockExam == null || attempts.any { it.owner == owner && it.courseId == course.id && it.moduleId == Courses.MOCK_MODULE_ID && it.passed }
+        course.mockExams.isEmpty() || attempts.any { it.owner == owner && it.courseId == course.id && Courses.isMock(it.moduleId) && it.passed }
 
     /**
      * Each topic of a module and the module's own test count as one unit of
@@ -63,7 +63,7 @@ object CourseBridge {
 
     /** Practice is the module tests plus, where the course has one, the mock exam. */
     private fun practiceFraction(course: Course, statuses: List<ModuleStatus>, owner: PersonRole, attempts: List<QuizAttempt>): Double {
-        val hasMock = course.mockExam != null
+        val hasMock = course.mockExams.isNotEmpty()
         val total = statuses.size + if (hasMock) 1 else 0
         if (total == 0) return 0.0
         val done = statuses.count { it.passed } + if (hasMock && mockPassed(course, owner, attempts)) 1 else 0

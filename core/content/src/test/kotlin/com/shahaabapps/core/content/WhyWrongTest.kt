@@ -94,4 +94,35 @@ class WhyWrongTest {
             }
         }
     }
+
+    @Test
+    fun `a multiple-answer question keeps its notes when its options are mixed`() {
+        val q = B.q(
+            "multi", "t", "Which two are Scrum events? (choose two)",
+            listOf("Sprint Review", "Daily Scrum", "Release Planning", "Sprint Zero"), setOf(0, 1),
+            "Both are in the Guide.",
+            whyWrong = mapOf(2 to "Not an event in the Guide.", 3 to "There is no Sprint Zero."),
+        )
+        B.spread(List(4) { q.copy(id = "multi$it") }).forEach { mixed ->
+            assertEquals(setOf("Sprint Review", "Daily Scrum"), mixed.correct.map { mixed.options[it] }.toSet())
+            mixed.whyWrong.forEach { (i, note) ->
+                val expected = if (mixed.options[i] == "Release Planning") "Not an event in the Guide." else "There is no Sprint Zero."
+                assertEquals(expected, note)
+            }
+        }
+    }
+
+    @Test
+    fun `the right answers of a multiple-answer question are not always neighbours`() {
+        // Authors list the right answers together; rotation alone kept them
+        // side by side in nearly every mock question, a pattern worth guessing.
+        val multi = Courses.all.flatMap { c -> c.mockExams.flatMap { it.questions } }
+            .filter { it.correct.size == 2 && it.options.size >= 4 }
+        assertTrue("expected multiple-answer mock questions", multi.size > 50)
+        val together = multi.count { q ->
+            val (a, b) = q.correct.sorted()
+            b - a == 1 || (a == 0 && b == q.options.size - 1)
+        }
+        assertTrue("$together of ${multi.size} pairs sit side by side", together < multi.size * 0.8)
+    }
 }

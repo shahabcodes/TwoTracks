@@ -348,8 +348,8 @@ internal object Az305Data {
             B.check(
                 "sa-nonrelational-k3", "sa-nonrelational",
                 "Exam results must be kept unchangeable for seven years for a regulator. What do you use?",
-                listOf("A time-based retention immutability policy", "Blob soft delete for 365 days", "Blob versioning"), 0,
-                "Only an immutability policy stops anyone, administrators included, changing or deleting the data for the period.",
+                listOf("A locked time-based retention immutability policy", "Blob soft delete for 365 days", "Blob versioning"), 0,
+                "A time-based retention policy, once locked, stops anyone, administrators included, changing or deleting the data for the period. A locked policy can be made longer but never shorter or removed, which is what a regulator needs. A new policy starts unlocked for testing, and while unlocked it can still be shortened or deleted, so lock it.",
                 whyWrong = mapOf(
                     1 to "Soft delete is a recycle bin for mistakes, capped at 365 days, and it can be purged.",
                     2 to "Versioning keeps older copies, but the blobs and versions can still be deleted.",

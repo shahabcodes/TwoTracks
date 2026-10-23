@@ -50,6 +50,7 @@ class CoversTest {
             "az-204" to "compute",
             "ai-200" to "containers",
             "az-305" to "identity",
+            "psm-1" to "guide",
             "de-a1" to "vocabulary",
             "de-a1-teacher" to "vocabulary",
             "ielts-general-tech" to "reading",
@@ -60,7 +61,7 @@ class CoversTest {
         // The rest of the roadmap is still waiting for a course, and until each
         // one exists, logging by hand is the only way those hours ever move.
         listOf(
-            "de-a2", "de-b1", "psm-1", "ckad", "az-400", "java-se-21", "aws-dva",
+            "de-a2", "de-b1", "ckad", "az-400", "java-se-21", "aws-dva",
             "dp-300", "ai-102", "terraform", "naati-tech", "naati-teacher", "french",
         ).forEach {
             assertFalse("$it has no course yet", Courses.covers(it, "reading"))

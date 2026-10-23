@@ -173,6 +173,7 @@ internal fun examName(course: com.shahaabapps.core.content.Course): String = whe
     "az-204" -> "Microsoft AZ-204"
     "ai-200" -> "Microsoft AI-200"
     "az-305" -> "Microsoft AZ-305"
+    "psm-1" -> "Scrum.org PSM I"
     "de-a1" -> "Goethe-Zertifikat A1"
     "ielts" -> "IELTS Academic and General"
     else -> course.title
@@ -180,7 +181,7 @@ internal fun examName(course: com.shahaabapps.core.content.Course): String = whe
 
 /** "THREE COURSES · TWO OF THEM YOURS" */
 internal fun coursesLine(total: Int, mine: Int): String {
-    fun word(n: Int) = when (n) { 0 -> "none"; 1 -> "one"; 2 -> "two"; 3 -> "three"; 4 -> "four"; 5 -> "five"; else -> n.toString() }
+    fun word(n: Int) = when (n) { 0 -> "none"; 1 -> "one"; 2 -> "two"; 3 -> "three"; 4 -> "four"; 5 -> "five"; 6 -> "six"; else -> n.toString() }
     val head = "${word(total)} course${if (total == 1) "" else "s"}"
     return when {
         mine == total -> "$head · all of them yours"
@@ -456,26 +457,27 @@ private fun TopicLine(title: String, status: String, statusColor: Color, titleCo
     }
 }
 
-/** The mock exam, outlined, and under it the review sets when anything is waiting in them. */
+/** The mock exams, outlined, and under them the review sets when anything is waiting in them. */
 @Composable
 private fun PaperPractice(course: Course, p: CourseProgress?, dailyDue: Int, onOpenQuiz: (String, String) -> Unit) {
-    val mock = course.mockExam
     val review = p?.reviewQuestions(course).orEmpty()
     val passedAll = p != null && p.modulesPassed(course) == course.modules.count { it.available }
     Column(modifier = Modifier.padding(start = Spacing.listHorizontal, end = Spacing.listHorizontal, top = 16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-        if (mock != null) {
+        course.mockExams.forEachIndexed { index, mock ->
+            val id = Courses.mockModuleId(index)
+            val best = p?.bestPercentByModule?.get(id)
             val shape = RoundedCornerShape(16.dp)
             Column(
                 verticalArrangement = Arrangement.spacedBy(4.dp),
-                modifier = Modifier.fillMaxWidth().clip(shape).border(Spacing.rule, AppTheme.colors.ink, shape)
-                    .clickable { onOpenQuiz(course.id, Courses.MOCK_MODULE_ID) }.padding(16.dp),
+                modifier = Modifier.fillMaxWidth().padding(bottom = 6.dp).clip(shape).border(Spacing.rule, AppTheme.colors.ink, shape)
+                    .clickable { onOpenQuiz(course.id, id) }.padding(16.dp),
             ) {
                 Text("PAPER PRACTICE", style = MaterialTheme.typography.labelMedium.copy(fontSize = 10.sp), color = AppTheme.colors.secondaryLabel)
                 Text(mock.title, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.SemiBold)
                 Text(
                     when {
-                        p?.mockPassed == true -> "Passed, best ${p.mockBest}%."
-                        p?.mockBest != null -> "Best ${p.mockBest}%, need ${mock.passPercent}%."
+                        p != null && id in p.passedModuleIds -> "Passed, best $best%."
+                        best != null -> "Best $best%, need ${mock.passPercent}%."
                         !passedAll -> "${mock.drawCount ?: mock.questions.size} questions, ${mock.timeLimitMinutes} minutes. Pass the module tests first for a fair reading."
                         else -> "${mock.drawCount ?: mock.questions.size} questions, ${mock.timeLimitMinutes} minutes, pass at ${mock.passPercent}%."
                     },

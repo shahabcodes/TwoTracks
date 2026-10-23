@@ -256,6 +256,8 @@ EXTRA_SAY = [
     (r"\bRA\b", "R A"),
     (r"\bdot NET\b", "dot net"),
     (r"\bA1\b", "A one"),
+    (r"\bCEO\b", "C E O"),
+    (r"\bScrum\.org\b", "Scrum dot org"),
 ]
 
 # Two or more capital letters standing alone, as the respellings above leave
