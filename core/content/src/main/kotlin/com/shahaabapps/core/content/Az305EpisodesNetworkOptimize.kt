@@ -35,13 +35,17 @@ internal object Az305EpisodesNetworkOptimize {
             leo("So how do I choose in the exam?"),
             maya("Two questions. Is it web traffic, and does it cover more than one region? Web and global: Front Door. Web and one region: Application Gateway. Not web and global: Traffic Manager. Not web and one region: Load Balancer."),
             leo("Give me a real one."),
-            maya("Say you're building the Two Tracks web API, the door the app calls on the backend, in West Europe and Australia East. Users want caching and protection from web attacks. Web, global, caching: Front Door, with a WAF policy. Inside each region, the VMs, the rented computers, sit behind a Load Balancer."),
+            maya("Say you're building the Two Tracks web API, the door the app calls on the backend, in West Europe and Australia East. Users want caching and protection from web attacks. You pick."),
+            leo("Web, two regions, caching. Front Door?"),
+            maya("Front Door, with a WAF policy. And inside each region, the VMs, the rented computers, sit behind a Load Balancer."),
             leo("WAF? Sounds like a dog."),
             maya("[laugh] It's a web application firewall (WAF). Picture a guard who reads every web request and stops known attacks. It runs on Application Gateway or Front Door."),
             leo("What attacks?"),
             maya("For example, SQL injection: someone types database commands into the sign-up form, hoping your database runs them. Like writing, and also open the safe, at the bottom of a delivery note."),
             leo("Can't I just block that with a network rule?"),
-            maya("That's the trap. A network security group (NSG) is a guest list of allow and deny rules by address and port, on a subnet, which is a room in your network. Rules are checked in order, lowest number first. But it never reads the request. An attack on port 443, the usual door for secure web traffic, looks like any visit."),
+            maya("That's the trap. A network security group (NSG) is a guest list of allow and deny rules by address and port, on a subnet, which is a room in your network. Rules are checked in order, lowest number first."),
+            leo("So like the firewall on my own server. Allow 443, block the rest."),
+            maya("Exactly, and that's why it can't help. It never reads the request. The attack comes in on port 443, the usual door for secure web traffic, looking like any visit."),
             leo("So what's an NSG good for?"),
             maya("Basic filtering everywhere, for free. And an application security group (ASG) keeps it tidy. It's a name tag for a set of VMs, such as app servers, so one rule says web servers may reach app servers on 443, with no addresses listed."),
             leo("And Azure Firewall? Another guard?"),
@@ -57,7 +61,9 @@ internal object Az305EpisodesNetworkOptimize {
             leo("Last piece. Routing. Which way does traffic actually go?"),
             maya("Azure routes it for you with system routes, like the default signposts in a building. A user-defined route, UDR for short, is your own signpost that overrides them. You put routes in a route table and attach it to a subnet."),
             leo("Give me an example."),
-            maya("All outbound traffic from the spokes must pass through the firewall. So you add the all-zeros route, which means everything else, pointing at the firewall's private address. Its next hop, simply the next stop, is a virtual appliance: a machine that handles traffic, here the firewall."),
+            maya("All outbound traffic from the spokes must pass through the firewall. So you add the all-zeros route, which means everything else, pointing at the firewall's private address."),
+            leo("All zeros. Like the default route on my home router: anything unknown goes there."),
+            maya("Exactly. Its next hop, simply the next stop, is a virtual appliance: a machine that handles traffic, here the firewall."),
             leo("Couldn't an NSG rule do that?"),
             maya("No. An NSG decides whether traffic may pass, not which way it travels. Only a route changes the path. And forced tunnelling goes further: internet-bound traffic goes back to the office first, so the company's own firewall checks it."),
             leo("So what do I remember for the exam?"),
@@ -96,7 +102,9 @@ internal object Az305EpisodesNetworkOptimize {
             leo("Third crime. The attack."),
             maya("The sign-up form got SQL injection attempts. That's someone typing database commands into a form box, hoping your database runs them, like writing, and also open the safe, on a delivery note."),
             leo("Easy. Add an NSG rule to block it."),
-            maya("That's the suspect the attacker hoped for. A network security group (NSG) is a guest list of allow and deny rules by address and port, on a subnet, a room in your network. But it never reads the request. The attack came in on port 443, the usual door for secure web traffic, like any visitor."),
+            maya("That's the suspect the attacker hoped for. A network security group (NSG) is a guest list of allow and deny rules by address and port, on a subnet, a room in your network."),
+            leo("Like the firewall on the server itself. Port 443 open, everything else shut. Sounds safe."),
+            maya("Safe from the wrong ports. But it never reads the request. The attack came in on port 443, the usual door for secure web traffic, like any visitor."),
             leo("Then what reads the request?"),
             maya("A web application firewall (WAF): a guard who reads every web request and stops known attacks with ready-made rules. Under the picture, it's a policy you attach to Front Door or Application Gateway. Two Tracks put a WAF policy on Front Door, at the edge."),
             leo("And floods? Did they get flooded?"),
@@ -108,9 +116,13 @@ internal object Az305EpisodesNetworkOptimize {
             leo("Please tell me there's no fifth."),
             maya("[sigh] There's a fifth. The rule said all outbound traffic from the spokes must pass through Azure Firewall, one central checkpoint in the hub, the shared network in the middle. It can allow or block by domain name, and Premium can even look inside encrypted traffic."),
             leo("Let me guess. They added an NSG rule that allows the firewall."),
-            maya("Exactly, and traffic still went straight out. An NSG decides whether traffic may pass, not which way it goes. Only a route changes the path. One tidy thing they did right: an application security group (ASG), a name tag for a set of VMs, so rules name the tag, not addresses."),
+            maya("Exactly, and traffic still went straight out. An NSG decides whether traffic may pass, not which way it goes. Only a route changes the path."),
+            leo("Did they get anything right?"),
+            maya("One tidy thing: an application security group (ASG), a name tag for a set of VMs, so rules name the tag, not addresses."),
             leo("So what's a route, then?"),
-            maya("Azure's system routes are the default signposts. A user-defined route, UDR for short, is your own signpost that overrides them. You put it in a route table, attach that to each spoke subnet, and point the all-zeros route, meaning everything else, at the firewall's private address, as a virtual appliance."),
+            maya("Azure's system routes are the default signposts. A user-defined route, UDR for short, is your own signpost that overrides them. It lives in a route table, attached to each spoke subnet."),
+            leo("And the signpost says what?"),
+            maya("The all-zeros route, meaning everything else, goes to the firewall's private address, as a virtual appliance. Now every packet leaving a spoke passes the checkpoint."),
             leo("And forced tunnelling?"),
             maya("One step further: internet-bound traffic goes back to the office first, so the company's own firewall checks it. And for speed, accelerated networking is an express lane past the host's software switch, cutting latency, the delay before a message arrives."),
             leo("Where does the office link come from?"),
@@ -164,7 +176,9 @@ internal object Az305EpisodesNetworkOptimize {
             leo("And the floods? Was there a DDoS?"),
             maya("Just a scare. A DDoS attack floods you with fake traffic, like a crowd blocking a shop door. Basic protection is free and always on. DDoS Network Protection adds expert help and cost protection for a network's public addresses."),
             leo("Friday. The long one."),
-            maya("Priya. The rule said all outbound traffic must pass through Azure Firewall, one central checkpoint in the hub, the shared network in the middle. It can block by domain name, and Premium can look inside encrypted traffic. Priya added an NSG rule allowing the firewall."),
+            maya("Priya. The rule said all outbound traffic must pass through Azure Firewall, one central checkpoint in the hub, the shared network in the middle. It can block by domain name, and Premium can look inside encrypted traffic."),
+            leo("So what did Priya do?"),
+            maya("Added an NSG rule allowing the firewall. That was it."),
             leo("And the traffic ignored her?"),
             maya("Went straight out. An NSG decides whether traffic may pass, not which way it goes. Only a route changes the path. Azure's system routes are the default signposts. A user-defined route, UDR for short, is your own signpost that overrides them."),
             leo("How did she fix it?"),
@@ -194,7 +208,9 @@ internal object Az305EpisodesNetworkOptimize {
             ivy("Opening letters. How intimate. And the second idea?"),
             nova("Regional or global. A region is a group of Azure data centres in one part of the world. Tonight's story is Two Tracks goes global: the Android app's backend runs in West Europe and Australia East. Regional works inside one; global picks between them."),
             ivy("So tell me the four."),
-            nova("Azure Load Balancer: layer 4, regional. It passes any traffic straight through, even UDP, the fast, unchecked way a live game sends its messages. [pause] Application Gateway: layer 7, regional. It routes by URL path, and can decrypt HTTPS, the sealed kind of web traffic."),
+            nova("Azure Load Balancer: layer 4, regional. It passes any traffic straight through, even UDP, the fast, unchecked way a live game sends its messages."),
+            ivy("And the one that reads letters, close to home?"),
+            nova("[pause] Application Gateway: layer 7, regional. It routes by URL path, and can decrypt HTTPS, the sealed kind of web traffic."),
             ivy("And the global two?"),
             nova("Azure Front Door: layer 7, global, at the edge, which means in Microsoft's buildings close to users. It caches, keeping copies of images near people, like a corner shop stocking favourites. And Traffic Manager, which only answers the DNS question. DNS is the internet's phone book, turning a name into an address."),
             ivy("Only answers? It doesn't carry anything?"),
@@ -242,7 +258,9 @@ internal object Az305EpisodesNetworkOptimize {
             rafe("And layer 7?"),
             nova("Layer 7 opens the letter and reads the web request inside, such as the URL path: the part of a web address after the site's name."),
             rafe("Opening letters. Bold. And the second idea?"),
-            nova("Regional or global. A region is a group of Azure data centres in one part of the world. Regional works inside one; global picks between them. Now the four. Load Balancer: layer 4, regional. Application Gateway: layer 7, regional, and it routes by URL path."),
+            nova("Regional or global. A region is a group of Azure data centres in one part of the world. Regional works inside one; global picks between them."),
+            rafe("Then the four, darling. Start close to home."),
+            nova("Load Balancer: layer 4, regional. Application Gateway: layer 7, regional, and it routes by URL path."),
             rafe("And the global pair?"),
             nova("Front Door: layer 7, global, at the edge, which means Microsoft's buildings close to users. It caches, keeping copies near people, like a corner shop. Traffic Manager only answers the DNS question, the internet's phone book, then steps aside, so its failover is slower."),
             rafe("Then here's your first question, darling. Global users, web traffic, needs caching and a WAF. Which one?"),
@@ -468,42 +486,42 @@ internal object Az305EpisodesNetworkOptimize {
                     Beat(28, light = setOf("afd", "eu", "au"), pulse = "afd" to "eu", card = BoardCard("The Two Tracks answer", "Web, global, caching: Front Door with a WAF; a Load Balancer per region.")),
                 ),
             ),
-            // 29: "WAF? Sounds like a dog."
+            // 31: "WAF? Sounds like a dog."
             Scene(
-                29, "The guards", guards(),
+                31, "The guards", guards(),
                 beats = listOf(
-                    Beat(30, show = setOf("users", "waf"), light = setOf("waf"), pulse = "users" to "waf", card = wafCard),
-                    Beat(32, card = sqli),
-                    Beat(34, show = setOf("nsg"), light = setOf("nsg"), pulse = "waf" to "nsg", card = nsgCard),
-                    Beat(36, show = setOf("asg"), light = setOf("asg"), pulse = "asg" to "nsg", card = asgCard),
-                    Beat(38, show = setOf("fw"), light = setOf("fw"), card = fwCard),
-                    Beat(40, show = setOf("ddos"), light = setOf("ddos"), pulse = "ddos" to "waf", card = ddosCard),
-                    Beat(42, show = setOf("bastion"), light = setOf("bastion"), card = bastionCard),
+                    Beat(32, show = setOf("users", "waf"), light = setOf("waf"), pulse = "users" to "waf", card = wafCard),
+                    Beat(34, card = sqli),
+                    Beat(36, show = setOf("nsg"), light = setOf("nsg"), pulse = "waf" to "nsg", card = nsgCard),
+                    Beat(40, show = setOf("asg"), light = setOf("asg"), pulse = "asg" to "nsg", card = asgCard),
+                    Beat(42, show = setOf("fw"), light = setOf("fw"), card = fwCard),
+                    Beat(44, show = setOf("ddos"), light = setOf("ddos"), pulse = "ddos" to "waf", card = ddosCard),
+                    Beat(46, show = setOf("bastion"), light = setOf("bastion"), card = bastionCard),
                 ),
             ),
-            // 43: "Now speed. Can the network go faster?"
+            // 47: "Now speed. Can the network go faster?"
             Scene(
-                43, "Speed", speed(),
+                47, "Speed", speed(),
                 beats = listOf(
-                    Beat(44, show = setOf("accel", "lat"), light = setOf("accel"), pulse = "accel" to "lat", card = accel),
-                    Beat(46, show = setOf("ppg"), light = setOf("ppg"), pulse = "ppg" to "lat", card = BoardCard("Proximity placement group", "VMs close together in one data centre, like a chatty team at one desk.")),
+                    Beat(48, show = setOf("accel", "lat"), light = setOf("accel"), pulse = "accel" to "lat", card = accel),
+                    Beat(50, show = setOf("ppg"), light = setOf("ppg"), pulse = "ppg" to "lat", card = BoardCard("Proximity placement group", "VMs close together in one data centre, like a chatty team at one desk.")),
                 ),
             ),
-            // 47: "Last piece. Routing."
+            // 51: "Last piece. Routing."
             Scene(
-                47, "Signposts", routes(),
+                51, "Signposts", routes(),
                 beats = listOf(
-                    Beat(48, show = setOf("vm", "rt"), light = setOf("rt"), pulse = "rt" to "vm", card = udr),
-                    Beat(50, show = setOf("fw", "net"), light = setOf("fw"), pulse = "vm" to "fw", card = allZeros),
-                    Beat(52, show = setOf("office"), light = setOf("office"), pulse = "fw" to "office", card = forced),
+                    Beat(52, show = setOf("vm", "rt"), light = setOf("rt"), pulse = "rt" to "vm", card = udr),
+                    Beat(54, show = setOf("fw", "net"), light = setOf("fw"), pulse = "vm" to "fw", card = allZeros),
+                    Beat(58, show = setOf("office"), light = setOf("office"), pulse = "fw" to "office", card = forced),
                 ),
             ),
-            // 53: "So what do I remember for the exam?"
+            // 59: "So what do I remember for the exam?"
             Scene(
-                53, "For the exam", exam(),
+                59, "For the exam", exam(),
                 beats = listOf(
-                    Beat(54, show = all6, light = setOf("afd", "waf", "route"), card = listen),
-                    Beat(56, card = today),
+                    Beat(60, show = all6, light = setOf("afd", "waf", "route"), card = listen),
+                    Beat(62, card = today),
                 ),
             ),
         ),
@@ -547,34 +565,34 @@ internal object Az305EpisodesNetworkOptimize {
                 beats = listOf(
                     Beat(22, show = setOf("users"), light = setOf("users"), card = sqli),
                     Beat(24, show = setOf("nsg"), light = setOf("nsg"), card = BoardCard("NSG", "Allow and deny by address and port. The attack came on port 443.")),
-                    Beat(26, show = setOf("waf"), light = setOf("waf"), pulse = "users" to "waf", card = BoardCard("WAF policy", "Ready-made rules that read each request, on Front Door or App Gateway.")),
-                    Beat(28, show = setOf("ddos"), light = setOf("ddos"), pulse = "ddos" to "waf", card = ddosCard),
+                    Beat(28, show = setOf("waf"), light = setOf("waf"), pulse = "users" to "waf", card = BoardCard("WAF policy", "Ready-made rules that read each request, on Front Door or App Gateway.")),
+                    Beat(30, show = setOf("ddos"), light = setOf("ddos"), pulse = "ddos" to "waf", card = ddosCard),
                 ),
             ),
-            // 29: "Fourth crime. The break-in."
+            // 31: "Fourth crime. The break-in."
             Scene(
-                29, "Case four: the break-in", guards(),
+                31, "Case four: the break-in", guards(),
                 beats = listOf(
-                    Beat(30, card = rdpOpen),
-                    Beat(32, light = setOf("bastion"), card = bastionCard),
+                    Beat(32, card = rdpOpen),
+                    Beat(34, light = setOf("bastion"), card = bastionCard),
                 ),
             ),
-            // 33: "Please tell me there's no fifth."
+            // 35: "Please tell me there's no fifth."
             Scene(
-                33, "Case five: the signposts", routes(),
+                35, "Case five: the signposts", routes(),
                 beats = listOf(
-                    Beat(34, show = setOf("vm", "fw", "net"), light = setOf("fw"), card = BoardCard("Azure Firewall", "One central checkpoint in the hub; Premium looks inside encrypted traffic.")),
-                    Beat(36, card = notRoute),
-                    Beat(38, show = setOf("rt"), light = setOf("rt"), pulse = "rt" to "vm", card = udr),
-                    Beat(40, show = setOf("office"), light = setOf("office"), pulse = "fw" to "office", card = forced),
+                    Beat(36, show = setOf("vm", "fw", "net"), light = setOf("fw"), card = BoardCard("Azure Firewall", "One central checkpoint in the hub; Premium looks inside encrypted traffic.")),
+                    Beat(38, card = notRoute),
+                    Beat(42, show = setOf("rt"), light = setOf("rt"), pulse = "rt" to "vm", card = udr),
+                    Beat(46, show = setOf("office"), light = setOf("office"), pulse = "fw" to "office", card = forced),
                 ),
             ),
-            // 43: "So, the case summary for the exam?"
+            // 49: "So, the case summary for the exam?"
             Scene(
-                43, "Case closed", exam(),
+                49, "Case closed", exam(),
                 beats = listOf(
-                    Beat(44, show = all6, light = setOf("afd", "waf", "route"), card = listen),
-                    Beat(46, card = today),
+                    Beat(50, show = all6, light = setOf("afd", "waf", "route"), card = listen),
+                    Beat(52, card = today),
                 ),
             ),
         ),
@@ -630,17 +648,17 @@ internal object Az305EpisodesNetworkOptimize {
                 35, "Friday: Priya", routes(),
                 beats = listOf(
                     Beat(36, show = setOf("vm", "fw", "net"), light = setOf("fw"), card = fwCard),
-                    Beat(38, show = setOf("rt"), light = setOf("rt"), pulse = "rt" to "vm", card = udr),
-                    Beat(40, show = setOf("office"), light = setOf("office"), pulse = "fw" to "office", card = forced),
-                    Beat(42, card = accel),
+                    Beat(40, show = setOf("rt"), light = setOf("rt"), pulse = "rt" to "vm", card = udr),
+                    Beat(42, show = setOf("office"), light = setOf("office"), pulse = "fw" to "office", card = forced),
+                    Beat(44, card = accel),
                 ),
             ),
-            // 43: "So, the gossip I need for the exam?"
+            // 45: "So, the gossip I need for the exam?"
             Scene(
-                43, "For the exam", exam(),
+                45, "For the exam", exam(),
                 beats = listOf(
-                    Beat(44, show = all6, light = setOf("afd", "waf", "route"), card = listen),
-                    Beat(46, card = today),
+                    Beat(46, show = all6, light = setOf("afd", "waf", "route"), card = listen),
+                    Beat(48, card = today),
                 ),
             ),
         ),
@@ -665,37 +683,37 @@ internal object Az305EpisodesNetworkOptimize {
                 beats = listOf(
                     Beat(8, show = setOf("web"), card = region),
                     Beat(10, show = setOf("gy", "gn", "lb", "agw"), light = setOf("lb", "agw"), pulse = "gn" to "lb", card = BoardCard("Two regional hosts", "Load Balancer: layer 4, any traffic. App Gateway: layer 7, URL paths.")),
-                    Beat(12, show = setOf("afd", "tm"), light = setOf("afd", "tm"), pulse = "gy" to "afd", card = BoardCard("Two global hosts", "Front Door: the edge and caching. Traffic Manager: only answers DNS.")),
-                    Beat(14, light = setOf("tm"), card = slowFailover),
-                    Beat(16, light = setOf("web"), pulse = "web" to "gy", card = twoQuestions),
+                    Beat(14, show = setOf("afd", "tm"), light = setOf("afd", "tm"), pulse = "gy" to "afd", card = BoardCard("Two global hosts", "Front Door: the edge and caching. Traffic Manager: only answers DNS.")),
+                    Beat(16, light = setOf("tm"), card = slowFailover),
+                    Beat(18, light = setOf("web"), pulse = "web" to "gy", card = twoQuestions),
                 ),
             ),
-            // 17: "Now the bouncers."
+            // 19: "Now the bouncers."
             Scene(
-                17, "The bouncers", guards(),
+                19, "The bouncers", guards(),
                 beats = listOf(
-                    Beat(18, show = setOf("nsg", "asg"), light = setOf("nsg", "asg"), pulse = "asg" to "nsg", card = BoardCard("NSG and ASG", "A guest list by address and port; an ASG is a name tag for VMs.")),
-                    Beat(20, show = setOf("users", "waf"), light = setOf("waf"), pulse = "users" to "waf", card = wafCard),
-                    Beat(22, show = setOf("fw"), light = setOf("fw"), card = fwCard),
-                    Beat(24, show = setOf("ddos"), light = setOf("ddos"), pulse = "ddos" to "waf", card = ddosCard),
-                    Beat(26, show = setOf("bastion"), light = setOf("bastion"), card = bastionCard),
+                    Beat(20, show = setOf("nsg", "asg"), light = setOf("nsg", "asg"), pulse = "asg" to "nsg", card = BoardCard("NSG and ASG", "A guest list by address and port; an ASG is a name tag for VMs.")),
+                    Beat(22, show = setOf("users", "waf"), light = setOf("waf"), pulse = "users" to "waf", card = wafCard),
+                    Beat(24, show = setOf("fw"), light = setOf("fw"), card = fwCard),
+                    Beat(26, show = setOf("ddos"), light = setOf("ddos"), pulse = "ddos" to "waf", card = ddosCard),
+                    Beat(28, show = setOf("bastion"), light = setOf("bastion"), card = bastionCard),
                 ),
             ),
-            // 27: "[sigh] Fine. And the walk home?"
+            // 29: "[sigh] Fine. And the walk home?"
             Scene(
-                27, "The walk home", routes(),
+                29, "The walk home", routes(),
                 beats = listOf(
-                    Beat(28, show = setOf("vm", "rt"), light = setOf("rt"), pulse = "rt" to "vm", card = udr),
-                    Beat(30, show = setOf("fw", "net", "office"), light = setOf("fw", "office"), pulse = "fw" to "office", card = forced),
-                    Beat(32, card = notRoute),
+                    Beat(30, show = setOf("vm", "rt"), light = setOf("rt"), pulse = "rt" to "vm", card = udr),
+                    Beat(32, show = setOf("fw", "net", "office"), light = setOf("fw", "office"), pulse = "fw" to "office", card = forced),
+                    Beat(34, card = notRoute),
                 ),
             ),
-            // 35: "Before you send me off to bed."
+            // 37: "Before you send me off to bed."
             Scene(
-                35, "For the exam", exam(),
+                37, "For the exam", exam(),
                 beats = listOf(
-                    Beat(36, show = all6, light = setOf("afd", "waf", "route"), card = listen),
-                    Beat(38, card = today),
+                    Beat(38, show = all6, light = setOf("afd", "waf", "route"), card = listen),
+                    Beat(40, card = today),
                 ),
             ),
         ),
@@ -718,40 +736,40 @@ internal object Az305EpisodesNetworkOptimize {
             Scene(
                 9, "The four balancers", tree(),
                 beats = listOf(
-                    Beat(10, show = setOf("web", "gy", "gn", "lb", "agw"), light = setOf("lb", "agw"), card = BoardCard("Two regional", "Load Balancer: layer 4. Application Gateway: layer 7, URL paths.")),
-                    Beat(12, show = setOf("afd", "tm"), light = setOf("afd", "tm"), card = BoardCard("Two global", "Front Door: edge and caching. Traffic Manager: DNS only, slower failover.")),
-                    Beat(13, light = setOf("afd"), pulse = "gy" to "afd", card = BoardCard("Quiz: global web with a WAF", "Answer: Front Door with a WAF policy.")),
-                    Beat(17, card = wafCard),
-                    Beat(18, card = BoardCard("Quiz: a UDP game, one region", "Which balancer carries a live game's fast, unchecked messages?")),
-                    Beat(20, light = setOf("lb"), pulse = "gn" to "lb", card = BoardCard("No kiss", "Application Gateway only speaks web. Load Balancer passes UDP.")),
+                    Beat(12, show = setOf("web", "gy", "gn", "lb", "agw"), light = setOf("lb", "agw"), card = BoardCard("Two regional", "Load Balancer: layer 4. Application Gateway: layer 7, URL paths.")),
+                    Beat(14, show = setOf("afd", "tm"), light = setOf("afd", "tm"), card = BoardCard("Two global", "Front Door: edge and caching. Traffic Manager: DNS only, slower failover.")),
+                    Beat(15, light = setOf("afd"), pulse = "gy" to "afd", card = BoardCard("Quiz: global web with a WAF", "Answer: Front Door with a WAF policy.")),
+                    Beat(19, card = wafCard),
+                    Beat(20, card = BoardCard("Quiz: a UDP game, one region", "Which balancer carries a live game's fast, unchecked messages?")),
+                    Beat(22, light = setOf("lb"), pulse = "gn" to "lb", card = BoardCard("No kiss", "Application Gateway only speaks web. Load Balancer passes UDP.")),
                 ),
             ),
-            // 21: "Ouch. Let me earn it back. Ask me about guards."
+            // 23: "Ouch. Let me earn it back. Ask me about guards."
             Scene(
-                21, "The guards", guards(),
+                23, "The guards", guards(),
                 beats = listOf(
-                    Beat(22, show = setOf("nsg", "asg"), light = setOf("nsg", "asg"), pulse = "asg" to "nsg", card = BoardCard("NSG and ASG", "A guest list by address and port; an ASG is a name tag for VMs.")),
-                    Beat(24, show = setOf("users"), light = setOf("users"), card = BoardCard("Quiz: SQL injection", "Will an NSG rule stop it?")),
-                    Beat(25, show = setOf("waf"), light = setOf("waf"), pulse = "users" to "waf", card = BoardCard("A WAF stops it", "An NSG never reads the request; the attack arrives on port 443.")),
-                    Beat(28, show = setOf("fw", "ddos"), light = setOf("fw", "ddos"), pulse = "ddos" to "waf", card = BoardCard("Firewall and DDoS", "A central checkpoint in the hub; floods absorbed, basic for free.")),
-                    Beat(30, show = setOf("bastion"), light = setOf("bastion"), card = bastionCard),
+                    Beat(24, show = setOf("nsg", "asg"), light = setOf("nsg", "asg"), pulse = "asg" to "nsg", card = BoardCard("NSG and ASG", "A guest list by address and port; an ASG is a name tag for VMs.")),
+                    Beat(26, show = setOf("users"), light = setOf("users"), card = BoardCard("Quiz: SQL injection", "Will an NSG rule stop it?")),
+                    Beat(27, show = setOf("waf"), light = setOf("waf"), pulse = "users" to "waf", card = BoardCard("A WAF stops it", "An NSG never reads the request; the attack arrives on port 443.")),
+                    Beat(30, show = setOf("fw", "ddos"), light = setOf("fw", "ddos"), pulse = "ddos" to "waf", card = BoardCard("Firewall and DDoS", "A central checkpoint in the hub; floods absorbed, basic for free.")),
+                    Beat(32, show = setOf("bastion"), light = setOf("bastion"), card = bastionCard),
                 ),
             ),
-            // 32: "Now the walk home."
+            // 34: "Now the walk home."
             Scene(
-                32, "The walk home", routes(),
+                34, "The walk home", routes(),
                 beats = listOf(
-                    Beat(32, show = setOf("vm", "rt"), light = setOf("rt"), pulse = "rt" to "vm", card = udr),
-                    Beat(34, show = setOf("fw", "net"), light = setOf("fw"), pulse = "vm" to "fw", card = allZeros),
-                    Beat(37, show = setOf("office"), light = setOf("office"), pulse = "fw" to "office", card = forced),
+                    Beat(34, show = setOf("vm", "rt"), light = setOf("rt"), pulse = "rt" to "vm", card = udr),
+                    Beat(36, show = setOf("fw", "net"), light = setOf("fw"), pulse = "vm" to "fw", card = allZeros),
+                    Beat(39, show = setOf("office"), light = setOf("office"), pulse = "fw" to "office", card = forced),
                 ),
             ),
-            // 38: "Last question, for the exam."
+            // 40: "Last question, for the exam."
             Scene(
-                38, "For the exam", exam(),
+                40, "For the exam", exam(),
                 beats = listOf(
-                    Beat(39, show = all6, light = setOf("afd", "waf", "route"), card = listen),
-                    Beat(42, card = today),
+                    Beat(41, show = all6, light = setOf("afd", "waf", "route"), card = listen),
+                    Beat(44, card = today),
                 ),
             ),
         ),
