@@ -1,6 +1,7 @@
 package com.shahaabapps.core.content
 
 import com.shahaabapps.core.planner.Pace
+import kotlin.random.Random
 
 /**
  * A course a person can study inside the app. Content ships with the app
@@ -431,6 +432,28 @@ object B {
         )
     }
 
+    /** Puts old option [order]`[j]` in slot j, every index into options moving with it. */
+    private fun reorder(q: Question, order: List<Int>): Question {
+        val to = IntArray(order.size).also { order.forEachIndexed { j, old -> it[old] = j } }
+        return q.copy(
+            options = order.map { q.options[it] },
+            correct = q.correct.map { to[it] }.toSet(),
+            whyWrong = q.whyWrong.mapKeys { (k, _) -> to[k] },
+        )
+    }
+
+    /**
+     * Shuffles a multiple-answer question's options, keyed on its id.
+     *
+     * Rotation keeps the order the author typed, and authors list the right
+     * answers together: across the mocks the pair was two neighbouring options
+     * nearly every time, which is a pattern worth guessing on. A seeded shuffle
+     * (Kotlin's own generator, the same on every device) breaks it and still
+     * gives the same order every time the question is opened.
+     */
+    private fun mix(q: Question): Question =
+        if (q.correct.size < 2) q else reorder(q, q.options.indices.shuffled(Random(q.id.hashCode())))
+
     /**
      * Rotates each question's options by its position, so the right answer is
      * not usually in the same slot. Explanations never mention letters, so
@@ -438,7 +461,7 @@ object B {
      */
     fun spread(questions: List<Question>): List<Question> = questions.mapIndexed { i, q ->
         if (q.options.size < 3 || q.options.first().uppercase() in FIXED_ORDER) return@mapIndexed q
-        rotateBy(q, i % q.options.size)
+        rotateBy(mix(q), i % q.options.size)
     }
 
     /**
@@ -451,7 +474,7 @@ object B {
      */
     private fun settle(q: Question): Question {
         if (q.options.size < 3 || q.options.first().uppercase() in FIXED_ORDER) return q
-        return rotateBy(q, q.id.hashCode().mod(q.options.size))
+        return rotateBy(mix(q), q.id.hashCode().mod(q.options.size))
     }
 
     fun q(
