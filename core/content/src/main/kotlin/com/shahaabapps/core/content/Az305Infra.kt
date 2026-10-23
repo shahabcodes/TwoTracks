@@ -344,7 +344,7 @@ internal object Az305Infra {
                 "Rate limits stop one caller using everything, like a limit of two cakes per customer.",
                 "It can check each caller's sign-in token from Microsoft Entra ID before the request goes further.",
                 "Callers only know the desk, so the APIs behind it can move or change without breaking them.",
-                "Tiers: Consumption is serverless and billed per call; Developer is for testing, with no SLA; Basic and Standard, and their newer v2 versions, serve production; classic Premium is the one that spans several regions.",
+                "Tiers: Consumption is serverless and billed per call; Developer is for testing, with no SLA; Basic v2 is also for development and testing, but it has an SLA; classic Basic, Standard and Premium, plus Standard v2 and Premium v2, serve production; classic Premium is the one that spans several regions.",
             ),
             B.h("Caching with Redis"),
             B.p("""

@@ -258,7 +258,7 @@ internal object Ai200Mock5 {
                 whyWrong = mapOf(
                     1 to "Turning keys back on avoids the identity rather than fixing its access.",
                     2 to "The tier does not affect who may run commands.",
-                    3 to "Managed Redis requires TLS, and the port is not the issue.",
+                    3 to "Azure Managed Redis listens on port 10000, not 6379, and Microsoft Entra sign-in works only over TLS connections. Dropping TLS would break Entra authentication, and the missing Redis user would still be missing.",
                 ),
             ),
             B.q("ai-m4-33", "ai-redis", "A new vector index will hold about 2,000 FAQ embeddings, and answers must be exact nearest matches. Which algorithm do you declare for the VECTOR field in FT.CREATE?", listOf("HNSW, because it is always faster", "FLAT, the exact brute-force method that suits small sets", "IVF", "No algorithm; RediSearch picks one at query time"), setOf(1), "RediSearch offers FLAT (exact, compares every vector, fine for small sets) and HNSW (approximate graph search for large sets). For 2,000 vectors, FLAT is fast enough and always finds the true nearest matches.",

@@ -163,7 +163,7 @@ internal object Ai200Mock {
                     3 to "Consistency affects reads, not notification of changes.",
                 ),
             ),
-            B.q("ai-mk20", "ai-cosmos-changefeed", "Deleted notes must also be removed from a search index, but the change feed processor never sees deletes. What is the recommended approach?", listOf("Set a soft-delete flag on the item (and optionally a TTL), so the change shows up as an update", "Increase the lease container throughput", "Read the change feed from the beginning every time", "Switch to Eventual consistency"), setOf(0), "In latest version mode the change feed does not record deletes; marking items deleted with a property turns the delete into an update the processor can handle, and TTL can remove the item later.",
+            B.q("ai-mk20", "ai-cosmos-changefeed", "Deleted notes must also be removed from a search index. The worker reads the change feed in latest version mode (the default), which does not record deletes, and the account does not use continuous backup. What is the recommended approach?", listOf("Set a soft-delete flag on the item (and optionally a TTL), so the change shows up as an update", "Increase the lease container throughput", "Read the change feed from the beginning every time", "Switch to Eventual consistency"), setOf(0), "Latest version mode does not record deletes. Marking an item deleted with a property (for example deleted = true) turns the delete into an update the worker sees, and a TTL removes the item later. (The separate all versions and deletes mode does record deletes, but it needs continuous backup turned on for the account.)",
                 scenario = "Two Tracks Coach copies notes into a secondary search store and must keep it in sync.",
                 whyWrong = mapOf(
                     1 to "More throughput on the leases does not make deletes appear in the feed.",
@@ -259,7 +259,7 @@ internal object Ai200Mock {
                     3 to "Auto-forwarding chains one entity to another; it does not order messages per learner.",
                 ),
             ),
-            B.q("ai-mk32", "ai-eventgrid", "A function should run only when a PDF is uploaded to the notes container, not for other blobs or deletes. What do you set on the Event Grid subscription? Select two.", listOf("Event type filter: Microsoft.Storage.BlobCreated", "Subject ends with: .pdf", "Batching with 100 events per batch", "A dead-letter destination"), setOf(0, 1), "Event type filtering limits delivery to BlobCreated, and subject filtering (ends with .pdf) limits it to PDF files.",
+            B.q("ai-mk32", "ai-eventgrid", "A function should run only when a PDF is uploaded to the notes container, not for other blobs or deletes. What do you set on the Event Grid subscription? Select two.", listOf("Event type filter: Microsoft.Storage.BlobCreated", "Subject filter: begins with /blobServices/default/containers/notes/ and ends with .pdf", "Batching with 100 events per batch", "A dead-letter destination"), setOf(0, 1), "Event type filtering limits delivery to BlobCreated (new uploads, not deletes). Subject filtering limits it to the notes container (begins with /blobServices/default/containers/notes/) and to PDF files (ends with .pdf). Ends with .pdf alone would still let through PDFs from every other container in the account.",
                 scenario = "Learners upload study PDFs to Blob Storage, and Two Tracks Coach extracts and embeds their text.",
                 whyWrong = mapOf(
                     2 to "Batching changes how events arrive, not which events arrive.",
@@ -298,10 +298,10 @@ internal object Ai200Mock {
                     3 to "The runtime does not read a setting with that name, and it is still a key.",
                 ),
             ),
-            B.q("ai-mk37", "ai-functions", "A clean-up function must run every 15 minutes. Which timer schedule?", listOf("*/15 * * * *", "0 */15 * * * *", "15m", "0 0 15 * * *"), setOf(1), "Functions timer triggers use six-field NCRONTAB expressions that start with seconds; 0 */15 * * * * fires at second 0 of every 15th minute.",
+            B.q("ai-mk37", "ai-functions", "A clean-up function must run every 15 minutes. Which timer schedule?", listOf("15 * * * * *", "0 */15 * * * *", "15m", "0 0 15 * * *"), setOf(1), "Functions timer triggers use NCRONTAB expressions. The documented form has six fields and starts with seconds, so 0 */15 * * * * fires at second 0 of every 15th minute. (A five-field cron expression with no seconds is also accepted.)",
                 scenario = "Two Tracks Coach removes expired upload sessions on a schedule.",
                 whyWrong = mapOf(
-                    0 to "Five fields is classic cron; the Functions timer expects six, starting with seconds.",
+                    0 to "With six fields the first one is seconds, so this fires once every minute, at second 15. It does not fire every 15 minutes.",
                     2 to "Simple duration strings are not valid NCRONTAB.",
                     3 to "That fires once a day at 15:00.",
                 ),

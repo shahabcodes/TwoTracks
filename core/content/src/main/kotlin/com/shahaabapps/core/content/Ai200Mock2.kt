@@ -224,7 +224,7 @@ internal object Ai200Mock2 {
         B.q("ai-mk78", "ai-opentelemetry", "Traces from the API and the worker show up as separate, unconnected operations. What has to flow between them?", listOf("W3C trace context (the traceparent value) passed with the request or message, so the worker continues the same trace", "The same Application Insights resource name", "A shared log file", "Identical span names"), setOf(0), "Distributed tracing links services by propagating trace context; the receiving side starts its span as a child of the caller's span.",
             scenario = "The Coach API sends work to the worker through Service Bus.",
             whyWrong = mapOf(
-                1 to "Sending to the same resource is needed but does not link the spans.",
+                1 to "One shared Application Insights resource is handy but not required. Traces can link across separate resources, even in different subscriptions. Either way, the resource name does not join the spans. Only the passed trace context does.",
                 2 to "A shared file is not trace context.",
                 3 to "Span names describe work; they do not join traces.",
             ),

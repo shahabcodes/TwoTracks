@@ -310,7 +310,7 @@ internal object Az305Identity {
                 "Conditional Access can take the location into account; the office network becomes a trusted named location.",
                 whyWrong = mapOf(
                     1 to "Security defaults are all or nothing; they cannot make exceptions for a location.",
-                    2 to "Per-user MFA prompts everywhere and is hard to manage; it has no location condition.",
+                    2 to "Per-user MFA is the old way. It is switched on person by person and covers every app, not just the portal. It can skip the office only through a legacy trusted IPs list. Microsoft recommends a Conditional Access location condition instead.",
                 ),
             ),
             B.h("Hybrid identity: one password for office and cloud"),

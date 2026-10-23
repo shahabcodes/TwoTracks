@@ -283,7 +283,7 @@ internal object Az305Mock4 {
                 whyWrong = mapOf(
                     1 to "Cross-region restore copies data to another region, which the rule forbids.",
                     2 to "The paired region is in another country here, so data would leave.",
-                    3 to "Snapshots are not orchestrated recovery and stay in the same zone's storage.",
+                    3 to "Snapshots are only restore points. Incremental snapshots are kept on zone-redundant storage (ZRS) where the region offers it, so they can survive a zone outage, but there is no continuous replication, no recovery plan and no orchestrated failover. Each VM would have to be rebuilt by hand, and OS-disk snapshots alone leave out any data disks.",
                 ),
             ),
             B.q("sa-m3-35", "sa-backup-dr", "Backups must stay recoverable for weeks even if an attacker deletes them, and the protection itself must be impossible to switch off. What do you configure on the vault?", listOf("Enhanced soft delete set to always-on, with a long soft delete period", "Locally redundant storage", "A daily backup report", "A smaller retention period"), setOf(0), "Soft delete keeps deleted backup data for a period, 14 days by default and up to 180 days with enhanced soft delete. Set to always-on, soft delete cannot be turned off, so an attacker cannot remove the safety net.",
@@ -359,7 +359,7 @@ internal object Az305Mock4 {
                     3 to "App Service is for long-running web apps, not one-off tasks.",
                 ),
             ),
-            B.q("sa-m3-44", "sa-compute", "Every VM must start from the same hardened image, rebuilt each month with patches, and available in three regions. What do you recommend? Select two.", listOf("Azure VM Image Builder to build the image each month", "An Azure Compute Gallery that replicates image versions to the three regions", "Take a snapshot of a running production VM", "Use the default Marketplace image and patch after deployment"), setOf(0, 1), "VM Image Builder builds images from a template, applying hardening and patches, and can run on a schedule. Azure Compute Gallery stores versioned images and replicates them to the regions where you deploy.",
+            B.q("sa-m3-44", "sa-compute", "Every VM must start from the same hardened image, rebuilt each month with patches, and available in three regions. What do you recommend? Select two.", listOf("Azure VM Image Builder to build the image each month", "An Azure Compute Gallery that replicates image versions to the three regions", "Take a snapshot of a running production VM", "Use the default Marketplace image and patch after deployment"), setOf(0, 1), "VM Image Builder builds images from a template, applying hardening and patches. It has no built-in timer: its SourceImage trigger starts a new build when the source platform or gallery image gets a new version, and a scheduled pipeline or automation job can start a build each month. Azure Compute Gallery stores versioned images and replicates them to the regions where you deploy.",
                 scenario = "Ashgrove Security runs the back end for its Android alarm app on VMs in three regions. Auditors found VMs built from images that had not been patched for a year.",
                 whyWrong = mapOf(
                     2 to "Snapshots of a live VM capture its data and drift, and are not a clean, repeatable image.",

@@ -105,7 +105,7 @@ internal object Psm1Mock3 {
             whyWrong = mapOf(
                 1 to "That is the Sprint Goal.",
                 2 to "The Product Goal is a future state of the product, not a sales figure.",
-                3 to "A feature list is not a goal, and releases are not part of the Guide.",
+                3 to "A feature list is not a goal; the Product Goal describes a future state of the product.",
             ),
         ),
         B.q("psm-mk96", "psm-product-backlog", "Where is the Product Goal kept?", listOf("In the Product Backlog", "In the Sprint Backlog", "In the Definition of Done", "In a separate roadmap document"), setOf(0),

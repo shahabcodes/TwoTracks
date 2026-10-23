@@ -265,13 +265,13 @@ internal object Psm1Team {
             """),
             B.check(
                 "psm-developers-k2", "psm-developers",
-                "Two days before the end of the Sprint, the export feature works but has no automated tests, which the Definition of Done requires. What happens to it?",
+                "It is time for the Sprint Review. The export feature works but still has no automated tests, which the Definition of Done requires. What happens to it?",
                 listOf(
                     "It is not part of the Increment and goes back to the Product Backlog",
                     "Release it now and add the tests next Sprint",
                     "The Product Owner can accept it as done anyway",
                 ), 0,
-                "Work that does not meet the Definition of Done is not part of the Increment.",
+                "Work cannot be considered part of an Increment unless it meets the Definition of Done. An item that still does not meet it cannot be released or even presented at the Sprint Review; instead, it returns to the Product Backlog for future consideration.",
                 whyWrong = mapOf(
                     1 to "Shipping below the Definition of Done lowers quality and breaks transparency about what is really finished.",
                     2 to "Nobody can waive the Definition of Done for one item, not even the Product Owner.",

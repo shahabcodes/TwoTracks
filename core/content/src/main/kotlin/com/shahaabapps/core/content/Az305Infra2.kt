@@ -114,13 +114,16 @@ internal object Az305Infra2 {
                 listOf("Target", "In DMS", "Pick it when"),
                 listOf("SQL Server on an Azure VM", "Online or offline", "You need the full SQL Server and its operating system"),
                 listOf("Azure SQL Managed Instance", "Online or offline", "Near-full SQL Server features, such as SQL Agent jobs, with no server to patch"),
-                listOf("Azure SQL Database", "Offline; move the schema first", "One modern database, fully managed"),
+                listOf("Azure SQL Database", "Offline only (DMS moves the schema too)", "One modern database, fully managed; for minimal downtime use transactional replication instead of DMS"),
             ),
             B.tip("""
-                "Minimal downtime" means an online migration, so the target is SQL Managed Instance or SQL Server on
-                a VM. Older guides show a wizard inside Azure Data Studio; that tool retired on 28 February 2026, and
-                the same work now runs from DMS in the portal, PowerShell or the CLI, with assessment through Azure
-                Arc.
+                "Minimal downtime" means an online migration. With DMS, online moves go only to SQL Managed Instance
+                or SQL Server on a VM; DMS moves to Azure SQL Database offline only. If the target must be Azure SQL
+                Database with minimal downtime, use transactional replication: Azure SQL Database is set up as a
+                subscriber and receives every change while the old server keeps running, and the cutover is a quick
+                switch of the app's connection string. Older guides show a wizard inside Azure Data Studio; that tool
+                retired on 28 February 2026, and the same work now runs from DMS in the portal, PowerShell or the CLI,
+                with assessment through Azure Arc.
             """),
             B.check(
                 "sa-migrations-k2", "sa-migrations",

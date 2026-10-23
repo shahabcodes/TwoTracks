@@ -520,7 +520,7 @@ internal object Az305Identity2 {
                     listOf("A storage account destination, with a cool or archive tier", "An event hub", "Keeping them only in the activity log"), setOf(0),
                     "Storage is the cheapest place for logs that are rarely read, and lifecycle rules can move them to colder tiers.",
                     whyWrong = mapOf(
-                        1 to "An event hub holds data for days at most; it is a pipe, not a store.",
+                        1 to "An event hub is a pipe, not a store: it keeps events for 90 days at most, even on its top tiers, far short of seven years.",
                         2 to "The activity log keeps 90 days, far short of seven years.",
                     ),
                 ),
@@ -561,7 +561,7 @@ internal object Az305Identity2 {
                     "Conditional Access applies conditions such as location before granting access, so MFA can be required only outside trusted networks.",
                     whyWrong = mapOf(
                         1 to "Security defaults are one fixed setting for the whole tenant, with no location conditions.",
-                        2 to "Per-user MFA asks every time, wherever the user is.",
+                        2 to "Per-user MFA has no location rule of its own. Skipping office sign-ins needs the separate legacy trusted IPs setting, and Microsoft recommends a Conditional Access named location instead.",
                     ),
                 ),
                 B.q(

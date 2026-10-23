@@ -86,7 +86,7 @@ internal object Az305Mock3 {
             B.q("sa-m2-10", "sa-authorization", "Office workers must reach on-premises file shares and a remote desktop server from home, with Conditional Access checks and no VPN. The apps are not web apps. What do you recommend?", listOf("Microsoft Entra application proxy", "Microsoft Entra Private Access, part of Global Secure Access", "Open the SMB and RDP ports to the internet", "Azure Bastion in a hub VNet"), setOf(1), "Microsoft Entra Private Access gives secure access to private apps of any TCP or UDP kind, such as SMB file shares and RDP, through a client on the device and a connector on-premises. Every connection passes Conditional Access, and no VPN is needed.",
                 scenario = "Brightwell Accountants has file servers and a remote desktop host in its office. Staff working from home also use the firm's Android expense app, which already signs in with Microsoft Entra ID. The old VPN appliance is out of support.",
                 whyWrong = mapOf(
-                    0 to "Application proxy publishes web apps. It does not carry SMB or RDP traffic.",
+                    0 to "Application proxy publishes HTTPS endpoints. It reaches remote desktops only through a Remote Desktop Services deployment, with RD Web and RD Gateway published together, and it cannot carry SMB file share traffic at all.",
                     2 to "Opening SMB and RDP to the internet invites attacks and offers no Conditional Access.",
                     3 to "Bastion reaches Azure VMs, not file shares and servers in the office.",
                 ),
@@ -255,10 +255,10 @@ internal object Az305Mock3 {
                 ),
             ),
             // Business continuity: backup and disaster recovery
-            B.q("sa-m2-31", "sa-backup-dr", "The VMs must be backed up every four hours, and some of them are Trusted Launch VMs. Which backup policy do you choose?", listOf("The standard VM backup policy", "The enhanced VM backup policy", "MARS agent backups", "Disk snapshots taken by a script"), setOf(1), "Azure Backup's enhanced policy takes several backups a day, as often as every four hours, and is the policy that supports Trusted Launch VMs (VMs with secure boot and a virtual TPM chip). The standard policy backs up once a day.",
+            B.q("sa-m2-31", "sa-backup-dr", "The VMs must be backed up every four hours, and some of them are Trusted Launch VMs. Which backup policy do you choose?", listOf("The standard VM backup policy", "The enhanced VM backup policy", "MARS agent backups", "Disk snapshots taken by a script"), setOf(1), "Only Azure Backup's enhanced policy takes several backups a day, as often as every four hours, and it supports Trusted Launch VMs (VMs with secure boot and a virtual TPM chip). The standard policy backs up at most once a day, so it cannot meet a four-hour limit.",
                 scenario = "Oakhurst Pharmacy's prescription service, used by its Android app, runs on Trusted Launch VMs. The pharmacy can lose at most four hours of data if a VM's disks are corrupted.",
                 whyWrong = mapOf(
-                    0 to "The standard policy backs up once a day and does not support Trusted Launch VMs.",
+                    0 to "The standard policy backs up at most once a day, so up to a day of data could be lost, well beyond the four-hour limit.",
                     2 to "MARS backs up files and folders, not whole VMs on a schedule like this.",
                     3 to "Scripted snapshots are homemade backup with no central retention, monitoring or vault protection.",
                 ),
