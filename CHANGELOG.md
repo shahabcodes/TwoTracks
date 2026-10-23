@@ -3,6 +3,10 @@
 All notable changes to Two Tracks. Versions follow `version.properties`; the
 build number is appended by CI (for example `0.1.0 (build 12)`).
 
+## [0.92.1] - 2026-10-23
+### Fixed
+- PSM I: 14 episodes re-recorded after a fact check against the 2020 Scrum Guide. The Daily Scrum stays fifteen minutes however short the Sprint (only Planning, Review and Retrospective are usually shorter). The Scrum Team may refine selected items during Sprint Planning. The Sprint counts as one of the five events. A Product Owner may delegate backlog ordering but stays accountable. A self-managing team decides who does what, when and how.
+
 ## [0.92.0] - 2026-10-23
 ### Added
 - PSM I (Scrum.org Professional Scrum Master I): a new course of five modules and fifteen topics written from the 2020 Scrum Guide, each with lessons, checks and a module test.

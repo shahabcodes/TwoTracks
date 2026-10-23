@@ -1,6 +1,6 @@
 {
  "topicId": "psm-empiricism--gossip",
- "seconds": 340.72,
+ "seconds": 345.0,
  "lines": [
   {
    "line": 0,
@@ -186,37 +186,37 @@
    "line": 30,
    "host": "maya",
    "start": 266.28,
-   "end": 288.68
+   "end": 292.96
   },
   {
    "line": 31,
    "host": "leo",
-   "start": 289.0,
-   "end": 291.84
+   "start": 293.28,
+   "end": 296.12
   },
   {
    "line": 32,
    "host": "maya",
-   "start": 292.16,
-   "end": 316.8
+   "start": 296.44,
+   "end": 321.08
   },
   {
    "line": 33,
    "host": "leo",
-   "start": 317.12,
-   "end": 320.16
+   "start": 321.4,
+   "end": 324.44
   },
   {
    "line": 34,
    "host": "maya",
-   "start": 320.48,
-   "end": 337.48
+   "start": 324.76,
+   "end": 341.76
   },
   {
    "line": 35,
    "host": "leo",
-   "start": 337.8,
-   "end": 340.72
+   "start": 342.08,
+   "end": 345.0
   }
  ]
 }

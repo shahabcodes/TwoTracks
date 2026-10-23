@@ -1,6 +1,6 @@
 {
  "topicId": "psm-scrum-master--gossip",
- "seconds": 340.39,
+ "seconds": 345.63,
  "lines": [
   {
    "line": 0,
@@ -126,97 +126,97 @@
    "line": 20,
    "host": "maya",
    "start": 179.44,
-   "end": 198.36
+   "end": 203.6
   },
   {
    "line": 21,
    "host": "leo",
-   "start": 198.68,
-   "end": 201.36
+   "start": 203.92,
+   "end": 206.6
   },
   {
    "line": 22,
    "host": "maya",
-   "start": 201.68,
-   "end": 218.72
+   "start": 206.92,
+   "end": 223.96
   },
   {
    "line": 23,
    "host": "leo",
-   "start": 219.04,
-   "end": 221.56
+   "start": 224.28,
+   "end": 226.8
   },
   {
    "line": 24,
    "host": "maya",
-   "start": 221.88,
-   "end": 236.59
+   "start": 227.12,
+   "end": 241.83
   },
   {
    "line": 25,
    "host": "leo",
-   "start": 236.91,
-   "end": 238.63
+   "start": 242.15,
+   "end": 243.87
   },
   {
    "line": 26,
    "host": "maya",
-   "start": 238.95,
-   "end": 256.23
+   "start": 244.19,
+   "end": 261.47
   },
   {
    "line": 27,
    "host": "leo",
-   "start": 256.55,
-   "end": 258.39
+   "start": 261.79,
+   "end": 263.63
   },
   {
    "line": 28,
    "host": "maya",
-   "start": 258.71,
-   "end": 273.43
+   "start": 263.95,
+   "end": 278.67
   },
   {
    "line": 29,
    "host": "leo",
-   "start": 273.75,
-   "end": 278.79
+   "start": 278.99,
+   "end": 284.03
   },
   {
    "line": 30,
    "host": "maya",
-   "start": 279.11,
-   "end": 291.55
+   "start": 284.35,
+   "end": 296.79
   },
   {
    "line": 31,
    "host": "leo",
-   "start": 291.87,
-   "end": 294.71
+   "start": 297.11,
+   "end": 299.95
   },
   {
    "line": 32,
    "host": "maya",
-   "start": 295.03,
-   "end": 315.47
+   "start": 300.27,
+   "end": 320.71
   },
   {
    "line": 33,
    "host": "leo",
-   "start": 315.79,
-   "end": 318.83
+   "start": 321.03,
+   "end": 324.07
   },
   {
    "line": 34,
    "host": "maya",
-   "start": 319.15,
-   "end": 336.71
+   "start": 324.39,
+   "end": 341.95
   },
   {
    "line": 35,
    "host": "leo",
-   "start": 337.03,
-   "end": 340.39
+   "start": 342.27,
+   "end": 345.63
   }
  ]
 }
