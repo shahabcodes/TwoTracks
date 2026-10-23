@@ -128,7 +128,7 @@ internal object Psm1EpisodesEmpiricism {
             leo("I can guess how the weekend went."),
             maya("That's lean thinking. The Scrum Guide says Scrum rests on empiricism and lean thinking: reduce waste and focus on the essentials. Waste is effort that adds no value. A feature nobody uses, or work sitting half-done, is waste."),
             leo("And the department head? Any gossip?"),
-            maya("He called Scrum a methodology and suggested dropping the Retrospective to save time. But the Scrum Guide calls Scrum a lightweight framework, deliberately incomplete: it gives the frame and leaves the practices to you. Its events, the Sprint Planning, Daily Scrum, Sprint Review and Retrospective, are where you inspect and adapt. Drop one, and it's not Scrum."),
+            maya("He called Scrum a methodology and suggested dropping the Retrospective to save time. But the Scrum Guide calls Scrum a lightweight framework, deliberately incomplete: it gives the frame and leaves the practices to you. It has five events: the Sprint itself, and inside it Sprint Planning, the Daily Scrum, the Sprint Review and the Retrospective. They're where you inspect and adapt. Drop one, and it's not Scrum."),
             leo("So, the gossip I should remember for the exam?"),
             maya("The three pillars: transparency, inspection, adaptation. Empiricism means decisions based on what is observed. Inspection without transparency is misleading; inspection without adaptation is pointless. Scrum is a lightweight framework, deliberately incomplete. And adapt as soon as possible. The values episode is next, if you want more of the team's week."),
             leo("And something to try today, so I'm not next week's story?"),

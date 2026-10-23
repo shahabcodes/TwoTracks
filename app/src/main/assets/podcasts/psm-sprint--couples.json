@@ -1,6 +1,6 @@
 {
  "topicId": "psm-sprint--couples",
- "seconds": 340.27,
+ "seconds": 338.31,
  "lines": [
   {
    "line": 0,
@@ -150,73 +150,73 @@
    "line": 24,
    "host": "nova",
    "start": 212.13,
-   "end": 241.33
+   "end": 239.37
   },
   {
    "line": 25,
    "host": "rafe",
-   "start": 241.65,
-   "end": 245.38
+   "start": 239.69,
+   "end": 243.42
   },
   {
    "line": 26,
    "host": "nova",
-   "start": 245.7,
-   "end": 254.1
+   "start": 243.74,
+   "end": 252.14
   },
   {
    "line": 27,
    "host": "rafe",
-   "start": 254.42,
-   "end": 269.2
+   "start": 252.46,
+   "end": 267.24
   },
   {
    "line": 28,
    "host": "nova",
-   "start": 269.52,
-   "end": 274.12
+   "start": 267.56,
+   "end": 272.16
   },
   {
    "line": 29,
    "host": "rafe",
-   "start": 274.44,
-   "end": 288.18
+   "start": 272.48,
+   "end": 286.22
   },
   {
    "line": 30,
    "host": "nova",
-   "start": 288.5,
-   "end": 291.54
+   "start": 286.54,
+   "end": 289.58
   },
   {
    "line": 31,
    "host": "rafe",
-   "start": 291.86,
-   "end": 312.72
+   "start": 289.9,
+   "end": 310.76
   },
   {
    "line": 32,
    "host": "nova",
-   "start": 313.04,
-   "end": 316.23
+   "start": 311.08,
+   "end": 314.27
   },
   {
    "line": 33,
    "host": "rafe",
-   "start": 316.55,
-   "end": 319.01
+   "start": 314.59,
+   "end": 317.05
   },
   {
    "line": 34,
    "host": "nova",
-   "start": 319.33,
-   "end": 336.53
+   "start": 317.37,
+   "end": 334.57
   },
   {
    "line": 35,
    "host": "rafe",
-   "start": 336.85,
-   "end": 340.27
+   "start": 334.89,
+   "end": 338.31
   }
  ]
 }

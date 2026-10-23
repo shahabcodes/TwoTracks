@@ -1,6 +1,6 @@
 {
  "topicId": "psm-scrum-team--gossip",
- "seconds": 340.44,
+ "seconds": 345.0,
  "lines": [
   {
    "line": 0,
@@ -186,61 +186,61 @@
    "line": 30,
    "host": "maya",
    "start": 243.36,
-   "end": 261.4
+   "end": 265.96
   },
   {
    "line": 31,
    "host": "leo",
-   "start": 261.72,
-   "end": 263.56
+   "start": 266.28,
+   "end": 268.12
   },
   {
    "line": 32,
    "host": "maya",
-   "start": 263.88,
-   "end": 274.08
+   "start": 268.44,
+   "end": 278.64
   },
   {
    "line": 33,
    "host": "leo",
-   "start": 274.4,
-   "end": 278.08
+   "start": 278.96,
+   "end": 282.64
   },
   {
    "line": 34,
    "host": "maya",
-   "start": 278.4,
-   "end": 291.84
+   "start": 282.96,
+   "end": 296.4
   },
   {
    "line": 35,
    "host": "leo",
-   "start": 292.16,
-   "end": 295.0
+   "start": 296.72,
+   "end": 299.56
   },
   {
    "line": 36,
    "host": "maya",
-   "start": 295.32,
-   "end": 319.84
+   "start": 299.88,
+   "end": 324.4
   },
   {
    "line": 37,
    "host": "leo",
-   "start": 320.16,
-   "end": 323.2
+   "start": 324.72,
+   "end": 327.76
   },
   {
    "line": 38,
    "host": "maya",
-   "start": 323.52,
-   "end": 337.28
+   "start": 328.08,
+   "end": 341.84
   },
   {
    "line": 39,
    "host": "leo",
-   "start": 337.6,
-   "end": 340.44
+   "start": 342.16,
+   "end": 345.0
   }
  ]
 }
