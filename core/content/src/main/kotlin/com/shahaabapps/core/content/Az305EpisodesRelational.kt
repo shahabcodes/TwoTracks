@@ -13,7 +13,9 @@ internal object Az305EpisodesRelational {
             leo("Fully managed meaning what?"),
             maya("That's PaaS, platform as a service. Think of a hotel room: cleaning and repairs are the hotel's job. Azure patches the server, takes the backups and keeps a spare ready; you only look after your data. Azure SQL Database is that: one database, managed for you."),
             leo("And fully mine?"),
-            maya("IaaS, infrastructure as a service. Renting an empty house: you fix the boiler. Here you rent a virtual machine, a pretend computer carved out of a big real one in Azure's building, and run SQL Server on it yourself. You patch the operating system, Windows or Linux, and everything above it."),
+            maya("IaaS, infrastructure as a service. Renting an empty house: you fix the boiler. Here you rent a virtual machine, a pretend computer carved out of a big real one in Azure's building, and install SQL Server on it yourself."),
+            leo("So like the Linux box my API runs on today. I log in, install the updates, restart it at two in the morning."),
+            maya("Exactly that. The operating system, Windows or Linux, SQL Server's own patches, the backups: all yours."),
             leo("Why would anyone pick the house with the broken boiler?"),
             maya("When the hotel can't give you what you need. For example, a vendor app wants full control of the operating system, or an exact SQL Server version Azure no longer offers as PaaS. Only a VM, a virtual machine, gives you that."),
             leo("And the home in the middle?"),
@@ -21,19 +23,27 @@ internal object Az305EpisodesRelational {
             leo("Who needs nearly all of it?"),
             maya("The Two Tracks office database. It leans on SQL Server extras. SQL Agent, a built-in alarm clock that runs jobs at night. And cross-database queries, which join tables from two databases in one question. Azure SQL Database keeps neither."),
             leo("So the office database goes to Managed Instance."),
-            maya("As it is. That's lift and shift: moving house with the furniture as it is, few changes. And if an app already speaks PostgreSQL or MySQL, two popular free database engines, Azure runs those as a managed flexible server, with a cheap Burstable size for quiet databases."),
+            maya("As it is. That's lift and shift: moving house with the furniture as it is, few changes."),
+            leo("And my side project? It's on PostgreSQL, not SQL Server at all."),
+            maya("Then you skip the SQL Server family. PostgreSQL and MySQL are two popular free database engines, and Azure runs them as a managed flexible server, with a cheap Burstable size for quiet databases."),
             leo("Okay, homes done. Now how do I pay for the power?"),
             maya("Azure SQL Database has two purchasing models. A DTU, a database transaction unit, is a set menu: one fixed bundle of processor, memory and disk speed. Simple, but you can't change one part alone."),
             leo("And the other?"),
-            maya("vCore, short for virtual core. A core is one brain of a processor. Here you order a la carte: the processors, then the storage, separately. The exam favours vCore. It has the three modern tiers, and it lets you reuse SQL Server licences you already own."),
+            maya("vCore, short for virtual core. A core is one brain of a processor. Here you order a la carte: the processors, then the storage, separately."),
+            leo("Like setting up an emulator: I pick the processor count and the storage myself, instead of a preset phone."),
+            maya("Nice. And the exam favours vCore. It has the three modern tiers, and it lets you reuse SQL Server licences you already own."),
             leo("Three tiers. Go slowly, I'm a fresher."),
-            maya("[pause] First, two words. Latency is the wait for each answer, like the gap between asking a question and hearing the reply. A replica is a live copy of the database, like a mirror; if the main one breaks, Azure switches to it."),
+            maya("[pause] First, two words. Latency is the wait for each answer: your API sends a query, and latency is the gap before the rows come back."),
+            leo("So the spinner on my phone screen, partly."),
+            maya("Partly, yes. And a replica is a live copy of the database, like a mirror. If the main one breaks, Azure switches to it."),
             leo("Got it. Tier one?"),
             maya("General Purpose. Most business apps on a budget. The data sits on fast network storage, it goes up to 4 terabytes, and no readable copy is included. Say your app is a normal school portal: General Purpose."),
             leo("Tier two?"),
             maya("Business Critical. The data sits on fast flash disks inside the server itself, so latency is the lowest. A readable replica is included, and tables can be kept in memory for speed. It's also the dearest."),
             leo("And three, the big one?"),
-            maya("Hyperscale. For big or fast-growing databases and heavy reading. Storage grows to 128 terabytes, backups are snapshots, quick photos of the disk, so restores take minutes, and you can add up to 30 named replicas just for reading."),
+            maya("Hyperscale. For big or fast-growing databases and heavy reading. Storage grows to 128 terabytes."),
+            leo("And restoring something that size? That must take all day."),
+            maya("Minutes. Backups are snapshots, quick photos of the disk. And you can add up to 30 named replicas, copies just for reading."),
             leo("So the Australian leaderboard, heading for 30 terabytes?"),
             maya("Hyperscale, with named replicas so the leaderboard pages read from copies. General Purpose and Business Critical both stop at 4 terabytes, so choosing Business Critical for size is a classic mistake."),
             leo("Now the part I care about. Cheap."),
@@ -43,9 +53,11 @@ internal object Az305EpisodesRelational {
             leo("Like two hundred partner schools, each busy at a different hour."),
             maya("Exactly. Their peaks don't line up, so you never pay for two hundred peaks. And when one database outgrows everything, you split it across databases by a key, such as region, like one filing cabinet per country. That's sharding."),
             leo("Last part. Keeping it safe."),
-            maya("GDPR, Europe's privacy law, wants personal data guarded. Start with TDE, transparent data encryption. It scrambles the files on disk, so a stolen disk is useless, and it's on by default. But anyone who queries the database still sees plain values."),
+            maya("GDPR, Europe's privacy law, wants personal data guarded. Start with TDE, transparent data encryption. It scrambles the files on disk, so a stolen disk is useless, and it's on by default."),
+            leo("Transparent meaning my code doesn't change?"),
+            maya("Right: your API reads and writes as normal. But that cuts both ways. Anyone who queries the database still sees plain values."),
             leo("So it doesn't hide data from the people running the server?"),
-            maya("No, and that's the trap. For that, Always Encrypted. The app encrypts chosen columns before sending them, like sealing a letter before the postman takes it. The keys stay with the app, so the server and its admins only see scrambled text."),
+            maya("No, and that's the trap. For that, Always Encrypted. The database driver in your API encrypts chosen columns before sending them, like sealing a letter before the postman takes it. The keys stay with the app, so the server and its admins only see scrambled text."),
             leo("What about support staff who need a peek?"),
             maya("Dynamic data masking. Users without the unmask right see XXXX instead of the value, like a receipt showing only the last four digits. Add auditing, a visitor log of who did what."),
             leo("And keeping strangers off the line?"),
@@ -74,13 +86,19 @@ internal object Az305EpisodesRelational {
             leo("So the right move was lift and shift?"),
             maya("Lift and shift: moving house with the furniture as it is. What Managed Instance really is: a whole SQL Server, many databases together, that Azure runs for you. That's why the alarm clock and cross-database queries still work."),
             leo("Then why not go all the way? Put it on a virtual machine and keep everything."),
-            maya("That's the other trap. A virtual machine is a pretend computer carved out of a big real one in Azure's building. SQL Server on one is IaaS, infrastructure as a service: renting an empty house, where you fix the boiler and patch the operating system. Worth it only when something needs that system, or an exact old SQL Server version."),
+            maya("That's the other trap. A virtual machine is a pretend computer carved out of a big real one in Azure's building. SQL Server on one is IaaS, infrastructure as a service: renting an empty house, where you fix the boiler."),
+            leo("Fixing the boiler meaning patching? I already patch the Linux box my API runs on. How bad can it be?"),
+            maya("Now add SQL Server's own patches, and the backups, forever. Worth it only when something needs that operating system, or an exact old SQL Server version. Nothing here did."),
             leo("Case one closed. There's a second witness, isn't there?"),
             maya("The leaderboard. Australian learners love it, and it's heading for 30 terabytes. The team bought Business Critical, the fastest tier, to be safe. Last week it hit a wall at 4 terabytes."),
             leo("Suspect: they bought too small a size. Just pay for more."),
-            maya("No size of Business Critical goes past 4 terabytes. First, how you pay. A DTU, a database transaction unit, is a set menu: one fixed bundle of processor, memory and disk speed. A vCore, a virtual processor core, is a la carte: processors and storage chosen separately."),
+            maya("No size of Business Critical goes past 4 terabytes. Back to basics: how you pay. A DTU, a database transaction unit, is a set menu: one fixed bundle of processor, memory and disk speed."),
+            leo("A set menu. So if I only need more disk, I still buy the whole bigger meal?"),
+            maya("That's the clue. A vCore, a virtual processor core, is a la carte: processors and storage chosen separately."),
             leo("And the tiers live on the vCore side."),
-            maya("Three of them. General Purpose for most apps on a budget. Business Critical for the lowest latency, meaning the shortest wait for each answer, with a readable replica, a live copy, included. And Hyperscale, for big or fast-growing data: storage grows to 128 terabytes."),
+            maya("Three of them. General Purpose for most apps on a budget. Business Critical for the lowest latency, meaning the shortest wait for each answer."),
+            leo("That's why they picked it. Fastest sounded safest."),
+            maya("Fast, with a readable replica, a live copy, included. But big is a different job. Hyperscale is for big or fast-growing data: storage grows to 128 terabytes."),
             leo("So the leaderboard needed Hyperscale."),
             maya("Hyperscale, with up to 30 named replicas just for reading, so leaderboard pages never touch the main database. Backups are snapshots, quick photos of the disk, so a restore takes minutes. How it works: Hyperscale keeps the storage apart from the processors, so storage grows on its own."),
             leo("Third witness. I can feel a bill coming."),
@@ -94,7 +112,9 @@ internal object Az305EpisodesRelational {
             leo("Suspect: encryption was switched off."),
             maya("It was on. TDE, transparent data encryption, scrambles the files on disk, so a stolen disk is useless. But anyone who queries the database sees plain values, administrators included. The requirement said admins must not read it. That's Always Encrypted."),
             leo("Which works how?"),
-            maya("The app encrypts chosen columns before sending them, like sealing a letter before the postman takes it. The keys stay with the app, so the server only holds scrambled text. For support staff, dynamic data masking shows XXXX instead. And a private endpoint, an address only inside your own network, keeps traffic off the internet."),
+            maya("The app encrypts chosen columns before sending them, like sealing a letter before the postman takes it. The keys stay with the app, so the server only holds scrambled text."),
+            leo("So the database driver in my API does the sealing, and the administrator just sees gibberish?"),
+            maya("Exactly. For support staff, dynamic data masking shows XXXX instead. And a private endpoint, an address only inside your own network, keeps traffic off the internet."),
             leo("Where does all this stop, though?"),
             maya("At one region, one group of Azure buildings in one part of the world; copies across regions are the high availability episode. And an app that speaks PostgreSQL or MySQL, two free database engines, goes to Azure's flexible server instead. The migrations episode covers moving day."),
             leo("So, the case summary for the exam?"),
@@ -114,7 +134,9 @@ internal object Az305EpisodesRelational {
             leo("[laugh] I heard someone booked a hotel for a database. What are we even moving?"),
             maya("Relational data: tables of rows and columns that point at each other through IDs, like a tidy spreadsheet with strict rules. It runs on SQL Server, Microsoft's database engine. And Azure has three homes for it."),
             leo("Three homes. Go on."),
-            maya("Azure SQL Database is PaaS, platform as a service: a hotel room, where the hotel does the cleaning and repairs. SQL Server on a virtual machine, a pretend computer rented in Azure's building, is IaaS, infrastructure as a service: an empty house where you fix the boiler. In between, SQL Managed Instance."),
+            maya("Azure SQL Database is PaaS, platform as a service: a hotel room, where the hotel does the cleaning and repairs."),
+            leo("And if I'd rather do my own cleaning?"),
+            maya("SQL Server on a virtual machine, a pretend computer rented in Azure's building. That's IaaS, infrastructure as a service: an empty house where you fix the boiler. In between, SQL Managed Instance."),
             leo("So who went first?"),
             maya("Tom. Monday. Tom moved the old office database to Azure SQL Database, because least admin sounded lovely. And on Monday night, nothing ran."),
             leo("Nothing?"),
@@ -128,7 +150,9 @@ internal object Az305EpisodesRelational {
             leo("Wednesday?"),
             maya("Marcus. The Australian leaderboard is heading for 30 terabytes. Marcus picked Business Critical, the fastest tier, because big must mean expensive. It hit a wall at 4 terabytes."),
             leo("Wait. Tiers? Back up a step."),
-            maya("Two ways to pay. A DTU, a database transaction unit, is a set menu: one fixed bundle of processor, memory and disk speed. A vCore, a virtual processor core, is a la carte: processors and storage chosen separately. The exam favours vCore, because it has the three modern tiers."),
+            maya("Two ways to pay. A DTU, a database transaction unit, is a set menu: one fixed bundle of processor, memory and disk speed."),
+            leo("So Marcus couldn't just buy more disk?"),
+            maya("Not on a set menu. A vCore, a virtual processor core, is a la carte: processors and storage chosen separately. The exam favours vCore, because it has the three modern tiers."),
             leo("Which are?"),
             maya("General Purpose, for most apps on a budget, up to 4 terabytes. Business Critical, for the lowest latency, meaning the shortest wait for each answer, with a readable replica, a live copy, included. And Hyperscale, which grows to 128 terabytes."),
             leo("So Marcus needed Hyperscale."),
@@ -178,7 +202,9 @@ internal object Az305EpisodesRelational {
             ivy("I know that wait. What else does Business Critical bring?"),
             nova("Fast flash disks inside the server itself, and a readable replica included. A replica is a live copy of the database, like a reflection in a window. If the main one falls, Azure switches to the copy."),
             ivy("And for something really big?"),
-            nova("Hyperscale. Storage grows to 128 terabytes, backups are snapshots, quick photos of the disk, so restores take minutes, and up to 30 named replicas share the reading. The Australian leaderboard, heading for 30 terabytes, lives there. Business Critical would stop at 4."),
+            nova("Hyperscale. Storage grows to 128 terabytes, and up to 30 named replicas share the reading."),
+            ivy("And if something breaks at three in the morning? Restoring all that takes till sunrise?"),
+            nova("Minutes. [pause] Backups are snapshots, quick photos of the disk. The Australian leaderboard, heading for 30 terabytes, lives there. Business Critical would stop at 4."),
             ivy("Now. Some databases sleep at night. Like sensible people."),
             nova("Then serverless. It grows and shrinks itself and bills per second, like a taxi meter. In General Purpose, it can pause when idle, so you pay only for storage while it dreams. [pause] Under the hood, Azure watches its work and adds or takes away processor power as needed."),
             ivy("And if it never sleeps?"),
@@ -186,7 +212,9 @@ internal object Az305EpisodesRelational {
             ivy("A pool. At this hour. Go on."),
             nova("A shared budget of compute for many databases. Like a family data plan, where each phone uses the allowance at a different time. Their busy hours don't line up, so you never pay for two hundred peaks."),
             ivy("Now the part that keeps me up. Who can read the learners' health notes?"),
-            nova("Ah. GDPR, Europe's privacy law, cares about that too. TDE, transparent data encryption, scrambles the files on disk, so a stolen disk is useless. It's on by default. But anyone who queries the database still sees plain values. Even the administrators."),
+            nova("Ah. GDPR, Europe's privacy law, cares about that too. TDE, transparent data encryption, scrambles the files on disk, so a stolen disk is useless. It's on by default."),
+            ivy("So the notes are safe."),
+            nova("From a thief, yes. [pause] But anyone who queries the database still sees plain values. Even the administrators."),
             ivy("So how do I keep it from them?"),
             nova("Always Encrypted. The app seals chosen columns before sending them, like a letter sealed before the postman takes it. The keys stay with the app, so the server only holds scrambled text. [pause] And for support staff, dynamic data masking shows XXXX, like a receipt with only the last four digits."),
             ivy("And keeping strangers off the line entirely?"),
@@ -210,7 +238,9 @@ internal object Az305EpisodesRelational {
             rafe("Settling down. On a first date? [laugh] Which data?"),
             nova("Relational data. Tables of rows and columns that point at each other through IDs, like a tidy spreadsheet with strict rules. Two Tracks, the Android study app, has gone global, with a backend on Azure and learners in Europe and Australia. Its tables run on SQL Server, Microsoft's database engine."),
             rafe("And Azure has three homes for it. Hotel, house, or something in between."),
-            nova("Exactly. Azure SQL Database is PaaS, platform as a service: a hotel room, where Azure does the cleaning, the patching and the backups. SQL Server on a virtual machine, a pretend computer rented in Azure's building, is IaaS, infrastructure as a service: your own house, where you fix the boiler. In between, SQL Managed Instance."),
+            nova("Exactly. Azure SQL Database is PaaS, platform as a service: a hotel room, where Azure does the cleaning, the patching and the backups."),
+            rafe("I do like a hotel. But what if I want to fix my own boiler?"),
+            nova("Then SQL Server on a virtual machine, a pretend computer rented in Azure's building. That's IaaS, infrastructure as a service: your own house. In between, SQL Managed Instance."),
             rafe("Then my first question, exam style. The office database uses SQL Agent, a built-in alarm clock for night jobs, and queries that join two databases. It must move with few changes and no patching. Which home?"),
             nova("Managed Instance. Nearly all of SQL Server, close to a hundred percent compatible, and Azure still patches it. Lift and shift, furniture and all."),
             rafe("Right answer. You never forget the little habits. [kiss]"),
@@ -220,7 +250,9 @@ internal object Az305EpisodesRelational {
             rafe("Managed Instance again. It's so accommodating."),
             nova("[sigh] No kiss for that one. Azure still owns the operating system there. Only a virtual machine hands you the keys to the whole house, and lets you pick the exact version."),
             rafe("Fine. Teach me how we pay, then."),
-            nova("Two ways. A DTU, a database transaction unit, is a set menu: one fixed bundle of processor, memory and disk speed. A vCore, a virtual processor core, is a la carte: processors and storage chosen separately. The exam prefers a la carte. More choice, like you."),
+            nova("Two ways. A DTU, a database transaction unit, is a set menu: one fixed bundle of processor, memory and disk speed."),
+            rafe("And if I only want more dessert?"),
+            nova("Then a vCore, a virtual processor core: a la carte, processors and storage chosen separately. The exam prefers a la carte. More choice, like you."),
             rafe("And the vCore tiers. Something general, something critical, something huge."),
             nova("General Purpose for most apps, up to 4 terabytes. Business Critical for the lowest latency, meaning the shortest wait for each answer, with a readable replica, a live copy, included. And Hyperscale, which grows to 128 terabytes."),
             rafe("Then here's one. The Australian leaderboard will reach 30 terabytes, serves many readers and needs restores in minutes. Which tier?"),
@@ -382,50 +414,50 @@ internal object Az305EpisodesRelational {
                     Beat(4, card = BoardCard("A design exam", "Hear the requirement words; pick the home, tier and protection.")),
                     Beat(6, show = setOf("db"), light = setOf("db"), pulse = "app" to "db", card = BoardCard("PaaS: a hotel room", "Azure patches, backs up and keeps a spare. You mind the data.")),
                     Beat(8, show = setOf("vm"), light = setOf("vm"), pulse = "app" to "vm", card = BoardCard("IaaS: your own house", "A rented virtual machine. You patch the operating system.")),
-                    Beat(10, light = setOf("vm"), card = BoardCard("Only a VM", "Full OS control, or an exact old SQL Server version.")),
-                    Beat(12, show = setOf("mi", "note"), light = setOf("mi"), pulse = "app" to "mi", card = BoardCard("SQL Managed Instance", "Nearly all of SQL Server, still patched by Azure.")),
-                    Beat(14, card = BoardCard("SQL Agent", "A built-in alarm clock for night jobs; and cross-database queries.")),
-                    Beat(16, card = liftShift),
+                    Beat(12, light = setOf("vm"), card = BoardCard("Only a VM", "Full OS control, or an exact old SQL Server version.")),
+                    Beat(14, show = setOf("mi", "note"), light = setOf("mi"), pulse = "app" to "mi", card = BoardCard("SQL Managed Instance", "Nearly all of SQL Server, still patched by Azure.")),
+                    Beat(16, card = BoardCard("SQL Agent", "A built-in alarm clock for night jobs; and cross-database queries.")),
+                    Beat(18, card = liftShift),
                 ),
             ),
-            // 17: "Okay, homes done. Now how do I pay for the power?"
+            // 21: "Okay, homes done. Now how do I pay for the power?"
             Scene(
-                17, "Paying for power", buying(),
+                21, "Paying for power", buying(),
                 beats = listOf(
-                    Beat(18, show = setOf("dtu"), light = setOf("dtu"), card = BoardCard("DTU", "A set menu: one fixed bundle of processor, memory and disk.")),
-                    Beat(20, show = setOf("vcore"), light = setOf("vcore"), card = BoardCard("vCore", "A la carte: processors and storage chosen separately.")),
-                    Beat(22, card = BoardCard("Two words", "Latency: the wait for each answer. A replica: a live copy.")),
-                    Beat(24, show = setOf("gp"), light = setOf("gp"), pulse = "vcore" to "gp", card = BoardCard("General Purpose", "Most apps on a budget: network storage, up to 4 TB.")),
-                    Beat(26, show = setOf("bc"), light = setOf("bc"), pulse = "vcore" to "bc", card = BoardCard("Business Critical", "Lowest latency: flash disks inside, a readable replica.")),
-                    Beat(28, show = setOf("hs"), light = setOf("hs"), pulse = "vcore" to "hs", card = BoardCard("Hyperscale", "Up to 128 TB, snapshot backups, up to 30 named replicas.")),
-                    Beat(30, show = setOf("note"), light = setOf("hs", "note"), card = BoardCard("The leaderboard", "Heading for 30 TB: Hyperscale. The others stop at 4 TB.")),
+                    Beat(22, show = setOf("dtu"), light = setOf("dtu"), card = BoardCard("DTU", "A set menu: one fixed bundle of processor, memory and disk.")),
+                    Beat(24, show = setOf("vcore"), light = setOf("vcore"), card = BoardCard("vCore", "A la carte: processors and storage chosen separately.")),
+                    Beat(28, card = BoardCard("Two words", "Latency: the wait for each answer. A replica: a live copy.")),
+                    Beat(32, show = setOf("gp"), light = setOf("gp"), pulse = "vcore" to "gp", card = BoardCard("General Purpose", "Most apps on a budget: network storage, up to 4 TB.")),
+                    Beat(34, show = setOf("bc"), light = setOf("bc"), pulse = "vcore" to "bc", card = BoardCard("Business Critical", "Lowest latency: flash disks inside, a readable replica.")),
+                    Beat(36, show = setOf("hs"), light = setOf("hs"), pulse = "vcore" to "hs", card = BoardCard("Hyperscale", "Up to 128 TB, snapshot backups, up to 30 named replicas.")),
+                    Beat(40, show = setOf("note"), light = setOf("hs", "note"), card = BoardCard("The leaderboard", "Heading for 30 TB: Hyperscale. The others stop at 4 TB.")),
                 ),
             ),
-            // 31: "Now the part I care about. Cheap."
+            // 41: "Now the part I care about. Cheap."
             Scene(
-                31, "Cutting the cost", cost(),
+                41, "Cutting the cost", cost(),
                 beats = listOf(
-                    Beat(32, show = setOf("sl"), light = setOf("sl"), card = serverless),
-                    Beat(34, show = schools + "prov", light = setOf("prov", "pool"), card = pool),
-                    Beat(36, light = setOf("pool"), pulse = "pool" to "s3", card = BoardCard("Sharding", "Split the data across databases by a key, such as region.")),
+                    Beat(42, show = setOf("sl"), light = setOf("sl"), card = serverless),
+                    Beat(44, show = schools + "prov", light = setOf("prov", "pool"), card = pool),
+                    Beat(46, light = setOf("pool"), pulse = "pool" to "s3", card = BoardCard("Sharding", "Split the data across databases by a key, such as region.")),
                 ),
             ),
-            // 37: "Last part. Keeping it safe."
+            // 47: "Last part. Keeping it safe."
             Scene(
-                37, "Keeping it safe", protect(),
+                47, "Keeping it safe", protect(),
                 beats = listOf(
-                    Beat(38, show = setOf("app", "db", "tde"), light = setOf("tde"), card = BoardCard("TDE", "Scrambles the files on disk. On by default. Queries see plain values.")),
-                    Beat(40, show = setOf("ae"), light = setOf("ae"), card = alwaysEncrypted),
-                    Beat(42, show = setOf("mask"), light = setOf("mask"), card = BoardCard("Dynamic data masking", "XXXX for users without the unmask right; auditing logs who did what.")),
-                    Beat(44, light = setOf("app", "db"), pulse = "app" to "db", card = endpoint),
+                    Beat(48, show = setOf("app", "db", "tde"), light = setOf("tde"), card = BoardCard("TDE", "Scrambles the files on disk. On by default. Queries see plain values.")),
+                    Beat(52, show = setOf("ae"), light = setOf("ae"), card = alwaysEncrypted),
+                    Beat(54, show = setOf("mask"), light = setOf("mask"), card = BoardCard("Dynamic data masking", "XXXX for users without the unmask right; auditing logs who did what.")),
+                    Beat(56, light = setOf("app", "db"), pulse = "app" to "db", card = endpoint),
                 ),
             ),
-            // 45: "Right. So what do I remember for the exam?"
+            // 57: "Right. So what do I remember for the exam?"
             Scene(
-                45, "For the exam", exam(),
+                57, "For the exam", exam(),
                 beats = listOf(
-                    Beat(46, show = all6, light = all6, card = BoardCard("Listen for the phrase", "Each requirement points to one home, tier or feature.")),
-                    Beat(48, card = today),
+                    Beat(58, show = all6, light = all6, card = BoardCard("Listen for the phrase", "Each requirement points to one home, tier or feature.")),
+                    Beat(60, card = today),
                 ),
             ),
         ),
@@ -447,47 +479,47 @@ internal object Az305EpisodesRelational {
                     Beat(12, show = setOf("vm", "note"), light = setOf("vm"), pulse = "app" to "vm", card = BoardCard("A VM?", "IaaS: you patch the OS. Only when something needs it.")),
                 ),
             ),
-            // 13: "Case one closed. There's a second witness, isn't there?"
+            // 15: "Case one closed. There's a second witness, isn't there?"
             Scene(
-                13, "The second witness", buying(),
+                15, "The second witness", buying(),
                 beats = listOf(
-                    Beat(14, show = setOf("bc"), light = setOf("bc"), card = BoardCard("Business Critical", "Bought for size. It hit a wall at 4 TB.")),
-                    Beat(16, show = setOf("dtu", "vcore"), light = setOf("dtu", "vcore"), card = dtuVcore),
-                    Beat(18, show = setOf("gp", "hs"), light = setOf("gp", "bc", "hs"), pulse = "vcore" to "bc", card = BoardCard("Three tiers", "Latency: the wait for each answer. A replica: a live copy.")),
-                    Beat(20, show = setOf("note"), light = setOf("hs"), pulse = "vcore" to "hs", card = BoardCard("Hyperscale", "128 TB, snapshots, 30 named replicas; storage kept apart.")),
+                    Beat(16, show = setOf("bc"), light = setOf("bc"), card = BoardCard("Business Critical", "Bought for size. It hit a wall at 4 TB.")),
+                    Beat(18, show = setOf("dtu", "vcore"), light = setOf("dtu", "vcore"), card = dtuVcore),
+                    Beat(22, show = setOf("gp", "hs"), light = setOf("gp", "bc", "hs"), pulse = "vcore" to "bc", card = BoardCard("Three tiers", "Latency: the wait for each answer. A replica: a live copy.")),
+                    Beat(26, show = setOf("note"), light = setOf("hs"), pulse = "vcore" to "hs", card = BoardCard("Hyperscale", "128 TB, snapshots, 30 named replicas; storage kept apart.")),
                 ),
             ),
-            // 21: "Third witness. I can feel a bill coming."
+            // 27: "Third witness. I can feel a bill coming."
             Scene(
-                21, "The third witness", cost(),
+                27, "The third witness", cost(),
                 beats = listOf(
-                    Beat(22, show = setOf("sl"), light = setOf("sl"), card = serverless),
-                    Beat(24, show = setOf("prov"), light = setOf("prov"), card = BoardCard("Never idle", "Busy around the clock: a fixed size by the hour is cheaper.")),
-                    Beat(26, show = schools, light = setOf("pool"), pulse = "pool" to "s2", card = BoardCard("Elastic pool", "Two hundred schools, peaks that don't line up, one budget.")),
+                    Beat(28, show = setOf("sl"), light = setOf("sl"), card = serverless),
+                    Beat(30, show = setOf("prov"), light = setOf("prov"), card = BoardCard("Never idle", "Busy around the clock: a fixed size by the hour is cheaper.")),
+                    Beat(32, show = schools, light = setOf("pool"), pulse = "pool" to "s2", card = BoardCard("Elastic pool", "Two hundred schools, peaks that don't line up, one budget.")),
                 ),
             ),
-            // 27: "Last witness. Tell me it's not GDPR."
+            // 33: "Last witness. Tell me it's not GDPR."
             Scene(
-                27, "The last witness", protect(),
+                33, "The last witness", protect(),
                 beats = listOf(
-                    Beat(28, show = setOf("app", "db"), light = setOf("db"), card = BoardCard("Health notes", "A database administrator could read them.")),
-                    Beat(30, show = setOf("tde"), light = setOf("tde"), card = BoardCard("TDE was on", "It guards files at rest. Queries still see plain values.")),
-                    Beat(32, show = setOf("ae", "mask"), light = setOf("ae", "mask"), pulse = "app" to "db", card = alwaysEncrypted),
+                    Beat(34, show = setOf("app", "db"), light = setOf("db"), card = BoardCard("Health notes", "A database administrator could read them.")),
+                    Beat(36, show = setOf("tde"), light = setOf("tde"), card = BoardCard("TDE was on", "It guards files at rest. Queries still see plain values.")),
+                    Beat(38, show = setOf("ae", "mask"), light = setOf("ae", "mask"), pulse = "app" to "db", card = alwaysEncrypted),
                 ),
             ),
-            // 33: "Where does all this stop, though?"
+            // 41: "Where does all this stop, though?"
             Scene(
-                33, "Where it stops", limits(),
+                41, "Where it stops", limits(),
                 beats = listOf(
-                    Beat(34, show = allLimits, light = setOf("db", "pg"), pulse = "db" to "ha", card = edgesCard),
+                    Beat(42, show = allLimits, light = setOf("db", "pg"), pulse = "db" to "ha", card = edgesCard),
                 ),
             ),
-            // 35: "So, the case summary for the exam?"
+            // 43: "So, the case summary for the exam?"
             Scene(
-                35, "Case closed", exam(),
+                43, "Case closed", exam(),
                 beats = listOf(
-                    Beat(36, show = all6, light = all6, card = BoardCard("Listen for the phrase", "Agent, OS, size, idle, peaks, admins: one answer each.")),
-                    Beat(38, card = today),
+                    Beat(44, show = all6, light = all6, card = BoardCard("Listen for the phrase", "Agent, OS, size, idle, peaks, admins: one answer each.")),
+                    Beat(46, card = today),
                 ),
             ),
         ),
@@ -503,54 +535,54 @@ internal object Az305EpisodesRelational {
                     Beat(0, show = setOf("app"), card = BoardCard("This week", "Two Tracks moved every database. It was a week.")),
                     Beat(2, card = relational),
                     Beat(4, show = setOf("db", "mi", "vm"), light = setOf("db", "mi", "vm"), card = BoardCard("Three homes", "A hotel room, a managed middle, or your own house.")),
-                    Beat(6, light = setOf("db"), pulse = "app" to "db", card = BoardCard("Monday: Tom", "The office database to Azure SQL Database. Nothing ran.")),
-                    Beat(8, light = setOf("mi"), pulse = "app" to "mi", card = BoardCard("SQL Agent", "The night-job alarm clock: Managed Instance keeps it.")),
-                    Beat(10, card = liftShift),
-                    Beat(12, light = setOf("vm"), pulse = "app" to "vm", card = BoardCard("Tuesday: Dana", "The quiz database on a VM, for total control.")),
-                    Beat(14, show = setOf("note"), light = setOf("vm", "note"), card = BoardCard("Control means chores", "She patches the OS monthly, and nothing needed it.")),
+                    Beat(8, light = setOf("db"), pulse = "app" to "db", card = BoardCard("Monday: Tom", "The office database to Azure SQL Database. Nothing ran.")),
+                    Beat(10, light = setOf("mi"), pulse = "app" to "mi", card = BoardCard("SQL Agent", "The night-job alarm clock: Managed Instance keeps it.")),
+                    Beat(12, card = liftShift),
+                    Beat(14, light = setOf("vm"), pulse = "app" to "vm", card = BoardCard("Tuesday: Dana", "The quiz database on a VM, for total control.")),
+                    Beat(16, show = setOf("note"), light = setOf("vm", "note"), card = BoardCard("Control means chores", "She patches the OS monthly, and nothing needed it.")),
                 ),
             ),
-            // 15: "Wednesday?"
+            // 17: "Wednesday?"
             Scene(
-                15, "Wednesday: Marcus", buying(),
+                17, "Wednesday: Marcus", buying(),
                 beats = listOf(
-                    Beat(16, show = setOf("bc"), light = setOf("bc"), card = BoardCard("Business Critical", "Picked for size. A wall at 4 TB.")),
-                    Beat(18, show = setOf("dtu", "vcore"), light = setOf("dtu", "vcore"), card = dtuVcore),
-                    Beat(20, show = setOf("gp", "hs"), light = setOf("gp", "bc", "hs"), pulse = "vcore" to "gp", card = BoardCard("Three tiers", "Latency: the wait for each answer. A replica: a live copy.")),
-                    Beat(22, show = setOf("note"), light = setOf("hs", "note"), pulse = "vcore" to "hs", card = BoardCard("Hyperscale", "128 TB, snapshots, 30 named replicas. Storage kept apart.")),
+                    Beat(18, show = setOf("bc"), light = setOf("bc"), card = BoardCard("Business Critical", "Picked for size. A wall at 4 TB.")),
+                    Beat(20, show = setOf("dtu", "vcore"), light = setOf("dtu", "vcore"), card = dtuVcore),
+                    Beat(24, show = setOf("gp", "hs"), light = setOf("gp", "bc", "hs"), pulse = "vcore" to "gp", card = BoardCard("Three tiers", "Latency: the wait for each answer. A replica: a live copy.")),
+                    Beat(26, show = setOf("note"), light = setOf("hs", "note"), pulse = "vcore" to "hs", card = BoardCard("Hyperscale", "128 TB, snapshots, 30 named replicas. Storage kept apart.")),
                 ),
             ),
-            // 23: "Thursday, I'm guessing, the intern."
+            // 27: "Thursday, I'm guessing, the intern."
             Scene(
-                23, "Thursday: the intern", cost(),
+                27, "Thursday: the intern", cost(),
                 beats = listOf(
-                    Beat(24, show = setOf("sl"), light = setOf("sl"), card = serverless),
-                    Beat(26, show = setOf("prov"), light = setOf("prov"), card = BoardCard("It never idled", "Always busy: a fixed size by the hour is cheaper.")),
-                    Beat(28, show = schools, light = setOf("pool"), pulse = "pool" to "s3", card = pool),
+                    Beat(28, show = setOf("sl"), light = setOf("sl"), card = serverless),
+                    Beat(30, show = setOf("prov"), light = setOf("prov"), card = BoardCard("It never idled", "Always busy: a fixed size by the hour is cheaper.")),
+                    Beat(32, show = schools, light = setOf("pool"), pulse = "pool" to "s3", card = pool),
                 ),
             ),
-            // 29: "And Friday? There's always a Friday."
+            // 33: "And Friday? There's always a Friday."
             Scene(
-                29, "Friday: Priya", protect(),
+                33, "Friday: Priya", protect(),
                 beats = listOf(
-                    Beat(30, show = setOf("app", "db", "tde"), light = setOf("tde"), card = BoardCard("Relax, TDE is on", "It guards files on disk. Not values from admins.")),
-                    Beat(32, show = setOf("ae"), light = setOf("ae"), card = alwaysEncrypted),
-                    Beat(34, show = setOf("mask"), light = setOf("mask", "app"), pulse = "app" to "db", card = BoardCard("Masking and endpoint", "XXXX for support; a private endpoint keeps it off the internet.")),
+                    Beat(34, show = setOf("app", "db", "tde"), light = setOf("tde"), card = BoardCard("Relax, TDE is on", "It guards files on disk. Not values from admins.")),
+                    Beat(36, show = setOf("ae"), light = setOf("ae"), card = alwaysEncrypted),
+                    Beat(38, show = setOf("mask"), light = setOf("mask", "app"), pulse = "app" to "db", card = BoardCard("Masking and endpoint", "XXXX for support; a private endpoint keeps it off the internet.")),
                 ),
             ),
-            // 35: "So where does all this stop working?"
+            // 39: "So where does all this stop working?"
             Scene(
-                35, "Where it stops", limits(),
+                39, "Where it stops", limits(),
                 beats = listOf(
-                    Beat(36, show = allLimits, light = setOf("db", "pg"), pulse = "db" to "ha", card = edgesCard),
+                    Beat(40, show = allLimits, light = setOf("db", "pg"), pulse = "db" to "ha", card = edgesCard),
                 ),
             ),
-            // 37: "So, the gossip I should remember for the exam?"
+            // 41: "So, the gossip I should remember for the exam?"
             Scene(
-                37, "For the exam", exam(),
+                41, "For the exam", exam(),
                 beats = listOf(
-                    Beat(38, show = all6, light = all6, card = BoardCard("Listen for the phrase", "One colleague, one lesson, one answer each.")),
-                    Beat(40, card = today),
+                    Beat(42, show = all6, light = all6, card = BoardCard("Listen for the phrase", "One colleague, one lesson, one answer each.")),
+                    Beat(44, card = today),
                 ),
             ),
         ),
@@ -581,37 +613,37 @@ internal object Az305EpisodesRelational {
                     Beat(18, show = setOf("hs", "note"), light = setOf("hs"), pulse = "vcore" to "hs", card = BoardCard("Hyperscale", "128 TB, snapshots, 30 named replicas for the readers.")),
                 ),
             ),
-            // 19: "Now. Some databases sleep at night."
+            // 21: "Now. Some databases sleep at night."
             Scene(
-                19, "Databases that sleep", cost(),
+                21, "Databases that sleep", cost(),
                 beats = listOf(
-                    Beat(20, show = setOf("sl"), light = setOf("sl"), card = serverless),
-                    Beat(22, show = setOf("prov"), light = setOf("prov"), card = BoardCard("If it never sleeps", "A fixed size by the hour is cheaper than serverless.")),
-                    Beat(24, show = schools, light = setOf("pool"), pulse = "pool" to "s1", card = pool),
+                    Beat(22, show = setOf("sl"), light = setOf("sl"), card = serverless),
+                    Beat(24, show = setOf("prov"), light = setOf("prov"), card = BoardCard("If it never sleeps", "A fixed size by the hour is cheaper than serverless.")),
+                    Beat(26, show = schools, light = setOf("pool"), pulse = "pool" to "s1", card = pool),
                 ),
             ),
-            // 25: "Now the part that keeps me up..."
+            // 27: "Now the part that keeps me up..."
             Scene(
-                25, "Who can read it", protect(),
+                27, "Who can read it", protect(),
                 beats = listOf(
-                    Beat(26, show = setOf("app", "db", "tde"), light = setOf("tde"), card = BoardCard("TDE", "Files on disk scrambled. Queries still see plain values.")),
-                    Beat(28, show = setOf("ae", "mask"), light = setOf("ae", "mask"), card = alwaysEncrypted),
-                    Beat(30, light = setOf("app", "db"), pulse = "app" to "db", card = endpoint),
+                    Beat(28, show = setOf("app", "db", "tde"), light = setOf("tde"), card = BoardCard("TDE", "Files on disk scrambled. Queries still see plain values.")),
+                    Beat(32, show = setOf("ae", "mask"), light = setOf("ae", "mask"), card = alwaysEncrypted),
+                    Beat(34, light = setOf("app", "db"), pulse = "app" to "db", card = endpoint),
                 ),
             ),
-            // 31: "Where does all of this stop working, Nova?"
+            // 35: "Where does all of this stop working, Nova?"
             Scene(
-                31, "Where it stops", limits(),
+                35, "Where it stops", limits(),
                 beats = listOf(
-                    Beat(32, show = allLimits, light = setOf("db", "pg"), pulse = "db" to "ha", card = edgesCard),
+                    Beat(36, show = allLimits, light = setOf("db", "pg"), pulse = "db" to "ha", card = edgesCard),
                 ),
             ),
-            // 33: "Before you send me off to bed. What do I remember for the exam?"
+            // 37: "Before you send me off to bed. What do I remember for the exam?"
             Scene(
-                33, "For the exam", exam(),
+                37, "For the exam", exam(),
                 beats = listOf(
-                    Beat(34, show = all6, light = all6, card = BoardCard("Listen for the phrase", "Five little things, one answer each.")),
-                    Beat(36, card = today),
+                    Beat(38, show = all6, light = all6, card = BoardCard("Listen for the phrase", "Five little things, one answer each.")),
+                    Beat(40, card = today),
                 ),
             ),
         ),
@@ -627,55 +659,55 @@ internal object Az305EpisodesRelational {
                     Beat(0, card = BoardCard("Date night", "Where our data settles down.")),
                     Beat(2, show = setOf("app"), card = relational),
                     Beat(4, show = setOf("db", "vm"), light = setOf("db", "vm"), card = BoardCard("Hotel or house", "PaaS: Azure does the chores. IaaS: you fix the boiler.")),
-                    Beat(5, show = setOf("mi"), light = setOf("mi"), card = BoardCard("Quiz: the office database", "SQL Agent, cross-database queries, few changes. Which home?")),
-                    Beat(6, pulse = "app" to "mi", light = setOf("mi"), card = BoardCard("Right answer", "Managed Instance: near-full SQL Server, patched by Azure.")),
-                    Beat(10, light = setOf("vm"), card = BoardCard("Quiz: the vendor app", "Full OS control and an old SQL Server version. Where?")),
-                    Beat(12, show = setOf("note"), light = setOf("vm"), pulse = "app" to "vm", card = BoardCard("No kiss: a VM", "Only a VM hands you the OS and the exact version.")),
+                    Beat(7, show = setOf("mi"), light = setOf("mi"), card = BoardCard("Quiz: the office database", "SQL Agent, cross-database queries, few changes. Which home?")),
+                    Beat(8, pulse = "app" to "mi", light = setOf("mi"), card = BoardCard("Right answer", "Managed Instance: near-full SQL Server, patched by Azure.")),
+                    Beat(12, light = setOf("vm"), card = BoardCard("Quiz: the vendor app", "Full OS control and an old SQL Server version. Where?")),
+                    Beat(14, show = setOf("note"), light = setOf("vm"), pulse = "app" to "vm", card = BoardCard("No kiss: a VM", "Only a VM hands you the OS and the exact version.")),
                 ),
             ),
-            // 13: "Fine. Teach me how we pay, then."
+            // 15: "Fine. Teach me how we pay, then."
             Scene(
-                13, "Something huge", buying(),
+                15, "Something huge", buying(),
                 beats = listOf(
-                    Beat(14, show = setOf("dtu", "vcore"), light = setOf("dtu", "vcore"), card = dtuVcore),
-                    Beat(16, show = setOf("gp", "bc", "hs"), light = setOf("gp", "bc", "hs"), card = BoardCard("Three tiers", "Latency: the wait for each answer. A replica: a live copy.")),
-                    Beat(17, light = setOf("hs"), card = BoardCard("Quiz: the leaderboard", "30 TB, many readers, restores in minutes. Which tier?")),
-                    Beat(18, show = setOf("note"), light = setOf("hs", "note"), pulse = "vcore" to "hs", card = BoardCard("Right answer", "Hyperscale: snapshots and up to 30 named replicas.")),
+                    Beat(16, show = setOf("dtu", "vcore"), light = setOf("dtu", "vcore"), card = dtuVcore),
+                    Beat(20, show = setOf("gp", "bc", "hs"), light = setOf("gp", "bc", "hs"), card = BoardCard("Three tiers", "Latency: the wait for each answer. A replica: a live copy.")),
+                    Beat(21, light = setOf("hs"), card = BoardCard("Quiz: the leaderboard", "30 TB, many readers, restores in minutes. Which tier?")),
+                    Beat(22, show = setOf("note"), light = setOf("hs", "note"), pulse = "vcore" to "hs", card = BoardCard("Right answer", "Hyperscale: snapshots and up to 30 named replicas.")),
                 ),
             ),
-            // 20: "Behave. Now mine. The progress database is quiet all night..."
+            // 24: "Behave. Now mine. The progress database is quiet all night..."
             Scene(
-                20, "Awake hours", cost(),
+                24, "Awake hours", cost(),
                 beats = listOf(
-                    Beat(20, show = setOf("sl"), card = BoardCard("Quiz: quiet at night", "Busy after school, tight budget. Which compute?")),
-                    Beat(21, light = setOf("sl"), card = BoardCard("Right answer", "Serverless: bills per second, pauses when idle.")),
-                    Beat(24, show = schools + "prov", light = setOf("prov", "pool"), pulse = "pool" to "s1", card = BoardCard("When it never sleeps", "A fixed size. Many databases, different peaks: a pool.")),
+                    Beat(24, show = setOf("sl"), card = BoardCard("Quiz: quiet at night", "Busy after school, tight budget. Which compute?")),
+                    Beat(25, light = setOf("sl"), card = BoardCard("Right answer", "Serverless: bills per second, pauses when idle.")),
+                    Beat(28, show = schools + "prov", light = setOf("prov", "pool"), pulse = "pool" to "s1", card = BoardCard("When it never sleeps", "A fixed size. Many databases, different peaks: a pool.")),
                 ),
             ),
-            // 27: "Now the serious one. GDPR..."
+            // 31: "Now the serious one. GDPR..."
             Scene(
-                27, "Secrets from the staff", protect(),
+                31, "Secrets from the staff", protect(),
                 beats = listOf(
-                    Beat(27, show = setOf("app", "db"), light = setOf("db"), card = BoardCard("Quiz: health notes", "Unreadable to the administrators. Which feature?")),
-                    Beat(28, show = setOf("tde"), light = setOf("tde"), card = BoardCard("TDE?", "Files on disk only. Close, but no kiss.")),
-                    Beat(29, show = setOf("ae"), light = setOf("ae"), card = alwaysEncrypted),
-                    Beat(31, show = setOf("mask"), light = setOf("mask"), card = BoardCard("Right answer", "Dynamic data masking: XXXX instead of the value.")),
-                    Beat(34, light = setOf("app", "db"), pulse = "app" to "db", card = endpoint),
+                    Beat(31, show = setOf("app", "db"), light = setOf("db"), card = BoardCard("Quiz: health notes", "Unreadable to the administrators. Which feature?")),
+                    Beat(32, show = setOf("tde"), light = setOf("tde"), card = BoardCard("TDE?", "Files on disk only. Close, but no kiss.")),
+                    Beat(33, show = setOf("ae"), light = setOf("ae"), card = alwaysEncrypted),
+                    Beat(35, show = setOf("mask"), light = setOf("mask"), card = BoardCard("Right answer", "Dynamic data masking: XXXX instead of the value.")),
+                    Beat(38, light = setOf("app", "db"), pulse = "app" to "db", card = endpoint),
                 ),
             ),
-            // 35: "Where does it all stop working? Every romance has its limits."
+            // 39: "Where does it all stop working? Every romance has its limits."
             Scene(
-                35, "Every romance has limits", limits(),
+                39, "Every romance has limits", limits(),
                 beats = listOf(
-                    Beat(36, show = allLimits, light = setOf("db", "pg"), pulse = "db" to "ha", card = edgesCard),
+                    Beat(40, show = allLimits, light = setOf("db", "pg"), pulse = "db" to "ha", card = edgesCard),
                 ),
             ),
-            // 37: "Last question, for the exam. What do we remember?"
+            // 41: "Last question, for the exam. What do we remember?"
             Scene(
-                37, "For the exam", exam(),
+                41, "For the exam", exam(),
                 beats = listOf(
-                    Beat(38, show = all6, light = all6, card = BoardCard("Listen for the phrase", "Five for five: one answer each.")),
-                    Beat(41, card = today),
+                    Beat(42, show = all6, light = all6, card = BoardCard("Listen for the phrase", "Five for five: one answer each.")),
+                    Beat(45, card = today),
                 ),
             ),
         ),

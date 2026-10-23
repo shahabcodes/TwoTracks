@@ -1,6 +1,6 @@
 {
  "topicId": "sa-high-availability--late-night",
- "seconds": 471.95,
+ "seconds": 479.14,
  "lines": [
   {
    "line": 0,
@@ -18,253 +18,277 @@
    "line": 2,
    "host": "nova",
    "start": 18.91,
-   "end": 36.75
+   "end": 35.11
   },
   {
    "line": 3,
    "host": "ivy",
-   "start": 37.07,
-   "end": 38.71
+   "start": 35.43,
+   "end": 37.07
   },
   {
    "line": 4,
    "host": "nova",
-   "start": 39.03,
-   "end": 57.7
+   "start": 37.39,
+   "end": 56.06
   },
   {
    "line": 5,
    "host": "ivy",
-   "start": 58.02,
-   "end": 60.94
+   "start": 56.38,
+   "end": 59.3
   },
   {
    "line": 6,
    "host": "nova",
-   "start": 61.26,
-   "end": 76.94
+   "start": 59.62,
+   "end": 78.22
   },
   {
    "line": 7,
    "host": "ivy",
-   "start": 77.26,
-   "end": 79.9
+   "start": 78.54,
+   "end": 81.18
   },
   {
    "line": 8,
    "host": "nova",
-   "start": 80.22,
-   "end": 100.53
+   "start": 81.5,
+   "end": 97.77
   },
   {
    "line": 9,
    "host": "ivy",
-   "start": 100.85,
-   "end": 102.41
+   "start": 98.09,
+   "end": 99.65
   },
   {
    "line": 10,
    "host": "nova",
-   "start": 102.73,
-   "end": 126.05
+   "start": 99.97,
+   "end": 112.53
   },
   {
    "line": 11,
    "host": "ivy",
-   "start": 126.37,
-   "end": 128.73
+   "start": 112.85,
+   "end": 115.25
   },
   {
    "line": 12,
    "host": "nova",
-   "start": 129.05,
-   "end": 142.64
+   "start": 115.57,
+   "end": 121.64
   },
   {
    "line": 13,
    "host": "ivy",
-   "start": 142.96,
-   "end": 145.0
+   "start": 121.96,
+   "end": 124.32
   },
   {
    "line": 14,
    "host": "nova",
-   "start": 145.32,
-   "end": 163.72
+   "start": 124.64,
+   "end": 138.23
   },
   {
    "line": 15,
    "host": "ivy",
-   "start": 164.04,
-   "end": 166.28
+   "start": 138.55,
+   "end": 140.59
   },
   {
    "line": 16,
    "host": "nova",
-   "start": 166.6,
-   "end": 181.84
+   "start": 140.91,
+   "end": 159.63
   },
   {
    "line": 17,
    "host": "ivy",
-   "start": 182.16,
-   "end": 184.88
+   "start": 159.95,
+   "end": 162.55
   },
   {
    "line": 18,
    "host": "nova",
-   "start": 185.2,
-   "end": 196.23
+   "start": 162.87,
+   "end": 179.67
   },
   {
    "line": 19,
    "host": "ivy",
-   "start": 196.55,
-   "end": 202.27
+   "start": 179.99,
+   "end": 182.71
   },
   {
    "line": 20,
    "host": "nova",
-   "start": 202.59,
-   "end": 220.07
+   "start": 183.03,
+   "end": 195.18
   },
   {
    "line": 21,
    "host": "ivy",
-   "start": 220.39,
-   "end": 223.47
+   "start": 195.5,
+   "end": 200.5
   },
   {
    "line": 22,
    "host": "nova",
-   "start": 223.79,
-   "end": 239.22
+   "start": 200.82,
+   "end": 219.34
   },
   {
    "line": 23,
    "host": "ivy",
-   "start": 239.54,
-   "end": 242.02
+   "start": 219.66,
+   "end": 222.74
   },
   {
    "line": 24,
    "host": "nova",
-   "start": 242.34,
-   "end": 262.82
+   "start": 223.06,
+   "end": 238.49
   },
   {
    "line": 25,
    "host": "ivy",
-   "start": 263.14,
-   "end": 268.66
+   "start": 238.81,
+   "end": 241.29
   },
   {
    "line": 26,
    "host": "nova",
-   "start": 268.98,
-   "end": 287.42
+   "start": 241.61,
+   "end": 262.09
   },
   {
    "line": 27,
    "host": "ivy",
-   "start": 287.74,
-   "end": 288.46
+   "start": 262.41,
+   "end": 267.93
   },
   {
    "line": 28,
    "host": "nova",
-   "start": 288.78,
-   "end": 300.98
+   "start": 268.25,
+   "end": 286.69
   },
   {
    "line": 29,
    "host": "ivy",
-   "start": 301.3,
-   "end": 303.62
+   "start": 287.01,
+   "end": 287.73
   },
   {
    "line": 30,
    "host": "nova",
-   "start": 303.94,
-   "end": 319.77
+   "start": 288.05,
+   "end": 300.25
   },
   {
    "line": 31,
    "host": "ivy",
-   "start": 320.09,
-   "end": 324.21
+   "start": 300.57,
+   "end": 302.89
   },
   {
    "line": 32,
    "host": "nova",
-   "start": 324.53,
-   "end": 343.77
+   "start": 303.21,
+   "end": 319.04
   },
   {
    "line": 33,
    "host": "ivy",
-   "start": 344.09,
-   "end": 346.93
+   "start": 319.36,
+   "end": 323.48
   },
   {
    "line": 34,
    "host": "nova",
-   "start": 347.25,
-   "end": 366.49
+   "start": 323.8,
+   "end": 343.92
   },
   {
    "line": 35,
    "host": "ivy",
-   "start": 366.81,
-   "end": 368.09
+   "start": 344.24,
+   "end": 347.08
   },
   {
    "line": 36,
    "host": "nova",
-   "start": 368.41,
-   "end": 392.45
+   "start": 347.4,
+   "end": 366.64
   },
   {
    "line": 37,
    "host": "ivy",
-   "start": 392.77,
-   "end": 394.45
+   "start": 366.96,
+   "end": 368.24
   },
   {
    "line": 38,
    "host": "nova",
-   "start": 394.77,
-   "end": 411.6
+   "start": 368.56,
+   "end": 381.28
   },
   {
    "line": 39,
    "host": "ivy",
-   "start": 411.92,
-   "end": 418.2
+   "start": 381.6,
+   "end": 384.04
   },
   {
    "line": 40,
    "host": "nova",
-   "start": 418.52,
-   "end": 445.52
+   "start": 384.36,
+   "end": 396.96
   },
   {
    "line": 41,
    "host": "ivy",
-   "start": 445.84,
-   "end": 448.4
+   "start": 397.28,
+   "end": 398.96
   },
   {
    "line": 42,
    "host": "nova",
-   "start": 448.72,
-   "end": 468.11
+   "start": 399.28,
+   "end": 416.11
   },
   {
    "line": 43,
    "host": "ivy",
-   "start": 468.43,
-   "end": 471.95
+   "start": 416.43,
+   "end": 422.71
+  },
+  {
+   "line": 44,
+   "host": "nova",
+   "start": 423.03,
+   "end": 452.99
+  },
+  {
+   "line": 45,
+   "host": "ivy",
+   "start": 453.31,
+   "end": 455.87
+  },
+  {
+   "line": 46,
+   "host": "nova",
+   "start": 456.19,
+   "end": 475.3
+  },
+  {
+   "line": 47,
+   "host": "ivy",
+   "start": 475.62,
+   "end": 479.14
   }
  ]
 }

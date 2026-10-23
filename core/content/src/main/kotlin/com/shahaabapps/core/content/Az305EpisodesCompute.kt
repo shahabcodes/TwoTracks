@@ -11,7 +11,9 @@ internal object Az305EpisodesCompute {
             leo("So which rung does the exam want?"),
             maya("The lowest-effort rung that still meets every requirement. [pause] That's the whole game. The question hides requirement words, and they point to the rung. Let's name the rungs first."),
             leo("Go on."),
-            maya("The bottom rung is IaaS, infrastructure as a service. You get virtual machines, VMs for short: computers you rent by the hour in Azure's buildings, and you patch the operating system yourself. The operating system is the base software, like Windows or Linux."),
+            maya("The bottom rung is IaaS, infrastructure as a service. You rent virtual machines, VMs for short: computers in Azure's buildings, billed by the hour."),
+            leo("So, like the Linux server my API runs on today. Who installs the updates?"),
+            maya("You do. The operating system, the base software like Windows or Linux, is yours to patch, and so is everything you put on it."),
             leo("The empty flat. And the next rung?"),
             maya("PaaS, platform as a service. A serviced flat: you bring your app, and Azure looks after the machines underneath, patches and all. App Service is the classic one: Azure's hosting for web sites and web APIs."),
             leo("API. Every episode, API. Remind me?"),
@@ -19,11 +21,17 @@ internal object Az305EpisodesCompute {
             leo("Okay. Give me requirement words."),
             maya("Picture a small office's old reporting server. It needs a vendor agent installed on the operating system, and it must move to Azure unchanged. Moving unchanged is called lift and shift. Only a VM gives you that control, so that's the answer."),
             leo("And when I pick a VM, do I just pick big?"),
-            maya("You pick a size, the shape of the machine: how many processors and how much memory. Sizes come in families named by letters, like clothes cut for different body types. D is general purpose, for web servers. E is memory heavy, for big databases. F is processor heavy. N has graphics chips, for AI and video."),
-            leo("[laugh] Fashion for computers. And if I need many VMs?"),
+            maya("You pick a size, the shape of the machine: how many processors and how much memory. Sizes come in families named by letters, like clothes cut for different body types."),
+            leo("Like picking an emulator profile. Which letters matter?"),
+            maya("D is general purpose, for web servers like your API. E is memory heavy, for big databases. F is processor heavy. N has graphics chips, for AI and video."),
+            leo("[laugh] And if I need many VMs?"),
             maya("A VM Scale Set: a group of identical VMs that Azure grows or shrinks on a rule, for example when average processor use passes 70 percent. And Azure Virtual Desktop streams Windows desktops from Azure to staff laptops, like watching a film instead of owning the disc."),
             leo("Now containers. I hear that word a lot."),
-            maya("A container is an app packed with everything it needs, like a ready meal in a sealed box: it runs the same anywhere. Four Azure services can run containers, and the exam loves to compare them."),
+            maya("A container is your app packed with everything it needs to run, like a ready meal in a sealed box. The packed box, before it runs, is called an image."),
+            leo("Everything? So my Kotlin API, the Java runtime, my libraries, and a whole Linux as well?"),
+            maya("Almost. The image holds your code, the runtime, the libraries and a slim slice of Linux, its files and tools, called the base image. But not the kernel: the core of the operating system that talks to the hardware."),
+            leo("Then where does the kernel come from?"),
+            maya("From the machine it runs on. Every container on that host shares its one kernel, so a box starts in seconds. A VM carries its own whole operating system, kernel and all. Four Azure services can run containers, and the exam loves to compare them."),
             leo("Four! Why four?"),
             maya("Because people need different amounts of control. First, Kubernetes. That's the open-source system that runs many containers across many machines, like a kitchen manager deciding which oven heats which box. It works on a cluster, which is a group of computers working as one."),
             leo("And Azure's version of the kitchen manager?"),
@@ -64,11 +72,17 @@ internal object Az305EpisodesCompute {
             leo("[chuckle] Detective Leo, on the money trail. Start with the basics. What are they paying for?"),
             maya("Compute, which just means the place your code runs. Azure offers a ladder. At the bottom you rent whole computers and look after them, like an empty flat. At the top you hand over a small function and Azure runs it when something happens, like ordering a meal."),
             leo("And the higher the rung?"),
-            maya("The less you manage, and the less you control. The bottom rung is IaaS, infrastructure as a service: VMs, virtual machines, computers rented by the hour, where you patch the operating system, the base software like Linux. The middle is PaaS, platform as a service: you bring the app, Azure runs the machines."),
+            maya("The less you manage, and the less you control. The bottom rung is IaaS, infrastructure as a service: VMs, virtual machines, computers rented by the hour."),
+            leo("Like the Linux box under my API today. I install the updates, I restart it, I get the alert at 3 a.m."),
+            maya("Exactly: you patch the operating system, the base software like Linux. The middle rung is PaaS, platform as a service: you bring the app, and Azure runs and patches the machines."),
             leo("And the top?"),
             maya("Serverless. Code runs only when an event arrives, and you pay only for that time. The exam's rule: pick the lowest-effort rung that meets every requirement. Now, the first exhibit: the API."),
             leo("The API is the door the phone app knocks on for data, right?"),
-            maya("That's the one. It's three small container services. A container is an app packed with everything it needs, like a ready meal in a sealed box. A contractor put them on AKS, Azure Kubernetes Service."),
+            maya("That's the one. It's three small container services. A container is an app packed with everything it needs, like a ready meal in a sealed box."),
+            leo("A whole operating system in every box? No wonder the bill is fat."),
+            maya("Wrong clue. The packed box, the image, holds the code, the runtime, the libraries and a slim slice of Linux files, but no kernel, the core that talks to the hardware. Containers share the host's kernel. It's a VM that carries a whole operating system."),
+            leo("So the boxes are light. Where did they put them?"),
+            maya("A contractor put them on AKS, Azure Kubernetes Service."),
             leo("Kubernetes. In plain words?"),
             maya("The open-source system that runs many containers across many machines, like a kitchen manager deciding which oven heats which box. It works on a cluster, which is a group of computers working as one. With AKS, Azure runs the manager, and you run, and pay for, the machines."),
             leo("First suspect, then. Too many copies of the API."),
@@ -84,7 +98,9 @@ internal object Az305EpisodesCompute {
             leo("[sigh] Second suspect: the VMs were too small. Finish faster."),
             maya("Size changes speed, not the waste. A VM size is the machine's shape, processors and memory, in letter families: D for general work, E for memory, F for processors, N for graphics. But the real clue is the home-made scheduler. Azure already has one, free."),
             leo("Azure Batch."),
-            maya("Exactly. Batch runs huge piles of independent work, like a print shop sharing one big order across many printers. You give it a pool, a set of VMs it creates, grows and removes. A job is the whole order; tasks are the single pages. Batch costs nothing itself."),
+            maya("Exactly. Batch runs huge piles of independent work, like a print shop sharing one big order across many printers. You give it a pool, a set of VMs it creates, grows and removes."),
+            leo("And my code? Do I still write the part that hands out the videos?"),
+            maya("No. You describe a job, the whole order, made of tasks, the single pages, one per video. Batch hands them out, retries failures, and costs nothing itself."),
             leo("And each machine in the pool?"),
             maya("Is a node. Picture a network as dots joined by lines: a node is one dot, here one computer. And the cheap trick is spot nodes. Spot VMs are Azure's spare machines at a big discount, like standby airline seats."),
             leo("What's the catch with standby?"),
@@ -118,7 +134,9 @@ internal object Az305EpisodesCompute {
             leo("[laugh] I heard the finance team cried. Start me off. Compute means?"),
             maya("The place your code runs. Azure gives you a ladder. At the bottom you rent a whole computer and look after it, like an empty flat. At the top you hand Azure a small function and it runs it when something happens, like ordering a meal."),
             leo("And the rungs have names?"),
-            maya("IaaS, infrastructure as a service, is the bottom: VMs, virtual machines, computers rented by the hour, and you patch the operating system, the base software like Windows. PaaS, platform as a service, is the serviced flat: you bring the app, Azure runs the machines. Serverless is the meal."),
+            maya("IaaS, infrastructure as a service, is the bottom: VMs, virtual machines, computers rented by the hour. You patch the operating system, the base software like Windows."),
+            leo("So, the server I log in to every month to run updates, just in Azure's building."),
+            maya("Basically. PaaS, platform as a service, is the serviced flat: you bring the app, Azure runs the machines. Serverless is the meal."),
             leo("And the rule?"),
             maya("Pick the lowest-effort rung that meets every requirement. Which brings us to Monday. Tom."),
             leo("What did Tom do?"),
@@ -129,7 +147,9 @@ internal object Az305EpisodesCompute {
             maya("A VM size is the machine's shape: processors and memory. Families come in letters, like clothes cut for different body types: D general purpose, E memory heavy, F processor heavy, N with graphics chips. Dana picked a D. And for many identical VMs, a VM Scale Set grows them on a rule."),
             leo("Tuesday?"),
             maya("Tuesday was Marcus and the API, the door the phone app knocks on for data. It's three small container services. A container is an app packed with everything it needs, like a ready meal in a sealed box."),
-            leo("Where did Marcus put the boxes?"),
+            leo("A box with a whole operating system inside? Sounds heavy."),
+            maya("That's what Marcus thought too. No: the box, called an image, holds the code, the runtime, the libraries and a slim slice of Linux files, but it borrows the host's kernel, the core of the system. It's a VM that brings its own whole operating system."),
+            leo("So where did Marcus put the boxes?"),
             maya("On AKS, Azure Kubernetes Service. Kubernetes is the open-source system that runs many containers across many machines, like a kitchen manager. It works on a cluster, which is a group of computers working as one."),
             leo("Sounds very grown-up."),
             maya("Very. Except nobody on the team knows Kubernetes, the API is idle at 4 a.m., and the cluster's machines bill all night anyway. Marcus picked the most control, when nobody needed the Kubernetes API, the controls of Kubernetes itself."),
@@ -172,7 +192,9 @@ internal object Az305EpisodesCompute {
             ivy("A ladder. Climb me through it."),
             nova("At the bottom, you rent a whole computer and look after it yourself, like an empty flat. At the top, you hand Azure a little function and it runs it when something happens, like ordering a meal at midnight. The higher you climb, [pause] the less you manage, and the less you control."),
             ivy("Names for the rungs?"),
-            nova("IaaS, infrastructure as a service, is the bottom: VMs, virtual machines, computers rented by the hour, and you patch the operating system, the base software like Linux. PaaS, platform as a service, is the serviced flat: you bring the app, Azure keeps the machines. Serverless runs only when an event arrives."),
+            nova("IaaS, infrastructure as a service, is the bottom: VMs, virtual machines, computers rented by the hour. [pause] And you patch the operating system, the base software like Linux."),
+            ivy("Like the little server my API lives on now. I'm the one updating it at midnight."),
+            nova("Mm, you are. PaaS, platform as a service, is the serviced flat: you bring the app, Azure keeps the machines. Serverless runs only when an event arrives."),
             ivy("And how do I choose, at this hour?"),
             nova("The exam's rule: pick the lowest-effort rung that meets every requirement. Take Two Tracks, gone global, with its backend on Azure. The finance team has an old reporting server that needs a vendor agent installed on the operating system, and must move unchanged."),
             ivy("That sounds like it needs a whole flat."),
@@ -181,7 +203,9 @@ internal object Az305EpisodesCompute {
             nova("A VM Scale Set, a group of identical VMs that grows or shrinks on a rule, like adding night staff when the lobby fills. And Azure Virtual Desktop streams Windows desktops from Azure to laptops, like streaming a film instead of owning the disc."),
             ivy("Now the app itself. The API?"),
             nova("The API is the door the phone app knocks on for data. At Two Tracks it's three small container services. A container is an app packed with everything it needs, [pause] like a ready meal in a sealed box."),
-            ivy("And who heats the boxes?"),
+            ivy("Is there a whole operating system in each box?"),
+            nova("Not quite. The box, called an image, holds your code, the runtime, the libraries and a slim slice of Linux files. [pause] The kernel, the core that talks to the hardware, it borrows from the host. A VM brings its own whole operating system."),
+            ivy("Light boxes, then. And who heats them?"),
             nova("Kubernetes, the open-source system that runs many containers across many machines, like a kitchen manager. It works on a cluster, which is a group of computers working as one. AKS, Azure Kubernetes Service, is Azure running the manager while you run the machines."),
             ivy("And if nobody in the house knows Kubernetes?"),
             nova("Then Container Apps. It's built on Kubernetes, but hides it, and it scales to zero replicas. A replica is one running copy, like a photocopy, and zero means nothing runs, nothing bills. The API sleeps at 4 a.m. [pause] Just like you should."),
@@ -229,7 +253,9 @@ internal object Az305EpisodesCompute {
             nova("A size is the machine's shape: processors and memory, in letter families, like clothes cut for different bodies. D for general work, E for memory, F for processors, N for graphics. And a VM Scale Set is a group of identical VMs that grows on a rule."),
             rafe("Growing on a rule. Behave. My turn to quiz you. The API, which is the door the phone app knocks on for data, runs as containers. It must scale to zero at night, and the team has no Kubernetes skills. Which host?"),
             nova("First, a container is an app packed with everything it needs, like a ready meal in a sealed box. Kubernetes runs many containers on many machines, on a cluster, which is a group of computers working as one. So the answer is Container Apps."),
-            rafe("Why not AKS? Azure Kubernetes Service sounds so committed."),
+            rafe("Packed with everything? Even its own operating system?"),
+            nova("No, love. The image, the packed box, holds your code, runtime, libraries and a slim slice of Linux files, but no kernel, the core that talks to the hardware. Containers share the host's. A VM moves in with its whole operating system."),
+            rafe("Travelling light. And why not AKS? Azure Kubernetes Service sounds so committed."),
             nova("AKS needs Kubernetes skills, and its machines bill all night. Container Apps is built on Kubernetes but hides it, and scales to zero replicas. A replica is one running copy, like a photocopy, so zero means nothing bills."),
             rafe("Right answer. Nothing billing while we sleep. [kiss]"),
             nova("Under the picture, it watches incoming requests and starts a copy when one arrives, so the first caller waits a moment. Pick AKS only when you need the Kubernetes API itself."),
@@ -384,69 +410,70 @@ internal object Az305EpisodesCompute {
                     Beat(2, show = setOf("iaas", "sless"), light = setOf("iaas", "sless"), card = BoardCard("A ladder", "Bottom: an empty flat you look after. Top: a meal you order.")),
                     Beat(4, card = BoardCard("The exam's rule", "The lowest-effort rung that meets every requirement.")),
                     Beat(6, light = setOf("iaas"), card = BoardCard("IaaS", "Infrastructure as a service: VMs, and you patch the OS.")),
-                    Beat(8, show = setOf("paas"), light = setOf("paas"), pulse = "iaas" to "paas", card = BoardCard("PaaS", "Platform as a service: bring the app; Azure runs the machines.")),
-                    Beat(10, light = setOf("sless"), pulse = "paas" to "sless", card = BoardCard("API and serverless", "API: the door apps knock on. Serverless: code that runs on events.")),
+                    Beat(10, show = setOf("paas"), light = setOf("paas"), pulse = "iaas" to "paas", card = BoardCard("PaaS", "Platform as a service: bring the app; Azure runs the machines.")),
+                    Beat(12, light = setOf("sless"), pulse = "paas" to "sless", card = BoardCard("API and serverless", "API: the door apps knock on. Serverless: code that runs on events.")),
                 ),
             ),
-            // 11: "Okay. Give me requirement words."
+            // 13: "Okay. Give me requirement words."
             Scene(
-                11, "Virtual machines", vms(),
+                13, "Virtual machines", vms(),
                 beats = listOf(
-                    Beat(12, show = setOf("lift"), light = setOf("lift"), card = BoardCard("Lift and shift", "An agent on the OS, moved unchanged: only a VM allows it.")),
-                    Beat(14, show = setOf("size"), light = setOf("size"), pulse = "lift" to "size", card = BoardCard("VM size", "The machine's shape. D general, E memory, F processor, N graphics.")),
-                    Beat(16, show = setOf("vmss", "avd"), light = setOf("vmss", "avd"), pulse = "size" to "vmss", card = BoardCard("VM Scale Set", "Identical VMs that grow or shrink on a rule, like CPU over 70%.")),
+                    Beat(14, show = setOf("lift"), light = setOf("lift"), card = BoardCard("Lift and shift", "An agent on the OS, moved unchanged: only a VM allows it.")),
+                    Beat(16, show = setOf("size"), light = setOf("size"), pulse = "lift" to "size", card = BoardCard("VM size", "The machine's shape. D general, E memory, F processor, N graphics.")),
+                    Beat(20, show = setOf("vmss", "avd"), light = setOf("vmss", "avd"), pulse = "size" to "vmss", card = BoardCard("VM Scale Set", "Identical VMs that grow or shrink on a rule, like CPU over 70%.")),
                 ),
             ),
-            // 17: "Now containers. I hear that word a lot."
+            // 21: "Now containers. I hear that word a lot."
             Scene(
-                17, "Four container hosts", containers(),
+                21, "Four container hosts", containers(),
                 beats = listOf(
-                    Beat(18, show = setOf("box"), light = setOf("box"), card = BoardCard("Container", "An app packed with all it needs, like a ready meal in a box.")),
-                    Beat(20, card = BoardCard("Kubernetes and cluster", "Runs many containers on many machines; a cluster works as one.")),
-                    Beat(22, show = setOf("aks"), light = setOf("aks"), pulse = "box" to "aks", card = BoardCard("AKS", "Azure runs the manager, you run the machines. The Kubernetes API.")),
-                    Beat(24, show = setOf("aca"), light = setOf("aca"), pulse = "box" to "aca", card = BoardCard("Container Apps", "Hidden Kubernetes; scales to zero replicas, zero running copies.")),
-                    Beat(26, show = setOf("aci", "app"), light = setOf("aci", "app"), card = BoardCard("ACI and App Service", "One quick container billed per second; or a web app, simplest.")),
+                    Beat(22, show = setOf("box"), light = setOf("box"), card = BoardCard("Container", "An app packed with all it needs, like a ready meal in a box.")),
+                    Beat(26, card = BoardCard("Image and kernel", "Code, runtime, libraries, slim OS files. The host's kernel is shared.")),
+                    Beat(28, card = BoardCard("Kubernetes and cluster", "Runs many containers on many machines; a cluster works as one.")),
+                    Beat(30, show = setOf("aks"), light = setOf("aks"), pulse = "box" to "aks", card = BoardCard("AKS", "Azure runs the manager, you run the machines. The Kubernetes API.")),
+                    Beat(32, show = setOf("aca"), light = setOf("aca"), pulse = "box" to "aca", card = BoardCard("Container Apps", "Hidden Kubernetes; scales to zero replicas, zero running copies.")),
+                    Beat(34, show = setOf("aci", "app"), light = setOf("aci", "app"), card = BoardCard("ACI and App Service", "One quick container billed per second; or a web app, simplest.")),
                 ),
             ),
-            // 27: "Now serverless. That's Functions?"
+            // 35: "Now serverless. That's Functions?"
             Scene(
-                27, "Serverless", serverless(),
+                35, "Serverless", serverless(),
                 beats = listOf(
-                    Beat(28, show = setOf("trig", "fn", "logic"), light = setOf("trig", "fn"), pulse = "trig" to "fn", card = BoardCard("Trigger", "The event that starts a function: a queue message or a timer.")),
-                    Beat(30, show = setOf("plan"), light = setOf("plan"), pulse = "fn" to "plan", card = BoardCard("Hosting plan", "Flex Consumption: scale to zero. Premium: warm, no cold start.")),
+                    Beat(36, show = setOf("trig", "fn", "logic"), light = setOf("trig", "fn"), pulse = "trig" to "fn", card = BoardCard("Trigger", "The event that starts a function: a queue message or a timer.")),
+                    Beat(38, show = setOf("plan"), light = setOf("plan"), pulse = "fn" to "plan", card = BoardCard("Hosting plan", "Flex Consumption: scale to zero. Premium: warm, no cold start.")),
                 ),
             ),
-            // 31: "Okay. Last family. Batch?"
+            // 39: "Okay. Last family. Batch?"
             Scene(
-                31, "Azure Batch", batch(),
+                39, "Azure Batch", batch(),
                 beats = listOf(
-                    Beat(32, show = setOf("in"), light = setOf("in"), card = BoardCard("Azure Batch", "200,000 videos, each on its own: one job, many tasks.")),
-                    Beat(34, show = setOf("pool", "out"), light = setOf("pool"), pulse = "in" to "pool", card = BoardCard("Pool and node", "A pool of VMs Batch creates; each VM is a node, one dot.")),
-                    Beat(36, pulse = "pool" to "out", card = BoardCard("Spot VMs", "Spare machines, big discount; taken back with 30 seconds' notice.")),
+                    Beat(40, show = setOf("in"), light = setOf("in"), card = BoardCard("Azure Batch", "200,000 videos, each on its own: one job, many tasks.")),
+                    Beat(42, show = setOf("pool", "out"), light = setOf("pool"), pulse = "in" to "pool", card = BoardCard("Pool and node", "A pool of VMs Batch creates; each VM is a node, one dot.")),
+                    Beat(44, pulse = "pool" to "out", card = BoardCard("Spot VMs", "Spare machines, big discount; taken back with 30 seconds' notice.")),
                 ),
             ),
-            // 37: "And for machines that run all day?"
+            // 45: "And for machines that run all day?"
             Scene(
-                37, "Paying less", cost(),
+                45, "Paying less", cost(),
                 beats = listOf(
-                    Beat(37, show = setOf("spot", "restart"), light = setOf("spot"), pulse = "restart" to "spot", card = BoardCard("Spot", "Only for work that can restart, like a thumbnail task.")),
-                    Beat(38, show = setOf("res", "always"), light = setOf("res"), pulse = "always" to "res", card = BoardCard("Reservation", "One or three years on a VM size, for machines that never sleep.")),
+                    Beat(45, show = setOf("spot", "restart"), light = setOf("spot"), pulse = "restart" to "spot", card = BoardCard("Spot", "Only for work that can restart, like a thumbnail task.")),
+                    Beat(46, show = setOf("res", "always"), light = setOf("res"), pulse = "always" to "res", card = BoardCard("Reservation", "One or three years on a VM size, for machines that never sleep.")),
                 ),
             ),
-            // 39: "Put Two Tracks together for me."
+            // 47: "Put Two Tracks together for me."
             Scene(
-                39, "Two Tracks, put together", containers(),
+                47, "Two Tracks, put together", containers(),
                 beats = listOf(
-                    Beat(40, show = allHosts, light = setOf("aca"), pulse = "box" to "aca", card = BoardCard("The Two Tracks API", "Container Apps: idle at 4 a.m., and no Kubernetes skills.")),
-                    Beat(42, light = setOf("aks"), card = BoardCard("Why not AKS", "Cluster skills and machines all night. It can still move later.")),
+                    Beat(48, show = allHosts, light = setOf("aca"), pulse = "box" to "aca", card = BoardCard("The Two Tracks API", "Container Apps: idle at 4 a.m., and no Kubernetes skills.")),
+                    Beat(50, light = setOf("aks"), card = BoardCard("Why not AKS", "Cluster skills and machines all night. It can still move later.")),
                 ),
             ),
-            // 43: "So what do I remember for the exam?"
+            // 51: "So what do I remember for the exam?"
             Scene(
-                43, "For the exam", exam(),
+                51, "For the exam", exam(),
                 beats = listOf(
-                    Beat(44, show = all6, light = setOf("os", "zero", "k8s", "tasks"), card = takeaways),
-                    Beat(46, card = today),
+                    Beat(52, show = all6, light = setOf("os", "zero", "k8s", "tasks"), card = takeaways),
+                    Beat(54, card = today),
                 ),
             ),
         ),
@@ -462,68 +489,69 @@ internal object Az305EpisodesCompute {
                     Beat(0, card = BoardCard("The case", "The cloud bill: three times the plan. The video job: still late.")),
                     Beat(2, show = setOf("iaas", "sless"), light = setOf("iaas", "sless"), card = BoardCard("Compute", "The place your code runs: a ladder from flat to meal.")),
                     Beat(4, show = setOf("paas"), light = setOf("iaas", "paas"), pulse = "iaas" to "paas", card = BoardCard("IaaS and PaaS", "VMs you patch, or bring the app and Azure runs the machines.")),
-                    Beat(6, light = setOf("sless"), pulse = "paas" to "sless", card = BoardCard("The rule", "The lowest-effort rung that meets every requirement.")),
+                    Beat(8, light = setOf("sless"), pulse = "paas" to "sless", card = BoardCard("The rule", "The lowest-effort rung that meets every requirement.")),
                 ),
             ),
-            // 7: "The API is the door the phone app knocks on for data, right?"
+            // 9: "The API is the door the phone app knocks on for data, right?"
             Scene(
-                7, "Exhibit one: the API", containers(),
+                9, "Exhibit one: the API", containers(),
                 beats = listOf(
-                    Beat(8, show = setOf("box", "aks"), light = setOf("aks"), pulse = "box" to "aks", card = BoardCard("Containers on AKS", "Ready meals in boxes, on Azure Kubernetes Service.")),
-                    Beat(10, card = BoardCard("Kubernetes and cluster", "A kitchen manager for containers, on a group of computers.")),
-                    Beat(12, card = BoardCard("Suspect cleared: copies", "At 4 a.m. the cluster's machines still run, and still bill.")),
-                    Beat(14, show = setOf("aca"), light = setOf("aca"), pulse = "box" to "aca", card = BoardCard("Container Apps", "Hidden Kubernetes; scales to zero replicas, so nothing bills.")),
-                    Beat(16, show = setOf("aci", "app"), card = BoardCard("Under the picture", "Watches requests and starts copies. AKS when you need its API.")),
+                    Beat(10, show = setOf("box", "aks"), light = setOf("aks"), pulse = "box" to "aks", card = BoardCard("Containers on AKS", "Ready meals in boxes, on Azure Kubernetes Service.")),
+                    Beat(12, card = BoardCard("Image and kernel", "Code, runtime, libraries, slim OS files. The host's kernel is shared.")),
+                    Beat(16, card = BoardCard("Kubernetes and cluster", "A kitchen manager for containers, on a group of computers.")),
+                    Beat(18, card = BoardCard("Suspect cleared: copies", "At 4 a.m. the cluster's machines still run, and still bill.")),
+                    Beat(20, show = setOf("aca"), light = setOf("aca"), pulse = "box" to "aca", card = BoardCard("Container Apps", "Hidden Kubernetes; scales to zero replicas, so nothing bills.")),
+                    Beat(22, show = setOf("aci", "app"), card = BoardCard("Under the picture", "Watches requests and starts copies. AKS when you need its API.")),
                 ),
             ),
-            // 17: "Second exhibit?"
+            // 23: "Second exhibit?"
             Scene(
-                17, "Exhibit two: thumbnails", cost(),
+                23, "Exhibit two: thumbnails", cost(),
                 beats = listOf(
-                    Beat(18, show = setOf("res"), light = setOf("res"), card = BoardCard("A home-made scheduler", "Four VMs on a three-year reservation, busy two hours a night.")),
-                    Beat(20, show = setOf("always"), light = setOf("always", "res"), pulse = "always" to "res", card = BoardCard("Reservation", "One or three years on a VM size: for machines that run all day.")),
+                    Beat(24, show = setOf("res"), light = setOf("res"), card = BoardCard("A home-made scheduler", "Four VMs on a three-year reservation, busy two hours a night.")),
+                    Beat(26, show = setOf("always"), light = setOf("always", "res"), pulse = "always" to "res", card = BoardCard("Reservation", "One or three years on a VM size: for machines that run all day.")),
                 ),
             ),
-            // 21: "Second suspect: the VMs were too small."
+            // 27: "Second suspect: the VMs were too small."
             Scene(
-                21, "Azure Batch", batch(),
+                27, "Azure Batch", batch(),
                 beats = listOf(
-                    Beat(22, card = BoardCard("Suspect cleared: VM size", "Size changes speed, not waste. Azure already has a scheduler.")),
-                    Beat(24, show = setOf("in", "pool", "out"), light = setOf("pool"), pulse = "in" to "pool", card = BoardCard("Azure Batch", "A pool of VMs; one job, many tasks. Batch itself is free.")),
-                    Beat(26, light = setOf("pool"), card = BoardCard("Node and spot", "A node is one computer in the pool. Spot: spare and discounted.")),
-                    Beat(28, pulse = "pool" to "out", card = BoardCard("Evicted? Retried", "30 seconds' notice, no SLA; a thumbnail task just runs again.")),
+                    Beat(28, card = BoardCard("Suspect cleared: VM size", "Size changes speed, not waste. Azure already has a scheduler.")),
+                    Beat(30, show = setOf("in", "pool", "out"), light = setOf("pool"), pulse = "in" to "pool", card = BoardCard("Azure Batch", "A pool of VMs; one job, many tasks. Batch itself is free.")),
+                    Beat(34, light = setOf("pool"), card = BoardCard("Node and spot", "A node is one computer in the pool. Spot: spare and discounted.")),
+                    Beat(36, pulse = "pool" to "out", card = BoardCard("Evicted? Retried", "30 seconds' notice, no SLA; a thumbnail task just runs again.")),
                 ),
             ),
-            // 29: "Third exhibit."
+            // 37: "Third exhibit."
             Scene(
-                29, "Exhibit three: spot", cost(),
+                37, "Exhibit three: spot", cost(),
                 beats = listOf(
-                    Beat(30, show = setOf("spot"), light = setOf("spot"), card = BoardCard("A database on spot", "Taken back with 30 seconds' notice. The reports were gone.")),
-                    Beat(32, show = setOf("restart"), light = setOf("restart", "spot"), pulse = "restart" to "spot", card = BoardCard("Spot for restartable work", "Never a database. Hybrid Benefit reuses licences you own.")),
+                    Beat(38, show = setOf("spot"), light = setOf("spot"), card = BoardCard("A database on spot", "Taken back with 30 seconds' notice. The reports were gone.")),
+                    Beat(40, show = setOf("restart"), light = setOf("restart", "spot"), pulse = "restart" to "spot", card = BoardCard("Spot for restartable work", "Never a database. Hybrid Benefit reuses licences you own.")),
                 ),
             ),
-            // 33: "Any more crimes?"
+            // 41: "Any more crimes?"
             Scene(
-                33, "The website and the email", serverless(),
+                41, "The website and the email", serverless(),
                 beats = listOf(
-                    Beat(34, card = BoardCard("A website on VMs", "Patched every month. App Service: the least management.")),
-                    Beat(36, show = setOf("trig", "fn"), light = setOf("fn"), pulse = "trig" to "fn", card = BoardCard("Azure Functions", "Small code started by a trigger: a queue message or a timer.")),
-                    Beat(38, show = setOf("plan", "logic"), light = setOf("plan"), pulse = "fn" to "plan", card = BoardCard("Cold start", "Flex scales to zero; Premium keeps copies warm.")),
+                    Beat(42, card = BoardCard("A website on VMs", "Patched every month. App Service: the least management.")),
+                    Beat(44, show = setOf("trig", "fn"), light = setOf("fn"), pulse = "trig" to "fn", card = BoardCard("Azure Functions", "Small code started by a trigger: a queue message or a timer.")),
+                    Beat(46, show = setOf("plan", "logic"), light = setOf("plan"), pulse = "fn" to "plan", card = BoardCard("Cold start", "Flex scales to zero; Premium keeps copies warm.")),
                 ),
             ),
-            // 39: "And the old finance reporting server itself?"
+            // 47: "And the old finance reporting server itself?"
             Scene(
-                39, "The honest VM", vms(),
+                47, "The honest VM", vms(),
                 beats = listOf(
-                    Beat(40, show = setOf("lift", "size", "vmss", "avd"), light = setOf("lift"), pulse = "lift" to "size", card = BoardCard("Lift and shift", "An agent on the OS, moved unchanged: a VM, and it's reserved.")),
+                    Beat(48, show = setOf("lift", "size", "vmss", "avd"), light = setOf("lift"), pulse = "lift" to "size", card = BoardCard("Lift and shift", "An agent on the OS, moved unchanged: a VM, and it's reserved.")),
                 ),
             ),
-            // 41: "So, the case summary for the exam?"
+            // 49: "So, the case summary for the exam?"
             Scene(
-                41, "Case closed", exam(),
+                49, "Case closed", exam(),
                 beats = listOf(
-                    Beat(42, show = all6, light = setOf("os", "zero", "k8s", "tasks", "always"), card = takeaways),
-                    Beat(44, card = BoardCard("Today", "The decision tree, a container app at zero, the spot settings.")),
+                    Beat(50, show = all6, light = setOf("os", "zero", "k8s", "tasks", "always"), card = takeaways),
+                    Beat(52, card = BoardCard("Today", "The decision tree, a container app at zero, the spot settings.")),
                 ),
             ),
         ),
@@ -539,61 +567,61 @@ internal object Az305EpisodesCompute {
                     Beat(0, card = BoardCard("Choosing compute", "Everyone picked where their part of the backend runs.")),
                     Beat(2, show = setOf("iaas", "sless"), light = setOf("iaas", "sless"), card = BoardCard("The ladder", "An empty flat at the bottom, a meal you order at the top.")),
                     Beat(4, show = setOf("paas"), light = setOf("paas"), pulse = "iaas" to "paas", card = BoardCard("IaaS, PaaS, serverless", "VMs you patch; an app Azure runs; code that runs on events.")),
-                    Beat(6, card = BoardCard("The rule", "The lowest-effort rung that meets every requirement.")),
-                    Beat(8, light = setOf("paas"), card = BoardCard("Monday: Tom", "A plain website on VMs. App Service would mean no patching.")),
+                    Beat(8, card = BoardCard("The rule", "The lowest-effort rung that meets every requirement.")),
+                    Beat(10, light = setOf("paas"), card = BoardCard("Monday: Tom", "A plain website on VMs. App Service would mean no patching.")),
                 ),
             ),
-            // 9: "Poor Tom. Did any VM choice make sense this week?"
+            // 11: "Poor Tom. Did any VM choice make sense this week?"
             Scene(
-                9, "Dana's VM", vms(),
+                11, "Dana's VM", vms(),
                 beats = listOf(
-                    Beat(10, show = setOf("lift"), light = setOf("lift"), card = BoardCard("Lift and shift", "An agent on the OS, moved unchanged: only a VM.")),
-                    Beat(12, show = setOf("size", "vmss"), light = setOf("size"), pulse = "lift" to "size", card = BoardCard("VM size", "D general, E memory, F processor, N graphics. Dana chose D.")),
+                    Beat(12, show = setOf("lift"), light = setOf("lift"), card = BoardCard("Lift and shift", "An agent on the OS, moved unchanged: only a VM.")),
+                    Beat(14, show = setOf("size", "vmss"), light = setOf("size"), pulse = "lift" to "size", card = BoardCard("VM size", "D general, E memory, F processor, N graphics. Dana chose D.")),
                 ),
             ),
-            // 13: "Tuesday?"
+            // 15: "Tuesday?"
             Scene(
-                13, "Tuesday: Marcus", containers(),
+                15, "Tuesday: Marcus", containers(),
                 beats = listOf(
-                    Beat(14, show = setOf("box"), light = setOf("box"), card = BoardCard("API and container", "The door the app knocks on; an app packed like a ready meal.")),
-                    Beat(16, show = setOf("aks"), light = setOf("aks"), pulse = "box" to "aks", card = BoardCard("AKS", "Kubernetes on a cluster: Azure runs the manager, you the machines.")),
-                    Beat(18, card = BoardCard("Too much control", "No Kubernetes skills, idle at 4 a.m., machines billing all night.")),
-                    Beat(20, show = setOf("aca"), light = setOf("aca"), pulse = "box" to "aca", card = BoardCard("Container Apps", "Hidden Kubernetes; zero replicas means nothing billing.")),
-                    Beat(22, show = setOf("aci", "app"), light = setOf("aci", "app"), card = BoardCard("ACI and App Service", "One quick container; or a web app as code or a container.")),
+                    Beat(16, show = setOf("box"), light = setOf("box"), card = BoardCard("API and container", "The door the app knocks on; an app packed like a ready meal.")),
+                    Beat(20, show = setOf("aks"), light = setOf("aks"), pulse = "box" to "aks", card = BoardCard("AKS", "Kubernetes on a cluster: Azure runs the manager, you the machines.")),
+                    Beat(22, card = BoardCard("Too much control", "No Kubernetes skills, idle at 4 a.m., machines billing all night.")),
+                    Beat(24, show = setOf("aca"), light = setOf("aca"), pulse = "box" to "aca", card = BoardCard("Container Apps", "Hidden Kubernetes; zero replicas means nothing billing.")),
+                    Beat(26, show = setOf("aci", "app"), light = setOf("aci", "app"), card = BoardCard("ACI and App Service", "One quick container; or a web app as code or a container.")),
                 ),
             ),
-            // 23: "Wednesday?"
+            // 27: "Wednesday?"
             Scene(
-                23, "Wednesday: Priya", batch(),
+                27, "Wednesday: Priya", batch(),
                 beats = listOf(
-                    Beat(24, show = setOf("in"), light = setOf("in"), card = BoardCard("A home-made scheduler", "A week of work on four VMs, for 200,000 thumbnails.")),
-                    Beat(26, show = setOf("pool", "out"), light = setOf("pool"), pulse = "in" to "pool", card = BoardCard("Azure Batch", "A pool of VMs; one job, many tasks. Batch itself is free.")),
-                    Beat(28, pulse = "pool" to "out", card = BoardCard("Node", "One computer in the pool: one dot in a network.")),
+                    Beat(28, show = setOf("in"), light = setOf("in"), card = BoardCard("A home-made scheduler", "A week of work on four VMs, for 200,000 thumbnails.")),
+                    Beat(30, show = setOf("pool", "out"), light = setOf("pool"), pulse = "in" to "pool", card = BoardCard("Azure Batch", "A pool of VMs; one job, many tasks. Batch itself is free.")),
+                    Beat(32, pulse = "pool" to "out", card = BoardCard("Node", "One computer in the pool: one dot in a network.")),
                 ),
             ),
-            // 29: "Thursday. Go."
+            // 33: "Thursday. Go."
             Scene(
-                29, "Thursday and Friday", cost(),
+                33, "Thursday and Friday", cost(),
                 beats = listOf(
-                    Beat(30, show = setOf("spot", "restart"), light = setOf("spot"), pulse = "restart" to "spot", card = BoardCard("Spot VMs", "Spare and cheap; taken back with 30 seconds' notice, no SLA.")),
-                    Beat(32, light = setOf("restart"), card = BoardCard("Never a database", "Dana's reporting database: gone in thirty seconds.")),
-                    Beat(34, show = setOf("res", "always"), light = setOf("res"), pulse = "always" to "res", card = BoardCard("Friday: a reservation", "For a test machine running two hours a week. Wrong fit.")),
+                    Beat(34, show = setOf("spot", "restart"), light = setOf("spot"), pulse = "restart" to "spot", card = BoardCard("Spot VMs", "Spare and cheap; taken back with 30 seconds' notice, no SLA.")),
+                    Beat(36, light = setOf("restart"), card = BoardCard("Never a database", "Dana's reporting database: gone in thirty seconds.")),
+                    Beat(38, show = setOf("res", "always"), light = setOf("res"), pulse = "always" to "res", card = BoardCard("Friday: a reservation", "For a test machine running two hours a week. Wrong fit.")),
                 ),
             ),
-            // 35: "Ouch. Anything about serverless?"
+            // 39: "Ouch. Anything about serverless?"
             Scene(
-                35, "Serverless", serverless(),
+                39, "Serverless", serverless(),
                 beats = listOf(
-                    Beat(36, show = setOf("trig", "fn", "logic"), light = setOf("fn"), pulse = "trig" to "fn", card = BoardCard("Azure Functions", "Started by a trigger; Flex Consumption bills per run.")),
-                    Beat(38, show = setOf("plan"), light = setOf("plan"), pulse = "fn" to "plan", card = BoardCard("Cold start", "The pause while a sleeping app wakes; Premium keeps it warm.")),
+                    Beat(40, show = setOf("trig", "fn", "logic"), light = setOf("fn"), pulse = "trig" to "fn", card = BoardCard("Azure Functions", "Started by a trigger; Flex Consumption bills per run.")),
+                    Beat(42, show = setOf("plan"), light = setOf("plan"), pulse = "fn" to "plan", card = BoardCard("Cold start", "The pause while a sleeping app wakes; Premium keeps it warm.")),
                 ),
             ),
-            // 39: "So, the gossip I should remember for the exam?"
+            // 43: "So, the gossip I should remember for the exam?"
             Scene(
-                39, "For the exam", exam(),
+                43, "For the exam", exam(),
                 beats = listOf(
-                    Beat(40, show = all6, light = setOf("os", "zero", "k8s", "tasks", "always"), card = takeaways),
-                    Beat(42, card = today),
+                    Beat(44, show = all6, light = setOf("os", "zero", "k8s", "tasks", "always"), card = takeaways),
+                    Beat(46, card = today),
                 ),
             ),
         ),
@@ -610,58 +638,58 @@ internal object Az305EpisodesCompute {
                     Beat(2, card = BoardCard("Compute", "The place your code runs.")),
                     Beat(4, show = setOf("iaas", "sless"), light = setOf("iaas", "sless"), card = BoardCard("The ladder", "The higher you climb, the less you manage and control.")),
                     Beat(6, show = setOf("paas"), light = setOf("paas"), pulse = "iaas" to "paas", card = BoardCard("IaaS and PaaS", "VMs you patch; or bring the app and Azure keeps the machines.")),
-                    Beat(8, light = setOf("iaas"), card = BoardCard("The rule", "The lowest-effort rung that meets every requirement.")),
+                    Beat(10, light = setOf("iaas"), card = BoardCard("The rule", "The lowest-effort rung that meets every requirement.")),
                 ),
             ),
-            // 9: "That sounds like it needs a whole flat."
+            // 11: "That sounds like it needs a whole flat."
             Scene(
-                9, "A whole flat", vms(),
+                11, "A whole flat", vms(),
                 beats = listOf(
-                    Beat(10, show = setOf("lift", "size"), light = setOf("lift"), pulse = "lift" to "size", card = BoardCard("Lift and shift", "Moved unchanged with an OS agent: only a VM. Then pick a size.")),
-                    Beat(12, show = setOf("vmss", "avd"), light = setOf("vmss"), pulse = "size" to "vmss", card = BoardCard("VM Scale Set", "Identical VMs that grow on a rule, like extra night staff.")),
+                    Beat(12, show = setOf("lift", "size"), light = setOf("lift"), pulse = "lift" to "size", card = BoardCard("Lift and shift", "Moved unchanged with an OS agent: only a VM. Then pick a size.")),
+                    Beat(14, show = setOf("vmss", "avd"), light = setOf("vmss"), pulse = "size" to "vmss", card = BoardCard("VM Scale Set", "Identical VMs that grow on a rule, like extra night staff.")),
                 ),
             ),
-            // 13: "Now the app itself. The API?"
+            // 15: "Now the app itself. The API?"
             Scene(
-                13, "Boxes in the kitchen", containers(),
+                15, "Boxes in the kitchen", containers(),
                 beats = listOf(
-                    Beat(14, show = setOf("box"), light = setOf("box"), card = BoardCard("API and container", "The door the app knocks on; an app packed in a sealed box.")),
-                    Beat(16, show = setOf("aks"), light = setOf("aks"), pulse = "box" to "aks", card = BoardCard("Kubernetes and AKS", "Runs containers on a cluster; Azure runs the manager.")),
-                    Beat(18, show = setOf("aca"), light = setOf("aca"), pulse = "box" to "aca", card = BoardCard("Container Apps", "Hidden Kubernetes; zero replicas at 4 a.m., nothing billing.")),
-                    Beat(20, show = setOf("aci", "app"), card = BoardCard("When it wakes", "It starts a copy as a request arrives; the first caller waits.")),
+                    Beat(16, show = setOf("box"), light = setOf("box"), card = BoardCard("API and container", "The door the app knocks on; an app packed in a sealed box.")),
+                    Beat(20, show = setOf("aks"), light = setOf("aks"), pulse = "box" to "aks", card = BoardCard("Kubernetes and AKS", "Runs containers on a cluster; Azure runs the manager.")),
+                    Beat(22, show = setOf("aca"), light = setOf("aca"), pulse = "box" to "aca", card = BoardCard("Container Apps", "Hidden Kubernetes; zero replicas at 4 a.m., nothing billing.")),
+                    Beat(24, show = setOf("aci", "app"), card = BoardCard("When it wakes", "It starts a copy as a request arrives; the first caller waits.")),
                 ),
             ),
-            // 21: "And the little ones? Small jobs?"
+            // 25: "And the little ones? Small jobs?"
             Scene(
-                21, "Small jobs", serverless(),
+                25, "Small jobs", serverless(),
                 beats = listOf(
-                    Beat(22, show = setOf("trig", "fn"), light = setOf("fn"), pulse = "trig" to "fn", card = BoardCard("ACI and Functions", "One quick container; or small code started by a trigger.")),
-                    Beat(24, show = setOf("plan", "logic"), light = setOf("plan"), pulse = "fn" to "plan", card = BoardCard("Cold start", "Flex sleeps and bills per run; Premium keeps copies warm.")),
+                    Beat(26, show = setOf("trig", "fn"), light = setOf("fn"), pulse = "trig" to "fn", card = BoardCard("ACI and Functions", "One quick container; or small code started by a trigger.")),
+                    Beat(28, show = setOf("plan", "logic"), light = setOf("plan"), pulse = "fn" to "plan", card = BoardCard("Cold start", "Flex sleeps and bills per run; Premium keeps copies warm.")),
                 ),
             ),
-            // 25: "Now the night shift. The heavy work."
+            // 29: "Now the night shift. The heavy work."
             Scene(
-                25, "The heavy work", batch(),
+                29, "The heavy work", batch(),
                 beats = listOf(
-                    Beat(26, show = setOf("in"), light = setOf("in"), card = BoardCard("Azure Batch", "200,000 videos, each on its own, overnight.")),
-                    Beat(28, show = setOf("pool", "out"), light = setOf("pool"), pulse = "in" to "pool", card = BoardCard("Pool and node", "VMs Batch creates; each is a node. One job, many tasks.")),
+                    Beat(30, show = setOf("in"), light = setOf("in"), card = BoardCard("Azure Batch", "200,000 videos, each on its own, overnight.")),
+                    Beat(32, show = setOf("pool", "out"), light = setOf("pool"), pulse = "in" to "pool", card = BoardCard("Pool and node", "VMs Batch creates; each is a node. One job, many tasks.")),
                 ),
             ),
-            // 29: "And can I pay less?"
+            // 33: "And can I pay less?"
             Scene(
-                29, "Paying less", cost(),
+                33, "Paying less", cost(),
                 beats = listOf(
-                    Beat(30, show = setOf("spot", "restart"), light = setOf("spot"), pulse = "restart" to "spot", card = BoardCard("Spot VMs", "Spare seats on the last flight: 30 seconds' notice, no SLA.")),
-                    Beat(32, show = setOf("res", "always"), light = setOf("res"), pulse = "always" to "res", card = BoardCard("Reservation", "One or three years, for machines that run all night.")),
-                    Beat(34, card = BoardCard("Your next late night", "The high availability episode spreads scale sets over zones.")),
+                    Beat(34, show = setOf("spot", "restart"), light = setOf("spot"), pulse = "restart" to "spot", card = BoardCard("Spot VMs", "Spare seats on the last flight: 30 seconds' notice, no SLA.")),
+                    Beat(36, show = setOf("res", "always"), light = setOf("res"), pulse = "always" to "res", card = BoardCard("Reservation", "One or three years, for machines that run all night.")),
+                    Beat(38, card = BoardCard("Your next late night", "The high availability episode spreads scale sets over zones.")),
                 ),
             ),
-            // 35: "Before you send me off to bed. What do I remember for the exam?"
+            // 39: "Before you send me off to bed. What do I remember for the exam?"
             Scene(
-                35, "For the exam", exam(),
+                39, "For the exam", exam(),
                 beats = listOf(
-                    Beat(36, show = all6, light = setOf("os", "zero", "k8s", "tasks", "always"), card = takeaways),
-                    Beat(38, card = today),
+                    Beat(40, show = all6, light = setOf("os", "zero", "k8s", "tasks", "always"), card = takeaways),
+                    Beat(42, card = today),
                 ),
             ),
         ),
@@ -694,42 +722,42 @@ internal object Az305EpisodesCompute {
                 beats = listOf(
                     Beat(13, show = setOf("box"), light = setOf("box"), card = BoardCard("Quiz: scale to zero", "Containers, and no Kubernetes skills. Which host?")),
                     Beat(14, show = setOf("aca"), light = setOf("aca"), pulse = "box" to "aca", card = BoardCard("Container Apps", "Hidden Kubernetes on a cluster; zero replicas, nothing bills.")),
-                    Beat(15, show = setOf("aks"), light = setOf("aks"), pulse = "box" to "aks", card = BoardCard("Why not AKS", "Kubernetes skills, and machines billing all night.")),
-                    Beat(18, light = setOf("aca"), card = BoardCard("Under the picture", "A request arrives, a copy starts; the first caller waits.")),
-                    Beat(20, show = setOf("aci", "app"), light = setOf("aci"), card = BoardCard("ACI", "One container, fast, billed per second; won't grow by itself.")),
+                    Beat(17, show = setOf("aks"), light = setOf("aks"), pulse = "box" to "aks", card = BoardCard("Why not AKS", "Kubernetes skills, and machines billing all night.")),
+                    Beat(20, light = setOf("aca"), card = BoardCard("Under the picture", "A request arrives, a copy starts; the first caller waits.")),
+                    Beat(22, show = setOf("aci", "app"), light = setOf("aci"), card = BoardCard("ACI", "One container, fast, billed per second; won't grow by itself.")),
                 ),
             ),
-            // 21: "Azure Batch. It runs huge piles of independent tasks..."
+            // 23: "Azure Batch. It runs huge piles of independent tasks..."
             Scene(
-                21, "Quiz: thumbnails", batch(),
+                23, "Quiz: thumbnails", batch(),
                 beats = listOf(
-                    Beat(21, show = setOf("in", "pool", "out"), light = setOf("pool"), pulse = "in" to "pool", card = BoardCard("Azure Batch", "One job, many independent tasks, on a pool of nodes.")),
-                    Beat(23, pulse = "pool" to "out", card = BoardCard("Spot nodes", "Spare machines, cheap; an evicted task just runs again.")),
+                    Beat(23, show = setOf("in", "pool", "out"), light = setOf("pool"), pulse = "in" to "pool", card = BoardCard("Azure Batch", "One job, many independent tasks, on a pool of nodes.")),
+                    Beat(25, pulse = "pool" to "out", card = BoardCard("Spot nodes", "Spare machines, cheap; an evicted task just runs again.")),
                 ),
             ),
-            // 25: "Then I'll put the reporting database on spot too."
+            // 27: "Then I'll put the reporting database on spot too."
             Scene(
-                25, "No kiss for that one", cost(),
+                27, "No kiss for that one", cost(),
                 beats = listOf(
-                    Beat(25, show = setOf("spot"), light = setOf("spot"), card = BoardCard("A database on spot?", "30 seconds' notice and no SLA. No kiss.")),
-                    Beat(26, show = setOf("restart", "res", "always"), light = setOf("res"), pulse = "always" to "res", card = BoardCard("Reservation", "One or three years, for a database that runs all the time.")),
+                    Beat(27, show = setOf("spot"), light = setOf("spot"), card = BoardCard("A database on spot?", "30 seconds' notice and no SLA. No kiss.")),
+                    Beat(28, show = setOf("restart", "res", "always"), light = setOf("res"), pulse = "always" to "res", card = BoardCard("Reservation", "One or three years, for a database that runs all the time.")),
                 ),
             ),
-            // 27: "A long-term commitment. I'm listening. And a plain website?"
+            // 29: "A long-term commitment. I'm listening. And a plain website?"
             Scene(
-                27, "Websites and small code", serverless(),
+                29, "Websites and small code", serverless(),
                 beats = listOf(
-                    Beat(28, show = setOf("trig", "fn"), light = setOf("fn"), pulse = "trig" to "fn", card = BoardCard("App Service and Functions", "A plain website; small code started by a trigger.")),
-                    Beat(30, show = setOf("plan"), light = setOf("plan"), pulse = "fn" to "plan", card = BoardCard("Cold start", "Premium keeps copies warm; Flex scales to zero.")),
-                    Beat(32, show = setOf("logic"), light = setOf("logic"), card = BoardCard("Logic Apps", "Workflows you draw, joined by ready-made connectors.")),
+                    Beat(30, show = setOf("trig", "fn"), light = setOf("fn"), pulse = "trig" to "fn", card = BoardCard("App Service and Functions", "A plain website; small code started by a trigger.")),
+                    Beat(32, show = setOf("plan"), light = setOf("plan"), pulse = "fn" to "plan", card = BoardCard("Cold start", "Premium keeps copies warm; Flex scales to zero.")),
+                    Beat(34, show = setOf("logic"), light = setOf("logic"), card = BoardCard("Logic Apps", "Workflows you draw, joined by ready-made connectors.")),
                 ),
             ),
-            // 34: "Last question, for the exam. What do we remember?"
+            // 36: "Last question, for the exam. What do we remember?"
             Scene(
-                34, "For the exam", exam(),
+                36, "For the exam", exam(),
                 beats = listOf(
-                    Beat(35, show = all6, light = setOf("os", "zero", "k8s", "tasks", "always"), card = takeaways),
-                    Beat(38, card = today),
+                    Beat(37, show = all6, light = setOf("os", "zero", "k8s", "tasks", "always"), card = takeaways),
+                    Beat(40, card = today),
                 ),
             ),
         ),

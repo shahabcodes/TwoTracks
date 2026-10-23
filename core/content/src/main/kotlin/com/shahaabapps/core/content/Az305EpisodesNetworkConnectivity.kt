@@ -7,25 +7,27 @@ internal object Az305EpisodesNetworkConnectivity {
     private val classic = Podcast(
         T,
         listOf(
-            maya("Hi, and welcome back. Today is networks: how your machines in Azure reach the internet, your office, and each other. Our story is Two Tracks goes global: the Android app is now a company, with a backend on Azure, users in Europe and Australia, and an old office system. [pause] It's a design exam, so we learn to choose."),
-            leo("Choose. Fine. But start at the bottom. What is a network, in plain words?"),
+            maya("Hi, and welcome back. Today is networks: how your machines in Azure reach the internet, your office, and each other. Our story is Two Tracks goes global: the Android app is now a company, with a backend on Azure, users in Europe and Australia, and an old office system."),
+            leo("Start at the bottom, then. What is a network, in plain words?"),
             maya("Computers joined so they can send each other messages. Each one has an IP address, which is its street address, so a message knows where to go. A private address is like a room number inside one building: it means nothing to the outside world."),
             leo("And a virtual network? Everyone says VNet."),
             maya("A virtual network, VNet for short, is your own private floor inside Azure's huge building. Nobody else's machines are on your floor. The machines on it talk to each other freely, and nothing gets in or out unless you add a door."),
             leo("Machines meaning what, exactly?"),
-            maya("For example, a VM, a virtual machine. That's a computer you rent in Azure's data centre by the hour. The Two Tracks backend runs on a few of them."),
+            maya("For example, a VM, a virtual machine. That's a computer you rent in Azure's data centre by the hour, and the backend runs on a few."),
             leo("Got it. Then what's a subnet?"),
             maya("A subnet is a room on your floor. You split the VNet into rooms, say one for the app machines and one for the databases, so each room can have its own rules."),
             leo("And how big is the floor?"),
             maya("That's the address space: the block of private addresses the VNet owns, like the range of room numbers in a building. Design rule: two networks with the same numbers can never be joined later."),
             leo("Noted. Now the Two Tracks backend has to get out. How does it reach the internet?"),
             maya("Through a way out. Outbound just means traffic leaving your floor. Azure is phasing out the old hidden way out, so new networks get private subnets, with no exit until you add one."),
-            leo("So what's the recommended door?"),
-            maya("A NAT gateway. Picture a company post room. Every letter going out gets the company's return address stamped on it, not the sender's desk. NAT means network address translation: swapping each machine's private address for one shared public address."),
+            leo("Hold on. My laptop at home gets online and I never added a door."),
+            maya("Your home router is the door. It swaps your laptop's private address for the one public address your provider gave you. In Azure that door is a NAT gateway. NAT means network address translation: exactly that swap."),
             leo("Public address meaning what?"),
-            maya("A public IP is a street address the whole internet can see and reply to. The NAT gateway holds one or more fixed ones, and every VM in the subnet leaves through them."),
+            maya("A public IP is a street address the whole internet can see and reply to. The NAT gateway holds one or more fixed ones, and every VM in the subnet leaves through them, like letters stamped with one company return address."),
             leo("Why would I care that it's fixed?"),
-            maya("Say you're building the payment step. The Two Tracks payment partner has an API, which is the door their software opens for other programs to call. And that door only accepts calls from addresses on its list. Ten VMs, one known address: a NAT gateway on their subnet."),
+            maya("Say you're building the payment step. Your API code calls the payment partner's API, the door their software opens for other programs. And their door only accepts callers on its address list."),
+            leo("But my backend runs on ten VMs. Ten addresses?"),
+            maya("One. All ten leave through the NAT gateway's fixed address, so the partner lists just that."),
             leo("Couldn't I give each VM its own public IP?"),
             maya("You could, but then you have ten addresses to list, and ten machines strangers can knock on. A public IP is for one VM that must accept calls from outside."),
             leo("Okay. Now Two Tracks has users in Europe and Australia. Does that change the network?"),
@@ -47,7 +49,7 @@ internal object Az305EpisodesNetworkConnectivity {
             leo("And the second choice?"),
             maya("ExpressRoute. A private line from your network to Microsoft, through a telecoms provider. Picture your own private road. Nobody else drives on it, so it's fast and steady."),
             leo("Steady how? Doesn't everything just take as long as it takes?"),
-            maya("That's latency: the delay before a message arrives, like the wait between posting a letter and it landing. On the internet, latency jumps around with the traffic. ExpressRoute's is predictable. But it takes weeks to order, and it's private, not encrypted by default."),
+            maya("That's latency: the delay before a message arrives, like the wait for a letter. On the internet, latency jumps around with the traffic. ExpressRoute's is predictable. But it takes weeks to order, and it's private, not encrypted by default."),
             leo("So VPN is the quick cheap one, and ExpressRoute the serious one?"),
             maya("Exactly. A VPN is ready in hours, but rides the internet. The best of both is ExpressRoute with a site-to-site VPN as failover. Failover means a backup takes over when the main path breaks."),
             leo("Now the database. Two Tracks keeps its data in Azure SQL. Isn't that just out on the internet?"),
@@ -57,7 +59,9 @@ internal object Az305EpisodesNetworkConnectivity {
             leo("And how does my app find that extension?"),
             maya("Through DNS, the internet's phone book, which turns a name into an address. You add a Private DNS zone: a phone book only your linked VNets can read, so the database's name points to the private address. Forget it, and the name still finds the public one."),
             leo("Isn't there a free version? I heard service endpoint."),
-            maya("A service endpoint lets one subnet reach the service over Microsoft's cables, and the service lets that subnet in. But the service keeps its public address, and it never works from the office. Office over ExpressRoute to the database? Private endpoint."),
+            maya("A service endpoint lets one Azure subnet reach the service over Microsoft's cables, and the service lets that subnet in. But the database keeps its public address."),
+            leo("And from the office, over ExpressRoute?"),
+            maya("Never. It only covers subnets inside Azure. Office to database, privately, means a private endpoint."),
             leo("So what does the whole Two Tracks design look like?"),
             maya("A hub and spoke in each region, hubs peered. ExpressRoute plus a VPN into Europe. NAT gateways for the payment partner. Private endpoints for every database."),
             leo("So what do I remember for the exam?"),
@@ -96,9 +100,11 @@ internal object Az305EpisodesNetworkConnectivity {
             leo("Case one closed. Case two?"),
             maya("The payment partner. Their API only accepts calls from addresses on a list. Every Two Tracks payment call was refused."),
             leo("Suspect: the VMs had no way out at all. Give each one a public IP."),
-            maya("Half right about the cause. New Azure networks get private subnets by default, with no hidden way out, so these VMs needed a door. A public IP is a street address the whole internet can see. But ten of them means ten addresses to list, and ten machines open to strangers."),
-            leo("So what's the door?"),
-            maya("A NAT gateway on their subnet. NAT means network address translation. Picture the company post room stamping every outgoing letter with one return address. Under the hood, it swaps each VM's private address for its fixed public one, and remembers each conversation so the reply finds the right VM."),
+            maya("Half right. New Azure networks get private subnets by default, with no hidden way out, so these VMs did need a door. A public IP is a street address the whole internet can see. Now count."),
+            leo("Ten VMs, ten public IPs, ten addresses on the partner's list. And ten machines strangers can knock on. Fine, bad idea."),
+            maya("So one shared door for the subnet: a NAT gateway. NAT means network address translation, and it's what your home router does. Your laptop's private address goes out as the router's one public address."),
+            leo("And when the partner answers, how does the reply find the right VM?"),
+            maya("The gateway remembers each conversation, like a post room that stamps one return address on every letter and logs who sent it. And it only lets traffic out: strangers can't start a call in through it."),
             leo("One known address for the partner's list. Case two closed. Three?"),
             maya("The office. Two Tracks still has a system on-premises, which means in its own building, on its own computers. The design used a site-to-site VPN to reach Azure."),
             leo("VPN. Translate, please."),
@@ -108,7 +114,9 @@ internal object Az305EpisodesNetworkConnectivity {
             leo("Suspect: one tunnel is too few. Add a second VPN."),
             maya("That's the distractor. Every VPN rides the internet, so latency is never predictable, however many vans you add. The words predictable latency point to ExpressRoute: a private line to Microsoft through a telecoms provider, like your own private road."),
             leo("And where does ExpressRoute stop working?"),
-            maya("It takes weeks to order, and it's private but not encrypted by default. And a single line can fail. So the fix is ExpressRoute with a site-to-site VPN as failover, a backup that takes over. Both gateways sit in the same VNet, and Azure prefers the private road."),
+            maya("It takes weeks to order, and it's private but not encrypted by default. And a single line can fail."),
+            leo("So we keep the old VPN after all?"),
+            maya("Yes, as failover, a backup that takes over. ExpressRoute with a site-to-site VPN behind it. Both gateways sit in the same VNet, and Azure prefers the private road while it's up."),
             leo("Case four. I can feel it."),
             maya("The database. Two Tracks keeps its data in Azure SQL, which is PaaS, platform as a service: Azure runs the machine, you just use the database. The rule said office staff reach it over ExpressRoute, and never from the internet."),
             leo("Suspect: they used a service endpoint."),
@@ -146,10 +154,12 @@ internal object Az305EpisodesNetworkConnectivity {
             leo("Is that bad? Numbers are numbers."),
             maya("Two buildings with the same room numbers can never share one post room. Networks with overlapping ranges can never be joined. Priya rebuilt it on Tuesday. Lesson: plan ranges that never overlap, before you build."),
             leo("Poor Priya. Tuesday?"),
-            maya("Tom. Two Tracks has two regions. A region is a group of Azure data centres in one part of the world: West Europe and Australia East. Tom built a hub and spoke. Picture a bicycle wheel: shared things in the middle VNet, the hub, and workloads in spoke VNets around it."),
-            leo("Sounds tidy. What went wrong?"),
-            maya("Each spoke was peered to the hub. VNet peering is a private corridor between two floors, over Microsoft's own cables, never the internet. Global peering crosses regions. Tom expected the app spoke to reach the data spoke through the hub."),
-            leo("And it didn't?"),
+            maya("Tom. Two Tracks has two regions. A region is a group of Azure data centres in one part of the world: West Europe and Australia East. And Tom drew a hub and spoke."),
+            leo("Hub and spoke. Like a bike wheel?"),
+            maya("Exactly a bicycle wheel. Shared things in the middle VNet, the hub, and each workload in its own spoke VNet around it. Each spoke peered to the hub."),
+            leo("Peered meaning plugged together?"),
+            maya("VNet peering is a private corridor between two floors, over Microsoft's own cables, never the internet. Global peering crosses regions. So Tom expected the app spoke to reach the data spoke through the hub."),
+            leo("Sounds tidy. And it didn't?"),
             maya("Peering is not transitive, meaning it never passes traffic along. A friend of a friend is not your friend. Tom glared at the whiteboard, then sent spoke traffic through a firewall in the hub, a security guard that checks traffic, using a route."),
             leo("[chuckle] The whiteboard incident. And if there were dozens of sites?"),
             maya("Then Azure Virtual WAN, where Microsoft runs the hubs and every site reaches every other. Wednesday was Dana."),
@@ -174,7 +184,9 @@ internal object Az305EpisodesNetworkConnectivity {
             leo("Did anyone get anything right?"),
             maya("The best gossip. The payment partner's API, the door their software opens for other programs, only accepts calls from known addresses. And new networks get private subnets, with no way out until you add one. So Priya, back from Monday, added a NAT gateway."),
             leo("Which is?"),
-            maya("A shared exit for a whole subnet, with fixed public addresses. NAT means network address translation. Picture the post room stamping every letter with the company's return address. Under the hood, it swaps each VM's private address for the public one, and remembers each conversation so replies come home."),
+            maya("A shared exit for a whole subnet, with fixed public addresses. NAT means network address translation. You've got one at home, by the way: your router."),
+            leo("My router? It just gives my laptop Wi-Fi."),
+            maya("It also swaps your laptop's private address for your one public address, and remembers each conversation so replies come home. Like a post room stamping one return address on every letter. A NAT gateway does that for a subnet of VMs."),
             leo("Redemption. And people working from home?"),
             maya("Point-to-site VPN: each laptop builds its own tunnel to the VPN gateway. Site-to-site joins a whole office router. And next week's drama, load balancers and firewalls, is in the network security and load balancing episode."),
             leo("So, the gossip I need for the exam?"),
@@ -202,11 +214,15 @@ internal object Az305EpisodesNetworkConnectivity {
             ivy("Noted. Now, the backend wants to go out. Into the night."),
             nova("[chuckle] It needs a door. New networks get private subnets by default now, with no way out until you add one. The recommended door is a NAT gateway."),
             ivy("Which is?"),
-            nova("Picture a post room at the office. Every letter leaving gets one return address stamped on it, the company's, not the sender's desk. NAT means network address translation. Under the hood, the gateway swaps each VM's private address for a fixed public one, and remembers each conversation, so replies find their way home."),
+            nova("Picture a post room at the office. Every letter leaving gets one return address stamped on it, the company's, not the sender's desk. [pause] NAT means network address translation."),
+            ivy("Like my router at home? My phone sits on the Wi-Fi with some private number, and the internet only ever sees one address."),
+            nova("Exactly like your router. The gateway swaps each VM's private address for a fixed public one, and remembers each conversation, so replies find their way home."),
             ivy("And why would I want one fixed address?"),
             nova("Because the payment partner is choosy. Their API, the door their software opens for other programs, only answers addresses on its list. [pause] Ten VMs, one known address. A public IP on each VM would mean ten addresses, and ten machines strangers can knock on."),
             ivy("Choosy partners. I respect that. Now, two continents. How do they meet?"),
-            nova("Two regions. A region is a group of Azure data centres in one part of the world, like West Europe or Australia East. [pause] You join their VNets with peering: a private corridor between two floors, over Microsoft's own cables. Global peering reaches across regions."),
+            nova("Two regions. A region is a group of Azure data centres in one part of the world, like West Europe or Australia East."),
+            ivy("And their VNets have to shout to each other across the internet?"),
+            nova("No. [pause] You join them with peering: a private corridor between two floors, over Microsoft's own cables. Global peering reaches across regions."),
             ivy("So everyone who's peered can wander everywhere?"),
             nova("No, and this is the part to remember. Peering is not transitive, which means it never passes traffic along. A to B and B to C, and still A can't reach C. A friend of a friend is not your friend, however late it gets."),
             ivy("Mm. So how do the big ones keep it tidy?"),
@@ -458,55 +474,55 @@ internal object Az305EpisodesNetworkConnectivity {
                     Beat(14, show = setOf("nat"), light = setOf("nat"), pulse = "vms" to "nat", card = natCard),
                     Beat(16, show = setOf("net"), light = setOf("nat", "net"), pulse = "nat" to "net", card = publicIp),
                     Beat(18, show = setOf("partner"), light = setOf("partner"), pulse = "net" to "partner", card = api),
-                    Beat(20, light = setOf("vms"), card = BoardCard("A public IP per VM?", "Ten addresses to list, ten machines open. Only for a VM taking calls.")),
+                    Beat(22, light = setOf("vms"), card = BoardCard("A public IP per VM?", "Ten addresses to list, ten machines open. Only for a VM taking calls.")),
                 ),
             ),
-            // 21: "Okay. Now Two Tracks has users in Europe and Australia."
+            // 23: "Okay. Now Two Tracks has users in Europe and Australia."
             Scene(
-                21, "Joining networks", peer(),
+                23, "Joining networks", peer(),
                 beats = listOf(
-                    Beat(22, show = setOf("a", "b"), light = setOf("a", "b"), card = region),
-                    Beat(24, show = setOf("hub"), light = setOf("a", "hub"), pulse = "a" to "hub", card = peering),
-                    Beat(26, light = setOf("a", "b"), pulse = "a" to "b", card = transitive),
-                    Beat(28, light = setOf("hub"), card = hubSpoke),
-                    Beat(30, light = setOf("hub", "b"), pulse = "hub" to "b", card = BoardCard("Firewall in the hub", "A guard for traffic. A route sends spoke-to-spoke traffic through it.")),
-                    Beat(32, show = setOf("wan"), light = setOf("wan"), card = wan),
+                    Beat(24, show = setOf("a", "b"), light = setOf("a", "b"), card = region),
+                    Beat(26, show = setOf("hub"), light = setOf("a", "hub"), pulse = "a" to "hub", card = peering),
+                    Beat(28, light = setOf("a", "b"), pulse = "a" to "b", card = transitive),
+                    Beat(30, light = setOf("hub"), card = hubSpoke),
+                    Beat(32, light = setOf("hub", "b"), pulse = "hub" to "b", card = BoardCard("Firewall in the hub", "A guard for traffic. A route sends spoke-to-spoke traffic through it.")),
+                    Beat(34, show = setOf("wan"), light = setOf("wan"), card = wan),
                 ),
             ),
-            // 33: "Now the old office."
+            // 35: "Now the old office."
             Scene(
-                33, "Reaching the office", hybrid(),
+                35, "Reaching the office", hybrid(),
                 beats = listOf(
-                    Beat(34, show = setOf("office", "hub", "vpn"), light = setOf("office", "vpn"), pulse = "office" to "vpn", card = vpnCard),
-                    Beat(36, show = setOf("laptop"), light = setOf("laptop", "hub"), pulse = "laptop" to "hub", card = p2s),
-                    Beat(38, show = setOf("er"), light = setOf("er"), pulse = "office" to "er", card = erCard),
-                    Beat(40, light = setOf("er"), card = latency),
-                    Beat(42, light = setOf("er", "vpn"), pulse = "vpn" to "hub", card = failover),
+                    Beat(36, show = setOf("office", "hub", "vpn"), light = setOf("office", "vpn"), pulse = "office" to "vpn", card = vpnCard),
+                    Beat(38, show = setOf("laptop"), light = setOf("laptop", "hub"), pulse = "laptop" to "hub", card = p2s),
+                    Beat(40, show = setOf("er"), light = setOf("er"), pulse = "office" to "er", card = erCard),
+                    Beat(42, light = setOf("er"), card = latency),
+                    Beat(44, light = setOf("er", "vpn"), pulse = "vpn" to "hub", card = failover),
                 ),
             ),
-            // 43: "Now the database."
+            // 45: "Now the database."
             Scene(
-                43, "The database, privately", privateLink(),
+                45, "The database, privately", privateLink(),
                 beats = listOf(
-                    Beat(44, show = setOf("sql"), light = setOf("sql"), card = paas),
-                    Beat(46, show = setOf("app", "pe"), light = setOf("pe"), pulse = "pe" to "sql", card = peCard),
-                    Beat(48, show = setOf("dns"), light = setOf("dns"), pulse = "app" to "dns", card = dnsCard),
-                    Beat(50, show = setOf("se"), light = setOf("se"), card = seCard),
+                    Beat(46, show = setOf("sql"), light = setOf("sql"), card = paas),
+                    Beat(48, show = setOf("app", "pe"), light = setOf("pe"), pulse = "pe" to "sql", card = peCard),
+                    Beat(50, show = setOf("dns"), light = setOf("dns"), pulse = "app" to "dns", card = dnsCard),
+                    Beat(52, show = setOf("se"), light = setOf("se"), card = seCard),
                 ),
             ),
-            // 51: "So what does the whole Two Tracks design look like?"
+            // 55: "So what does the whole Two Tracks design look like?"
             Scene(
-                51, "The whole design", design(),
+                55, "The whole design", design(),
                 beats = listOf(
-                    Beat(52, light = setOf("hub", "api", "data"), pulse = "office" to "hub", card = BoardCard("The design", "Hub and spoke per region, ExpressRoute plus VPN, NAT, private endpoints.")),
+                    Beat(56, light = setOf("hub", "api", "data"), pulse = "office" to "hub", card = BoardCard("The design", "Hub and spoke per region, ExpressRoute plus VPN, NAT, private endpoints.")),
                 ),
             ),
-            // 53: "So what do I remember for the exam?"
+            // 57: "So what do I remember for the exam?"
             Scene(
-                53, "For the exam", exam(),
+                57, "For the exam", exam(),
                 beats = listOf(
-                    Beat(54, show = all6, light = setOf("nat", "peer", "er"), card = listen),
-                    Beat(56, card = today),
+                    Beat(58, show = all6, light = setOf("nat", "peer", "er"), card = listen),
+                    Beat(60, card = today),
                 ),
             ),
         ),
@@ -547,41 +563,41 @@ internal object Az305EpisodesNetworkConnectivity {
                     Beat(26, show = setOf("nat"), light = setOf("nat"), pulse = "vms" to "nat", card = BoardCard("NAT gateway", "Swaps each private address for one fixed public one, and remembers replies.")),
                 ),
             ),
-            // 27: "One known address for the partner's list. Case two closed. Three?"
+            // 29: "One known address for the partner's list. Case two closed. Three?"
             Scene(
-                27, "Case three: the office", hybrid(),
+                29, "Case three: the office", hybrid(),
                 beats = listOf(
-                    Beat(28, show = setOf("office", "hub"), light = setOf("office"), card = BoardCard("On-premises", "Your own building, your own computers.")),
-                    Beat(30, show = setOf("vpn", "laptop"), light = setOf("vpn"), pulse = "office" to "vpn", card = vpnCard),
-                    Beat(32, light = setOf("vpn"), card = BoardCard("Latency", "The delay before a message arrives. Over the internet it jumps about.")),
-                    Beat(34, show = setOf("er"), light = setOf("er"), pulse = "office" to "er", card = erCard),
-                    Beat(36, light = setOf("er", "vpn"), pulse = "vpn" to "hub", card = BoardCard("Failover", "Weeks to order, not encrypted by default; a VPN takes over if it fails.")),
+                    Beat(30, show = setOf("office", "hub"), light = setOf("office"), card = BoardCard("On-premises", "Your own building, your own computers.")),
+                    Beat(32, show = setOf("vpn", "laptop"), light = setOf("vpn"), pulse = "office" to "vpn", card = vpnCard),
+                    Beat(34, light = setOf("vpn"), card = BoardCard("Latency", "The delay before a message arrives. Over the internet it jumps about.")),
+                    Beat(36, show = setOf("er"), light = setOf("er"), pulse = "office" to "er", card = erCard),
+                    Beat(38, light = setOf("er", "vpn"), pulse = "vpn" to "hub", card = BoardCard("Failover", "Weeks to order, not encrypted by default; a VPN takes over if it fails.")),
                 ),
             ),
-            // 37: "Case four. I can feel it."
+            // 41: "Case four. I can feel it."
             Scene(
-                37, "Case four: the database", privateLink(),
+                41, "Case four: the database", privateLink(),
                 beats = listOf(
-                    Beat(38, show = setOf("sql"), light = setOf("sql"), card = paas),
-                    Beat(40, show = setOf("app", "se"), light = setOf("se"), card = seCard),
-                    Beat(42, show = setOf("pe"), light = setOf("pe"), pulse = "pe" to "sql", card = peCard),
-                    Beat(44, show = setOf("dns"), light = setOf("dns"), pulse = "app" to "dns", card = BoardCard("Private DNS zone", "Without it, the name still pointed to the public address.")),
+                    Beat(42, show = setOf("sql"), light = setOf("sql"), card = paas),
+                    Beat(44, show = setOf("app", "se"), light = setOf("se"), card = seCard),
+                    Beat(46, show = setOf("pe"), light = setOf("pe"), pulse = "pe" to "sql", card = peCard),
+                    Beat(48, show = setOf("dns"), light = setOf("dns"), pulse = "app" to "dns", card = BoardCard("Private DNS zone", "Without it, the name still pointed to the public address.")),
                 ),
             ),
-            // 45: "One more clue in the file. Overlapping something?"
+            // 49: "One more clue in the file. Overlapping something?"
             Scene(
-                45, "One more clue", floor(),
+                49, "One more clue", floor(),
                 beats = listOf(
-                    Beat(46, light = setOf("range"), card = BoardCard("Overlapping ranges", "The test VNet reused the office's numbers, so it had to be rebuilt.")),
-                    Beat(48, light = setOf("vnet"), card = BoardCard("Next door", "Load balancers and firewalls: the network security episode.")),
+                    Beat(50, light = setOf("range"), card = BoardCard("Overlapping ranges", "The test VNet reused the office's numbers, so it had to be rebuilt.")),
+                    Beat(52, light = setOf("vnet"), card = BoardCard("Next door", "Load balancers and firewalls: the network security episode.")),
                 ),
             ),
-            // 49: "So, the case summary for the exam?"
+            // 53: "So, the case summary for the exam?"
             Scene(
-                49, "Case closed", exam(),
+                53, "Case closed", exam(),
                 beats = listOf(
-                    Beat(50, show = all6, light = setOf("nat", "peer", "er"), card = listen),
-                    Beat(52, card = today),
+                    Beat(54, show = all6, light = setOf("nat", "peer", "er"), card = listen),
+                    Beat(56, card = today),
                 ),
             ),
         ),
@@ -607,53 +623,53 @@ internal object Az305EpisodesNetworkConnectivity {
                 11, "Tuesday: Tom", peer(),
                 beats = listOf(
                     Beat(12, show = setOf("hub", "a", "b"), light = setOf("hub"), card = hubSpoke),
-                    Beat(14, light = setOf("a", "hub"), pulse = "a" to "hub", card = peering),
-                    Beat(16, light = setOf("a", "b"), pulse = "a" to "b", card = transitive),
-                    Beat(18, show = setOf("wan"), light = setOf("wan"), card = wan),
+                    Beat(16, light = setOf("a", "hub"), pulse = "a" to "hub", card = peering),
+                    Beat(18, light = setOf("a", "b"), pulse = "a" to "b", card = transitive),
+                    Beat(20, show = setOf("wan"), light = setOf("wan"), card = wan),
                 ),
             ),
-            // 19: "Go on."
+            // 21: "Go on."
             Scene(
-                19, "Wednesday: Dana", hybrid(),
+                21, "Wednesday: Dana", hybrid(),
                 beats = listOf(
-                    Beat(20, show = setOf("office", "hub", "vpn"), light = setOf("office", "vpn"), pulse = "office" to "vpn", card = vpnCard),
-                    Beat(22, light = setOf("vpn"), card = BoardCard("Latency", "The delay before a message arrives. On the internet it wobbles.")),
-                    Beat(24, show = setOf("er"), light = setOf("er"), pulse = "office" to "er", card = erCard),
-                    Beat(26, light = setOf("er", "vpn"), pulse = "vpn" to "hub", card = failover),
+                    Beat(22, show = setOf("office", "hub", "vpn"), light = setOf("office", "vpn"), pulse = "office" to "vpn", card = vpnCard),
+                    Beat(24, light = setOf("vpn"), card = BoardCard("Latency", "The delay before a message arrives. On the internet it wobbles.")),
+                    Beat(26, show = setOf("er"), light = setOf("er"), pulse = "office" to "er", card = erCard),
+                    Beat(28, light = setOf("er", "vpn"), pulse = "vpn" to "hub", card = failover),
                 ),
             ),
-            // 27: "Thursday?"
+            // 29: "Thursday?"
             Scene(
-                27, "Thursday: Marcus", privateLink(),
+                29, "Thursday: Marcus", privateLink(),
                 beats = listOf(
-                    Beat(28, show = setOf("sql"), light = setOf("sql"), card = paas),
-                    Beat(30, show = setOf("pe"), light = setOf("pe"), pulse = "pe" to "sql", card = peCard),
-                    Beat(32, show = setOf("app", "dns"), light = setOf("dns"), pulse = "app" to "dns", card = BoardCard("He forgot this", "No Private DNS zone, so the name still found the public address.")),
+                    Beat(30, show = setOf("sql"), light = setOf("sql"), card = paas),
+                    Beat(32, show = setOf("pe"), light = setOf("pe"), pulse = "pe" to "sql", card = peCard),
+                    Beat(34, show = setOf("app", "dns"), light = setOf("dns"), pulse = "app" to "dns", card = BoardCard("He forgot this", "No Private DNS zone, so the name still found the public address.")),
                 ),
             ),
-            // 33: "[sigh] So close. Friday?"
+            // 35: "[sigh] So close. Friday?"
             Scene(
-                33, "Friday: the intern", privateLink(),
+                35, "Friday: the intern", privateLink(),
                 beats = listOf(
-                    Beat(34, show = setOf("se"), light = setOf("se"), card = seCard),
-                    Beat(36, light = setOf("pe"), card = BoardCard("Office traffic", "Service endpoints only work from Azure subnets: use a private endpoint.")),
+                    Beat(36, show = setOf("se"), light = setOf("se"), card = seCard),
+                    Beat(38, light = setOf("pe"), card = BoardCard("Office traffic", "Service endpoints only work from Azure subnets: use a private endpoint.")),
                 ),
             ),
-            // 37: "Did anyone get anything right?"
+            // 39: "Did anyone get anything right?"
             Scene(
-                37, "Priya's redemption", wayOut(),
+                39, "Priya's redemption", wayOut(),
                 beats = listOf(
-                    Beat(38, light = setOf("partner"), card = api),
-                    Beat(40, show = setOf("nat"), light = setOf("nat"), pulse = "vms" to "nat", card = natCard),
-                    Beat(42, card = p2s),
+                    Beat(40, light = setOf("partner"), card = api),
+                    Beat(42, show = setOf("nat"), light = setOf("nat"), pulse = "vms" to "nat", card = natCard),
+                    Beat(46, card = p2s),
                 ),
             ),
-            // 43: "So, the gossip I need for the exam?"
+            // 47: "So, the gossip I need for the exam?"
             Scene(
-                43, "For the exam", exam(),
+                47, "For the exam", exam(),
                 beats = listOf(
-                    Beat(44, show = all6, light = setOf("nat", "peer", "er"), card = listen),
-                    Beat(46, card = today),
+                    Beat(48, show = all6, light = setOf("nat", "peer", "er"), card = listen),
+                    Beat(50, card = today),
                 ),
             ),
         ),
@@ -679,43 +695,43 @@ internal object Az305EpisodesNetworkConnectivity {
                 beats = listOf(
                     Beat(10, show = setOf("vms"), light = setOf("vms"), card = BoardCard("Outbound", "New subnets are private: no way out until you add a door.")),
                     Beat(12, show = setOf("nat", "net"), light = setOf("nat"), pulse = "vms" to "nat", card = natCard),
-                    Beat(14, show = setOf("partner"), light = setOf("partner"), pulse = "net" to "partner", card = api),
+                    Beat(16, show = setOf("partner"), light = setOf("partner"), pulse = "net" to "partner", card = api),
                 ),
             ),
-            // 15: "Choosy partners. I respect that. Now, two continents."
+            // 17: "Choosy partners. I respect that. Now, two continents."
             Scene(
-                15, "Two continents", peer(),
+                17, "Two continents", peer(),
                 beats = listOf(
-                    Beat(16, show = setOf("hub", "a"), light = setOf("a", "hub"), pulse = "a" to "hub", card = peering),
-                    Beat(18, show = setOf("b"), light = setOf("a", "b"), pulse = "a" to "b", card = transitive),
-                    Beat(20, show = setOf("wan"), light = setOf("hub", "wan"), card = hubSpoke),
+                    Beat(18, show = setOf("hub", "a"), light = setOf("a", "hub"), pulse = "a" to "hub", card = peering),
+                    Beat(22, show = setOf("b"), light = setOf("a", "b"), pulse = "a" to "b", card = transitive),
+                    Beat(24, show = setOf("wan"), light = setOf("hub", "wan"), card = hubSpoke),
                 ),
             ),
-            // 21: "And the old office? It's still out there, all alone."
+            // 25: "And the old office? It's still out there, all alone."
             Scene(
-                21, "The old office", hybrid(),
+                25, "The old office", hybrid(),
                 beats = listOf(
-                    Beat(22, show = setOf("office", "hub", "vpn", "laptop"), light = setOf("office", "vpn"), pulse = "office" to "vpn", card = vpnCard),
-                    Beat(24, show = setOf("er"), light = setOf("er"), pulse = "office" to "er", card = BoardCard("ExpressRoute", "Your own private road, so the latency, the delay, stays steady.")),
-                    Beat(26, light = setOf("er", "vpn"), pulse = "vpn" to "hub", card = failover),
+                    Beat(26, show = setOf("office", "hub", "vpn", "laptop"), light = setOf("office", "vpn"), pulse = "office" to "vpn", card = vpnCard),
+                    Beat(28, show = setOf("er"), light = setOf("er"), pulse = "office" to "er", card = BoardCard("ExpressRoute", "Your own private road, so the latency, the delay, stays steady.")),
+                    Beat(30, light = setOf("er", "vpn"), pulse = "vpn" to "hub", card = failover),
                 ),
             ),
-            // 27: "And the database? Where do the secrets sleep?"
+            // 31: "And the database? Where do the secrets sleep?"
             Scene(
-                27, "Where the secrets sleep", privateLink(),
+                31, "Where the secrets sleep", privateLink(),
                 beats = listOf(
-                    Beat(28, show = setOf("sql"), light = setOf("sql"), card = paas),
-                    Beat(30, show = setOf("pe"), light = setOf("pe"), pulse = "pe" to "sql", card = peCard),
-                    Beat(32, show = setOf("app", "dns"), light = setOf("dns"), pulse = "app" to "dns", card = dnsCard),
-                    Beat(34, show = setOf("se"), light = setOf("se"), card = seCard),
+                    Beat(32, show = setOf("sql"), light = setOf("sql"), card = paas),
+                    Beat(34, show = setOf("pe"), light = setOf("pe"), pulse = "pe" to "sql", card = peCard),
+                    Beat(36, show = setOf("app", "dns"), light = setOf("dns"), pulse = "app" to "dns", card = dnsCard),
+                    Beat(38, show = setOf("se"), light = setOf("se"), card = seCard),
                 ),
             ),
-            // 35: "[sigh] Before you send me off to bed."
+            // 39: "[sigh] Before you send me off to bed."
             Scene(
-                35, "For the exam", exam(),
+                39, "For the exam", exam(),
                 beats = listOf(
-                    Beat(36, show = all6, light = setOf("nat", "peer", "er"), card = listen),
-                    Beat(38, card = today),
+                    Beat(40, show = all6, light = setOf("nat", "peer", "er"), card = listen),
+                    Beat(42, card = today),
                 ),
             ),
         ),

@@ -5,7 +5,7 @@ internal object Az305EpisodesDataIntegration {
     private val classic = Podcast(
         "sa-data-integration",
         listOf(
-            maya("Hi, and welcome back. Today is data integration and analysis, a design topic for AZ-305. Our story all series is Two Tracks goes global. The little Android study app is now a company, with a backend on Azure, the server side the app talks to, users in Europe and Australia, and an old office system in London full of bookings."),
+            maya("Hi, and welcome back. Today is data integration and analysis. Our story: Two Tracks goes global. The little Android study app is now a company, with a backend on Azure, the server side the app talks to, users in Europe and Australia, and an old office system in London full of bookings."),
             leo("And somebody wants reports from all of it, I'm guessing. [chuckle]"),
             maya("Exactly. Data integration means gathering data from many places into one, on a schedule, cleaning it on the way. Data analysis means asking big questions of that gathered data, or of data still streaming in. On the exam, every question here is a choice: which service fits the requirement words."),
             leo("So what are the choices, in plain words?"),
@@ -20,38 +20,48 @@ internal object Az305EpisodesDataIntegration {
             maya("A trigger. It starts the pipeline on a schedule, say every night at two, or when a new file arrives. And if the data needs reshaping, mapping data flows let you design that by drawing boxes, instead of writing code."),
             leo("Who actually carries the boxes, though? Someone has to do the lifting."),
             maya("That's the integration runtime: the worker that does the lifting. And where it sits matters a lot. There are three kinds, and the exam loves them."),
-            leo("Go on, the first one."),
-            maya("The Azure integration runtime. It's computing power that Azure runs for you. Say your app's files, which Azure calls blobs, sit in Blob Storage, and you copy them into the lake. Cloud to cloud, so the Azure runtime does it, and you look after nothing."),
+            leo("Three? In my day job, the code that copies data just runs on my own server."),
+            maya("And that's the real question here: whose machine runs the copy. The first is the Azure integration runtime, computing power that Azure runs for you. Say your app's files, which Azure calls blobs, sit in Blob Storage, and you copy them into the lake. Cloud to cloud, so the Azure runtime does it, and you look after nothing."),
             leo("And the London office? That's not in the cloud."),
             maya("No. That's on-premises, which means on the company's own machines, in its own building. And the office has a firewall, a guard on the door that turns away anyone trying to come in from outside. So the Azure runtime can't reach in."),
             leo("So how do we get the bookings out?"),
-            maya("With a self-hosted integration runtime. It's software you install on a Windows machine inside the office. It only connects outbound: it phones out to Azure, so nobody has to open the door to callers from outside. Install it on two office machines, so the copy still runs if one breaks."),
-            leo("Phoning out instead of being phoned. I like that. And the third kind?"),
+            maya("With a self-hosted integration runtime. It's software you install on a Windows machine inside the office, and it only connects outbound: it phones out to Azure."),
+            leo("Hang on. The data still crosses the door. Why is outbound fine?"),
+            maya("Think of your Android app. The phone calls your API; your API never rings the phone, because the phone's network turns strangers away. Same here: the office PC asks Azure whether there's work, then reads the database and sends the rows up. Nobody opens the door to callers from outside."),
+            leo("Phoning out instead of being phoned. And if that one PC restarts for updates?"),
+            maya("Then the copy doesn't run. So install it on two office machines, and either one can take the job."),
+            leo("Good. And the third kind?"),
             maya("The Azure-SSIS runtime. SSIS, SQL Server Integration Services, is SQL Server's older tool for the same job, and a package is one saved SSIS job. If the finance team already has 150 packages, the Azure-SSIS runtime runs them in Azure with little change."),
             leo("So nobody rewrites 150 packages. Good, because I wasn't going to. [laugh]"),
             maya("Nobody should. That's a classic wrong answer: rewriting when the question says minimal rework. Now, the data has landed in the lake. Time to ask it questions."),
             leo("Where do I ask them? You said three places."),
-            maya("First, two plain words. Spark is an engine that splits a big job across many machines, like a hundred people each counting one box of votes. And a data warehouse is a database shaped for big read-only questions, rather than many small writes."),
+            maya("First, two plain words. Spark is an engine that splits a big job across many machines, like a hundred people each counting one box of votes."),
+            leo("And a data warehouse? I already have a database. My API writes workouts into it all day."),
+            maya("That one is built for many small writes, one workout at a time. A data warehouse is shaped the other way round: few writes, and huge read-only questions, like lessons finished per country per month."),
             leo("Got it. Now the three."),
             maya("Microsoft Fabric is SaaS, software as a service: you sign in and use it, with nothing to deploy. It puts data movement, Spark, a warehouse, real time and reports in one place. Its storage is OneLake, which is one data lake for the whole organisation."),
             leo("Reports in what?"),
             maya("Power BI, Microsoft's tool for charts and dashboards that people actually look at. Fabric is the natural pick for a new project. Synapse Analytics is the older workspace with SQL and Spark together, which you set up and run yourself. It stays supported for existing warehouses."),
             leo("And Databricks?"),
-            maya("Azure Databricks is the Spark-heavy choice, for data engineering and machine learning. Data scientists work in notebooks, which are pages that mix code, results and notes. So listen for the team. SQL analysts and a warehouse suggest Fabric or Synapse. Data scientists in Python notebooks suggest Databricks."),
+            maya("Azure Databricks is the Spark-heavy choice, for data engineering and machine learning. Data scientists work there in notebooks, which are pages that mix code, results and notes."),
+            leo("So how do I pick, in a question?"),
+            maya("Listen for the team. SQL analysts and a warehouse suggest Fabric or Synapse. Data scientists in Python notebooks suggest Databricks."),
             leo("Any trap in there?"),
             maya("One. Synapse has two kinds of SQL pool. A dedicated pool is a warehouse you keep running, and pay for while it runs. Serverless SQL reads files right where they lie in the lake, and you pay per query. For example, analysts running a few queries a month over lake files: serverless, every time."),
             leo("Right. Now the live stuff. You said real time."),
             maya("The status page. Two Tracks wants to show how many lessons were finished per minute, updated within seconds. Each finished lesson sends an event, which is a small message saying something happened."),
-            leo("That's a lot of little messages."),
-            maya("Millions, on a good day. So they go into Event Hubs, a front door that can take in millions of events a second. IoT Hub is the same idea for devices and sensors. Then Stream Analytics runs a SQL-like query over the events as they arrive, and writes results every few seconds to a Power BI report."),
+            leo("Couldn't my API just write each one to the database, and the page count them every second?"),
+            maya("With ten users, sure. With millions, that database drowns. So the events go into Event Hubs, a front door that can take in millions of events a second. IoT Hub is the same idea for devices and sensors."),
+            leo("And who does the counting, then?"),
+            maya("Stream Analytics. It reads the events out of Event Hubs, runs a SQL-like query over them as they arrive, and writes results every few seconds to a Power BI report."),
             leo("And how does it count per minute, if events never stop?"),
             maya("Windowing. It groups events into slices of time, like counting cars per minute at a junction. Every minute, the count for that slice comes out, and a new count starts."),
             leo("So could Data Factory do the status page instead? It's all just moving data."),
-            maya("No, and that's the other classic trap. Data Factory runs batches, on a schedule. Nightly is the opposite of within seconds. Picture a small app with a live dashboard: if the words say within seconds, it's Stream Analytics."),
+            maya("No, and that's the other classic trap. Data Factory runs batches, on a schedule. Nightly is the opposite of within seconds. If the words say within seconds, it's Stream Analytics."),
             leo("So what do I remember for the exam?"),
             maya("Five things. If it says nightly copy from an on-premises source, Data Factory. If the source is behind a firewall with no inbound ports, a self-hosted integration runtime. If there are existing SSIS packages, the Azure-SSIS runtime. If it says within seconds or live dashboard, Stream Analytics. And data scientists with notebooks and Spark, Databricks."),
             leo("And anything to try today?"),
-            maya("Fifteen minutes, and an idle factory costs nothing. Create a data factory with az datafactory create. Make a pipeline that copies a blob from one container to another, then Debug it. Add a schedule trigger and look at the next run time. Then open Monitor and read the copy activity's rows and duration."),
+            maya("An idle factory costs nothing. Create a data factory with az datafactory create. Make a pipeline that copies a blob from one container to another, then Debug it. Add a schedule trigger and look at the next run time. Then open Monitor and read the copy activity's rows and duration."),
             leo("A removal company with a timetable, and a car counter at the junction. See you next time."),
         ),
         series = PodcastSeries.AZ305,
@@ -66,17 +76,23 @@ internal object Az305EpisodesDataIntegration {
             leo("And the tool they used?"),
             maya("Azure Data Factory, for everything. Picture a removal company with a timetable. It does ETL, which stands for extract, transform, load: take data out of a source, reshape it, and put it somewhere useful."),
             leo("Somewhere useful, like?"),
-            maya("A data lake. That's a big, cheap store for raw files of every kind, like a warehouse where you drop boxes without unpacking them. Data Factory's job list is a pipeline. Each step on it is an activity, such as a copy. A trigger starts the pipeline, on a schedule or when a file arrives."),
+            maya("A data lake. That's a big, cheap store for raw files of every kind, like a warehouse where you drop boxes without unpacking them."),
+            leo("And how does the factory know what to move, and when?"),
+            maya("Its job list is a pipeline. Each step on it is an activity, such as a copy. And a trigger starts the pipeline, on a schedule or when a file arrives."),
             leo("So the dashboard was a pipeline on a nightly trigger. My suspect: the trigger. Make it run every minute."),
             maya("[pause] Wrong suspect, though a popular one. Data Factory moves batches on a timetable. Nightly is the opposite of within seconds, and even a pipeline every minute is still a removal van, starting up, loading, driving. A live count needs a different machine."),
             leo("Which machine?"),
-            maya("Each finished lesson sends an event, which is a small message saying something happened. The events go into Event Hubs, a front door that takes in millions of events a second. Then Stream Analytics runs a SQL-like query over them as they arrive, and writes results every few seconds to the dashboard."),
+            maya("Each finished lesson sends an event, which is a small message saying something happened. Picture your Android app firing one tiny message the moment a lesson ends."),
+            leo("Thousands at once, on launch day. Where do they all land?"),
+            maya("In Event Hubs, a front door that takes in millions of events a second. Stream Analytics reads them from there, runs a SQL-like query as they arrive, and writes results every few seconds to the dashboard."),
             leo("Counting how, when they never stop coming?"),
             maya("Windowing. It groups events into slices of time, like counting cars per minute at a junction. Under the picture, it keeps a running count in memory for the current minute; when the minute closes, it writes the total and starts again. No waiting for the night."),
             leo("Clue two, then. I can feel one coming."),
             maya("The nightly copy from the London office failed too. Error: could not connect to the office database. The office is on-premises, which means the company's own machines in its own building."),
             leo("Suspect: the password. Somebody changed it."),
-            maya("Wrong again. The password was fine. The pipeline used the Azure integration runtime. An integration runtime is the worker that does the lifting, and the Azure one is computing power inside Azure. But the office has a firewall, a guard on the door that turns away callers from outside. Azure couldn't reach in."),
+            maya("Wrong again. The password was fine. Look at which worker ran the copy: the Azure integration runtime."),
+            leo("Integration runtime. Meaning?"),
+            maya("The worker that does the lifting, and the Azure one is computing power inside Azure. But the office has a firewall, a guard on the door that turns away callers from outside. Azure couldn't reach in."),
             leo("So open the door?"),
             maya("No. The requirement said no inbound ports. Use a self-hosted integration runtime: software installed on a Windows machine inside the office. How it works: it phones out to Azure over the normal secure web connection, asks whether there's work, then reads the office database and sends the data up. Nothing ever calls in."),
             leo("Clever. Any catch?"),
@@ -88,9 +104,13 @@ internal object Az305EpisodesDataIntegration {
             leo("Last clue. There's always a money one."),
             maya("The bill. The analysts wanted a warehouse, which is a database shaped for big read-only questions. They created a Synapse dedicated SQL pool, a warehouse you keep running and pay for while it runs. Then they ran four queries a month."),
             leo("Suspect: they bought the wrong size."),
-            maya("Close, but no. They bought the wrong kind. Synapse serverless SQL reads files right where they lie in the lake, and charges per query. A few queries a month over lake files: serverless. And for a new project, Microsoft Fabric is the natural pick: SaaS, software as a service, nothing to deploy, with OneLake as one lake for everyone."),
+            maya("Close, but no. They bought the wrong kind. Synapse serverless SQL reads files right where they lie in the lake, and charges per query. A few queries a month over lake files: serverless."),
+            leo("And if they were starting from scratch today?"),
+            maya("Then Microsoft Fabric is the natural pick: SaaS, software as a service, nothing to deploy, with OneLake as one lake for everyone."),
             leo("And when would Databricks have been right?"),
-            maya("When the team is data scientists in Python notebooks, pages that mix code and results, using Spark. Spark is an engine that splits a big job across many machines, like a hundred people each counting one box of votes. The storage episode covers Data Lake Gen2 itself, and the application architecture episode has more on Event Hubs."),
+            maya("When the team is data scientists in Python notebooks, pages that mix code and results, using Spark."),
+            leo("Spark. In plain words?"),
+            maya("An engine that splits a big job across many machines, like a hundred people each counting one box of votes. The storage episode covers Data Lake Gen2 itself, and the application architecture episode has more on Event Hubs."),
             leo("So, the case summary for the exam?"),
             maya("Five rules. If it says within seconds or live dashboard, Stream Analytics. If it says nightly copy from on-premises, Data Factory. If the source is behind a firewall with no inbound ports, a self-hosted integration runtime. Existing SSIS packages: the Azure-SSIS runtime. And occasional queries over lake files: serverless SQL."),
             leo("Case closed. Anything to try today?"),
@@ -108,7 +128,9 @@ internal object Az305EpisodesDataIntegration {
             leo("[laugh] I heard there was a dashboard incident. Start at the start. What's the team actually doing?"),
             maya("Data integration: gathering data from many places into one, on a schedule, cleaning it on the way. And data analysis: asking big questions of it. Their main tool is Azure Data Factory. Picture a removal company with a timetable."),
             leo("A removal company for data. What does it move?"),
-            maya("It does ETL, which stands for extract, transform, load: take data out, reshape it, put it somewhere useful. Usually a data lake, which is a big, cheap store for raw files, like a warehouse where you drop boxes without unpacking. In Azure it's Data Lake Gen2."),
+            maya("It does ETL, which stands for extract, transform, load: take data out, reshape it, put it somewhere useful."),
+            leo("Like the script I wrote that dumps my app's database to a file every night?"),
+            maya("That, grown up. And somewhere useful is usually a data lake, a big, cheap store for raw files, like a warehouse where you drop boxes without unpacking. In Azure it's Data Lake Gen2."),
             leo("And the timetable part?"),
             maya("A pipeline is the job list, and each step is an activity, like a copy. A trigger starts it, every night or when a file arrives. And the worker that actually lifts the boxes is the integration runtime. Which brings us to Monday."),
             leo("Monday. Who?"),
@@ -118,7 +140,9 @@ internal object Az305EpisodesDataIntegration {
             leo("Tuesday?"),
             maya("Tuesday was Dana. The boss wanted a live dashboard for the Australian launch: lessons finished per minute, updated within seconds. Dana built it as a Data Factory pipeline. Then, to make it live, she set the trigger to run every minute."),
             leo("Is that bad? Every minute sounds live."),
-            maya("It's a removal van leaving every minute. Data Factory runs batches. Within seconds needs a stream. Each finished lesson sends an event, which is a small message saying something happened. Events go into Event Hubs, a front door that takes millions a second. Stream Analytics queries them as they arrive."),
+            maya("It's a removal van leaving every minute. Data Factory runs batches. Within seconds needs a stream."),
+            leo("A stream of what, though?"),
+            maya("Events. Each finished lesson sends one, a small message saying something happened. They go into Event Hubs, a front door that takes millions a second, and Stream Analytics reads them from there and queries them as they arrive."),
             leo("How does it count per minute, though?"),
             maya("Windowing: it groups events into slices of time, like counting cars per minute at a junction. Each minute, the count comes out, and a new one starts. Dana rebuilt it by Wednesday lunch. Well. Wednesday tea."),
             leo("[chuckle] And Wednesday's story?"),
@@ -134,7 +158,9 @@ internal object Az305EpisodesDataIntegration {
             leo("So that's where it stops working."),
             maya("Exactly. One machine is one point of failure. Register the runtime on two machines, so one can rest. Priya did, Monday morning, and then picked the analytics platform for the new project: Microsoft Fabric."),
             leo("Why Fabric?"),
-            maya("It's SaaS, software as a service: you sign in and use it, with nothing to deploy. Data movement, Spark, a warehouse, real time and Power BI reports in one place, on OneLake, one lake for the whole company. Spark is an engine that splits a big job across many machines, like a hundred people each counting one box of votes."),
+            maya("It's SaaS, software as a service: you sign in and use it, with nothing to deploy. Data movement, Spark, a warehouse, real time and Power BI reports in one place, on OneLake, one lake for the whole company."),
+            leo("Everyone at lunch kept saying Spark. What is it?"),
+            maya("An engine that splits a big job across many machines, like a hundred people each counting one box of votes."),
             leo("And Databricks? Marcus's favourite."),
             maya("Databricks is right when the team is data scientists in Python notebooks, pages that mix code and results, doing machine learning on Spark. The storage episode covers Data Lake Gen2, and the application architecture episode tells you more about Event Hubs."),
             leo("So, the gossip I should remember for the exam?"),
@@ -160,7 +186,9 @@ internal object Az305EpisodesDataIntegration {
             ivy("And how do you tell the movers what to do?"),
             nova("With a pipeline: the job list. Each step on it is an activity, such as a copy. A trigger starts it, say at two in the morning, or when a file arrives. And the one who actually lifts the boxes is the integration runtime."),
             ivy("Tell me about the one who lifts."),
-            nova("There are three. The Azure integration runtime lives inside Azure, and copies cloud to cloud. It's lovely, until it meets the London office. That's on-premises, the company's own machines in its own building, behind a firewall. A guard on the door who turns away every caller from outside."),
+            nova("There are three. The Azure integration runtime lives inside Azure, and copies cloud to cloud. It's lovely, until it meets the London office."),
+            ivy("What's wrong with the London office?"),
+            nova("It's on-premises, the company's own machines in its own building, behind a firewall. [pause] A guard on the door who turns away every caller from outside."),
             ivy("So the Azure one can't get in."),
             nova("Never. So you use a self-hosted integration runtime. It's software on a Windows machine inside the office. [pause] Here's how it really works: it phones out to Azure, asks whether there's work tonight, then reads the office database and sends the data up. Outbound only. The guard never opens the door."),
             ivy("Mm. Discreet. And if that one machine falls asleep?"),
@@ -170,7 +198,9 @@ internal object Az305EpisodesDataIntegration {
             ivy("Good. Nobody should work that hard at this hour. Then the data's in the lake. What now?"),
             nova("Now we ask it questions. Two plain words first. Spark is an engine that splits a big job across many machines, like a hundred people each counting one box of votes. And a data warehouse is a database shaped for big read-only questions."),
             ivy("And where do the questions get asked?"),
-            nova("Microsoft Fabric, for a new project. It's SaaS, software as a service: you sign in and use it, nothing to deploy. Movement, Spark, a warehouse, real time and Power BI reports, all on OneLake, one lake for the whole company. Synapse Analytics is the older workspace you run yourself, still supported for existing warehouses."),
+            nova("Microsoft Fabric, for a new project. It's SaaS, software as a service: you sign in and use it, nothing to deploy. Movement, Spark, a warehouse, real time and Power BI reports, all on OneLake, one lake for the whole company."),
+            ivy("And if the company built its warehouse years ago?"),
+            nova("Then Synapse Analytics, the older workspace you run yourself. It's still supported for existing warehouses."),
             ivy("And Databricks?"),
             nova("For data scientists in Python notebooks, pages that mix code and results, doing machine learning on Spark. [pause] Listen for the team. SQL analysts and a warehouse: Fabric or Synapse. Data scientists and notebooks: Databricks."),
             ivy("Any trap waiting for me in the dark?"),
@@ -178,9 +208,13 @@ internal object Az305EpisodesDataIntegration {
             ivy("Now the live part. The thing that never sleeps."),
             nova("The status page. Lessons finished per minute, updated within seconds. Each finished lesson sends an event, which is a small message saying something happened. They pour into Event Hubs, a front door that takes in millions of events a second."),
             ivy("And who reads them, that fast?"),
-            nova("Stream Analytics. It runs a SQL-like query over the events as they arrive, and writes results every few seconds to a report. To count per minute, it uses windowing: it groups events into slices of time, like counting cars per minute at a junction. A running count, kept in memory, written out when the minute closes."),
+            nova("Stream Analytics. It reads them out of Event Hubs, runs a SQL-like query as they arrive, and writes results every few seconds to a report."),
+            ivy("But they never stop. How do you count per minute in an endless stream?"),
+            nova("Windowing. It groups events into slices of time, like counting cars per minute at a junction. [pause] A running count, kept in memory, written out when the minute closes."),
             ivy("Couldn't the night movers do that too?"),
-            nova("No. Data Factory runs batches. Nightly is the opposite of within seconds. And Stream Analytics stops working the other way: it answers this minute, not ten years of history. That belongs in the lake. The storage episode covers the lake itself, and the application architecture episode is your next late night, for Event Hubs."),
+            nova("No. Data Factory runs batches. Nightly is the opposite of within seconds."),
+            ivy("And Stream Analytics? Can it do everything, then?"),
+            nova("It stops working the other way: it answers this minute, not ten years of history. That belongs in the lake. The storage episode covers the lake itself, and the application architecture episode is your next late night, for Event Hubs."),
             ivy("[sigh] Mm. Before you send me off to bed. What do I remember for the exam?"),
             nova("Five little things. Nightly copy from on-premises means Data Factory. Behind a firewall, no inbound ports, means a self-hosted integration runtime. Existing SSIS packages mean the Azure-SSIS runtime. Within seconds, or live dashboard, means Stream Analytics. And data scientists with notebooks and Spark mean Databricks."),
             ivy("And something to try today, before I sleep?"),
@@ -200,7 +234,9 @@ internal object Az305EpisodesDataIntegration {
             rafe("And then we stare at it lovingly. That's data analysis, asking big questions of it."),
             nova("Exactly. The mover is Azure Data Factory: a removal company with a timetable. It does ETL, which stands for extract, transform, load. Take data out, reshape it, put it somewhere useful."),
             rafe("Somewhere useful being a data lake. A big, cheap store for raw files, like a warehouse where you drop boxes without unpacking. My kind of tidiness."),
-            nova("Mm. And the job list is a pipeline, each step an activity, started by a trigger, every night or when a file arrives. The worker that lifts the boxes is the integration runtime. First question, exam style. The London office is behind a firewall, and no inbound ports may be opened. Which runtime?"),
+            nova("Mm. And the job list is a pipeline, each step an activity, started by a trigger, every night or when a file arrives."),
+            rafe("And who does the heavy lifting? Not me, I hope."),
+            nova("The integration runtime, the worker that lifts the boxes. First question, exam style. The London office is behind a firewall, and no inbound ports may be opened. Which runtime?"),
             rafe("A firewall being the guard on the door who turns away callers from outside. So, the self-hosted integration runtime. Software on a Windows machine inside the office. It phones out to Azure, asks if there's work, then sends the data up. Nobody ever calls in."),
             nova("Right answer. Some of us only go outbound. [kiss]"),
             rafe("And it shouldn't sleep alone. One machine is one point of failure, so register it on two. Now mine. Cloud to cloud, blobs from Blob Storage into the lake. Which runtime?"),
@@ -218,7 +254,9 @@ internal object Az305EpisodesDataIntegration {
             rafe("Right answer. Only pay for what you use. [kiss]"),
             nova("Mm. Now the live part. The status page wants lessons finished per minute, updated within seconds. Each finished lesson sends an event, which is a small message saying something happened. Which service processes them?"),
             rafe("A Data Factory pipeline, every minute. Quick little trips."),
-            nova("No kiss. A pipeline is a removal van; it runs batches. Within seconds needs a stream. Events pour into Event Hubs, a front door that takes in millions a second. Then Stream Analytics runs a SQL-like query over them as they arrive, writing results every few seconds."),
+            nova("No kiss. A pipeline is a removal van; it runs batches. Within seconds needs a stream."),
+            rafe("A stream into where?"),
+            nova("Into Event Hubs, a front door that takes in millions of events a second. Then Stream Analytics reads them from there, runs a SQL-like query as they arrive, and writes results every few seconds."),
             rafe("And counting per minute, when they never stop coming?"),
             nova("Windowing. It groups events into slices of time, like counting cars per minute at a junction. Under the picture, a running count kept in memory, written out when the minute closes. And where it stops working: it answers this minute, not years of history. That's the lake's job."),
             rafe("So the same question again, darling. Live dashboard, within seconds?"),
@@ -412,50 +450,50 @@ internal object Az305EpisodesDataIntegration {
                     Beat(14, show = setOf("ir"), light = setOf("ir"), pulse = "act" to "ir", card = BoardCard("Integration runtime", "The worker that does the lifting. Where it sits matters.")),
                 ),
             ),
-            // 15: "Go on, the first one."
+            // 15: "Three? In my day job..."
             Scene(
                 15, "Three workers", runtimes(),
                 beats = listOf(
                     Beat(16, show = setOf("blob", "air"), light = setOf("air"), pulse = "blob" to "air", card = BoardCard("Azure IR", "Cloud to cloud. Azure runs it; you look after nothing.")),
                     Beat(18, show = setOf("office"), light = setOf("office"), card = BoardCard("Behind a firewall", "On-premises, with a guard on the door that turns callers away.")),
                     Beat(20, show = setOf("shir"), light = setOf("shir"), pulse = "office" to "shir", card = selfHosted),
-                    Beat(22, show = setOf("ssis", "assis"), light = setOf("assis"), pulse = "ssis" to "assis", card = azureSsis),
-                    Beat(24, light = setOf("ssis"), card = BoardCard("Minimal rework", "Rewriting 150 packages is the classic wrong answer.")),
+                    Beat(26, show = setOf("ssis", "assis"), light = setOf("assis"), pulse = "ssis" to "assis", card = azureSsis),
+                    Beat(28, light = setOf("ssis"), card = BoardCard("Minimal rework", "Rewriting 150 packages is the classic wrong answer.")),
                 ),
             ),
-            // 25: "Where do I ask them? You said three places."
+            // 29: "Where do I ask them? You said three places."
             Scene(
-                25, "Where to analyse", analyse(),
+                29, "Where to analyse", analyse(),
                 beats = listOf(
-                    Beat(26, show = setOf("lake"), light = setOf("lake"), card = spark),
-                    Beat(28, show = setOf("fabric"), light = setOf("fabric"), pulse = "lake" to "fabric", card = fabric),
-                    Beat(30, show = setOf("syn"), light = setOf("syn"), pulse = "lake" to "syn", card = BoardCard("Synapse Analytics", "SQL and Spark in a workspace you run. Fine for existing warehouses.")),
-                    Beat(32, show = setOf("dbx", "analysts", "sci"), light = setOf("dbx", "sci"), pulse = "sci" to "dbx", card = team),
+                    Beat(30, show = setOf("lake"), light = setOf("lake"), card = spark),
+                    Beat(34, show = setOf("fabric"), light = setOf("fabric"), pulse = "lake" to "fabric", card = fabric),
+                    Beat(36, show = setOf("syn"), light = setOf("syn"), pulse = "lake" to "syn", card = BoardCard("Synapse Analytics", "SQL and Spark in a workspace you run. Fine for existing warehouses.")),
+                    Beat(40, show = setOf("dbx", "analysts", "sci"), light = setOf("dbx", "sci"), pulse = "sci" to "dbx", card = team),
                 ),
             ),
-            // 33: "Any trap in there?"
+            // 41: "Any trap in there?"
             Scene(
-                33, "Dedicated or serverless", pools(),
+                41, "Dedicated or serverless", pools(),
                 beats = listOf(
-                    Beat(34, show = setOf("syn", "ded", "sls", "busy", "lake"), light = setOf("sls", "lake"), pulse = "sls" to "lake", card = serverless),
+                    Beat(42, show = setOf("syn", "ded", "sls", "busy", "lake"), light = setOf("sls", "lake"), pulse = "sls" to "lake", card = serverless),
                 ),
             ),
-            // 35: "Right. Now the live stuff. You said real time."
+            // 43: "Right. Now the live stuff. You said real time."
             Scene(
-                35, "Within seconds", stream(),
+                43, "Within seconds", stream(),
                 beats = listOf(
-                    Beat(36, show = setOf("app"), light = setOf("app"), card = BoardCard("An event", "A small message saying something happened: a lesson finished.")),
-                    Beat(38, show = setOf("eh", "asa", "bi"), light = setOf("eh", "asa"), pulse = "eh" to "asa", card = eventHubs),
-                    Beat(40, show = setOf("win"), light = setOf("win"), pulse = "asa" to "win", card = windowing),
-                    Beat(42, show = setOf("batch"), light = setOf("batch"), card = BoardCard("Not Data Factory", "It runs batches. Nightly is the opposite of within seconds.")),
+                    Beat(44, show = setOf("app"), light = setOf("app"), card = BoardCard("An event", "A small message saying something happened: a lesson finished.")),
+                    Beat(46, show = setOf("eh", "asa", "bi"), light = setOf("eh", "asa"), pulse = "eh" to "asa", card = eventHubs),
+                    Beat(50, show = setOf("win"), light = setOf("win"), pulse = "asa" to "win", card = windowing),
+                    Beat(52, show = setOf("batch"), light = setOf("batch"), card = BoardCard("Not Data Factory", "It runs batches. Nightly is the opposite of within seconds.")),
                 ),
             ),
-            // 43: "So what do I remember for the exam?"
+            // 53: "So what do I remember for the exam?"
             Scene(
-                43, "For the exam", exam(),
+                53, "For the exam", exam(),
                 beats = listOf(
-                    Beat(44, show = all6, light = setOf("nightly", "firewall", "ssis", "live", "sci"), card = examCard),
-                    Beat(46, card = today),
+                    Beat(54, show = all6, light = setOf("nightly", "firewall", "ssis", "live", "sci"), card = examCard),
+                    Beat(56, card = today),
                 ),
             ),
         ),
@@ -477,58 +515,58 @@ internal object Az305EpisodesDataIntegration {
                 3, "Data Factory for everything", pipeline(),
                 beats = listOf(
                     Beat(4, show = setOf("pipe"), light = setOf("pipe"), card = etl),
-                    Beat(6, show = setOf("lake", "act", "trigger"), light = setOf("trigger"), pulse = "trigger" to "pipe", card = BoardCard("Pipeline and trigger", "The job list, started nightly or when a file arrives.")),
-                    Beat(7, card = BoardCard("Suspect: the trigger", "Run it every minute? It's still a removal van.")),
+                    Beat(8, show = setOf("lake", "act", "trigger"), light = setOf("trigger"), pulse = "trigger" to "pipe", card = BoardCard("Pipeline and trigger", "The job list, started nightly or when a file arrives.")),
+                    Beat(9, card = BoardCard("Suspect: the trigger", "Run it every minute? It's still a removal van.")),
                 ),
             ),
-            // 8: "Wrong suspect, though a popular one..."
+            // 10: "Wrong suspect, though a popular one..."
             Scene(
-                8, "Clue one: a stream", stream(),
+                10, "Clue one: a stream", stream(),
                 beats = listOf(
-                    Beat(8, show = setOf("batch"), light = setOf("batch"), card = BoardCard("Wrong suspect", "Data Factory runs batches. Nightly is not within seconds.")),
-                    Beat(10, show = setOf("app", "eh", "asa"), light = setOf("eh", "asa"), pulse = "eh" to "asa", card = BoardCard("Event Hubs, Stream Analytics", "Millions of events a second, queried as they arrive.")),
-                    Beat(12, show = setOf("win", "bi"), light = setOf("win"), pulse = "asa" to "win", card = BoardCard("Windowing", "A running count per minute, written out when the minute closes.")),
+                    Beat(10, show = setOf("batch"), light = setOf("batch"), card = BoardCard("Wrong suspect", "Data Factory runs batches. Nightly is not within seconds.")),
+                    Beat(14, show = setOf("app", "eh", "asa"), light = setOf("eh", "asa"), pulse = "eh" to "asa", card = BoardCard("Event Hubs, Stream Analytics", "Millions of events a second, queried as they arrive.")),
+                    Beat(16, show = setOf("win", "bi"), light = setOf("win"), pulse = "asa" to "win", card = BoardCard("Windowing", "A running count per minute, written out when the minute closes.")),
                 ),
             ),
-            // 13: "Clue two, then. I can feel one coming."
+            // 17: "Clue two, then. I can feel one coming."
             Scene(
-                13, "Clue two: the office", runtimes(),
+                17, "Clue two: the office", runtimes(),
                 beats = listOf(
-                    Beat(14, show = setOf("office"), light = setOf("office"), card = BoardCard("Could not connect", "The nightly copy from the London office failed.")),
-                    Beat(16, show = setOf("blob", "air"), light = setOf("air"), card = BoardCard("Azure IR", "Lives inside Azure. The office firewall turns it away.")),
-                    Beat(18, show = setOf("shir"), light = setOf("shir"), pulse = "office" to "shir", card = selfHosted),
-                    Beat(20, card = twoMachines),
+                    Beat(18, show = setOf("office"), light = setOf("office"), card = BoardCard("Could not connect", "The nightly copy from the London office failed.")),
+                    Beat(20, show = setOf("blob", "air"), light = setOf("air"), card = BoardCard("Azure IR", "Lives inside Azure. The office firewall turns it away.")),
+                    Beat(24, show = setOf("shir"), light = setOf("shir"), pulse = "office" to "shir", card = selfHosted),
+                    Beat(26, card = twoMachines),
                 ),
             ),
-            // 21: "Clue three. Who's next?"
+            // 27: "Clue three. Who's next?"
             Scene(
-                21, "Clue three: finance", runtimes(),
+                27, "Clue three: finance", runtimes(),
                 beats = listOf(
-                    Beat(22, show = setOf("ssis"), light = setOf("ssis"), card = BoardCard("150 SSIS packages", "Being rewritten as notebooks: twelve done in three months.")),
-                    Beat(24, show = setOf("assis"), light = setOf("assis"), pulse = "ssis" to "assis", card = azureSsis),
+                    Beat(28, show = setOf("ssis"), light = setOf("ssis"), card = BoardCard("150 SSIS packages", "Being rewritten as notebooks: twelve done in three months.")),
+                    Beat(30, show = setOf("assis"), light = setOf("assis"), pulse = "ssis" to "assis", card = azureSsis),
                 ),
             ),
-            // 25: "Last clue. There's always a money one."
+            // 31: "Last clue. There's always a money one."
             Scene(
-                25, "The last clue: the bill", pools(),
+                31, "The last clue: the bill", pools(),
                 beats = listOf(
-                    Beat(26, show = setOf("syn", "ded", "busy"), light = setOf("ded"), card = BoardCard("Dedicated SQL pool", "Kept running and paid for, for four queries a month.")),
-                    Beat(28, show = setOf("sls", "lake"), light = setOf("sls"), pulse = "sls" to "lake", card = serverless),
+                    Beat(32, show = setOf("syn", "ded", "busy"), light = setOf("ded"), card = BoardCard("Dedicated SQL pool", "Kept running and paid for, for four queries a month.")),
+                    Beat(34, show = setOf("sls", "lake"), light = setOf("sls"), pulse = "sls" to "lake", card = serverless),
                 ),
             ),
-            // 29: "And when would Databricks have been right?"
+            // 37: "And when would Databricks have been right?"
             Scene(
-                29, "Who analyses?", analyse(),
+                37, "Who analyses?", analyse(),
                 beats = listOf(
-                    Beat(30, show = setOf("lake", "fabric", "syn", "dbx", "analysts", "sci"), light = setOf("dbx", "sci"), pulse = "sci" to "dbx", card = team),
+                    Beat(38, show = setOf("lake", "fabric", "syn", "dbx", "analysts", "sci"), light = setOf("dbx", "sci"), pulse = "sci" to "dbx", card = team),
                 ),
             ),
-            // 31: "So, the case summary for the exam?"
+            // 41: "So, the case summary for the exam?"
             Scene(
-                31, "Case closed", exam(),
+                41, "Case closed", exam(),
                 beats = listOf(
-                    Beat(32, show = all6, light = setOf("live", "nightly", "firewall", "ssis", "few"), card = examCard),
-                    Beat(34, card = today),
+                    Beat(42, show = all6, light = setOf("live", "nightly", "firewall", "ssis", "few"), card = examCard),
+                    Beat(44, card = today),
                 ),
             ),
         ),
@@ -544,64 +582,64 @@ internal object Az305EpisodesDataIntegration {
                     Beat(0, show = setOf("onprem"), light = setOf("onprem"), card = BoardCard("Two Tracks goes global", "Reports from everything, even the London office system.")),
                     Beat(2, show = setOf("adf", "lake"), light = setOf("adf"), card = BoardCard("Data integration", "Gather data into one place on a schedule, cleaning it on the way.")),
                     Beat(4, light = setOf("lake"), pulse = "adf" to "lake", card = etl),
-                    Beat(6, card = BoardCard("Pipeline, trigger, runtime", "The job list, its start time, and the worker that lifts.")),
+                    Beat(8, card = BoardCard("Pipeline, trigger, runtime", "The job list, its start time, and the worker that lifts.")),
                 ),
             ),
-            // 7: "Monday. Who?"
+            // 9: "Monday. Who?"
             Scene(
-                7, "Monday: Tom", runtimes(),
+                9, "Monday: Tom", runtimes(),
                 beats = listOf(
-                    Beat(8, show = setOf("office", "blob", "air"), light = setOf("air"), card = BoardCard("Azure IR at the office", "The firewall turns it away. It can't reach in.")),
-                    Beat(10, show = setOf("shir"), light = setOf("shir"), pulse = "office" to "shir", card = selfHosted),
+                    Beat(10, show = setOf("office", "blob", "air"), light = setOf("air"), card = BoardCard("Azure IR at the office", "The firewall turns it away. It can't reach in.")),
+                    Beat(12, show = setOf("shir"), light = setOf("shir"), pulse = "office" to "shir", card = selfHosted),
                 ),
             ),
-            // 11: "Tuesday?"
+            // 13: "Tuesday?"
             Scene(
-                11, "Tuesday: Dana", stream(),
+                13, "Tuesday: Dana", stream(),
                 beats = listOf(
-                    Beat(12, show = setOf("batch"), light = setOf("batch"), card = BoardCard("A pipeline every minute", "Still a removal van, just leaving more often.")),
-                    Beat(14, show = setOf("app", "eh", "asa"), light = setOf("asa"), pulse = "eh" to "asa", card = BoardCard("Stream Analytics", "Queries events from Event Hubs as they arrive.")),
-                    Beat(16, show = setOf("win", "bi"), light = setOf("win"), pulse = "asa" to "win", card = windowing),
+                    Beat(14, show = setOf("batch"), light = setOf("batch"), card = BoardCard("A pipeline every minute", "Still a removal van, just leaving more often.")),
+                    Beat(18, show = setOf("app", "eh", "asa"), light = setOf("asa"), pulse = "eh" to "asa", card = BoardCard("Stream Analytics", "Queries events from Event Hubs as they arrive.")),
+                    Beat(20, show = setOf("win", "bi"), light = setOf("win"), pulse = "asa" to "win", card = windowing),
                 ),
             ),
-            // 17: "And Wednesday's story?"
+            // 21: "And Wednesday's story?"
             Scene(
-                17, "Wednesday: Marcus", runtimes(),
+                21, "Wednesday: Marcus", runtimes(),
                 beats = listOf(
-                    Beat(18, show = setOf("ssis"), light = setOf("ssis"), card = BoardCard("150 SSIS packages", "Marcus began rewriting every one as a notebook.")),
-                    Beat(20, show = setOf("assis"), light = setOf("assis"), pulse = "ssis" to "assis", card = azureSsis),
+                    Beat(22, show = setOf("ssis"), light = setOf("ssis"), card = BoardCard("150 SSIS packages", "Marcus began rewriting every one as a notebook.")),
+                    Beat(24, show = setOf("assis"), light = setOf("assis"), pulse = "ssis" to "assis", card = azureSsis),
                 ),
             ),
-            // 21: "Thursday, I'm guessing, the intern."
+            // 25: "Thursday, I'm guessing, the intern."
             Scene(
-                21, "Thursday: the intern", pools(),
+                25, "Thursday: the intern", pools(),
                 beats = listOf(
-                    Beat(22, show = setOf("syn", "ded", "busy"), light = setOf("ded"), card = BoardCard("Dedicated SQL pool", "Kept running and paid for, for four queries a month.")),
-                    Beat(24, show = setOf("sls", "lake"), light = setOf("sls"), pulse = "sls" to "lake", card = serverless),
+                    Beat(26, show = setOf("syn", "ded", "busy"), light = setOf("ded"), card = BoardCard("Dedicated SQL pool", "Kept running and paid for, for four queries a month.")),
+                    Beat(28, show = setOf("sls", "lake"), light = setOf("sls"), pulse = "sls" to "lake", card = serverless),
                 ),
             ),
-            // 25: "And Friday? There's always a Friday."
+            // 29: "And Friday? There's always a Friday."
             Scene(
-                25, "Friday: Priya", runtimes(),
+                29, "Friday: Priya", runtimes(),
                 beats = listOf(
-                    Beat(26, show = setOf("office", "shir"), light = setOf("shir"), pulse = "office" to "shir", card = BoardCard("One office PC", "It restarted for updates, and the nightly copy never ran.")),
-                    Beat(28, card = twoMachines),
+                    Beat(30, show = setOf("office", "shir"), light = setOf("shir"), pulse = "office" to "shir", card = BoardCard("One office PC", "It restarted for updates, and the nightly copy never ran.")),
+                    Beat(32, card = twoMachines),
                 ),
             ),
-            // 29: "Why Fabric?"
+            // 33: "Why Fabric?"
             Scene(
-                29, "Picking a platform", analyse(),
+                33, "Picking a platform", analyse(),
                 beats = listOf(
-                    Beat(30, show = setOf("lake", "fabric", "syn"), light = setOf("fabric"), pulse = "lake" to "fabric", card = fabric),
-                    Beat(32, show = setOf("dbx", "analysts", "sci"), light = setOf("dbx"), pulse = "sci" to "dbx", card = team),
+                    Beat(34, show = setOf("lake", "fabric", "syn"), light = setOf("fabric"), pulse = "lake" to "fabric", card = fabric),
+                    Beat(38, show = setOf("dbx", "analysts", "sci"), light = setOf("dbx"), pulse = "sci" to "dbx", card = team),
                 ),
             ),
-            // 33: "So, the gossip I should remember for the exam?"
+            // 39: "So, the gossip I should remember for the exam?"
             Scene(
-                33, "For the exam", exam(),
+                39, "For the exam", exam(),
                 beats = listOf(
-                    Beat(34, show = all6, light = setOf("nightly", "firewall", "ssis", "live", "sci"), card = examCard),
-                    Beat(36, card = today),
+                    Beat(40, show = all6, light = setOf("nightly", "firewall", "ssis", "live", "sci"), card = examCard),
+                    Beat(42, card = today),
                 ),
             ),
         ),
@@ -632,42 +670,42 @@ internal object Az305EpisodesDataIntegration {
                 9, "Who lifts the boxes", runtimes(),
                 beats = listOf(
                     Beat(10, show = setOf("blob", "air", "office"), light = setOf("office"), card = BoardCard("Azure IR and the firewall", "Cloud to cloud is fine; the office guard turns it away.")),
-                    Beat(12, show = setOf("shir"), light = setOf("shir"), pulse = "office" to "shir", card = selfHosted),
-                    Beat(14, card = twoMachines),
-                    Beat(16, show = setOf("ssis", "assis"), light = setOf("assis"), pulse = "ssis" to "assis", card = azureSsis),
+                    Beat(14, show = setOf("shir"), light = setOf("shir"), pulse = "office" to "shir", card = selfHosted),
+                    Beat(16, card = twoMachines),
+                    Beat(18, show = setOf("ssis", "assis"), light = setOf("assis"), pulse = "ssis" to "assis", card = azureSsis),
                 ),
             ),
-            // 17: "Good. Nobody should work that hard at this hour..."
+            // 19: "Good. Nobody should work that hard at this hour..."
             Scene(
-                17, "Asking questions", analyse(),
+                19, "Asking questions", analyse(),
                 beats = listOf(
-                    Beat(18, show = setOf("lake"), light = setOf("lake"), card = spark),
-                    Beat(20, show = setOf("fabric", "syn"), light = setOf("fabric"), pulse = "lake" to "fabric", card = fabric),
-                    Beat(22, show = setOf("dbx", "analysts", "sci"), light = setOf("dbx"), pulse = "sci" to "dbx", card = team),
+                    Beat(20, show = setOf("lake"), light = setOf("lake"), card = spark),
+                    Beat(22, show = setOf("fabric", "syn"), light = setOf("fabric"), pulse = "lake" to "fabric", card = fabric),
+                    Beat(26, show = setOf("dbx", "analysts", "sci"), light = setOf("dbx"), pulse = "sci" to "dbx", card = team),
                 ),
             ),
-            // 23: "Any trap waiting for me in the dark?"
+            // 27: "Any trap waiting for me in the dark?"
             Scene(
-                23, "Lights left on", pools(),
+                27, "Lights left on", pools(),
                 beats = listOf(
-                    Beat(24, show = setOf("syn", "ded", "sls", "busy", "lake"), light = setOf("ded", "sls"), pulse = "sls" to "lake", card = serverless),
+                    Beat(28, show = setOf("syn", "ded", "sls", "busy", "lake"), light = setOf("ded", "sls"), pulse = "sls" to "lake", card = serverless),
                 ),
             ),
-            // 25: "Now the live part. The thing that never sleeps."
+            // 29: "Now the live part. The thing that never sleeps."
             Scene(
-                25, "The one that never sleeps", stream(),
+                29, "The one that never sleeps", stream(),
                 beats = listOf(
-                    Beat(26, show = setOf("app", "eh"), light = setOf("eh"), pulse = "app" to "eh", card = eventHubs),
-                    Beat(28, show = setOf("asa", "win", "bi"), light = setOf("win"), pulse = "asa" to "win", card = windowing),
-                    Beat(30, show = setOf("batch"), light = setOf("batch"), card = BoardCard("Where it stops", "Batches aren't seconds; a stream isn't years of history.")),
+                    Beat(30, show = setOf("app", "eh"), light = setOf("eh"), pulse = "app" to "eh", card = eventHubs),
+                    Beat(34, show = setOf("asa", "win", "bi"), light = setOf("win"), pulse = "asa" to "win", card = windowing),
+                    Beat(36, show = setOf("batch"), light = setOf("batch"), card = BoardCard("Where it stops", "Batches aren't seconds; a stream isn't years of history.")),
                 ),
             ),
-            // 31: "Mm. Before you send me off to bed. What do I remember for the exam?"
+            // 39: "Mm. Before you send me off to bed. What do I remember for the exam?"
             Scene(
-                31, "For the exam", exam(),
+                39, "For the exam", exam(),
                 beats = listOf(
-                    Beat(32, show = all6, light = setOf("nightly", "firewall", "ssis", "live", "sci"), card = examCard),
-                    Beat(34, card = today),
+                    Beat(40, show = all6, light = setOf("nightly", "firewall", "ssis", "live", "sci"), card = examCard),
+                    Beat(42, card = today),
                 ),
             ),
         ),
@@ -689,46 +727,46 @@ internal object Az305EpisodesDataIntegration {
             Scene(
                 6, "Who lifts?", runtimes(),
                 beats = listOf(
-                    Beat(6, show = setOf("office"), light = setOf("office"), card = BoardCard("Quiz: behind a firewall", "No inbound ports may be opened. Which runtime?")),
-                    Beat(8, show = setOf("shir"), light = setOf("shir"), pulse = "office" to "shir", card = BoardCard("Right answer", "Self-hosted IR: phones out only. Register it on two machines.")),
-                    Beat(9, show = setOf("blob", "air"), light = setOf("blob"), card = BoardCard("Quiz: cloud to cloud", "Blobs into the lake. Which runtime?")),
-                    Beat(11, light = setOf("air"), pulse = "blob" to "air", card = BoardCard("Right answer", "The Azure IR. Azure runs it; you look after nothing.")),
-                    Beat(12, show = setOf("ssis"), light = setOf("ssis"), card = BoardCard("Quiz: 150 SSIS packages", "Into Azure with minimal rework. What do you recommend?")),
-                    Beat(14, show = setOf("assis"), light = setOf("assis"), pulse = "ssis" to "assis", card = BoardCard("No kiss: Azure-SSIS IR", "Runs them as they are. Rewriting 150 is not minimal.")),
+                    Beat(8, show = setOf("office"), light = setOf("office"), card = BoardCard("Quiz: behind a firewall", "No inbound ports may be opened. Which runtime?")),
+                    Beat(10, show = setOf("shir"), light = setOf("shir"), pulse = "office" to "shir", card = BoardCard("Right answer", "Self-hosted IR: phones out only. Register it on two machines.")),
+                    Beat(11, show = setOf("blob", "air"), light = setOf("blob"), card = BoardCard("Quiz: cloud to cloud", "Blobs into the lake. Which runtime?")),
+                    Beat(13, light = setOf("air"), pulse = "blob" to "air", card = BoardCard("Right answer", "The Azure IR. Azure runs it; you look after nothing.")),
+                    Beat(14, show = setOf("ssis"), light = setOf("ssis"), card = BoardCard("Quiz: 150 SSIS packages", "Into Azure with minimal rework. What do you recommend?")),
+                    Beat(16, show = setOf("assis"), light = setOf("assis"), pulse = "ssis" to "assis", card = BoardCard("No kiss: Azure-SSIS IR", "Runs them as they are. Rewriting 150 is not minimal.")),
                 ),
             ),
-            // 15: "Fair. So when is Databricks right?"
+            // 17: "Fair. So when is Databricks right?"
             Scene(
-                15, "Where to analyse", analyse(),
+                17, "Where to analyse", analyse(),
                 beats = listOf(
-                    Beat(16, show = setOf("lake", "dbx", "sci"), light = setOf("dbx"), pulse = "sci" to "dbx", card = spark),
-                    Beat(18, show = setOf("fabric", "syn", "analysts"), light = setOf("fabric"), pulse = "lake" to "fabric", card = fabric),
+                    Beat(18, show = setOf("lake", "dbx", "sci"), light = setOf("dbx"), pulse = "sci" to "dbx", card = spark),
+                    Beat(20, show = setOf("fabric", "syn", "analysts"), light = setOf("fabric"), pulse = "lake" to "fabric", card = fabric),
                 ),
             ),
-            // 19: "Then my question. Analysts want a few SQL queries a month..."
+            // 21: "Then my question. Analysts want a few SQL queries a month..."
             Scene(
-                19, "Pay for what you use", pools(),
+                21, "Pay for what you use", pools(),
                 beats = listOf(
-                    Beat(19, show = setOf("syn", "lake"), light = setOf("lake"), card = BoardCard("Quiz: a few lake queries", "SQL over lake files, no servers kept running. Which fits?")),
-                    Beat(21, show = setOf("sls", "ded", "busy"), light = setOf("sls"), pulse = "sls" to "lake", card = BoardCard("Right answer", "Serverless SQL: pay per query. A dedicated pool runs all day.")),
+                    Beat(21, show = setOf("syn", "lake"), light = setOf("lake"), card = BoardCard("Quiz: a few lake queries", "SQL over lake files, no servers kept running. Which fits?")),
+                    Beat(23, show = setOf("sls", "ded", "busy"), light = setOf("sls"), pulse = "sls" to "lake", card = BoardCard("Right answer", "Serverless SQL: pay per query. A dedicated pool runs all day.")),
                 ),
             ),
-            // 22: "Mm. Now the live part. The status page..."
+            // 24: "Mm. Now the live part. The status page..."
             Scene(
-                22, "Within seconds", stream(),
+                24, "Within seconds", stream(),
                 beats = listOf(
-                    Beat(22, show = setOf("app", "eh"), light = setOf("app"), card = BoardCard("Quiz: the status page", "Lessons per minute, within seconds. Which service?")),
-                    Beat(24, show = setOf("batch", "asa"), light = setOf("asa"), pulse = "eh" to "asa", card = BoardCard("No kiss: not a pipeline", "Event Hubs, then Stream Analytics, as events arrive.")),
-                    Beat(26, show = setOf("win", "bi"), light = setOf("win"), pulse = "asa" to "win", card = windowing),
-                    Beat(29, light = setOf("asa"), pulse = "asa" to "bi", card = BoardCard("Right answer", "Stream Analytics, reading from Event Hubs.")),
+                    Beat(24, show = setOf("app", "eh"), light = setOf("app"), card = BoardCard("Quiz: the status page", "Lessons per minute, within seconds. Which service?")),
+                    Beat(26, show = setOf("batch", "asa"), light = setOf("asa"), pulse = "eh" to "asa", card = BoardCard("No kiss: not a pipeline", "Event Hubs, then Stream Analytics, as events arrive.")),
+                    Beat(30, show = setOf("win", "bi"), light = setOf("win"), pulse = "asa" to "win", card = windowing),
+                    Beat(33, light = setOf("asa"), pulse = "asa" to "bi", card = BoardCard("Right answer", "Stream Analytics, reading from Event Hubs.")),
                 ),
             ),
-            // 31: "Last question, for the exam. What do we remember?"
+            // 35: "Last question, for the exam. What do we remember?"
             Scene(
-                31, "For the exam", exam(),
+                35, "For the exam", exam(),
                 beats = listOf(
-                    Beat(32, show = all6, light = setOf("nightly", "firewall", "ssis", "live", "sci"), card = BoardCard("Listen for the phrase", "Each requirement points to one service. Five for five.")),
-                    Beat(35, card = today),
+                    Beat(36, show = all6, light = setOf("nightly", "firewall", "ssis", "live", "sci"), card = BoardCard("Listen for the phrase", "Each requirement points to one service. Five for five.")),
+                    Beat(39, card = today),
                 ),
             ),
         ),

@@ -11,7 +11,9 @@ internal object Az305EpisodesGovernance {
             leo("Walk me down them. Top floor first."),
             maya("The top is a management group: a folder that holds subscriptions, for shared rules and access. Every directory has one at the very top, the Tenant root group, and new subscriptions land there unless you move them."),
             leo("And a subscription is?"),
-            maya("One Azure account with its own bill and its own limits, like one apartment with its own meter. Below it, a resource group, a box of things that live and die together. And at the bottom, a resource: one database, or one virtual machine, which is a computer rented by the hour."),
+            maya("One Azure account with its own bill and its own limits, like one apartment with its own meter. For you, it's probably the subscription your free trial created."),
+            leo("Yes, everything I've ever built sits in that one. My API, my test database, all of it."),
+            maya("Then below it come resource groups, boxes of things that live and die together. And at the bottom, a resource: one database, or one virtual machine, which is a computer rented by the hour."),
             leo("Why does the order matter?"),
             maya("Because a rule set high up flows down to everything below it, including what's added later. Set a rule once on a management group, and every subscription inside obeys, even one created next year."),
             leo("So I build the folders like the org chart? Marketing, finance, engineering?"),
@@ -29,23 +31,31 @@ internal object Az305EpisodesGovernance {
             leo("Policy, in plain words?"),
             maya("Azure Policy is a building inspector at the door. It checks every new or changed resource against rules, whoever creates it. And it scans what already exists, and reports which resources follow the rules. That report is called compliance."),
             leo("And a rule looks like?"),
-            maya("A policy definition is one rule, such as only these regions. A region is one of Azure's data-centre locations, like West Europe. An initiative is a bundle of definitions. An assignment attaches either one to a scope, which is the place it applies: a management group, a subscription or a resource group."),
+            maya("A policy definition is one rule, such as only these regions. A region is one of Azure's data-centre locations, like West Europe."),
+            leo("And if I have twenty rules? I attach them one at a time?"),
+            maya("Bundle them. An initiative is a bundle of definitions. An assignment attaches either one to a scope, which is the place it applies: a management group, a subscription or a resource group."),
             leo("And when something breaks a rule?"),
             maya("The effect decides. Deny blocks the create or change. Audit allows it, but marks it non-compliant. Listen for the words: must not, or only allow, means deny. Report, or without blocking, means audit."),
             leo("And the one that copies tags down?"),
-            maya("Modify. It adds or changes tags and some settings. Then there's deployIfNotExists: it deploys a missing companion, something that should sit beside a resource, like a diagnostic setting that sends its logs to a central place. And auditIfNotExists only reports the missing one."),
-            leo("So modify fixes everything, old and new?"),
+            maya("Modify. It adds or changes tags and some settings, as resources are created or updated."),
+            leo("And if a resource is missing something? Say my database doesn't send its logs anywhere."),
+            maya("Then deployIfNotExists. It deploys the missing companion beside the resource, here a diagnostic setting that sends the database's logs to a central place. And auditIfNotExists only reports the missing one."),
+            leo("So they fix everything, old and new?"),
             maya("New ones, at once. Existing resources are fixed only by a remediation task, a clean-up run you start. It acts as the assignment's managed identity, a badge Azure gives the assignment so it may make changes. Assuming old resources fix themselves is a classic mistake."),
             leo("How is Policy different from roles? Both sound like rules."),
             maya("Azure RBAC, the role-based access control from the authorization episode, decides who may act. Policy decides what may exist, whoever acts. Say your app's team are Owners of their subscription. They still can't create a database in Brazil if a deny policy says Europe only."),
             leo("Then how do I stop accidents? Someone deleting the production database?"),
             maya("A resource lock, a guard against mistakes. CanNotDelete lets people change a resource but not delete it. ReadOnly allows neither. Locks are inherited, and stop everyone, Owners included, until the lock is removed."),
             leo("And proving to auditors we follow the rules?"),
-            maya("Microsoft Defender for Cloud, Azure's security check-up. Its regulatory compliance dashboard is a report card against a standard, a published list of rules. It starts with Microsoft's own benchmark. Adding GDPR, or ISO 27001, an international security standard, needs a paid Defender plan. Each control shows pass or fail."),
+            maya("Microsoft Defender for Cloud, Azure's security check-up. Its regulatory compliance dashboard is a report card against a standard, a published list of rules. Each control shows pass or fail."),
+            leo("Can I just pick GDPR and get my report card?"),
+            maya("It starts with Microsoft's own benchmark. Adding GDPR, or ISO 27001, an international security standard, needs a paid Defender plan."),
             leo("Didn't people use Blueprints for this?"),
             maya("Azure Blueprints is being retired, finishing in January 2027. Microsoft points to deployment stacks instead, which deploy a set of resources as one unit and guard it."),
             leo("Last part. People. Who still has access?"),
-            maya("Identity governance, in Microsoft Entra ID, Azure's sign-in system. Access reviews ask managers or owners, on a schedule, to confirm who still needs access, and can remove the rest. Entitlement management offers access packages: a bundle of access people request, with approval and an end date."),
+            maya("Identity governance, in Microsoft Entra ID, Azure's sign-in system. Access reviews ask managers or owners, on a schedule, to confirm who still needs access, and can remove the rest."),
+            leo("Like going through my repo's collaborators once a year and removing the ones who left."),
+            maya("Exactly, but on a schedule, with a named reviewer. And entitlement management offers access packages: a bundle of access people request, with approval and an end date."),
             leo("And joiners and leavers?"),
             maya("Lifecycle workflows: automatic tasks when someone joins, moves or leaves, like disabling an account on the last day. Picture a small agency with partner guests: a quarterly check is an access review; partners asking for a bundle that expires is an access package. These need paid licences."),
             leo("So what do I remember for the exam?"),
@@ -74,9 +84,13 @@ internal object Az305EpisodesGovernance {
             leo("So: assign Europe only on the folder, once."),
             maya("Yes. The built-in Allowed locations policy, with the deny effect, on the Landing zones management group. A landing zone is a subscription made ready before any app moves in, with network, rules and monitoring in place. The Sandbox group stays outside it, for experiments."),
             leo("What's a policy, really, under the picture?"),
-            maya("A policy definition is a short rule written as if this, then that: if the location is not on the list, then deny. An initiative bundles several definitions. An assignment attaches one to a scope, which is the place it applies, with exclusions if needed."),
+            maya("A policy definition is a short rule written as if this, then that: if the location is not on the list, then deny."),
+            leo("And twenty rules means twenty assignments?"),
+            maya("Bundle them: an initiative holds several definitions. An assignment attaches one to a scope, which is the place it applies, with exclusions if needed."),
             leo("And how does it catch things? Magic?"),
-            maya("Not magic. Every create or change request goes through Azure Resource Manager, the front desk for all management requests. Before it goes ahead, the policies assigned at that scope and above are checked. Existing resources are scanned too, for a compliance report: who follows the rules."),
+            maya("Not magic. Every create or change request goes through Azure Resource Manager, the front desk for all management requests. Portal clicks, command-line scripts, your deployment pipeline: all through that one desk."),
+            leo("So there's no side door. Even my pipeline's templates go through it?"),
+            maya("Even those. Before a request goes ahead, the policies at that scope and above are checked. Existing resources are scanned too, for a compliance report: who follows the rules."),
             leo("Clue three. I can feel it."),
             maya("Clue three: the old rule wasn't deny at all. It was audit. Audit allows the create, and only marks it non-compliant. The report said red for six months. Nobody read it."),
             leo("So when the words say must not, the answer is deny."),
@@ -86,13 +100,17 @@ internal object Az305EpisodesGovernance {
             leo("Suspect: the tags got deleted."),
             maya("They were never there. Tags are not inherited from the resource group by default. The fix is the built-in inherit-a-tag policy with the modify effect, which adds or changes tags as resources are created."),
             leo("And the hundreds that already exist?"),
-            maya("Modify alone won't touch them. You run a remediation task, a clean-up run you start. It acts as the assignment's managed identity, a badge Azure gives the assignment so it may change things. Same for deployIfNotExists, which deploys a missing companion, like a diagnostic setting that sends logs."),
+            maya("Modify alone won't touch them. You run a remediation task, a clean-up run you start."),
+            leo("Run as who, though? It's changing hundreds of resources."),
+            maya("As the assignment's managed identity, a badge Azure gives the assignment so it may change things. Same for deployIfNotExists, which deploys a missing companion, like a diagnostic setting that sends logs."),
             leo("Second side case?"),
             maya("During the clean-up, an engineer almost deleted the production database. The delete button was one click away."),
             leo("Suspect: the engineer. Fire him. [chuckle]"),
             maya("[sigh] Design for tired fingers instead. A resource lock: CanNotDelete lets people change a resource but not delete it; ReadOnly allows neither. Locks are inherited, and stop everyone, Owners included, until removed."),
             leo("And the auditor? Will she be back?"),
-            maya("Every quarter. So Two Tracks turned on Microsoft Defender for Cloud, Azure's security check-up. Its regulatory compliance dashboard is a report card against a standard. It starts with Microsoft's own benchmark; adding GDPR or ISO 27001 needs a paid Defender plan. Each control shows pass or fail."),
+            maya("Every quarter. So Two Tracks turned on Microsoft Defender for Cloud, Azure's security check-up. Its regulatory compliance dashboard is a report card against a standard, each control pass or fail."),
+            leo("Does it grade us on GDPR out of the box?"),
+            maya("Not quite. It starts with Microsoft's own benchmark; adding GDPR or ISO 27001 needs a paid Defender plan."),
             leo("And the old way? Blueprints?"),
             maya("Azure Blueprints is being retired, finishing in January 2027. Microsoft points to deployment stacks, which deploy a set of resources as one unit and guard it."),
             leo("Anything about people?"),
@@ -126,7 +144,9 @@ internal object Az305EpisodesGovernance {
             leo("Tuesday?"),
             maya("Dana. Dana had to keep European data in European regions, the data-centre locations Azure runs, for GDPR, the EU's privacy law. So she wrote the Allowed locations rule in Azure Policy, and assigned it to each subscription. One by one."),
             leo("Azure Policy being?"),
-            maya("A building inspector at the door. It checks every new or changed resource against rules, whoever creates it, and scans existing ones for a compliance report. One rule is a policy definition; a bundle of them is an initiative; attaching one to a scope, the place it applies, is an assignment."),
+            maya("A building inspector at the door. It checks every new or changed resource against rules, whoever creates it, and scans existing ones for a compliance report."),
+            leo("So one rule, one inspector?"),
+            maya("One rule is a policy definition; a bundle of them is an initiative; attaching one to a scope, the place it applies, is an assignment. Dana made one assignment per subscription."),
             leo("And Dana's one-by-one problem?"),
             maya("A new subscription arrived on Wednesday, without the rule. And worse, she'd used audit, not deny. Audit allows the create and only reports it. If the words say must not, the answer is deny, on the management group, once."),
             leo("What is a policy, really, under the inspector?"),
@@ -144,7 +164,9 @@ internal object Az305EpisodesGovernance {
             leo("Priya. Really?"),
             maya("Really. Policy fixes existing resources only with a remediation task, a clean-up run you start. It acts as the assignment's managed identity, a badge Azure gives the assignment so it may change things. She ran it Friday afternoon. Very quietly."),
             leo("And how do they prove all this to an auditor?"),
-            maya("Microsoft Defender for Cloud, Azure's security check-up. Its regulatory compliance dashboard is a report card against a standard, starting with Microsoft's own benchmark. Adding GDPR or ISO 27001 needs a paid Defender plan. Each control shows pass or fail. Blueprints, the old way, is retired by January 2027; deployment stacks replace it."),
+            maya("Microsoft Defender for Cloud, Azure's security check-up. Its regulatory compliance dashboard is a report card against a standard, starting with Microsoft's own benchmark. Each control shows pass or fail."),
+            leo("And GDPR? That's the one the auditor cares about."),
+            maya("That needs a paid Defender plan, same for ISO 27001. And Blueprints, the old way, is retired by January 2027; deployment stacks replace it."),
             leo("And the weekend gossip? People?"),
             maya("Partner guests. Last year's agency still had access. Now it's identity governance, in Microsoft Entra ID, which is Azure's sign-in system. Access reviews ask a reviewer, every quarter, who still needs access, and remove the rest automatically."),
             leo("And new partners?"),
@@ -176,7 +198,9 @@ internal object Az305EpisodesGovernance {
             ivy("Now. What's never allowed?"),
             nova("That's Azure Policy. Think of a building inspector at the door, awake all night. Every new or changed resource is checked against the rules, whoever creates it. And the existing ones are scanned, and you get a compliance report."),
             ivy("And what is a policy, really, under the inspector's coat?"),
-            nova("A short if-then rule. If the region, one of Azure's data-centre locations, isn't on the list, then deny. One rule is a definition, a bundle is an initiative, and attaching one to a scope, the place it applies, is an assignment. [pause] Every request passes Azure Resource Manager, the front desk, which checks the rules at that scope and above."),
+            nova("A short if-then rule. If the region, one of Azure's data-centre locations, isn't on the list, then deny. One rule is a definition, a bundle is an initiative, and attaching one to a scope, the place it applies, is an assignment."),
+            ivy("And who's holding the clipboard at three in the morning?"),
+            nova("[pause] Azure Resource Manager, the front desk every request passes. It checks the rules at that scope and above before anything is built."),
             ivy("And when something breaks a rule?"),
             nova("The effect decides. Deny blocks it. Audit lets it through and quietly marks it non-compliant. Must not, means deny. Report without blocking, means audit."),
             ivy("Mm. And what about tags? I hear they're pretty."),
@@ -192,7 +216,9 @@ internal object Az305EpisodesGovernance {
             ivy("And proving we follow the rules?"),
             nova("Microsoft Defender for Cloud, Azure's security check-up. Its regulatory compliance dashboard is a report card against a standard, starting with Microsoft's own benchmark. GDPR, the EU's privacy law, can be added with a paid Defender plan. Each control, pass or fail. Blueprints, the old way, is retired by January 2027."),
             ivy("And people? Who still has a key to the building?"),
-            nova("That's identity governance, in Microsoft Entra ID, which is Azure's sign-in system. Access reviews ask someone, every quarter, to confirm who still needs access, and remove the rest. Entitlement management offers access packages, a bundle of access people request, with approval and an end date."),
+            nova("That's identity governance, in Microsoft Entra ID, which is Azure's sign-in system. Access reviews ask someone, every quarter, to confirm who still needs access, and remove the rest."),
+            ivy("And a partner who needs a key for just a month?"),
+            nova("Entitlement management. They request an access package, a bundle of access with approval and an end date."),
             ivy("And the comings and goings?"),
             nova("Lifecycle workflows. Automatic tasks when someone joins, moves or leaves, like disabling an account on the last day. [pause] These are paid features, with Entra ID P2 or ID Governance."),
             ivy("[sigh] Before you send me off to bed. What do I remember for the exam?"),
@@ -212,7 +238,9 @@ internal object Az305EpisodesGovernance {
             rafe("House rules. Like who does the dishes? [chuckle]"),
             nova("Like what's never allowed. Governance: how things are filed, who pays for what, and what may never happen. Two Tracks goes global, with users in Europe and Australia and many accounts in Azure, Microsoft's cloud. So it needs rules."),
             rafe("Start with the filing."),
-            nova("A subscription is one Azure account with its own bill, like one apartment with its own meter. A management group is a folder that holds subscriptions, like the whole building. Below a subscription, resource groups, boxes of things that live and die together. Rules set high up flow down to everything below."),
+            nova("A subscription is one Azure account with its own bill, like one apartment with its own meter. A management group is a folder that holds subscriptions, like the whole building."),
+            rafe("And inside my apartment?"),
+            nova("Resource groups, boxes of things that live and die together. And rules set high up flow down to everything below."),
             rafe("And the very top of the building?"),
             nova("Every directory has one root, the Tenant root group. New subscriptions land there unless you move them. And each subscription has exactly one parent folder. Faithful, like me."),
             rafe("Then my first question, exam style. Nothing may be created outside EU regions, in every subscription, now and later. Where do you set the rule?"),
@@ -234,7 +262,9 @@ internal object Az305EpisodesGovernance {
             rafe("DeployIfNotExists. It deploys the missing companion, a diagnostic setting, as each database is created."),
             nova("Right answer. You always make sure nothing's missing. [kiss]"),
             rafe("And audit?"),
-            nova("Audit allows it and only reports it. If the words say report, or without blocking: audit. If they say must not: deny. And here's the edge. Policy decides what may exist, never who may act; that's Azure RBAC, the role-based access control in the authorization episode. Even an Owner is stopped by deny."),
+            nova("Audit allows it and only reports it. If the words say report, or without blocking: audit. If they say must not: deny."),
+            rafe("And if I'm Owner of the subscription? Surely I can do as I please."),
+            nova("Not even you, darling. Policy decides what may exist, never who may act; that's Azure RBAC, the role-based access control in the authorization episode. Even an Owner is stopped by deny."),
             rafe("Then mine. Nobody may delete the production database by accident. What do you use?"),
             nova("A resource lock. CanNotDelete: you may change it, not delete it. ReadOnly allows neither. And it stops everyone, Owners included, until it's removed."),
             rafe("Right answer. Some things are worth protecting. [kiss]"),
@@ -393,74 +423,74 @@ internal object Az305EpisodesGovernance {
                     Beat(2, card = BoardCard("Governance", "How things are filed, who pays for what, what is never allowed.")),
                     Beat(4, show = tree, light = setOf("root"), card = BoardCard("Management group", "A folder of subscriptions. One root at the very top.")),
                     Beat(6, show = setOf("s1", "s2", "s3", "rg"), light = setOf("s2", "rg"), pulse = "lz" to "s2", card = BoardCard("Subscription, resource group", "One account with its own bill; a box that lives and dies as one.")),
-                    Beat(8, light = setOf("tt"), pulse = "tt" to "lz", card = BoardCard("Rules flow down", "Set once high up; every subscription below obeys, even new ones.")),
-                    Beat(10, light = setOf("plat", "lz", "sand"), card = BoardCard("By workload, not org chart", "Shallow: three or four levels. Up to six below the root.")),
-                    Beat(12, light = setOf("s2", "s3"), card = BoardCard("Production and test apart", "A test can't eat production's limits or break its rules.")),
-                    Beat(14, light = setOf("lz"), card = BoardCard("Landing zone", "A subscription ready before the app moves in: water and power on.")),
-                    Beat(16, light = setOf("plat", "lz", "sand"), card = BoardCard("Platform, apps, Sandbox", "Shared services; Corp and Online apps; experiments.")),
+                    Beat(10, light = setOf("tt"), pulse = "tt" to "lz", card = BoardCard("Rules flow down", "Set once high up; every subscription below obeys, even new ones.")),
+                    Beat(12, light = setOf("plat", "lz", "sand"), card = BoardCard("By workload, not org chart", "Shallow: three or four levels. Up to six below the root.")),
+                    Beat(14, light = setOf("s2", "s3"), card = BoardCard("Production and test apart", "A test can't eat production's limits or break its rules.")),
+                    Beat(16, light = setOf("lz"), card = BoardCard("Landing zone", "A subscription ready before the app moves in: water and power on.")),
+                    Beat(18, light = setOf("plat", "lz", "sand"), card = BoardCard("Platform, apps, Sandbox", "Shared services; Corp and Online apps; experiments.")),
                 ),
             ),
-            // 17: "Okay, filing done. Who pays for what?"
+            // 19: "Okay, filing done. Who pays for what?"
             Scene(
-                17, "Who pays for what", tags(),
+                19, "Who pays for what", tags(),
                 beats = listOf(
-                    Beat(18, show = setOf("rg", "r1", "r2", "r3"), light = setOf("rg"), card = BoardCard("A tag", "A name and value label: cost centre, owner, environment and more.")),
-                    Beat(20, light = setOf("r1", "r2", "r3"), card = BoardCard("Not inherited", "Resource group tags don't reach the resources by default.")),
+                    Beat(20, show = setOf("rg", "r1", "r2", "r3"), light = setOf("rg"), card = BoardCard("A tag", "A name and value label: cost centre, owner, environment and more.")),
+                    Beat(22, light = setOf("r1", "r2", "r3"), card = BoardCard("Not inherited", "Resource group tags don't reach the resources by default.")),
                 ),
             ),
-            // 21: "Policy, in plain words?"
+            // 23: "Policy, in plain words?"
             Scene(
-                21, "The building inspector", policy(),
+                23, "The building inspector", policy(),
                 beats = listOf(
-                    Beat(22, show = setOf("req", "arm", "report"), light = setOf("arm", "report"), pulse = "req" to "arm", card = BoardCard("Azure Policy", "Checks every new or changed resource, whoever creates it.")),
-                    Beat(24, show = setOf("def", "init", "assign"), light = setOf("def", "init", "assign"), pulse = "def" to "assign", card = BoardCard("Definition, initiative", "One rule; a bundle; attached to a scope by an assignment.")),
+                    Beat(24, show = setOf("req", "arm", "report"), light = setOf("arm", "report"), pulse = "req" to "arm", card = BoardCard("Azure Policy", "Checks every new or changed resource, whoever creates it.")),
+                    Beat(26, show = setOf("def", "init", "assign"), light = setOf("def", "init", "assign"), pulse = "def" to "assign", card = BoardCard("Definition, initiative", "One rule; a bundle; attached to a scope by an assignment.")),
                 ),
             ),
-            // 25: "And when something breaks a rule?"
+            // 29: "And when something breaks a rule?"
             Scene(
-                25, "What a rule does", effects(),
+                29, "What a rule does", effects(),
                 beats = listOf(
-                    Beat(26, show = setOf("deny", "audit"), light = setOf("deny", "audit"), card = BoardCard("deny or audit", "Must not: deny. Report without blocking: audit.")),
-                    Beat(28, show = setOf("modify", "dine"), light = setOf("modify", "dine"), card = BoardCard("modify, deployIfNotExists", "Fix tags; deploy a missing companion, like diagnostics.")),
-                    Beat(30, show = setOf("remed"), light = setOf("remed"), pulse = "modify" to "remed", card = BoardCard("Remediation task", "Fixes existing resources, as the assignment's managed identity.")),
+                    Beat(30, show = setOf("deny", "audit"), light = setOf("deny", "audit"), card = BoardCard("deny or audit", "Must not: deny. Report without blocking: audit.")),
+                    Beat(32, show = setOf("modify", "dine"), light = setOf("modify", "dine"), card = BoardCard("modify, deployIfNotExists", "Fix tags; deploy a missing companion, like diagnostics.")),
+                    Beat(36, show = setOf("remed"), light = setOf("remed"), pulse = "modify" to "remed", card = BoardCard("Remediation task", "Fixes existing resources, as the assignment's managed identity.")),
                 ),
             ),
-            // 31: "How is Policy different from roles?"
+            // 37: "How is Policy different from roles?"
             Scene(
-                31, "Policy or roles?", policy(),
+                37, "Policy or roles?", policy(),
                 beats = listOf(
-                    Beat(32, show = setOf("req", "arm", "assign"), light = setOf("req", "arm"), pulse = "assign" to "arm", card = BoardCard("Who versus what", "Azure RBAC: who may act. Policy: what may exist. Deny stops Owners.")),
+                    Beat(38, show = setOf("req", "arm", "assign"), light = setOf("req", "arm"), pulse = "assign" to "arm", card = BoardCard("Who versus what", "Azure RBAC: who may act. Policy: what may exist. Deny stops Owners.")),
                 ),
             ),
-            // 33: "Then how do I stop accidents?"
+            // 39: "Then how do I stop accidents?"
             Scene(
-                33, "A guard against mistakes", locks(),
+                39, "A guard against mistakes", locks(),
                 beats = listOf(
-                    Beat(34, show = setOf("db", "cnd", "ro", "note"), light = setOf("cnd"), pulse = "cnd" to "db", card = BoardCard("Resource lock", "CanNotDelete: change, not delete. ReadOnly: neither.")),
+                    Beat(40, show = setOf("db", "cnd", "ro", "note"), light = setOf("cnd"), pulse = "cnd" to "db", card = BoardCard("Resource lock", "CanNotDelete: change, not delete. ReadOnly: neither.")),
                 ),
             ),
-            // 35: "And proving to auditors we follow the rules?"
+            // 41: "And proving to auditors we follow the rules?"
             Scene(
-                35, "Proving it", compliance(),
+                41, "Proving it", compliance(),
                 beats = listOf(
-                    Beat(36, show = setOf("def", "mcsb", "gdpr", "iso"), light = setOf("def"), pulse = "def" to "gdpr", card = BoardCard("Defender for Cloud", "A report card against a standard, control by control.")),
-                    Beat(38, show = setOf("stacks"), light = setOf("stacks"), card = BoardCard("Blueprints retired", "It ends in January 2027. Deployment stacks replace it.")),
+                    Beat(42, show = setOf("def", "mcsb", "gdpr", "iso"), light = setOf("def"), pulse = "def" to "gdpr", card = BoardCard("Defender for Cloud", "A report card against a standard, control by control.")),
+                    Beat(46, show = setOf("stacks"), light = setOf("stacks"), card = BoardCard("Blueprints retired", "It ends in January 2027. Deployment stacks replace it.")),
                 ),
             ),
-            // 39: "Last part. People."
+            // 47: "Last part. People."
             Scene(
-                39, "People", people(),
+                47, "People", people(),
                 beats = listOf(
-                    Beat(40, show = setOf("entra", "rev", "pkg"), light = setOf("rev", "pkg"), pulse = "entra" to "rev", card = BoardCard("Access reviews, packages", "Confirm who still needs access; request a bundle that expires.")),
-                    Beat(42, show = setOf("life", "lic"), light = setOf("life"), pulse = "entra" to "life", card = BoardCard("Lifecycle workflows", "Joiners, movers and leavers. Paid licences.")),
+                    Beat(48, show = setOf("entra", "rev", "pkg"), light = setOf("rev", "pkg"), pulse = "entra" to "rev", card = BoardCard("Access reviews, packages", "Confirm who still needs access; request a bundle that expires.")),
+                    Beat(52, show = setOf("life", "lic"), light = setOf("life"), pulse = "entra" to "life", card = BoardCard("Lifecycle workflows", "Joiners, movers and leavers. Paid licences.")),
                 ),
             ),
-            // 43: "So what do I remember for the exam?"
+            // 53: "So what do I remember for the exam?"
             Scene(
-                43, "For the exam", exam(),
+                53, "For the exam", exam(),
                 beats = listOf(
-                    Beat(44, show = all6, light = all6, card = phrase),
-                    Beat(46, card = today),
+                    Beat(54, show = all6, light = all6, card = phrase),
+                    Beat(56, card = today),
                 ),
             ),
         ),
@@ -493,62 +523,62 @@ internal object Az305EpisodesGovernance {
                 13, "Under the picture", policy(),
                 beats = listOf(
                     Beat(14, show = setOf("def", "init", "assign"), light = setOf("def"), pulse = "def" to "assign", card = BoardCard("If this, then that", "If the location is not on the list, then deny.")),
-                    Beat(16, show = setOf("req", "arm", "report"), light = setOf("arm", "report"), pulse = "req" to "arm", card = BoardCard("Azure Resource Manager", "Checks the rules at that scope and above, then scans existing ones.")),
+                    Beat(18, show = setOf("req", "arm", "report"), light = setOf("arm", "report"), pulse = "req" to "arm", card = BoardCard("Azure Resource Manager", "Checks the rules at that scope and above, then scans existing ones.")),
                 ),
             ),
-            // 17: "Clue three. I can feel it."
+            // 21: "Clue three. I can feel it."
             Scene(
-                17, "Clue three", effects(),
+                21, "Clue three", effects(),
                 beats = listOf(
-                    Beat(18, show = setOf("audit"), light = setOf("audit"), card = BoardCard("It was audit", "Allowed, marked non-compliant. Red for six months.")),
-                    Beat(20, show = setOf("deny"), light = setOf("deny"), card = BoardCard("Must not means deny", "Report without blocking means audit.")),
+                    Beat(22, show = setOf("audit"), light = setOf("audit"), card = BoardCard("It was audit", "Allowed, marked non-compliant. Red for six months.")),
+                    Beat(24, show = setOf("deny"), light = setOf("deny"), card = BoardCard("Must not means deny", "Report without blocking means audit.")),
                 ),
             ),
-            // 21: "Is that the whole case?"
+            // 25: "Is that the whole case?"
             Scene(
-                21, "Side case: the bill", tags(),
+                25, "Side case: the bill", tags(),
                 beats = listOf(
-                    Beat(22, show = setOf("rg", "r1", "r2", "r3"), light = setOf("rg"), card = BoardCard("A tag", "A name and value label, like cost centre: mobile.")),
-                    Beat(24, show = setOf("mod"), light = setOf("mod"), pulse = "mod" to "r2", card = BoardCard("Not inherited", "The inherit-a-tag policy, with the modify effect.")),
+                    Beat(26, show = setOf("rg", "r1", "r2", "r3"), light = setOf("rg"), card = BoardCard("A tag", "A name and value label, like cost centre: mobile.")),
+                    Beat(28, show = setOf("mod"), light = setOf("mod"), pulse = "mod" to "r2", card = BoardCard("Not inherited", "The inherit-a-tag policy, with the modify effect.")),
                 ),
             ),
-            // 25: "And the hundreds that already exist?"
+            // 29: "And the hundreds that already exist?"
             Scene(
-                25, "The hundreds that exist", effects(),
+                29, "The hundreds that exist", effects(),
                 beats = listOf(
-                    Beat(26, show = setOf("modify", "dine", "remed"), light = setOf("remed"), pulse = "modify" to "remed", card = BoardCard("Remediation task", "A clean-up run you start, as the assignment's managed identity.")),
+                    Beat(30, show = setOf("modify", "dine", "remed"), light = setOf("remed"), pulse = "modify" to "remed", card = BoardCard("Remediation task", "A clean-up run you start, as the assignment's managed identity.")),
                 ),
             ),
-            // 27: "Second side case?"
+            // 33: "Second side case?"
             Scene(
-                27, "Side case: one click", locks(),
+                33, "Side case: one click", locks(),
                 beats = listOf(
-                    Beat(28, show = setOf("db"), light = setOf("db"), card = BoardCard("One click away", "The production database, nearly deleted.")),
-                    Beat(30, show = setOf("cnd", "ro", "note"), light = setOf("cnd", "note"), pulse = "cnd" to "db", card = BoardCard("Resource lock", "CanNotDelete: change, not delete. It stops Owners too.")),
+                    Beat(34, show = setOf("db"), light = setOf("db"), card = BoardCard("One click away", "The production database, nearly deleted.")),
+                    Beat(36, show = setOf("cnd", "ro", "note"), light = setOf("cnd", "note"), pulse = "cnd" to "db", card = BoardCard("Resource lock", "CanNotDelete: change, not delete. It stops Owners too.")),
                 ),
             ),
-            // 31: "And the auditor? Will she be back?"
+            // 37: "And the auditor? Will she be back?"
             Scene(
-                31, "The auditor returns", compliance(),
+                37, "The auditor returns", compliance(),
                 beats = listOf(
-                    Beat(32, show = setOf("def", "mcsb", "gdpr", "iso"), light = setOf("def", "gdpr"), pulse = "def" to "gdpr", card = BoardCard("Defender for Cloud", "Regulatory compliance: GDPR, control by control.")),
-                    Beat(34, show = setOf("stacks"), light = setOf("stacks"), card = BoardCard("Blueprints retired", "It ends in January 2027. Deployment stacks replace it.")),
+                    Beat(38, show = setOf("def", "mcsb", "gdpr", "iso"), light = setOf("def", "gdpr"), pulse = "def" to "gdpr", card = BoardCard("Defender for Cloud", "Regulatory compliance: GDPR, control by control.")),
+                    Beat(42, show = setOf("stacks"), light = setOf("stacks"), card = BoardCard("Blueprints retired", "It ends in January 2027. Deployment stacks replace it.")),
                 ),
             ),
-            // 35: "Anything about people?"
+            // 43: "Anything about people?"
             Scene(
-                35, "People", people(),
+                43, "People", people(),
                 beats = listOf(
-                    Beat(36, show = setOf("entra", "rev"), light = setOf("rev"), pulse = "entra" to "rev", card = BoardCard("Access reviews", "Every quarter: who still needs access? The rest removed.")),
-                    Beat(38, show = setOf("pkg", "life", "lic"), light = setOf("pkg"), pulse = "entra" to "pkg", card = BoardCard("Access packages", "Request, approve, expire. And Policy never decides who.")),
+                    Beat(44, show = setOf("entra", "rev"), light = setOf("rev"), pulse = "entra" to "rev", card = BoardCard("Access reviews", "Every quarter: who still needs access? The rest removed.")),
+                    Beat(46, show = setOf("pkg", "life", "lic"), light = setOf("pkg"), pulse = "entra" to "pkg", card = BoardCard("Access packages", "Request, approve, expire. And Policy never decides who.")),
                 ),
             ),
-            // 39: "So, the case summary for the exam?"
+            // 47: "So, the case summary for the exam?"
             Scene(
-                39, "Case closed", exam(),
+                47, "Case closed", exam(),
                 beats = listOf(
-                    Beat(40, show = all6, light = all6, card = phrase),
-                    Beat(42, card = today),
+                    Beat(48, show = all6, light = all6, card = phrase),
+                    Beat(50, card = today),
                 ),
             ),
         ),
@@ -581,56 +611,56 @@ internal object Az305EpisodesGovernance {
                 beats = listOf(
                     Beat(12, show = setOf("assign"), light = setOf("assign"), card = BoardCard("One by one", "Allowed locations, assigned to each subscription by hand.")),
                     Beat(14, show = setOf("req", "arm", "def", "init", "report"), light = setOf("arm"), pulse = "req" to "arm", card = BoardCard("Azure Policy", "A building inspector: definition, initiative, assignment.")),
-                    Beat(16, light = setOf("assign"), card = BoardCard("Deny, once, high up", "A new subscription missed it, and audit only reported.")),
-                    Beat(18, light = setOf("def", "arm"), pulse = "assign" to "arm", card = BoardCard("If this, then that", "Resource Manager checks the rules at that scope and above.")),
+                    Beat(18, light = setOf("assign"), card = BoardCard("Deny, once, high up", "A new subscription missed it, and audit only reported.")),
+                    Beat(20, light = setOf("def", "arm"), pulse = "assign" to "arm", card = BoardCard("If this, then that", "Resource Manager checks the rules at that scope and above.")),
                 ),
             ),
-            // 19: "Wednesday, then?"
+            // 21: "Wednesday, then?"
             Scene(
-                19, "Wednesday: Marcus", tags(),
+                21, "Wednesday: Marcus", tags(),
                 beats = listOf(
-                    Beat(20, show = setOf("rg"), light = setOf("rg"), card = BoardCard("A tag on every box", "A name and value label, like cost centre: mobile.")),
-                    Beat(21, show = setOf("r1", "r2", "r3"), light = setOf("r1", "r2", "r3"), card = BoardCard("No tags at all", "The resources inside had none.")),
-                    Beat(22, show = setOf("mod"), light = setOf("mod"), pulse = "mod" to "r2", card = BoardCard("Not inherited", "Fixed by the inherit-a-tag policy, with modify.")),
+                    Beat(22, show = setOf("rg"), light = setOf("rg"), card = BoardCard("A tag on every box", "A name and value label, like cost centre: mobile.")),
+                    Beat(23, show = setOf("r1", "r2", "r3"), light = setOf("r1", "r2", "r3"), card = BoardCard("No tags at all", "The resources inside had none.")),
+                    Beat(24, show = setOf("mod"), light = setOf("mod"), pulse = "mod" to "r2", card = BoardCard("Not inherited", "Fixed by the inherit-a-tag policy, with modify.")),
                 ),
             ),
-            // 23: "Thursday?"
+            // 25: "Thursday?"
             Scene(
-                23, "Thursday: the intern", locks(),
+                25, "Thursday: the intern", locks(),
                 beats = listOf(
-                    Beat(24, show = setOf("db"), light = setOf("db"), card = BoardCard("Delete, clicked", "On the production database. Nothing happened.")),
-                    Beat(26, show = setOf("cnd", "ro", "note"), light = setOf("cnd"), pulse = "cnd" to "db", card = BoardCard("CanNotDelete lock", "Change yes, delete no. It stops everyone, even Owners.")),
+                    Beat(26, show = setOf("db"), light = setOf("db"), card = BoardCard("Delete, clicked", "On the production database. Nothing happened.")),
+                    Beat(28, show = setOf("cnd", "ro", "note"), light = setOf("cnd"), pulse = "cnd" to "db", card = BoardCard("CanNotDelete lock", "Change yes, delete no. It stops everyone, even Owners.")),
                 ),
             ),
-            // 27: "And Friday? There's always a Friday."
+            // 29: "And Friday? There's always a Friday."
             Scene(
-                27, "Friday: Priya", effects(),
+                29, "Friday: Priya", effects(),
                 beats = listOf(
-                    Beat(28, show = setOf("dine"), light = setOf("dine"), card = BoardCard("deployIfNotExists", "New databases got their diagnostics. Old ones didn't.")),
-                    Beat(30, show = setOf("modify", "remed"), light = setOf("remed"), pulse = "dine" to "remed", card = BoardCard("Remediation task", "A clean-up run you start, as the assignment's managed identity.")),
+                    Beat(30, show = setOf("dine"), light = setOf("dine"), card = BoardCard("deployIfNotExists", "New databases got their diagnostics. Old ones didn't.")),
+                    Beat(32, show = setOf("modify", "remed"), light = setOf("remed"), pulse = "dine" to "remed", card = BoardCard("Remediation task", "A clean-up run you start, as the assignment's managed identity.")),
                 ),
             ),
-            // 31: "And how do they prove all this to an auditor?"
+            // 33: "And how do they prove all this to an auditor?"
             Scene(
-                31, "The auditor", compliance(),
+                33, "The auditor", compliance(),
                 beats = listOf(
-                    Beat(32, show = setOf("def", "mcsb", "gdpr", "iso", "stacks"), light = setOf("def"), pulse = "def" to "gdpr", card = BoardCard("Defender for Cloud", "A report card against a standard. Blueprints: retired.")),
+                    Beat(34, show = setOf("def", "mcsb", "gdpr", "iso", "stacks"), light = setOf("def"), pulse = "def" to "gdpr", card = BoardCard("Defender for Cloud", "A report card against a standard. Blueprints: retired.")),
                 ),
             ),
-            // 33: "And the weekend gossip? People?"
+            // 37: "And the weekend gossip? People?"
             Scene(
-                33, "The weekend: people", people(),
+                37, "The weekend: people", people(),
                 beats = listOf(
-                    Beat(34, show = setOf("entra", "rev"), light = setOf("rev"), pulse = "entra" to "rev", card = BoardCard("Access reviews", "Every quarter: who still needs access? The rest removed.")),
-                    Beat(36, show = setOf("pkg", "life", "lic"), light = setOf("pkg", "life"), pulse = "entra" to "pkg", card = BoardCard("Access packages", "Request, approve, expire. Lifecycle workflows for joiners.")),
+                    Beat(38, show = setOf("entra", "rev"), light = setOf("rev"), pulse = "entra" to "rev", card = BoardCard("Access reviews", "Every quarter: who still needs access? The rest removed.")),
+                    Beat(40, show = setOf("pkg", "life", "lic"), light = setOf("pkg", "life"), pulse = "entra" to "pkg", card = BoardCard("Access packages", "Request, approve, expire. Lifecycle workflows for joiners.")),
                 ),
             ),
-            // 37: "So, the gossip I should remember for the exam?"
+            // 41: "So, the gossip I should remember for the exam?"
             Scene(
-                37, "For the exam", exam(),
+                41, "For the exam", exam(),
                 beats = listOf(
-                    Beat(38, show = all6, light = all6, card = phrase),
-                    Beat(40, card = today),
+                    Beat(42, show = all6, light = all6, card = phrase),
+                    Beat(44, card = today),
                 ),
             ),
         ),
@@ -659,63 +689,63 @@ internal object Az305EpisodesGovernance {
                     Beat(14, show = setOf("def", "init", "assign"), light = setOf("def", "assign"), pulse = "assign" to "arm", card = BoardCard("If this, then that", "Definition, initiative, and an assignment to a scope.")),
                 ),
             ),
-            // 15: "And when something breaks a rule?"
+            // 17: "And when something breaks a rule?"
             Scene(
-                15, "What a rule does", effects(),
+                17, "What a rule does", effects(),
                 beats = listOf(
-                    Beat(16, show = setOf("deny", "audit"), light = setOf("deny", "audit"), card = BoardCard("deny or audit", "Must not: deny. Report without blocking: audit.")),
+                    Beat(18, show = setOf("deny", "audit"), light = setOf("deny", "audit"), card = BoardCard("deny or audit", "Must not: deny. Report without blocking: audit.")),
                 ),
             ),
-            // 17: "Mm. And what about tags?"
+            // 19: "Mm. And what about tags?"
             Scene(
-                17, "Tags", tags(),
+                19, "Tags", tags(),
                 beats = listOf(
-                    Beat(18, show = setOf("rg"), light = setOf("rg"), card = BoardCard("A tag", "A name and value label: split the bill, find an owner.")),
-                    Beat(20, show = setOf("r1", "r2", "r3", "mod"), light = setOf("mod"), pulse = "mod" to "r2", card = BoardCard("Not inherited", "The modify effect copies the tag down.")),
+                    Beat(20, show = setOf("rg"), light = setOf("rg"), card = BoardCard("A tag", "A name and value label: split the bill, find an owner.")),
+                    Beat(22, show = setOf("r1", "r2", "r3", "mod"), light = setOf("mod"), pulse = "mod" to "r2", card = BoardCard("Not inherited", "The modify effect copies the tag down.")),
                 ),
             ),
-            // 21: "And the things already in the box?"
+            // 23: "And the things already in the box?"
             Scene(
-                21, "Already in the box", effects(),
+                23, "Already in the box", effects(),
                 beats = listOf(
-                    Beat(22, show = setOf("modify", "dine", "remed"), light = setOf("remed"), pulse = "dine" to "remed", card = BoardCard("Remediation task", "Fixes what already exists, as the assignment's managed identity.")),
+                    Beat(24, show = setOf("modify", "dine", "remed"), light = setOf("remed"), pulse = "dine" to "remed", card = BoardCard("Remediation task", "Fixes what already exists, as the assignment's managed identity.")),
                 ),
             ),
-            // 23: "Policy sounds like it can do anything."
+            // 25: "Policy sounds like it can do anything."
             Scene(
-                23, "Who, or what", policy(),
+                25, "Who, or what", policy(),
                 beats = listOf(
-                    Beat(24, show = setOf("req", "arm", "assign"), light = setOf("req"), pulse = "assign" to "arm", card = BoardCard("Who versus what", "Azure RBAC: who may act. Policy: what may exist.")),
+                    Beat(26, show = setOf("req", "arm", "assign"), light = setOf("req"), pulse = "assign" to "arm", card = BoardCard("Who versus what", "Azure RBAC: who may act. Policy: what may exist.")),
                 ),
             ),
-            // 25: "And what stops tired fingers deleting something precious?"
+            // 27: "And what stops tired fingers deleting something precious?"
             Scene(
-                25, "Tired fingers", locks(),
+                27, "Tired fingers", locks(),
                 beats = listOf(
-                    Beat(26, show = setOf("db", "cnd", "ro", "note"), light = setOf("cnd", "note"), pulse = "cnd" to "db", card = BoardCard("Resource lock", "CanNotDelete or ReadOnly. It stops everyone, Owners too.")),
+                    Beat(28, show = setOf("db", "cnd", "ro", "note"), light = setOf("cnd", "note"), pulse = "cnd" to "db", card = BoardCard("Resource lock", "CanNotDelete or ReadOnly. It stops everyone, Owners too.")),
                 ),
             ),
-            // 27: "And proving we follow the rules?"
+            // 29: "And proving we follow the rules?"
             Scene(
-                27, "A report card", compliance(),
+                29, "A report card", compliance(),
                 beats = listOf(
-                    Beat(28, show = setOf("def", "mcsb", "gdpr", "iso", "stacks"), light = setOf("def", "gdpr"), pulse = "def" to "gdpr", card = BoardCard("Defender for Cloud", "GDPR with a paid plan. Blueprints retired by January 2027.")),
+                    Beat(30, show = setOf("def", "mcsb", "gdpr", "iso", "stacks"), light = setOf("def", "gdpr"), pulse = "def" to "gdpr", card = BoardCard("Defender for Cloud", "GDPR with a paid plan. Blueprints retired by January 2027.")),
                 ),
             ),
-            // 29: "And people? Who still has a key to the building?"
+            // 31: "And people? Who still has a key to the building?"
             Scene(
-                29, "A key to the building", people(),
+                31, "A key to the building", people(),
                 beats = listOf(
-                    Beat(30, show = setOf("entra", "rev", "pkg"), light = setOf("rev", "pkg"), pulse = "entra" to "rev", card = BoardCard("Access reviews, packages", "Confirm every quarter; request a bundle that expires.")),
-                    Beat(32, show = setOf("life", "lic"), light = setOf("life"), pulse = "entra" to "life", card = BoardCard("Lifecycle workflows", "Join, move, leave. Paid features.")),
+                    Beat(32, show = setOf("entra", "rev", "pkg"), light = setOf("rev", "pkg"), pulse = "entra" to "rev", card = BoardCard("Access reviews, packages", "Confirm every quarter; request a bundle that expires.")),
+                    Beat(36, show = setOf("life", "lic"), light = setOf("life"), pulse = "entra" to "life", card = BoardCard("Lifecycle workflows", "Join, move, leave. Paid features.")),
                 ),
             ),
-            // 33: "Before you send me off to bed. What do I remember for the exam?"
+            // 37: "Before you send me off to bed. What do I remember for the exam?"
             Scene(
-                33, "For the exam", exam(),
+                37, "For the exam", exam(),
                 beats = listOf(
-                    Beat(34, show = all6, light = all6, card = phrase),
-                    Beat(36, card = today),
+                    Beat(38, show = all6, light = all6, card = phrase),
+                    Beat(40, card = today),
                 ),
             ),
         ),
@@ -731,77 +761,77 @@ internal object Az305EpisodesGovernance {
                     Beat(0, card = BoardCard("Date night", "House rules.")),
                     Beat(2, card = BoardCard("Governance", "How things are filed, who pays, what may never happen.")),
                     Beat(4, show = setOf("tt", "plat", "lz", "sand", "s1", "s2", "s3", "rg"), light = setOf("s2"), card = BoardCard("Apartment and building", "Subscription: one apartment. Management group: the building.")),
-                    Beat(6, show = setOf("root"), light = setOf("root"), pulse = "root" to "tt", card = BoardCard("Tenant root group", "One root on top; each subscription has one parent.")),
-                    Beat(7, light = setOf("lz"), card = BoardCard("Quiz: EU only", "Every subscription, now and later. Where does the rule go?")),
-                    Beat(8, light = setOf("lz", "s2"), pulse = "lz" to "s2", card = BoardCard("Right answer", "Once, on a management group: Allowed locations, with deny.")),
+                    Beat(8, show = setOf("root"), light = setOf("root"), pulse = "root" to "tt", card = BoardCard("Tenant root group", "One root on top; each subscription has one parent.")),
+                    Beat(9, light = setOf("lz"), card = BoardCard("Quiz: EU only", "Every subscription, now and later. Where does the rule go?")),
+                    Beat(10, light = setOf("lz", "s2"), pulse = "lz" to "s2", card = BoardCard("Right answer", "Once, on a management group: Allowed locations, with deny.")),
                 ),
             ),
-            // 10: "Mm. And the rule itself lives in Azure Policy..."
+            // 12: "Mm. And the rule itself lives in Azure Policy..."
             Scene(
-                10, "Under all that charm", policy(),
+                12, "Under all that charm", policy(),
                 beats = listOf(
-                    Beat(10, show = setOf("req", "arm", "report"), light = setOf("arm"), pulse = "req" to "arm", card = BoardCard("Azure Policy", "An inspector at the door; scans what already exists.")),
-                    Beat(12, show = setOf("def", "init", "assign"), light = setOf("def", "assign"), pulse = "assign" to "arm", card = BoardCard("If this, then that", "Definition, initiative, and an assignment to a scope.")),
+                    Beat(12, show = setOf("req", "arm", "report"), light = setOf("arm"), pulse = "req" to "arm", card = BoardCard("Azure Policy", "An inspector at the door; scans what already exists.")),
+                    Beat(14, show = setOf("def", "init", "assign"), light = setOf("def", "assign"), pulse = "assign" to "arm", card = BoardCard("If this, then that", "Definition, initiative, and an assignment to a scope.")),
                 ),
             ),
-            // 13: "And how do I arrange the folders?"
+            // 15: "And how do I arrange the folders?"
             Scene(
-                13, "Never the org chart", hierarchy(),
+                15, "Never the org chart", hierarchy(),
                 beats = listOf(
-                    Beat(14, show = tree, light = setOf("plat", "lz", "sand"), pulse = "tt" to "lz", card = BoardCard("By workload", "Landing zones: Platform, apps, Sandbox. Shallow.")),
+                    Beat(16, show = tree, light = setOf("plat", "lz", "sand"), pulse = "tt" to "lz", card = BoardCard("By workload", "Landing zones: Platform, apps, Sandbox. Shallow.")),
                 ),
             ),
-            // 15: "Now my question. Finance wants every resource to carry..."
+            // 17: "Now my question. Finance wants every resource to carry..."
             Scene(
-                15, "Which effect?", tags(),
+                17, "Which effect?", tags(),
                 beats = listOf(
-                    Beat(15, show = setOf("rg", "r1", "r2", "r3"), light = setOf("rg"), card = BoardCard("Quiz: the cost centre tag", "Every resource carries its group's tag, automatically. Which effect?")),
-                    Beat(16, card = BoardCard("Deny?", "It blocks deployments and copies nothing. No kiss.")),
-                    Beat(17, show = setOf("mod"), light = setOf("mod"), pulse = "mod" to "r2", card = BoardCard("modify", "The inherit-a-tag policy, plus a remediation task.")),
-                    Beat(18, card = BoardCard("Remediation task", "A clean-up run, as the assignment's managed identity.")),
-                    Beat(20, light = setOf("rg"), card = BoardCard("A short tag list", "Cost centre, owner, environment, application, data class.")),
+                    Beat(17, show = setOf("rg", "r1", "r2", "r3"), light = setOf("rg"), card = BoardCard("Quiz: the cost centre tag", "Every resource carries its group's tag, automatically. Which effect?")),
+                    Beat(18, card = BoardCard("Deny?", "It blocks deployments and copies nothing. No kiss.")),
+                    Beat(19, show = setOf("mod"), light = setOf("mod"), pulse = "mod" to "r2", card = BoardCard("modify", "The inherit-a-tag policy, plus a remediation task.")),
+                    Beat(20, card = BoardCard("Remediation task", "A clean-up run, as the assignment's managed identity.")),
+                    Beat(22, light = setOf("rg"), card = BoardCard("A short tag list", "Cost centre, owner, environment, application, data class.")),
                 ),
             ),
-            // 21: "You'll earn it back. Your question."
+            // 23: "You'll earn it back. Your question."
             Scene(
-                21, "Nothing missing", effects(),
+                23, "Nothing missing", effects(),
                 beats = listOf(
-                    Beat(22, show = setOf("dine"), light = setOf("dine"), card = BoardCard("Quiz: database logs", "Every new database sends logs, no manual step. Which effect?")),
-                    Beat(23, show = setOf("modify", "remed"), light = setOf("dine"), pulse = "dine" to "remed", card = BoardCard("Right answer", "deployIfNotExists adds the diagnostic setting.")),
-                    Beat(26, show = setOf("deny", "audit"), light = setOf("deny", "audit"), card = BoardCard("deny or audit", "Must not: deny. Report: audit. Policy never decides who.")),
+                    Beat(24, show = setOf("dine"), light = setOf("dine"), card = BoardCard("Quiz: database logs", "Every new database sends logs, no manual step. Which effect?")),
+                    Beat(25, show = setOf("modify", "remed"), light = setOf("dine"), pulse = "dine" to "remed", card = BoardCard("Right answer", "deployIfNotExists adds the diagnostic setting.")),
+                    Beat(28, show = setOf("deny", "audit"), light = setOf("deny", "audit"), card = BoardCard("deny or audit", "Must not: deny. Report: audit. Policy never decides who.")),
                 ),
             ),
-            // 27: "Then mine. Nobody may delete the production database by accident."
+            // 31: "Then mine. Nobody may delete the production database by accident."
             Scene(
-                27, "Worth protecting", locks(),
+                31, "Worth protecting", locks(),
                 beats = listOf(
-                    Beat(27, show = setOf("db"), light = setOf("db"), card = BoardCard("Quiz: by accident", "Nobody may delete the production database by accident.")),
-                    Beat(28, show = setOf("cnd", "ro", "note"), light = setOf("cnd"), pulse = "cnd" to "db", card = BoardCard("Right answer", "A CanNotDelete lock. It stops Owners too.")),
+                    Beat(31, show = setOf("db"), light = setOf("db"), card = BoardCard("Quiz: by accident", "Nobody may delete the production database by accident.")),
+                    Beat(32, show = setOf("cnd", "ro", "note"), light = setOf("cnd"), pulse = "cnd" to "db", card = BoardCard("Right answer", "A CanNotDelete lock. It stops Owners too.")),
                 ),
             ),
-            // 30: "And to prove it all to an auditor..."
+            // 34: "And to prove it all to an auditor..."
             Scene(
-                30, "The auditor", compliance(),
+                34, "The auditor", compliance(),
                 beats = listOf(
-                    Beat(30, show = setOf("def", "mcsb", "gdpr", "iso", "stacks"), light = setOf("def"), pulse = "def" to "gdpr", card = BoardCard("Defender for Cloud", "A report card against GDPR and more. Blueprints: retired.")),
+                    Beat(34, show = setOf("def", "mcsb", "gdpr", "iso", "stacks"), light = setOf("def"), pulse = "def" to "gdpr", card = BoardCard("Defender for Cloud", "A report card against GDPR and more. Blueprints: retired.")),
                 ),
             ),
-            // 31: "Now people. Guests from partner companies..."
+            // 35: "Now people. Guests from partner companies..."
             Scene(
-                31, "Still welcome", people(),
+                35, "Still welcome", people(),
                 beats = listOf(
-                    Beat(31, show = setOf("entra"), light = setOf("entra"), card = BoardCard("Quiz: partner guests", "Checked every quarter, removed if nobody confirms them?")),
-                    Beat(32, show = setOf("rev"), light = setOf("rev"), pulse = "entra" to "rev", card = BoardCard("Right answer", "Access reviews: a sponsor confirms, the rest are removed.")),
-                    Beat(34, show = setOf("pkg"), light = setOf("pkg"), card = BoardCard("Quiz: a bundle that expires", "Partners request resources, with approval and an end date?")),
-                    Beat(35, show = setOf("life", "lic"), light = setOf("pkg"), pulse = "entra" to "pkg", card = BoardCard("Right answer", "Entitlement management: an access package.")),
+                    Beat(35, show = setOf("entra"), light = setOf("entra"), card = BoardCard("Quiz: partner guests", "Checked every quarter, removed if nobody confirms them?")),
+                    Beat(36, show = setOf("rev"), light = setOf("rev"), pulse = "entra" to "rev", card = BoardCard("Right answer", "Access reviews: a sponsor confirms, the rest are removed.")),
+                    Beat(38, show = setOf("pkg"), light = setOf("pkg"), card = BoardCard("Quiz: a bundle that expires", "Partners request resources, with approval and an end date?")),
+                    Beat(39, show = setOf("life", "lic"), light = setOf("pkg"), pulse = "entra" to "pkg", card = BoardCard("Right answer", "Entitlement management: an access package.")),
                 ),
             ),
-            // 37: "Last question, for the exam. What do we remember?"
+            // 41: "Last question, for the exam. What do we remember?"
             Scene(
-                37, "For the exam", exam(),
+                41, "For the exam", exam(),
                 beats = listOf(
-                    Beat(38, show = all6, light = all6, card = phrase),
-                    Beat(41, card = today),
+                    Beat(42, show = all6, light = all6, card = phrase),
+                    Beat(45, card = today),
                 ),
             ),
         ),
