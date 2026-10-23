@@ -15,9 +15,10 @@ object Psm1 {
         Course(
             id = "psm-1",
             title = "PSM I Professional Scrum Master",
-            subtitle = "Five modules, one test each, then a mock assessment.",
+            subtitle = "Five modules, one test each, then five mock assessments.",
             goalId = "psm-1",
             mockExam = Psm1Mock.quiz,
+            extraMocks = listOf(Psm1Paper2.quiz, Psm1Paper3.quiz, Psm1Paper4.quiz, Psm1Paper5.quiz),
             modules = listOf(
                 Module(
                     id = "psm-theory", number = 1, title = "Scrum theory and values",
