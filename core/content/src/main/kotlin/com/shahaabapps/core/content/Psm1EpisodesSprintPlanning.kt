@@ -98,7 +98,7 @@ internal object Psm1EpisodesSprintPlanning {
             leo("Poor Marcus. Why so long?"),
             maya("Because Priya, the Product Owner, arrived with twenty items in no order. The Product Owner is meant to make sure everyone's ready to discuss the most important Product Backlog items, and how they connect to the Product Goal, the product's long-term objective."),
             leo("And the Product Backlog is the ordered list of everything the app might need."),
-            maya("Ordered being the key word. Getting items ready is called refinement: breaking them into smaller ones and adding detail. It happens before Planning, not in it. Tuesday was Dana."),
+            maya("Ordered being the key word. Getting items ready is called refinement: breaking them into smaller ones and adding detail. It's ongoing, and the Scrum Team may still refine the selected items during Planning, but it goes much faster when most of it is done beforehand. Tuesday was Dana."),
             leo("What did Dana do?"),
             maya("Dana's the Scrum Master. She wrote the Sprint Goal herself the night before and read it out like a weather forecast. The Sprint Goal is the single objective for the Sprint. The Product Owner proposes how the product could gain value, and the whole Scrum Team defines the goal together."),
             leo("[sigh] And finalised before Planning ends, I assume."),

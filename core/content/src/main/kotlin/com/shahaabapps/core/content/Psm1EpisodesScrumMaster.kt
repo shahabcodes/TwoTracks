@@ -120,7 +120,7 @@ internal object Psm1EpisodesScrumMaster {
             leo("Thursday?"),
             maya("Thursday was Priya, the Product Owner. She asked Marcus to re-order her Product Backlog, the ordered list of everything the app might need, because he had opinions."),
             leo("And he did it?"),
-            maya("He did it. Wrong. Ordering the backlog is the Product Owner's call. The Scrum Master serves the Product Owner with techniques: for the Product Goal, the long-term objective for the app, for managing the backlog, and for empirical product planning, which means deciding from what you actually observe."),
+            maya("He did it, and that part's allowed: a Product Owner may delegate backlog work, ordering included, but stays accountable. So the order is still her call. The Scrum Master's real job is to serve the Product Owner with techniques: for the Product Goal, the long-term objective for the app, for managing the backlog, and for empirical product planning, which means deciding from what you actually observe."),
             leo("Where else does the Scrum Master's power stop?"),
             maya("They can't cancel a Sprint; only the Product Owner can. They don't choose the work or how it's built. Their power is influence: coaching, teaching, facilitating, which means making a conversation easy and useful without deciding for anyone."),
             leo("And Friday? There's always a Friday."),

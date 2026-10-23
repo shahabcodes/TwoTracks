@@ -120,7 +120,7 @@ internal object Psm1EpisodesScrumTeam {
             leo("But the designer is a Developer, isn't she?"),
             maya("In Scrum, yes. A Developer is anyone who builds any part of the usable product: code, design, tests, release work. And the Guide says the entire Scrum Team is accountable for creating a valuable, useful Increment every Sprint, the Increment being the usable piece. Not my part, your part."),
             leo("And the department head? I heard he had views."),
-            maya("He did. He said self-managing means the team can now choose its own features. It doesn't. That's where self-managing stops: the Product Owner orders the Product Backlog, the ordered list of what the product needs, and the Sprint Goal sets the target. The team manages its own work inside that frame."),
+            maya("He did. He said self-managing means the team can build whatever it fancies. It doesn't. The team decides who does what, when and how, and the Developers select the Sprint's items with the Product Owner. But the Product Owner orders the Product Backlog, the ordered list of what the product needs, and the Sprint Goal sets the target. The team manages its own work inside that frame."),
             leo("So what should he do instead?"),
             maya("Give the team room. The Guide says the organisation structures and empowers the team to manage its own work. Then trust it, and come to the Sprint Review to see the results."),
             leo("Can anyone wear two hats, then? Our Scrum Master codes too."),
@@ -527,7 +527,7 @@ internal object Psm1EpisodesScrumTeam {
             Scene(
                 29, "The department head", lead(),
                 beats = listOf(
-                    Beat(30, light = setOf("frame"), card = BoardCard("Choose our own features?", "No: the Product Owner orders; the Sprint Goal is the target.")),
+                    Beat(30, light = setOf("frame"), card = BoardCard("Build whatever we fancy?", "No: Developers pick Sprint items with the PO, but the PO orders the backlog.")),
                     Beat(32, light = setOf("team"), card = BoardCard("Give the team room", "The organisation structures and empowers it.")),
                     Beat(34, card = BoardCard("Two hats", "A Scrum Master can also be a Developer.")),
                 ),
