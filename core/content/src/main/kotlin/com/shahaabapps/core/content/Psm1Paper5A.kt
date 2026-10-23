@@ -169,9 +169,9 @@ internal object Psm1Paper5A {
                 3 to "The Product Owner orders the Product Backlog; planning the work belongs to the Developers.",
             ),
         ),
-        B.q("psm-p5-21", "psm-developers", "What does the Scrum Guide point the Developers toward?", listOf("Keep personal standards, since each Developer knows their own work best", "Agree one Definition of Done that every Developer adheres to, since the Developers are accountable for instilling quality by adhering to it", "Let the Product Owner decide case by case whether each item is good enough", "Leave quality to a test phase after the Sprint"), setOf(1),
-            "One of the Developers' accountabilities is instilling quality by adhering to a Definition of Done. That needs one shared definition, not a private standard per person.",
-            scenario = "The team has no written Definition of Done. Each Developer has their own idea of finished, so the same kind of item is tested thoroughly by one person and barely at all by another.",
+        B.q("psm-p5-21", "psm-developers", "What does the Scrum Guide point the Scrum Team toward?", listOf("Keep personal standards, since each Developer knows their own work best", "Create one Definition of Done as a Scrum Team that every Developer adheres to, since the Developers are accountable for instilling quality by adhering to it", "Let the Product Owner decide case by case whether each item is good enough", "Leave quality to a test phase after the Sprint"), setOf(1),
+            "With no organisational standard, the Guide says the Scrum Team must create a Definition of Done appropriate for the product, and the Developers are required to conform to it. One of the Developers' accountabilities is instilling quality by adhering to it. That needs one shared definition, not a private standard per person.",
+            scenario = "The team has no written Definition of Done, and the organisation has no standard one. Each Developer has their own idea of finished, so the same kind of item is tested thoroughly by one person and barely at all by another.",
             whyWrong = mapOf(
                 0 to "Personal standards make quality depend on who did the work; the Developers adhere to a shared Definition of Done.",
                 2 to "Done is decided by the Definition of Done, not case by case.",

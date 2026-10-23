@@ -138,7 +138,7 @@ internal object Psm1Paper4B {
         B.q("psm-p4-63", "psm-daily-scrum", "The Developers sit together and talk all day, so they propose dropping the Daily Scrum. What fits the Scrum Guide?", listOf("Keep it; each event is a formal opportunity to inspect and adapt, and skipping one loses that opportunity", "Drop it; the Guide allows skipping it when communication is already good", "Hold it once a week instead", "Replace it with written updates in the team chat"), setOf(0),
             "Each Scrum event is a formal opportunity to inspect and adapt. The Guide warns that failing to operate any event as prescribed results in lost opportunities to inspect and adapt. The Developers may keep it short and choose its format, but it is held every working day.",
             whyWrong = mapOf(
-                1 to "The Guide says Daily Scrums reduce the need for other meetings, not that the Daily Scrum itself is optional.",
+                1 to "The Guide says Daily Scrums improve communications and eliminate the need for other meetings. That is a reason to keep the Daily Scrum, not permission to skip it.",
                 2 to "The Guide holds it every working day of the Sprint.",
                 3 to "Written updates are not a 15-minute event to inspect progress and adapt the plan together.",
             ),

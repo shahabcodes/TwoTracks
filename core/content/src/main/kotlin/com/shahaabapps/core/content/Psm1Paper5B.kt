@@ -183,7 +183,7 @@ internal object Psm1Paper5B {
             whyWrong = mapOf(
                 1 to "This gives the Retrospective four hours, the same as the Review; the Retrospective is at most three.",
                 2 to "This gives the Review three hours, the same as the Retrospective; the Review is at most four.",
-                3 to "This gives Sprint Planning four hours; for a one-month Sprint it is at most eight.",
+                3 to "This counts only Sprint Planning (eight hours) and the Sprint Review (four hours); the Sprint Retrospective adds up to three more, making fifteen.",
             ),
         ),
         B.q("psm-p5-67", "psm-review-retro", "Which statements fit the Scrum Guide? (choose two)", listOf("The Sprint Review is a working session, and the Scrum Team should avoid limiting it to a presentation", "Progress toward the Product Goal is discussed at the Sprint Review", "Slides are the required format for the Sprint Review", "Stakeholders should only watch at the Sprint Review"), setOf(0, 1),
