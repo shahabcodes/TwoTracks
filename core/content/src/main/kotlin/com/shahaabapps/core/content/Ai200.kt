@@ -15,9 +15,10 @@ object Ai200 {
         Course(
             id = "ai-200",
             title = "AI-200 Azure AI Cloud Developer",
-            subtitle = "Four modules, one test each, then a mock exam.",
+            subtitle = "Four modules, one test each, then five mock exams.",
             goalId = "ai-200",
             mockExam = Ai200Mock.quiz,
+            extraMocks = listOf(Ai200Mock3.quiz, Ai200Mock4.quiz, Ai200Mock5.quiz, Ai200Mock6.quiz),
             modules = listOf(
                 Module(
                     id = "ai-containers", number = 1, title = "Containers",
