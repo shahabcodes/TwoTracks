@@ -15,9 +15,10 @@ object Az305 {
         Course(
             id = "az-305",
             title = "AZ-305 Azure Solutions Architect",
-            subtitle = "Four modules, one test each, then a mock exam.",
+            subtitle = "Four modules, one test each, then five mock exams.",
             goalId = "az-305",
             mockExam = Az305Mock.quiz,
+            extraMocks = listOf(Az305Mock3.quiz, Az305Mock4.quiz, Az305Mock5.quiz, Az305Mock6.quiz),
             modules = listOf(
                 Module(
                     id = "sa-identity", number = 1, title = "Identity, governance and monitoring",
