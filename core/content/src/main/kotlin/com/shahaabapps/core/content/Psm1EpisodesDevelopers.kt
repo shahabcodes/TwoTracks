@@ -14,7 +14,7 @@ internal object Psm1EpisodesDevelopers {
             maya("[chuckle] Meaning what you answer for. The Guide gives the Developers four. One: creating the plan for the Sprint, the Sprint Backlog. Two: instilling quality by sticking to the Definition of Done. Three: adapting their plan every day toward the Sprint Goal. Four: holding each other accountable as professionals."),
             leo("Let's take them one by one. The plan. Our manager usually writes it."),
             maya("In Scrum, the Developers do. The Sprint Backlog is the Sprint Goal, the items picked from the Product Backlog for this Sprint, and the plan for building them. The Guide calls it a plan by and for the Developers: a highly visible, real-time picture of the work they plan to do."),
-            leo("Remind me, what's the Sprint Goal?"),
+            leo("And the goal of a Sprint, what is it again?"),
             maya("The single objective for the Sprint: the reason it's worth doing. For example: runners can save a run without signal and sync it later. The whole Scrum Team crafts it at Sprint Planning. The Sprint Planning episode has the detail."),
             leo("And who decides how much goes in? My manager likes to say forty points a Sprint."),
             maya("The Developers. They select the items, talking it through with the Product Owner, the person accountable for the product's value. The Guide says the more they know about their past performance, their upcoming capacity and their Definition of Done, the more confident their forecast. And story points aren't in the Scrum Guide at all; they're an optional practice."),
