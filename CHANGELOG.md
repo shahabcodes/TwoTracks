@@ -3,6 +3,18 @@
 All notable changes to Two Tracks. Versions follow `version.properties`; the
 build number is appended by CI (for example `0.1.0 (build 12)`).
 
+## [0.92.0] - 2026-10-23
+### Added
+- PSM I (Scrum.org Professional Scrum Master I): a new course of five modules and fifteen topics written from the 2020 Scrum Guide, each with lessons, checks and a module test.
+- 75 PSM I podcast episodes, five tellings per topic (Classic, Case Files, Gossip, Late Night and Couples), with boards and captions.
+- Five PSM I mock assessments, each timed like the real one: 80 questions in 60 minutes, pass at 85 percent.
+- Four more mock exams each for AI-200 and AZ-305, five per course in all. Learn shows every mock with its own best score.
+### Changed
+- Every mock exam was checked by an adversarial review. Each suspected error needed two of three independent checkers to agree before it was fixed, and 30 errors were corrected.
+- Mock options are now as specific as the right answer, so the longest option no longer gives the answer away.
+- Multiple-answer questions mix their options, so the right answers are no longer always side by side.
+- AZ-305: the failover group row of the continuity table gives the real timing (about an hour automatically by default, seconds by hand).
+
 ## [0.91.14] - 2026-10-23
 ### Changed
 - AZ-305: 10 episodes re-recorded with the corrected scripts (push and pull, conversation, acronyms said letter by letter, Rafe in his new voice).
