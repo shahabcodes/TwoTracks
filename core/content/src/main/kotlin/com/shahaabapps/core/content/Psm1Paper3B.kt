@@ -4,10 +4,10 @@ package com.shahaabapps.core.content
 internal object Psm1Paper3B {
     val questions: List<Question> = listOf(
         // The Sprint
-        B.q("psm-p3-46", "psm-sprint", "True or false: the Scrum Guide says quality may be lowered for a while during the Sprint if the Product Owner agrees.", listOf("True", "False"), setOf(1),
-            "One of the things the Guide says holds during the Sprint is that quality does not decrease. No one, including the Product Owner, can agree to lower it.",
+        B.q("psm-p3-46", "psm-sprint", "True or false: the Scrum Guide says that during the Sprint, the Product Backlog is refined as needed.", listOf("True", "False"), setOf(0),
+            "This is one of the four things the Guide says hold during the Sprint, alongside no changes that would endanger the Sprint Goal, quality not decreasing, and scope being clarified and renegotiated with the Product Owner as more is learned.",
             whyWrong = mapOf(
-                0 to "Agreement does not change the rule: during the Sprint, quality does not decrease. Scope can be renegotiated instead.",
+                1 to "Refinement does not stop when the Sprint starts. The Guide lists \"the Product Backlog is refined as needed\" among the things that hold during the Sprint.",
             ),
         ),
         B.q("psm-p3-47", "psm-sprint", "The Scrum Guide says each Sprint may be considered a short project. True or false?", listOf("True", "False"), setOf(0),
@@ -52,10 +52,10 @@ internal object Psm1Paper3B {
         ),
 
         // Sprint Planning
-        B.q("psm-p3-53", "psm-sprint-planning", "The Scrum Guide says the plan made at Sprint Planning is created by the Developers alone, and the Product Owner only answers questions. True or false?", listOf("True", "False"), setOf(1),
-            "The Guide says the resulting plan is created by the collaborative work of the entire Scrum Team.",
+        B.q("psm-p3-53", "psm-sprint-planning", "The Scrum Guide says the plan resulting from Sprint Planning is created by the collaborative work of the entire Scrum Team. True or false?", listOf("True", "False"), setOf(0),
+            "The Guide says Sprint Planning lays out the work to be performed for the Sprint, and this resulting plan is created by the collaborative work of the entire Scrum Team.",
             whyWrong = mapOf(
-                0 to "The Developers own the Sprint Backlog, but the Guide says the whole Scrum Team creates the plan together.",
+                1 to "The Developers own the Sprint Backlog, which makes False tempting, but the Guide says the whole Scrum Team creates the Sprint Planning plan together.",
             ),
         ),
         B.q("psm-p3-54", "psm-sprint-planning", "According to the Scrum Guide, what does the Sprint Goal communicate, and to whom?", listOf("Why the Sprint is valuable, to stakeholders", "Which Developer will do which item, to the Product Owner", "The list of selected items, to management", "The plan for each day, to the Scrum Master"), setOf(0),
@@ -102,10 +102,10 @@ internal object Psm1Paper3B {
         ),
 
         // Daily Scrum
-        B.q("psm-p3-60", "psm-daily-scrum", "The Scrum Guide says the Daily Scrum is 15 minutes for a one-month Sprint and is usually shorter for shorter Sprints. True or false?", listOf("True", "False"), setOf(1),
-            "The Daily Scrum is a 15-minute event, whatever the Sprint length. The phrase usually shorter belongs to Sprint Planning, the Sprint Review and the Sprint Retrospective.",
+        B.q("psm-p3-60", "psm-daily-scrum", "The Scrum Guide says the Daily Scrum is a 15-minute event for the Developers of the Scrum Team. True or false?", listOf("True", "False"), setOf(0),
+            "The Guide uses these words. The Daily Scrum is 15 minutes whatever the Sprint length, and it is for the Developers; the Product Owner or Scrum Master takes part as a Developer only when actively working on Sprint Backlog items.",
             whyWrong = mapOf(
-                0 to "The other events scale with Sprint length, which makes this feel right, but the Daily Scrum stays at 15 minutes.",
+                1 to "The other events are usually shorter for shorter Sprints, but the Guide describes the Daily Scrum as a 15-minute event for the Developers of the Scrum Team.",
             ),
         ),
         B.q("psm-p3-61", "psm-daily-scrum", "The Scrum Guide says the Daily Scrum is held at the same time and place every working day so that stakeholders know when to come and hear progress. True or false?", listOf("True", "False"), setOf(1),
@@ -114,12 +114,12 @@ internal object Psm1Paper3B {
                 0 to "The same time and place is right, but the Guide's reason is to reduce complexity, and the event is for the Developers.",
             ),
         ),
-        B.q("psm-p3-62", "psm-daily-scrum", "Which of these does the Scrum Guide NOT list as something Daily Scrums do?", listOf("Improve communications", "Identify impediments", "Give managers a daily status report", "Promote quick decision-making"), setOf(2),
-            "The Guide says Daily Scrums improve communications, identify impediments, promote quick decision-making, and consequently eliminate the need for other meetings. Reporting to managers is not among them.",
+        B.q("psm-p3-62", "psm-daily-scrum", "Which of these does the Scrum Guide NOT list as something Daily Scrums do?", listOf("Improve communications", "Identify impediments", "Report status to managers", "Promote quick decision-making"), setOf(2),
+            "The Guide says Daily Scrums improve communications, identify impediments, promote quick decision-making, and consequently eliminate the need for other meetings. Reporting status to managers is not among them; the Daily Scrum is an event for the Developers.",
             whyWrong = mapOf(
-                0 to "This is in the Guide's list of what Daily Scrums do.",
-                1 to "This is in the Guide's list of what Daily Scrums do.",
-                3 to "This is in the Guide's list of what Daily Scrums do.",
+                0 to "Improving communications is the first item in the Guide's list of what Daily Scrums do.",
+                1 to "The Guide says Daily Scrums identify impediments, so the Developers can deal with what blocks progress toward the Sprint Goal.",
+                3 to "The Guide says Daily Scrums promote quick decision-making, which is one reason they eliminate the need for other meetings.",
             ),
         ),
         B.q("psm-p3-63", "psm-daily-scrum", "According to the Scrum Guide, letting the Developers choose how they run the Daily Scrum, within its purpose, does what?", listOf("Removes the need for a Scrum Master", "Lets the event run past 15 minutes when needed", "Creates focus and improves self-management", "Makes the event optional on busy days"), setOf(2),
@@ -146,16 +146,16 @@ internal object Psm1Paper3B {
         ),
 
         // Sprint Review and Sprint Retrospective
-        B.q("psm-p3-66", "psm-review-retro", "True or false: the Scrum Guide says the most impactful improvements found at the Sprint Retrospective must wait until the next Sprint Planning before anything is done about them.", listOf("True", "False"), setOf(1),
+        B.q("psm-p3-66", "psm-review-retro", "True or false: the Scrum Guide says the most impactful improvements from the Sprint Retrospective are addressed as soon as possible, and may even be added to the Sprint Backlog for the next Sprint.", listOf("True", "False"), setOf(0),
             "The Guide says the most impactful improvements are addressed as soon as possible. They may even be added to the Sprint Backlog for the next Sprint.",
             whyWrong = mapOf(
-                0 to "The Guide asks for them to be addressed as soon as possible; adding them to the next Sprint Backlog is one option, not a required wait.",
+                1 to "Both parts are in the Guide: the most impactful improvements are addressed as soon as possible, and they may even be added to the next Sprint Backlog.",
             ),
         ),
-        B.q("psm-p3-67", "psm-review-retro", "According to the Scrum Guide, the Product Owner presents the results of the Sprint to the key stakeholders at the Sprint Review. True or false?", listOf("True", "False"), setOf(1),
-            "The Guide says the Scrum Team presents the results of their work to key stakeholders, and progress toward the Product Goal is discussed.",
+        B.q("psm-p3-67", "psm-review-retro", "According to the Scrum Guide, at the Sprint Review the Scrum Team presents the results of its work to key stakeholders. True or false?", listOf("True", "False"), setOf(0),
+            "The Guide says that during the Sprint Review the Scrum Team presents the results of their work to key stakeholders, and progress toward the Product Goal is discussed.",
             whyWrong = mapOf(
-                0 to "The Product Owner often leads the talk with stakeholders, but the Guide says the Scrum Team presents.",
+                1 to "The Product Owner often leads the talk with stakeholders, which makes False tempting, but the Guide says the Scrum Team presents.",
             ),
         ),
         B.q("psm-p3-68", "psm-review-retro", "True or false: the Scrum Guide sets the Sprint Review at a maximum of three hours for a one-month Sprint.", listOf("True", "False"), setOf(1),
@@ -225,10 +225,10 @@ internal object Psm1Paper3B {
                 0 to "Half right: the team works on one Product Goal at a time, but it may fulfil or abandon it before taking on the next.",
             ),
         ),
-        B.q("psm-p3-77", "psm-product-backlog", "True or false: the Scrum Guide describes the Product Backlog as a fixed list of requirements agreed before the first Sprint.", listOf("True", "False"), setOf(1),
-            "The Guide describes the Product Backlog as an emergent, ordered list of what is needed to improve the product. It changes as more is learned.",
+        B.q("psm-p3-77", "psm-product-backlog", "True or false: the Scrum Guide describes the Product Backlog as an emergent, ordered list of what is needed to improve the product.", listOf("True", "False"), setOf(0),
+            "The Guide uses these words. It adds that the Product Backlog is the single source of work undertaken by the Scrum Team, and it keeps changing as more is learned.",
             whyWrong = mapOf(
-                0 to "Fixing every requirement up front is predictive planning; the Guide calls the Product Backlog emergent.",
+                1 to "This is the Guide's own description of the Product Backlog: emergent, because it changes as more is learned, and ordered by the Product Owner.",
             ),
         ),
         B.q("psm-p3-78", "psm-product-backlog", "Which statements about the Product Goal match the Scrum Guide? (choose two)", listOf("It describes a future state of the product which can serve as a target for the Scrum Team to plan against", "It is the commitment for the Sprint Backlog", "It is the long-term objective for the Scrum Team", "A Scrum Team may pursue several Product Goals at the same time", "It must be reached within a single release"), setOf(0, 2),
@@ -239,12 +239,12 @@ internal object Psm1Paper3B {
                 4 to "It is long-term; the Guide ties it to no release.",
             ),
         ),
-        B.q("psm-p3-79", "psm-product-backlog", "How does the Scrum Guide define Product Backlog refinement?", listOf("The act of breaking down and further defining Product Backlog items into smaller, more precise items", "A meeting held once per Sprint to estimate the Product Backlog", "The Product Owner's approval of items before Sprint Planning", "The Scrum Master's check that items meet a Definition of Ready"), setOf(0),
-            "The Guide says refinement is the act of breaking down and further defining Product Backlog items into smaller more precise items. It is an ongoing activity.",
+        B.q("psm-p3-79", "psm-product-backlog", "How does the Scrum Guide define Product Backlog refinement?", listOf("The act of breaking down and further defining Product Backlog items into smaller, more precise items", "A meeting held once per Sprint in which the Developers estimate every Product Backlog item", "The Product Owner's review and approval of each item before it may enter Sprint Planning", "The Scrum Master's check that each item meets a Definition of Ready before it is selected"), setOf(0),
+            "The Guide says refinement is the act of breaking down and further defining Product Backlog items into smaller more precise items. It is an ongoing activity that adds details such as a description, order and size.",
             whyWrong = mapOf(
-                1 to "Refinement is ongoing, not a fixed meeting, and it is more than estimating.",
-                2 to "The Guide describes no approval step for items.",
-                3 to "There is no Definition of Ready in the Guide.",
+                1 to "Refinement is an ongoing activity, not one meeting per Sprint, and it is more than estimating; the Guide does not require every item to be estimated at once.",
+                2 to "The Guide describes no approval step. Items that can be Done by the Scrum Team within one Sprint are deemed ready for selection.",
+                3 to "There is no Definition of Ready in the Guide, and the Scrum Master does not act as a gate for Product Backlog items.",
             ),
         ),
 
@@ -261,12 +261,12 @@ internal object Psm1Paper3B {
                 1 to "Some think the Sprint Goal sits apart from the backlog, but it is one of the Sprint Backlog's three parts.",
             ),
         ),
-        B.q("psm-p3-82", "psm-sprint-backlog", "The Scrum Guide calls the Sprint Backlog a highly visible, real-time picture of what?", listOf("Everything the product will need for the next release", "The hours each Developer has logged", "The Product Owner's priorities for the next three Sprints", "The work the Developers plan to accomplish during the Sprint to achieve the Sprint Goal"), setOf(3),
+        B.q("psm-p3-82", "psm-sprint-backlog", "The Scrum Guide calls the Sprint Backlog a highly visible, real-time picture of what?", listOf("Everything the product will need, in value order, up to the next planned release", "The hours each Developer has logged against the Sprint's tasks so far", "The Product Owner's priorities for the next three Sprints, in order of value", "The work the Developers plan to accomplish during the Sprint to achieve the Sprint Goal"), setOf(3),
             "The Sprint Backlog is a highly visible, real-time picture of the work that the Developers plan to accomplish during the Sprint in order to achieve the Sprint Goal.",
             whyWrong = mapOf(
-                0 to "Everything the product needs is in the Product Backlog, not the Sprint Backlog.",
-                1 to "The Guide does not track hours.",
-                2 to "Future priorities live in the ordered Product Backlog.",
+                0 to "An ordered list of everything the product needs is the Product Backlog; the Sprint Backlog covers only the current Sprint.",
+                1 to "The Guide does not ask for hours to be tracked; the Sprint Backlog shows the work planned to reach the Sprint Goal, not time logged.",
+                2 to "The Sprint Backlog is the Developers' plan for one Sprint. Future priorities live in the Product Backlog, which the Product Owner orders.",
             ),
         ),
         B.q("psm-p3-83", "psm-sprint-backlog", "The Scrum Guide pairs each part of the Sprint Backlog with a question word. Which pairings are correct? (choose two)", listOf("The Sprint Goal: why", "The plan for delivering the Increment: who", "The Product Backlog items selected for the Sprint: what", "The Sprint Goal: how", "The selected Product Backlog items: when"), setOf(0, 2),
@@ -287,10 +287,10 @@ internal object Psm1Paper3B {
         ),
 
         // Increment and Definition of Done
-        B.q("psm-p3-85", "psm-increment", "True or false: the Scrum Guide says an Increment is born at the Sprint Review, when the stakeholders accept it.", listOf("True", "False"), setOf(1),
-            "The Guide says the moment a Product Backlog item meets the Definition of Done, an Increment is born. The Sprint Review is not an acceptance gate.",
+        B.q("psm-p3-85", "psm-increment", "True or false: the Scrum Guide says that the moment a Product Backlog item meets the Definition of Done, an Increment is born.", listOf("True", "False"), setOf(0),
+            "The Guide uses these words. An Increment can be born at any time during the Sprint; it does not wait for the Sprint Review, which is not an acceptance gate.",
             whyWrong = mapOf(
-                0 to "The Increment is born when work meets the Definition of Done, which can happen at any time during the Sprint.",
+                1 to "Some think an Increment only exists once it is shown or accepted at the Sprint Review, but the Guide says it is born the moment an item meets the Definition of Done.",
             ),
         ),
         B.q("psm-p3-86", "psm-increment", "According to the Scrum Guide, when several Increments are created in a Sprint, only the latest one is presented at the Sprint Review. True or false?", listOf("True", "False"), setOf(1),
@@ -307,12 +307,12 @@ internal object Psm1Paper3B {
                 3 to "Documentation may be part of a Definition of Done, but the Guide's word is usable.",
             ),
         ),
-        B.q("psm-p3-88", "psm-increment", "How does the Scrum Guide define the Definition of Done?", listOf("The acceptance criteria written for each Product Backlog item", "A formal description of the state of the Increment when it meets the quality measures required for the product", "A checklist the Product Owner uses to accept items at the Sprint Review", "The list of tasks the Developers agree at Sprint Planning"), setOf(1),
+        B.q("psm-p3-88", "psm-increment", "How does the Scrum Guide define the Definition of Done?", listOf("The acceptance criteria the Product Owner writes for each Product Backlog item before it is selected for a Sprint", "A formal description of the state of the Increment when it meets the quality measures required for the product", "A checklist the stakeholders use at the Sprint Review to accept or reject each completed Product Backlog item", "The list of tasks the Developers agree at Sprint Planning for turning each selected item into a usable Increment"), setOf(1),
             "The Guide says the Definition of Done is a formal description of the state of the Increment when it meets the quality measures required for the product.",
             whyWrong = mapOf(
-                0 to "Acceptance criteria are a common practice for single items; the Definition of Done is one shared quality standard for the Increment.",
-                2 to "There is no acceptance step in the Guide, and the Developers are the ones required to conform to it.",
-                3 to "Tasks are part of the plan in the Sprint Backlog, not the Definition of Done.",
+                0 to "Acceptance criteria are a common practice for single items and are not in the Guide; the Definition of Done is one shared quality standard for the Increment.",
+                2 to "There is no acceptance step in the Guide; the Sprint Review is not a gate, and the Developers are the ones required to conform to the Definition of Done.",
+                3 to "Tasks are part of the actionable plan in the Sprint Backlog, the how of the Sprint, not the Definition of Done.",
             ),
         ),
         B.q("psm-p3-89", "psm-increment", "True or false: the Scrum Guide says that when the organisation has a standard Definition of Done, a Scrum Team may relax it for its own product.", listOf("True", "False"), setOf(1),
@@ -321,12 +321,12 @@ internal object Psm1Paper3B {
                 0 to "The organisation's Definition of Done is a minimum. A team may add to it, but it may not relax it.",
             ),
         ),
-        B.q("psm-p3-90", "psm-increment", "The commitment for the Increment is the Definition of Done. According to the Scrum Guide, the artifacts' commitments exist to reinforce what?", listOf("The Product Owner's authority over the Developers", "Management's control of delivery dates", "The Scrum Master's reporting to the organisation", "Empiricism and the Scrum values for the Scrum Team and their stakeholders"), setOf(3),
+        B.q("psm-p3-90", "psm-increment", "The commitment for the Increment is the Definition of Done. According to the Scrum Guide, the artifacts' commitments exist to reinforce what?", listOf("The Product Owner's authority to direct the Developers' daily work", "Management's control over release dates and the scope of each release", "The Scrum Master's reporting of team progress to the wider organisation", "Empiricism and the Scrum values for the Scrum Team and their stakeholders"), setOf(3),
             "The Guide says these commitments exist to reinforce empiricism and the Scrum values for the Scrum Team and their stakeholders.",
             whyWrong = mapOf(
-                0 to "The commitments serve transparency and focus, not one person's authority.",
-                1 to "Delivery dates are not in the Guide; the commitments are about empiricism.",
-                2 to "The Scrum Master is not a reporting role, and the commitments are not reports.",
+                0 to "The Product Owner does not direct the Developers' daily work; they self-manage, and the commitments serve transparency and focus, not one person's authority.",
+                1 to "The Guide sets no release dates for management to control; the commitments exist to reinforce empiricism and the Scrum values.",
+                2 to "The Scrum Master is not a reporting role, and the commitments are there for the Scrum Team and their stakeholders, not as reports.",
             ),
         ),
     )
