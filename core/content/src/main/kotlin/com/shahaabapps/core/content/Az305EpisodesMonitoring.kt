@@ -7,7 +7,9 @@ internal object Az305EpisodesMonitoring {
         listOf(
             maya("Hi, and welcome back. Today is logging and monitoring, for AZ-305, the exam about designing Azure solutions. Our running story: Two Tracks goes global. The little Android app is now a company, with its backend, the server code the app talks to, on Azure, and users in Europe and Australia. And one night at 3 a.m., the API, the doorway the app calls, stopped answering."),
             leo("Let me guess. Nobody noticed until the users did. [sigh]"),
-            maya("Until the one-star reviews did. So today is about three design choices: which records to collect, where to keep them, and who gets told. Azure has one service for all of it, Azure Monitor. Picture a building's security desk: cameras feed one wall of screens, a guard watches, and a phone list says who to ring at 3 a.m."),
+            maya("Until the one-star reviews did. So today is three design choices: which records to collect, where to keep them, and who gets told."),
+            leo("On my laptop I'd just read the server's console output. Or Logcat, on the phone. Why isn't that enough?"),
+            maya("Because in Azure there's no one server to log in to. Your API runs on machines you never see, beside a database and a vault. Azure Monitor gathers it all in one place. Picture a building's security desk: cameras feed one wall of screens, a guard watches, and a phone list says who to ring at 3 a.m."),
             leo("Nice. So what are the cameras recording, in plain words?"),
             maya("Four kinds of data. First, metrics: numbers over time, like requests per second, or how busy a server is. Picture the speedometer in a car. Azure collects them on its own, and keeps them 93 days."),
             leo("Second?"),
@@ -15,7 +17,9 @@ internal object Az305EpisodesMonitoring {
             leo("Ninety days. I'll remember that. Third?"),
             maya("Resource logs: what happened inside a resource. For example, every time someone reads a secret from Key Vault, the locked safe where Two Tracks keeps its passwords. And here's the trap. Resource logs are not collected at all, until you ask."),
             leo("Wait. Azure just drops them?"),
-            maya("Gone. The way you ask is a diagnostic setting. Think of a post office redirect on the resource: it says which kinds of log to send, and where. One resource can have up to five, so audit logs can go one way and noisy logs another. The Activity log is routed the same way."),
+            maya("Gone. The way you ask is a diagnostic setting. Think of a post office redirect on the resource: it says which kinds of log to send, and where."),
+            leo("So Azure pushes the logs out to wherever I say? I don't go and fetch them?"),
+            maya("Right. Azure pushes each new record there, within minutes. One resource can have up to five settings, so audit logs go one way and noisy ones another. The Activity log is routed the same way."),
             leo("And the fourth kind of data?"),
             maya("App telemetry, which means the records your own code sends home: each request, each error, each slow call to a database. It comes from Application Insights, a watcher you add to your app. Picture a fitness tracker on your code's wrist."),
             leo("Got it. So the post office redirect sends logs where, exactly?"),
@@ -25,7 +29,9 @@ internal object Az305EpisodesMonitoring {
             leo("Second place?"),
             maya("A storage account: a plain filing cabinet in the cloud. It's the cheapest place to park huge piles of logs for years, but it's hard to search. Good for an archive that auditors, the people who check your records, read once in a blue moon."),
             leo("And the third?"),
-            maya("Event Hubs. It's a fast pipe, not a store. Logs flow through it, as they arrive, into some other tool. Say your security team uses a SIEM, short for security information and event management: software from another company that reads logs and hunts for attacks. Event Hubs streams the logs to it within seconds."),
+            maya("Event Hubs. It's a fast pipe, not a store. Azure pushes the logs in as they arrive, and some other tool reads them out of the far end."),
+            leo("Which other tool? Why wouldn't everything just stay in Azure?"),
+            maya("Say your security team already uses a SIEM, short for security information and event management: software from another company that reads logs and hunts for attacks. It pulls from the hub, and sees each log within seconds."),
             leo("So: library to search, cabinet to archive, pipe to stream."),
             maya("Exactly that. Now the big design question: how many workspaces? Microsoft's advice is to start with one, and add another only when a requirement forces it. One workspace is simpler to search, and simpler to look after."),
             leo("But Two Tracks has Europe and Australia. Doesn't that force it?"),
@@ -37,13 +43,19 @@ internal object Az305EpisodesMonitoring {
             leo("Right. Now the 3 a.m. problem. How does anyone get woken up?"),
             maya("With an alert rule. It's a tripwire. It can watch a metric going over a limit, a log search that finds rows, or an Activity log event, such as someone deleting a resource. For example, more than five percent of requests failing for five minutes."),
             leo("And when the tripwire goes off, who does it ring?"),
-            maya("An action group. That's the phone list: email, text message, an app notification, a voice call. It can also call a webhook, which is a web address another system listens on, so a message lands in your team chat. And the key part: many alert rules share one action group."),
+            maya("An action group. That's the phone list: email, text message, an app notification, a voice call."),
+            leo("Can it post in our team chat instead? Nobody reads email at 3 a.m."),
+            maya("It can call a webhook, which is a web address another system listens on, so a message lands in your chat. And the key part: many alert rules share one action group."),
             leo("Why does sharing matter?"),
             maya("Picture twenty alert rules. With the phone number copied into each, the on-call engineer changes, and you edit twenty places. With one shared action group, you change one number."),
             leo("And if someone just wants to look around, not be woken?"),
-            maya("A workbook: an interactive report mixing text, searches and charts, for people to explore. It notifies nobody. And on top of the workspace sits Microsoft Sentinel, a security guard for the logs: it hunts for signs of attack, and can respond on its own."),
+            maya("A workbook: an interactive report mixing text, searches and charts, for people to explore. It notifies nobody."),
+            leo("And attacks? Does someone read all these logs for intruders, or is that on us?"),
+            maya("Microsoft Sentinel, a security guard for the logs, sits on top of the workspace. It hunts for signs of attack, and can respond on its own."),
             leo("How long does the workspace keep everything?"),
-            maya("Most data, 30 days by default, and you can keep it searchable for up to two years. Long-term retention is a cheaper back room, up to 12 years in all. But cost comes mostly from how much you send in, priced per gigabyte. So send only the logs you need."),
+            maya("Most data, 30 days by default, and you can keep it searchable for up to two years. Long-term retention is a cheaper back room, up to 12 years in all."),
+            leo("So I switch everything on and keep it all? Debug logs too?"),
+            maya("[pause] Careful. The cost comes mostly from how much you send in, priced per gigabyte. So send only the logs you need, and leave the chatty debug logs out."),
             leo("And the auditors want seven years of the Activity log."),
             maya("Then route it with a diagnostic setting on the subscription, the billing account your resources live in, to a storage account. On its own, the Activity log forgets after 90 days. So Two Tracks sends audit logs twice: to the regional workspace to search, and to storage for seven years."),
             leo("So what do I remember for the exam?"),
@@ -66,7 +78,9 @@ internal object Az305EpisodesMonitoring {
             leo("Drops them? Then how do you ask?"),
             maya("With a diagnostic setting. Think of a post office redirect on the vault: it says which kinds of log to send, and where. Under the picture, it's a setting on the resource, and Azure's own pipeline copies each new record to the places you name, within minutes."),
             leo("And Two Tracks never added one. So, case closed?"),
-            maya("Not yet. They added one that afternoon. Now, where should it send the logs? Three choices. A Log Analytics workspace, which is a searchable library of logs. A storage account, a cheap filing cabinet. Or Event Hubs, a fast pipe to some other tool."),
+            maya("Not yet. They added one that afternoon. Next clue: where should it send the logs?"),
+            leo("Why not a log file on the server, like my first API wrote?"),
+            maya("Because a vault has no server you can open. So there are three choices. A Log Analytics workspace, which is a searchable library of logs. A storage account, a cheap filing cabinet. Or Event Hubs, a fast pipe to some other tool."),
             leo("Storage. Cheapest. Done."),
             maya("That was the junior admin's choice too, and it's clue two. The requirement said the security team must be alerted within minutes when a secret is read at an odd hour. A filing cabinet can't raise an alarm. It's hard to even search. For searching and alerting, logs go to the workspace."),
             leo("So how do you actually search that library?"),
@@ -88,7 +102,9 @@ internal object Az305EpisodesMonitoring {
             leo("Suspect: the phone company."),
             maya("[laugh] No. The fix is an action group: one shared phone list of email, text and voice calls. It can also call a webhook, a web address another system listens on. Define it once, point all twenty alert rules at it, and changing the engineer is one edit."),
             leo("And where does all this stop working?"),
-            maya("At the edge of a virtual machine, a computer you rent in Azure. A diagnostic setting sees the machine from outside. For the logs inside it, you install the Azure Monitor Agent, a small program on the machine, and write a data collection rule, a recipe saying which logs to pick up."),
+            maya("At the edge of a virtual machine, a computer you rent in Azure. A diagnostic setting sees the machine from outside, like how busy its processor is."),
+            leo("But my API's own log file sits on that machine's disk. Who picks that up?"),
+            maya("You install the Azure Monitor Agent, a small program on the machine, and write a data collection rule, a recipe saying which logs to pick up. The agent then sends them in to the workspace."),
             leo("And the app's own errors? Who watches those?"),
             maya("Application Insights: a watcher inside your app, recording each request, failure and slow call. That's app telemetry, meaning the records your code sends home. New ones keep their data in the same workspace, so one search covers the app and the vault."),
             leo("And who would have caught Tuesday's odd read?"),
@@ -114,7 +130,9 @@ internal object Az305EpisodesMonitoring {
             leo("Someone deleted them?"),
             maya("They never existed. A vault's resource logs, the records of what happens inside it, like each secret read, aren't collected until you ask. You ask with a diagnostic setting. Think of a post office redirect on the resource: which kinds of log to send, and where to."),
             leo("Poor Tom. Send them where, though?"),
-            maya("Three places. A Log Analytics workspace is a searchable library of logs; alerts and reports read from it. A storage account is a cheap filing cabinet for years of archive. And Event Hubs is a fast pipe that streams logs to another tool as they arrive."),
+            maya("Three places. A Log Analytics workspace is a searchable library of logs; alerts and reports read from it."),
+            leo("Tom wanted them in a database he could query from the app's admin screen, I bet."),
+            maya("[chuckle] He did! But the workspace already is that. A storage account is the cheap filing cabinet, for years of archive. And Event Hubs is a fast pipe: Azure pushes logs in, and another tool reads them out as they arrive."),
             leo("And how do you search the library?"),
             maya("In KQL, the Kusto Query Language. It reads almost like a sentence: take this table, keep last night's rows, count them. Under the hood, every record is a row in a table, and your question runs over the rows. Tom wrote his first one by lunch."),
             leo("Tuesday?"),
@@ -138,9 +156,11 @@ internal object Az305EpisodesMonitoring {
             leo("What about the app's own errors? The 3 a.m. incident?"),
             maya("That's Application Insights, a watcher inside your code. It records app telemetry, which means each request, failure and slow call your code makes. New ones keep their data in the regional workspace, so one search covers the app and the vault."),
             leo("And the security team's fancy tool?"),
-            maya("Microsoft Sentinel is a security guard that reads the workspace and hunts for attacks. If they'd rather use a SIEM, a security tool from another company, Event Hubs streams the logs to it within seconds."),
+            maya("Microsoft Sentinel is a security guard that reads the workspace and hunts for attacks. If they'd rather use a SIEM, a security tool from another company, a diagnostic setting pushes the logs into Event Hubs, and the SIEM pulls them out within seconds."),
             leo("So where does all this stop working?"),
-            maya("Inside a virtual machine, a computer you rent in Azure. Diagnostic settings only see it from outside. For the logs inside, install the Azure Monitor Agent, a small program, plus a data collection rule, a recipe for which logs to pick up. And who may read the vault at all? That's the identity episode."),
+            maya("Inside a virtual machine, a computer you rent in Azure. Diagnostic settings only see it from outside."),
+            leo("Wait, so the log file my API writes on that machine's disk? Nobody collects it?"),
+            maya("Not until you install the Azure Monitor Agent, a small program on the machine, plus a data collection rule, a recipe for which logs to pick up. The agent sends them in to the workspace. And who may read the vault at all? That's the identity episode."),
             leo("So, the gossip I should remember for the exam?"),
             maya("Five things. Resource logs need a diagnostic setting. Searched or alerted on: a workspace. Kept cheaply for years: storage. Streamed to an outside tool: Event Hubs. One place, least effort: fewer workspaces, split only for residency. And many alerts, same people: one action group."),
             leo("And something to try today, so I'm not next week's story?"),
@@ -168,11 +188,13 @@ internal object Az305EpisodesMonitoring {
             ivy("And the fourth kind?"),
             nova("App telemetry, which means the records your own code sends home: each request, each failure, each slow call. Application Insights gathers it, a watcher you add to your app. Like a fitness tracker on your code's wrist."),
             ivy("So the redirect sends logs where, at this hour?"),
-            nova("Three places. A Log Analytics workspace: a searchable library of logs, where alerts and reports read from. A storage account: a cheap filing cabinet for years. And Event Hubs: a fast pipe that streams logs to another tool, as they arrive."),
+            nova("Three places. A Log Analytics workspace: a searchable library of logs, where alerts and reports read from. A storage account: a cheap filing cabinet for years. And Event Hubs: a fast pipe. Azure pushes logs in, and another tool reads them out, as they arrive."),
             ivy("And how do I ask the library a question?"),
             nova("In KQL, the Kusto Query Language. [pause] It reads like a quiet sentence: take this table, keep last night's rows, count them. Every record is a row, and your question runs over the rows."),
             ivy("How many libraries should one company keep?"),
-            nova("As few as you can. Start with one workspace, and add another only when a requirement forces it. Each team doesn't need its own: inside one workspace, people only see logs for resources they're allowed to touch. That's resource-context access, like a hotel key card for your room alone."),
+            nova("As few as you can. Start with one workspace, and add another only when a requirement forces it."),
+            ivy("But my app team won't want the payments team reading our logs. Or reading theirs."),
+            nova("They won't. Inside one workspace, people only see logs for resources they're allowed to touch. That's resource-context access, [pause] like a hotel key card for your room alone."),
             ivy("And what forces a second?"),
             nova("Data residency: a rule that data must stay in one place. Logs about European users stay in Europe, Australian ones in Australia. So one workspace per region. A region is a group of Azure data centres in one part of the world: West Europe, Australia East."),
             ivy("And the auditors, who want seven years of that visitor book?"),
@@ -184,7 +206,9 @@ internal object Az305EpisodesMonitoring {
             ivy("And if I just want to look, not be woken?"),
             nova("A workbook. An interactive report of text, searches and charts, for wandering through. It wakes nobody. And Microsoft Sentinel is a security guard on top of the workspace, reading the logs for signs of attack, all night long."),
             ivy("Where does all of this stop working, Nova?"),
-            nova("Inside a virtual machine, a computer you rent in Azure. A diagnostic setting only sees it from outside. For its inner logs, install the Azure Monitor Agent, a small program, and a data collection rule, a recipe for which logs to pick up. And who may read the vault at all? That's the identity episode, another late night."),
+            nova("Inside a virtual machine, a computer you rent in Azure. A diagnostic setting only sees it from outside."),
+            ivy("And the log file my API writes to that machine's own disk? Nobody reads it?"),
+            nova("Not until you install the Azure Monitor Agent, a small program on the machine, and a data collection rule, a recipe for which logs to pick up. Then the agent sends them in. [pause] And who may read the vault at all? That's the identity episode, another late night."),
             ivy("[sigh] Mm. Before you send me off to bed. What do I remember for the exam?"),
             nova("Five little things. Searched or alerted on means a workspace. Kept cheaply for years means storage. Streamed to an outside tool means Event Hubs. One place, least effort means fewer workspaces, split only for residency. And many alerts telling the same people means one action group."),
             ivy("And something to try today, before I sleep?"),
@@ -210,9 +234,11 @@ internal object Az305EpisodesMonitoring {
             rafe("Mm. And under the picture, it's just a setting Azure's own pipeline reads, copying each new record to the places you name, within minutes. Where can it send them?"),
             nova("Three places. A Log Analytics workspace, a searchable library of logs, where alerts read from. A storage account, a cheap filing cabinet for years. And Event Hubs, a fast pipe to another tool, as the logs arrive."),
             rafe("And how do I whisper a question to the library?"),
-            nova("In KQL, the Kusto Query Language. It reads like a sentence: take this table, keep last night's rows, count them. So, darling, my question. The security team wants Key Vault logs in their outside security tool, in near real time. Where do they go?"),
+            nova("In KQL, the Kusto Query Language. It reads like a sentence: take this table, keep last night's rows, count them."),
+            rafe("Like a query on my app's own database, then. Rows in, answers out."),
+            nova("Very like it, darling. Now my question. The security team wants Key Vault logs in their outside security tool, in near real time. Where do they go?"),
             rafe("A storage account. Safe and cheap, like me."),
-            nova("[sigh] No kiss for that one. Storage is an archive; the tool would have to keep checking files. Near real time means Event Hubs, the pipe, which streams logs to it within seconds. Cheap you may be. Quick you are not."),
+            nova("[sigh] No kiss for that one. Storage is an archive; the tool would have to keep checking files. Near real time means Event Hubs, the pipe: Azure pushes the logs in, and their tool pulls them out within seconds. Cheap you may be. Quick you are not."),
             rafe("Fair. My turn. Auditors want every Activity log entry kept seven years, cheaply, rarely read. What do you recommend?"),
             nova("A diagnostic setting on the subscription, the billing account your resources live in, sending the Activity log to a storage account. On its own, it forgets after 90 days."),
             rafe("Right answer. Some of us remember everything. [kiss]"),
@@ -227,7 +253,9 @@ internal object Az305EpisodesMonitoring {
             nova("Mm. And who watches for intruders?"),
             rafe("Microsoft Sentinel, a security guard that reads the workspace and hunts for signs of attack. The jealous type."),
             nova("And where does it all stop working? Every romance has its limits."),
-            rafe("Inside a virtual machine, a computer you rent in Azure. Diagnostic settings see it from outside only. Inside, you need the Azure Monitor Agent, a small program, plus a data collection rule, the recipe for which logs to pick up. And who may read the vault at all? That's the identity episode."),
+            rafe("Inside a virtual machine, a computer you rent in Azure. Diagnostic settings see it from outside only."),
+            nova("And the log file my code writes on its disk? Left all alone?"),
+            rafe("Until you install the Azure Monitor Agent, a small program, plus a data collection rule, the recipe for which logs to pick up. Then the agent sends them in. And who may read the vault at all? That's the identity episode."),
             nova("Last question, for the exam. What do we remember?"),
             rafe("Resource logs need a diagnostic setting. Searched or alerted on: a workspace. Years, cheaply: storage. Streamed to an outside tool: Event Hubs. Split workspaces only for residency. Many alerts, same people: one action group."),
             nova("Six for six. That one earns a long one. [kiss]"),
@@ -374,59 +402,59 @@ internal object Az305EpisodesMonitoring {
                 0, "Who's watching?", kinds(),
                 beats = listOf(
                     Beat(0, card = BoardCard("Two Tracks goes global", "Europe and Australia. At 3 a.m., the API stopped answering.")),
-                    Beat(2, show = setOf("monitor"), light = setOf("monitor"), card = BoardCard("Azure Monitor", "The security desk: collect, keep, and tell someone.")),
-                    Beat(4, show = setOf("metrics"), light = setOf("metrics"), card = BoardCard("Metrics", "Numbers over time, like a speedometer. On their own, 93 days.")),
-                    Beat(6, show = setOf("activity"), light = setOf("activity"), card = BoardCard("Activity log", "Who created, changed or deleted a resource. Kept 90 days.")),
-                    Beat(8, show = setOf("reslogs"), light = setOf("reslogs"), card = BoardCard("Resource logs", "What happens inside a resource. Not collected until you ask.")),
+                    Beat(4, show = setOf("monitor"), light = setOf("monitor"), card = BoardCard("Azure Monitor", "The security desk: collect, keep, and tell someone.")),
+                    Beat(6, show = setOf("metrics"), light = setOf("metrics"), card = BoardCard("Metrics", "Numbers over time, like a speedometer. On their own, 93 days.")),
+                    Beat(8, show = setOf("activity"), light = setOf("activity"), card = BoardCard("Activity log", "Who created, changed or deleted a resource. Kept 90 days.")),
+                    Beat(10, show = setOf("reslogs"), light = setOf("reslogs"), card = BoardCard("Resource logs", "What happens inside a resource. Not collected until you ask.")),
                 ),
             ),
-            // 10: "Gone. The way you ask is a diagnostic setting..."
+            // 12: "Gone. The way you ask is a diagnostic setting..."
             Scene(
-                10, "Where logs go", routes(),
+                12, "Where logs go", routes(),
                 beats = listOf(
-                    Beat(10, show = setOf("res", "sub", "ds", "note"), light = setOf("ds"), pulse = "res" to "ds", card = diagnostic),
-                    Beat(12, show = setOf("app"), light = setOf("app"), card = BoardCard("App telemetry", "Requests, errors, slow calls, from Application Insights.")),
-                    Beat(14, show = setOf("law"), light = setOf("law"), pulse = "ds" to "law", card = BoardCard("Log Analytics workspace", "A searchable library of logs. Alerts and reports read from it.")),
-                    Beat(16, card = kql),
-                    Beat(18, show = setOf("st"), light = setOf("st"), pulse = "ds" to "st", card = BoardCard("Storage account", "A cheap filing cabinet for years. Hard to search.")),
-                    Beat(20, show = setOf("eh"), light = setOf("eh"), pulse = "ds" to "eh", card = BoardCard("Event Hubs", "A fast pipe to an outside tool, such as a SIEM, within seconds.")),
-                    Beat(21, light = setOf("law", "st", "eh"), card = BoardCard("Three places", "Library to search, cabinet to archive, pipe to stream.")),
+                    Beat(12, show = setOf("res", "sub", "ds", "note"), light = setOf("ds"), pulse = "res" to "ds", card = diagnostic),
+                    Beat(16, show = setOf("app"), light = setOf("app"), card = BoardCard("App telemetry", "Requests, errors, slow calls, from Application Insights.")),
+                    Beat(18, show = setOf("law"), light = setOf("law"), pulse = "ds" to "law", card = BoardCard("Log Analytics workspace", "A searchable library of logs. Alerts and reports read from it.")),
+                    Beat(20, card = kql),
+                    Beat(22, show = setOf("st"), light = setOf("st"), pulse = "ds" to "st", card = BoardCard("Storage account", "A cheap filing cabinet for years. Hard to search.")),
+                    Beat(24, show = setOf("eh"), light = setOf("eh"), pulse = "ds" to "eh", card = BoardCard("Event Hubs", "A fast pipe to an outside tool, such as a SIEM, within seconds.")),
+                    Beat(27, light = setOf("law", "st", "eh"), card = BoardCard("Three places", "Library to search, cabinet to archive, pipe to stream.")),
                 ),
             ),
-            // 22: "Exactly that. Now the big design question: how many workspaces?"
+            // 28: "Exactly that. Now the big design question: how many workspaces?"
             Scene(
-                22, "How many workspaces?", workspaces(),
+                28, "How many workspaces?", workspaces(),
                 beats = listOf(
-                    Beat(22, card = BoardCard("Start with one", "Add a workspace only when a requirement forces it.")),
-                    Beat(24, show = setOf("eu", "au"), light = setOf("eu", "au"), card = BoardCard("Data residency", "EU logs stay in Europe, Australian ones in Australia.")),
-                    Beat(26, show = setOf("euapi", "auapi"), light = setOf("euapi", "eu"), pulse = "euapi" to "eu", card = BoardCard("Region", "A group of Azure data centres in one part of the world.")),
-                    Beat(28, show = setOf("teams"), light = setOf("teams"), card = BoardCard("Not for teams", "Resource-context access: each sees only its own resources' logs.")),
+                    Beat(28, card = BoardCard("Start with one", "Add a workspace only when a requirement forces it.")),
+                    Beat(30, show = setOf("eu", "au"), light = setOf("eu", "au"), card = BoardCard("Data residency", "EU logs stay in Europe, Australian ones in Australia.")),
+                    Beat(32, show = setOf("euapi", "auapi"), light = setOf("euapi", "eu"), pulse = "euapi" to "eu", card = BoardCard("Region", "A group of Azure data centres in one part of the world.")),
+                    Beat(34, show = setOf("teams"), light = setOf("teams"), card = BoardCard("Not for teams", "Resource-context access: each sees only its own resources' logs.")),
                 ),
             ),
-            // 29: "Right. Now the 3 a.m. problem..."
+            // 35: "Right. Now the 3 a.m. problem..."
             Scene(
-                29, "Who gets woken", alerts(),
+                35, "Who gets woken", alerts(),
                 beats = listOf(
-                    Beat(30, show = setOf("rules"), light = setOf("rules"), card = BoardCard("Alert rule", "A tripwire: a metric over a limit, or a log search that finds rows.")),
-                    Beat(32, show = setOf("ag", "people", "hook"), light = setOf("ag"), pulse = "rules" to "ag", card = actionGroup),
-                    Beat(34, light = setOf("ag"), pulse = "ag" to "people", card = BoardCard("Twenty rules, one list", "The on-call engineer changes: you change one number.")),
-                    Beat(36, show = setOf("wb", "sen"), light = setOf("wb", "sen"), card = BoardCard("Workbook and Sentinel", "A report to explore; a guard that hunts for attacks.")),
+                    Beat(36, show = setOf("rules"), light = setOf("rules"), card = BoardCard("Alert rule", "A tripwire: a metric over a limit, or a log search that finds rows.")),
+                    Beat(38, show = setOf("ag", "people", "hook"), light = setOf("ag"), pulse = "rules" to "ag", card = actionGroup),
+                    Beat(42, light = setOf("ag"), pulse = "ag" to "people", card = BoardCard("Twenty rules, one list", "The on-call engineer changes: you change one number.")),
+                    Beat(44, show = setOf("wb", "sen"), light = setOf("wb", "sen"), card = BoardCard("Workbook and Sentinel", "A report to explore; a guard that hunts for attacks.")),
                 ),
             ),
-            // 37: "How long does the workspace keep everything?"
+            // 47: "How long does the workspace keep everything?"
             Scene(
-                37, "Keeping it", retention(),
+                47, "Keeping it", retention(),
                 beats = listOf(
-                    Beat(38, show = setOf("ws", "ltr"), light = setOf("ws"), card = BoardCard("Retention", "30 days by default, 2 years searchable, 12 years in all.")),
-                    Beat(40, show = setOf("al", "ds", "st"), light = setOf("al", "st"), pulse = "ds" to "st", card = BoardCard("Seven years of audit", "The Activity log routed to storage. On its own: 90 days.")),
+                    Beat(48, show = setOf("ws", "ltr"), light = setOf("ws"), card = BoardCard("Retention", "30 days by default, 2 years searchable, 12 years in all.")),
+                    Beat(52, show = setOf("al", "ds", "st"), light = setOf("al", "st"), pulse = "ds" to "st", card = BoardCard("Seven years of audit", "The Activity log routed to storage. On its own: 90 days.")),
                 ),
             ),
-            // 41: "So what do I remember for the exam?"
+            // 53: "So what do I remember for the exam?"
             Scene(
-                41, "For the exam", exam(),
+                53, "For the exam", exam(),
                 beats = listOf(
-                    Beat(42, show = all6, light = setOf("search", "years", "stream", "split", "ag"), card = BoardCard("Listen for the phrase", "Search, archive, stream, one place, one phone list.")),
-                    Beat(44, card = today),
+                    Beat(54, show = all6, light = setOf("search", "years", "stream", "split", "ag"), card = BoardCard("Listen for the phrase", "Search, archive, stream, one place, one phone list.")),
+                    Beat(56, card = today),
                 ),
             ),
         ),
@@ -446,61 +474,61 @@ internal object Az305EpisodesMonitoring {
                     Beat(8, show = setOf("law", "st", "eh", "app"), light = setOf("law", "st", "eh"), card = BoardCard("Three places", "Library to search, cabinet to archive, pipe to stream.")),
                 ),
             ),
-            // 9: "Storage. Cheapest. Done."
+            // 11: "Storage. Cheapest. Done."
             Scene(
-                9, "Clue two", routes(),
+                11, "Clue two", routes(),
                 beats = listOf(
-                    Beat(10, light = setOf("st"), pulse = "ds" to "st", card = BoardCard("Clue two", "Storage can't raise an alarm. Search and alerts need the workspace.")),
-                    Beat(12, light = setOf("law"), pulse = "ds" to "law", card = kql),
-                    Beat(14, light = setOf("eh"), pulse = "ds" to "eh", card = BoardCard("A SIEM, via Event Hubs", "An outside security tool reads the logs as they arrive.")),
+                    Beat(12, light = setOf("st"), pulse = "ds" to "st", card = BoardCard("Clue two", "Storage can't raise an alarm. Search and alerts need the workspace.")),
+                    Beat(14, light = setOf("law"), pulse = "ds" to "law", card = kql),
+                    Beat(16, light = setOf("eh"), pulse = "ds" to "eh", card = BoardCard("A SIEM, via Event Hubs", "An outside security tool reads the logs as they arrive.")),
                 ),
             ),
-            // 15: "Third clue. Hit me."
+            // 17: "Third clue. Hit me."
             Scene(
-                15, "Clue three", retention(),
+                17, "Clue three", retention(),
                 beats = listOf(
-                    Beat(16, show = setOf("al"), light = setOf("al"), card = BoardCard("The Activity log", "Who created, changed or deleted each resource.")),
-                    Beat(18, show = setOf("ds", "st"), light = setOf("st"), pulse = "ds" to "st", card = BoardCard("Kept 90 days", "For seven years, cheaply: a diagnostic setting to storage.")),
+                    Beat(18, show = setOf("al"), light = setOf("al"), card = BoardCard("The Activity log", "Who created, changed or deleted each resource.")),
+                    Beat(20, show = setOf("ds", "st"), light = setOf("st"), pulse = "ds" to "st", card = BoardCard("Kept 90 days", "For seven years, cheaply: a diagnostic setting to storage.")),
                 ),
             ),
-            // 19: "Fine. Fourth witness?"
+            // 21: "Fine. Fourth witness?"
             Scene(
-                19, "The fourth witness", workspaces(),
+                21, "The fourth witness", workspaces(),
                 beats = listOf(
-                    Beat(20, card = BoardCard("Four workspaces", "One per team: four places to search at 3 a.m.")),
-                    Beat(22, show = setOf("teams"), light = setOf("teams"), card = BoardCard("Resource-context access", "One workspace; each team sees only its own resources' logs.")),
-                    Beat(24, show = setOf("eu", "au", "euapi", "auapi"), light = setOf("eu", "au"), pulse = "euapi" to "eu", card = BoardCard("Data residency", "The one reason here to split: Europe and Australia.")),
+                    Beat(22, card = BoardCard("Four workspaces", "One per team: four places to search at 3 a.m.")),
+                    Beat(24, show = setOf("teams"), light = setOf("teams"), card = BoardCard("Resource-context access", "One workspace; each team sees only its own resources' logs.")),
+                    Beat(26, show = setOf("eu", "au", "euapi", "auapi"), light = setOf("eu", "au"), pulse = "euapi" to "eu", card = BoardCard("Data residency", "The one reason here to split: Europe and Australia.")),
                 ),
             ),
-            // 25: "Last witness. Who's left?"
+            // 27: "Last witness. Who's left?"
             Scene(
-                25, "The last witness", alerts(),
+                27, "The last witness", alerts(),
                 beats = listOf(
-                    Beat(26, show = setOf("rules"), light = setOf("rules"), card = BoardCard("Twenty alert rules", "Each with the phone number typed in by hand.")),
-                    Beat(28, show = setOf("ag", "people", "hook", "wb", "sen"), light = setOf("ag"), pulse = "rules" to "ag", card = actionGroup),
+                    Beat(28, show = setOf("rules"), light = setOf("rules"), card = BoardCard("Twenty alert rules", "Each with the phone number typed in by hand.")),
+                    Beat(30, show = setOf("ag", "people", "hook", "wb", "sen"), light = setOf("ag"), pulse = "rules" to "ag", card = actionGroup),
                 ),
             ),
-            // 29: "And where does all this stop working?"
+            // 31: "And where does all this stop working?"
             Scene(
-                29, "Where it stops", vm(),
+                31, "Where it stops", vm(),
                 beats = listOf(
-                    Beat(30, light = setOf("agent", "dcr"), pulse = "agent" to "dcr", card = inside),
+                    Beat(32, light = setOf("agent", "dcr"), pulse = "agent" to "dcr", card = inside),
                 ),
             ),
-            // 31: "And the app's own errors? Who watches those?"
+            // 35: "And the app's own errors? Who watches those?"
             Scene(
-                31, "Who would have caught it", routes(),
+                35, "Who would have caught it", routes(),
                 beats = listOf(
-                    Beat(32, light = setOf("app", "law"), pulse = "app" to "law", card = BoardCard("Application Insights", "A watcher in your code, writing to the same workspace.")),
-                    Beat(34, light = setOf("law"), card = BoardCard("Microsoft Sentinel", "A guard on the workspace that hunts for signs of attack.")),
+                    Beat(36, light = setOf("app", "law"), pulse = "app" to "law", card = BoardCard("Application Insights", "A watcher in your code, writing to the same workspace.")),
+                    Beat(38, light = setOf("law"), card = BoardCard("Microsoft Sentinel", "A guard on the workspace that hunts for signs of attack.")),
                 ),
             ),
-            // 35: "So, the case summary for the exam?"
+            // 39: "So, the case summary for the exam?"
             Scene(
-                35, "Case closed", exam(),
+                39, "Case closed", exam(),
                 beats = listOf(
-                    Beat(36, show = all6, light = setOf("diag", "search", "years", "stream", "ag"), card = BoardCard("Listen for the phrase", "Collect it, search it, archive it, stream it, tell someone.")),
-                    Beat(38, card = today),
+                    Beat(40, show = all6, light = setOf("diag", "search", "years", "stream", "ag"), card = BoardCard("Listen for the phrase", "Collect it, search it, archive it, stream it, tell someone.")),
+                    Beat(42, card = today),
                 ),
             ),
         ),
@@ -524,63 +552,63 @@ internal object Az305EpisodesMonitoring {
                     Beat(4, show = setOf("res"), light = setOf("res"), card = BoardCard("Monday: Tom", "Asked who read a secret. Not one row.")),
                     Beat(6, show = setOf("ds", "note"), light = setOf("ds"), pulse = "res" to "ds", card = diagnostic),
                     Beat(8, show = setOf("law", "st", "eh"), light = setOf("law", "st", "eh"), card = BoardCard("Three places", "Library to search, cabinet to archive, pipe to stream.")),
-                    Beat(10, light = setOf("law"), card = kql),
+                    Beat(12, light = setOf("law"), card = kql),
                 ),
             ),
-            // 11: "Tuesday?"
+            // 13: "Tuesday?"
             Scene(
-                11, "Tuesday: Dana", workspaces(),
+                13, "Tuesday: Dana", workspaces(),
                 beats = listOf(
-                    Beat(12, card = BoardCard("A workspace per team", "App, payments, data, security. Four places to search.")),
-                    Beat(14, show = setOf("teams"), light = setOf("teams"), card = BoardCard("Resource-context access", "One workspace; each team sees only its own resources' logs.")),
-                    Beat(16, show = setOf("eu", "au", "euapi", "auapi"), light = setOf("eu", "au"), pulse = "auapi" to "au", card = BoardCard("Data residency", "Priya merged four into two: one per region.")),
+                    Beat(14, card = BoardCard("A workspace per team", "App, payments, data, security. Four places to search.")),
+                    Beat(16, show = setOf("teams"), light = setOf("teams"), card = BoardCard("Resource-context access", "One workspace; each team sees only its own resources' logs.")),
+                    Beat(18, show = setOf("eu", "au", "euapi", "auapi"), light = setOf("eu", "au"), pulse = "auapi" to "au", card = BoardCard("Data residency", "Priya merged four into two: one per region.")),
                 ),
             ),
-            // 17: "Wednesday?"
+            // 19: "Wednesday?"
             Scene(
-                17, "Wednesday: Marcus", routes(),
+                19, "Wednesday: Marcus", routes(),
                 beats = listOf(
-                    Beat(18, show = setOf("res", "ds", "st"), light = setOf("st"), pulse = "ds" to "st", card = BoardCard("Only to storage", "A filing cabinet can't ring anyone.")),
-                    Beat(20, show = setOf("law"), light = setOf("law"), pulse = "ds" to "law", card = BoardCard("Send it twice", "Workspace for alarms, storage for the archive.")),
+                    Beat(20, show = setOf("res", "ds", "st"), light = setOf("st"), pulse = "ds" to "st", card = BoardCard("Only to storage", "A filing cabinet can't ring anyone.")),
+                    Beat(22, show = setOf("law"), light = setOf("law"), pulse = "ds" to "law", card = BoardCard("Send it twice", "Workspace for alarms, storage for the archive.")),
                 ),
             ),
-            // 21: "Thursday, I'm guessing, the intern."
+            // 23: "Thursday, I'm guessing, the intern."
             Scene(
-                21, "Thursday: the intern", alerts(),
+                23, "Thursday: the intern", alerts(),
                 beats = listOf(
-                    Beat(22, show = setOf("rules"), light = setOf("rules"), card = BoardCard("Twenty alert rules", "The phone number typed into every one.")),
-                    Beat(24, show = setOf("ag", "people", "hook", "wb", "sen"), light = setOf("ag"), pulse = "rules" to "ag", card = actionGroup),
+                    Beat(24, show = setOf("rules"), light = setOf("rules"), card = BoardCard("Twenty alert rules", "The phone number typed into every one.")),
+                    Beat(26, show = setOf("ag", "people", "hook", "wb", "sen"), light = setOf("ag"), pulse = "rules" to "ag", card = actionGroup),
                 ),
             ),
-            // 25: "And Friday? There's always a Friday."
+            // 27: "And Friday? There's always a Friday."
             Scene(
-                25, "Friday: Priya", retention(),
+                27, "Friday: Priya", retention(),
                 beats = listOf(
-                    Beat(26, show = setOf("al"), light = setOf("al"), card = BoardCard("All there forever?", "The Activity log: who created, changed or deleted what.")),
-                    Beat(28, show = setOf("ds", "st"), light = setOf("st"), pulse = "ds" to "st", card = BoardCard("Only 90 days", "Then gone, unless routed. Seven years: storage.")),
+                    Beat(28, show = setOf("al"), light = setOf("al"), card = BoardCard("All there forever?", "The Activity log: who created, changed or deleted what.")),
+                    Beat(30, show = setOf("ds", "st"), light = setOf("st"), pulse = "ds" to "st", card = BoardCard("Only 90 days", "Then gone, unless routed. Seven years: storage.")),
                 ),
             ),
-            // 29: "What about the app's own errors? The 3 a.m. incident?"
+            // 31: "What about the app's own errors? The 3 a.m. incident?"
             Scene(
-                29, "The 3 a.m. incident", routes(),
+                31, "The 3 a.m. incident", routes(),
                 beats = listOf(
-                    Beat(30, show = setOf("app", "law"), light = setOf("app"), pulse = "app" to "law", card = BoardCard("Application Insights", "A watcher in your code, writing to the regional workspace.")),
-                    Beat(32, show = setOf("eh"), light = setOf("eh"), card = BoardCard("Sentinel, or a SIEM", "Sentinel hunts in the workspace; Event Hubs feeds an outside tool.")),
+                    Beat(32, show = setOf("app", "law"), light = setOf("app"), pulse = "app" to "law", card = BoardCard("Application Insights", "A watcher in your code, writing to the regional workspace.")),
+                    Beat(34, show = setOf("eh"), light = setOf("eh"), card = BoardCard("Sentinel, or a SIEM", "Sentinel hunts in the workspace; Event Hubs feeds an outside tool.")),
                 ),
             ),
-            // 33: "So where does all this stop working?"
+            // 35: "So where does all this stop working?"
             Scene(
-                33, "Where it stops", vm(),
+                35, "Where it stops", vm(),
                 beats = listOf(
-                    Beat(34, light = setOf("agent", "dcr"), pulse = "agent" to "dcr", card = inside),
+                    Beat(36, light = setOf("agent", "dcr"), pulse = "agent" to "dcr", card = inside),
                 ),
             ),
-            // 35: "So, the gossip I should remember for the exam?"
+            // 39: "So, the gossip I should remember for the exam?"
             Scene(
-                35, "For the exam", exam(),
+                39, "For the exam", exam(),
                 beats = listOf(
-                    Beat(36, show = all6, light = setOf("diag", "search", "years", "split", "ag"), card = BoardCard("Listen for the phrase", "One colleague, one lesson, one answer.")),
-                    Beat(38, card = today),
+                    Beat(40, show = all6, light = setOf("diag", "search", "years", "split", "ag"), card = BoardCard("Listen for the phrase", "One colleague, one lesson, one answer.")),
+                    Beat(42, card = today),
                 ),
             ),
         ),
@@ -615,38 +643,38 @@ internal object Az305EpisodesMonitoring {
                 17, "How many libraries", workspaces(),
                 beats = listOf(
                     Beat(18, show = setOf("teams"), light = setOf("teams"), card = BoardCard("As few as you can", "One workspace; resource-context access keeps teams apart.")),
-                    Beat(20, show = setOf("eu", "au", "euapi", "auapi"), light = setOf("eu", "au"), pulse = "euapi" to "eu", card = BoardCard("Data residency", "One workspace per region: West Europe, Australia East.")),
+                    Beat(22, show = setOf("eu", "au", "euapi", "auapi"), light = setOf("eu", "au"), pulse = "euapi" to "eu", card = BoardCard("Data residency", "One workspace per region: West Europe, Australia East.")),
                 ),
             ),
-            // 21: "And the auditors, who want seven years of that visitor book?"
+            // 23: "And the auditors, who want seven years of that visitor book?"
             Scene(
-                21, "The forgetting stops", retention(),
+                23, "The forgetting stops", retention(),
                 beats = listOf(
-                    Beat(22, show = setOf("al", "ds", "st"), light = setOf("st"), pulse = "ds" to "st", card = BoardCard("Seven years", "The Activity log routed to storage. Rarely read, cheapest.")),
+                    Beat(24, show = setOf("al", "ds", "st"), light = setOf("st"), pulse = "ds" to "st", card = BoardCard("Seven years", "The Activity log routed to storage. Rarely read, cheapest.")),
                 ),
             ),
-            // 23: "Now the part that keeps me up. 3 a.m..."
+            // 25: "Now the part that keeps me up. 3 a.m..."
             Scene(
-                23, "3 a.m.", alerts(),
+                25, "3 a.m.", alerts(),
                 beats = listOf(
-                    Beat(24, show = setOf("rules"), light = setOf("rules"), card = BoardCard("Alert rule", "A tripwire: say, 5% of requests failing for five minutes.")),
-                    Beat(26, show = setOf("ag", "people", "hook"), light = setOf("ag"), pulse = "rules" to "ag", card = actionGroup),
-                    Beat(28, show = setOf("wb", "sen"), light = setOf("wb", "sen"), card = BoardCard("Workbook and Sentinel", "A report that wakes nobody; a guard that hunts all night.")),
+                    Beat(26, show = setOf("rules"), light = setOf("rules"), card = BoardCard("Alert rule", "A tripwire: say, 5% of requests failing for five minutes.")),
+                    Beat(28, show = setOf("ag", "people", "hook"), light = setOf("ag"), pulse = "rules" to "ag", card = actionGroup),
+                    Beat(30, show = setOf("wb", "sen"), light = setOf("wb", "sen"), card = BoardCard("Workbook and Sentinel", "A report that wakes nobody; a guard that hunts all night.")),
                 ),
             ),
-            // 29: "Where does all of this stop working, Nova?"
+            // 31: "Where does all of this stop working, Nova?"
             Scene(
-                29, "Where it stops", vm(),
+                31, "Where it stops", vm(),
                 beats = listOf(
-                    Beat(30, light = setOf("agent", "dcr"), pulse = "agent" to "dcr", card = inside),
+                    Beat(32, light = setOf("agent", "dcr"), pulse = "agent" to "dcr", card = inside),
                 ),
             ),
-            // 31: "Before you send me off to bed. What do I remember for the exam?"
+            // 35: "Before you send me off to bed. What do I remember for the exam?"
             Scene(
-                31, "For the exam", exam(),
+                35, "For the exam", exam(),
                 beats = listOf(
-                    Beat(32, show = all6, light = setOf("search", "years", "stream", "split", "ag"), card = BoardCard("Listen for the phrase", "Five little things, one answer each.")),
-                    Beat(34, card = today),
+                    Beat(36, show = all6, light = setOf("search", "years", "stream", "split", "ag"), card = BoardCard("Listen for the phrase", "Five little things, one answer each.")),
+                    Beat(38, card = today),
                 ),
             ),
         ),
@@ -671,52 +699,52 @@ internal object Az305EpisodesMonitoring {
                     Beat(6, show = setOf("res"), light = setOf("res"), card = BoardCard("Quiz: secret reads", "Where do Key Vault secret reads appear by default?")),
                     Beat(7, show = setOf("ds", "note", "sub"), light = setOf("ds"), pulse = "res" to "ds", card = BoardCard("Right answer", "Nowhere, until a diagnostic setting sends them.")),
                     Beat(10, show = setOf("law", "st", "eh", "app"), light = setOf("law", "st", "eh"), card = BoardCard("Three places", "Library to search, cabinet to archive, pipe to stream.")),
-                    Beat(12, light = setOf("eh"), card = BoardCard("Quiz: near real time", "An outside security tool wants the logs now. Where?")),
-                    Beat(13, light = setOf("st"), pulse = "ds" to "st", card = BoardCard("Storage? No kiss", "An archive; the tool would keep checking files.")),
-                    Beat(14, light = setOf("eh"), pulse = "ds" to "eh", card = BoardCard("Event Hubs", "The pipe: it streams logs to the tool within seconds.")),
+                    Beat(14, light = setOf("eh"), card = BoardCard("Quiz: near real time", "An outside security tool wants the logs now. Where?")),
+                    Beat(15, light = setOf("st"), pulse = "ds" to "st", card = BoardCard("Storage? No kiss", "An archive; the tool would keep checking files.")),
+                    Beat(16, light = setOf("eh"), pulse = "ds" to "eh", card = BoardCard("Event Hubs", "The pipe: Azure pushes logs in, the tool reads them out.")),
                 ),
             ),
-            // 15: "Fair. My turn. Auditors want every Activity log entry kept seven years..."
+            // 17: "Fair. My turn. Auditors want every Activity log entry kept seven years..."
             Scene(
-                15, "Seven years", retention(),
+                17, "Seven years", retention(),
                 beats = listOf(
-                    Beat(15, show = setOf("al"), light = setOf("al"), card = BoardCard("Quiz: seven years", "Every Activity log entry, cheaply, rarely read.")),
-                    Beat(16, show = setOf("ds", "st"), light = setOf("st"), pulse = "ds" to "st", card = BoardCard("Right answer", "A diagnostic setting on the subscription, to storage.")),
+                    Beat(17, show = setOf("al"), light = setOf("al"), card = BoardCard("Quiz: seven years", "Every Activity log entry, cheaply, rarely read.")),
+                    Beat(18, show = setOf("ds", "st"), light = setOf("st"), pulse = "ds" to "st", card = BoardCard("Right answer", "A diagnostic setting on the subscription, to storage.")),
                 ),
             ),
-            // 18: "Then here's one about commitment..."
+            // 20: "Then here's one about commitment..."
             Scene(
-                18, "Commitment", workspaces(),
+                20, "Commitment", workspaces(),
                 beats = listOf(
-                    Beat(18, show = setOf("euapi", "auapi"), light = setOf("euapi", "auapi"), card = BoardCard("Quiz: how many workspaces?", "Logs stay in their region; each team sees its own.")),
-                    Beat(19, show = setOf("teams"), light = setOf("teams"), card = BoardCard("One per team? No kiss", "Resource-context access already keeps teams apart.")),
-                    Beat(20, show = setOf("eu", "au"), light = setOf("eu", "au"), pulse = "euapi" to "eu", card = BoardCard("Two: one per region", "Data residency forces that split, and nothing else does.")),
+                    Beat(20, show = setOf("euapi", "auapi"), light = setOf("euapi", "auapi"), card = BoardCard("Quiz: how many workspaces?", "Logs stay in their region; each team sees its own.")),
+                    Beat(21, show = setOf("teams"), light = setOf("teams"), card = BoardCard("One per team? No kiss", "Resource-context access already keeps teams apart.")),
+                    Beat(22, show = setOf("eu", "au"), light = setOf("eu", "au"), pulse = "euapi" to "eu", card = BoardCard("Two: one per region", "Data residency forces that split, and nothing else does.")),
                 ),
             ),
-            // 21: "Then the one that wakes us at 3 a.m..."
+            // 23: "Then the one that wakes us at 3 a.m..."
             Scene(
-                21, "Who wakes us", alerts(),
+                23, "Who wakes us", alerts(),
                 beats = listOf(
-                    Beat(21, show = setOf("rules"), light = setOf("rules"), card = BoardCard("Quiz: twenty alerts", "All must text the on-call engineer. Easy to change?")),
-                    Beat(22, show = setOf("ag", "people"), light = setOf("ag"), pulse = "rules" to "ag", card = BoardCard("Right answer", "One action group, the shared phone list, used by all twenty.")),
-                    Beat(24, show = setOf("hook"), light = setOf("hook"), pulse = "ag" to "hook", card = BoardCard("Webhook", "A web address another system listens on, like the team chat.")),
-                    Beat(25, card = BoardCard("Application Insights", "A watcher in your code: requests, failures, slow calls.")),
-                    Beat(27, show = setOf("wb", "sen"), light = setOf("sen"), card = BoardCard("Microsoft Sentinel", "A guard that reads the workspace and hunts for attacks.")),
+                    Beat(23, show = setOf("rules"), light = setOf("rules"), card = BoardCard("Quiz: twenty alerts", "All must text the on-call engineer. Easy to change?")),
+                    Beat(24, show = setOf("ag", "people"), light = setOf("ag"), pulse = "rules" to "ag", card = BoardCard("Right answer", "One action group, the shared phone list, used by all twenty.")),
+                    Beat(26, show = setOf("hook"), light = setOf("hook"), pulse = "ag" to "hook", card = BoardCard("Webhook", "A web address another system listens on, like the team chat.")),
+                    Beat(27, card = BoardCard("Application Insights", "A watcher in your code: requests, failures, slow calls.")),
+                    Beat(29, show = setOf("wb", "sen"), light = setOf("sen"), card = BoardCard("Microsoft Sentinel", "A guard that reads the workspace and hunts for attacks.")),
                 ),
             ),
-            // 28: "And where does it all stop working? Every romance has its limits."
+            // 30: "And where does it all stop working? Every romance has its limits."
             Scene(
-                28, "Every romance has limits", vm(),
+                30, "Every romance has limits", vm(),
                 beats = listOf(
-                    Beat(29, light = setOf("agent", "dcr"), pulse = "agent" to "dcr", card = inside),
+                    Beat(31, light = setOf("agent", "dcr"), pulse = "agent" to "dcr", card = inside),
                 ),
             ),
-            // 30: "Last question, for the exam. What do we remember?"
+            // 34: "Last question, for the exam. What do we remember?"
             Scene(
-                30, "For the exam", exam(),
+                34, "For the exam", exam(),
                 beats = listOf(
-                    Beat(31, show = all6, light = all6, card = BoardCard("Listen for the phrase", "Six for six: one answer each.")),
-                    Beat(34, card = today),
+                    Beat(35, show = all6, light = all6, card = BoardCard("Listen for the phrase", "Six for six: one answer each.")),
+                    Beat(38, card = today),
                 ),
             ),
         ),
