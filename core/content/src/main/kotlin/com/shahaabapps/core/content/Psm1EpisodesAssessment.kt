@@ -204,7 +204,7 @@ internal object Psm1EpisodesAssessment {
             rafe("Multiple choice, multiple answer, and true or false. It's taken online, two hundred US dollars an attempt, and once you pass, it never needs renewing."),
             nova("A commitment that lasts. I like that. Now, exam style: where does every question come from?"),
             rafe("The Scrum Guide. Whatever edition is newest on the blogs."),
-            nova("No kiss for that one. The November 2020 edition, by Ken Schwaber and Jeff Sutherland. There's no newer official one, and old blogs still say Development Team and roles. The Guide is the only source of truth; the traps episode covers the myths."),
+            nova("No kiss for that one. It's the November 2020 edition, by Ken Schwaber and Jeff Sutherland. There's no newer official one, and old blogs still say Development Team and roles. The Guide is the only source of truth; the traps episode covers the myths."),
             rafe("Then give me one to win back. The pace."),
             nova("Sixty minutes, eighty questions. How long per question, on average?"),
             rafe("Forty-five seconds. Like a five-kilometre run at an even pace. About twenty questions every fifteen minutes."),

@@ -140,7 +140,7 @@ internal object Psm1EpisodesProductOwner {
             ivy("And how do they do that, in practice?"),
             nova("Through the Product Backlog, the ordered list of everything the product might need. They answer for managing it well. Four parts: develop and communicate the Product Goal. Create clear items. Order them. And keep the whole backlog transparent, visible and understood."),
             ivy("The Product Goal. Tell me what that sounds like."),
-            nova("The product's longer-term objective. Picture a running app: a beginner can train for a first ten-kilometre race entirely in the app. [pause] Every item on the backlog should lead there."),
+            nova("The product's longer-term objective. Picture a running app: a beginner can train for a first ten-kilometre race entirely in the app. [pause] Every item on the backlog should lead towards it."),
             ivy("And ordering. Isn't that just priority?"),
             nova("The Guide says ordered. One sequence, first, second, third, no ties. Offline sync above dark mode, because more runners lose their runs than ask for dark mode. [pause] The order is where the Product Owner's decisions show."),
             ivy("Why does the order matter so much?"),
