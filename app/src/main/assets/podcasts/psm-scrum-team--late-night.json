@@ -1,0 +1,222 @@
+{
+ "topicId": "psm-scrum-team--late-night",
+ "seconds": 360.94,
+ "lines": [
+  {
+   "line": 0,
+   "host": "nova",
+   "start": 0.0,
+   "end": 14.11
+  },
+  {
+   "line": 1,
+   "host": "ivy",
+   "start": 14.43,
+   "end": 17.59
+  },
+  {
+   "line": 2,
+   "host": "nova",
+   "start": 17.91,
+   "end": 30.87
+  },
+  {
+   "line": 3,
+   "host": "ivy",
+   "start": 31.19,
+   "end": 32.35
+  },
+  {
+   "line": 4,
+   "host": "nova",
+   "start": 32.67,
+   "end": 52.78
+  },
+  {
+   "line": 5,
+   "host": "ivy",
+   "start": 53.1,
+   "end": 55.86
+  },
+  {
+   "line": 6,
+   "host": "nova",
+   "start": 56.18,
+   "end": 71.89
+  },
+  {
+   "line": 7,
+   "host": "ivy",
+   "start": 72.21,
+   "end": 73.73
+  },
+  {
+   "line": 8,
+   "host": "nova",
+   "start": 74.05,
+   "end": 92.89
+  },
+  {
+   "line": 9,
+   "host": "ivy",
+   "start": 93.21,
+   "end": 95.97
+  },
+  {
+   "line": 10,
+   "host": "nova",
+   "start": 96.29,
+   "end": 110.97
+  },
+  {
+   "line": 11,
+   "host": "ivy",
+   "start": 111.29,
+   "end": 113.73
+  },
+  {
+   "line": 12,
+   "host": "nova",
+   "start": 114.05,
+   "end": 132.52
+  },
+  {
+   "line": 13,
+   "host": "ivy",
+   "start": 132.84,
+   "end": 135.16
+  },
+  {
+   "line": 14,
+   "host": "nova",
+   "start": 135.48,
+   "end": 151.84
+  },
+  {
+   "line": 15,
+   "host": "ivy",
+   "start": 152.16,
+   "end": 154.52
+  },
+  {
+   "line": 16,
+   "host": "nova",
+   "start": 154.84,
+   "end": 173.12
+  },
+  {
+   "line": 17,
+   "host": "ivy",
+   "start": 173.44,
+   "end": 175.64
+  },
+  {
+   "line": 18,
+   "host": "nova",
+   "start": 175.96,
+   "end": 193.63
+  },
+  {
+   "line": 19,
+   "host": "ivy",
+   "start": 193.95,
+   "end": 196.59
+  },
+  {
+   "line": 20,
+   "host": "nova",
+   "start": 196.91,
+   "end": 217.06
+  },
+  {
+   "line": 21,
+   "host": "ivy",
+   "start": 217.38,
+   "end": 219.38
+  },
+  {
+   "line": 22,
+   "host": "nova",
+   "start": 219.7,
+   "end": 229.81
+  },
+  {
+   "line": 23,
+   "host": "ivy",
+   "start": 230.13,
+   "end": 232.29
+  },
+  {
+   "line": 24,
+   "host": "nova",
+   "start": 232.61,
+   "end": 243.85
+  },
+  {
+   "line": 25,
+   "host": "ivy",
+   "start": 244.17,
+   "end": 246.53
+  },
+  {
+   "line": 26,
+   "host": "nova",
+   "start": 246.85,
+   "end": 265.0
+  },
+  {
+   "line": 27,
+   "host": "ivy",
+   "start": 265.32,
+   "end": 268.04
+  },
+  {
+   "line": 28,
+   "host": "nova",
+   "start": 268.36,
+   "end": 285.32
+  },
+  {
+   "line": 29,
+   "host": "ivy",
+   "start": 285.64,
+   "end": 288.56
+  },
+  {
+   "line": 30,
+   "host": "nova",
+   "start": 288.88,
+   "end": 303.75
+  },
+  {
+   "line": 31,
+   "host": "ivy",
+   "start": 304.07,
+   "end": 310.35
+  },
+  {
+   "line": 32,
+   "host": "nova",
+   "start": 310.67,
+   "end": 338.23
+  },
+  {
+   "line": 33,
+   "host": "ivy",
+   "start": 338.55,
+   "end": 341.11
+  },
+  {
+   "line": 34,
+   "host": "nova",
+   "start": 341.43,
+   "end": 357.26
+  },
+  {
+   "line": 35,
+   "host": "ivy",
+   "start": 357.58,
+   "end": 360.94
+  }
+ ]
+}

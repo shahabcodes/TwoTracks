@@ -1,0 +1,264 @@
+{
+ "topicId": "psm-daily-scrum--couples",
+ "seconds": 351.25,
+ "lines": [
+  {
+   "line": 0,
+   "host": "nova",
+   "start": 0.0,
+   "end": 5.64
+  },
+  {
+   "line": 1,
+   "host": "rafe",
+   "start": 5.96,
+   "end": 7.58
+  },
+  {
+   "line": 2,
+   "host": "nova",
+   "start": 7.9,
+   "end": 25.9
+  },
+  {
+   "line": 3,
+   "host": "rafe",
+   "start": 26.22,
+   "end": 29.68
+  },
+  {
+   "line": 4,
+   "host": "nova",
+   "start": 30.0,
+   "end": 36.08
+  },
+  {
+   "line": 5,
+   "host": "rafe",
+   "start": 36.4,
+   "end": 48.58
+  },
+  {
+   "line": 6,
+   "host": "nova",
+   "start": 48.9,
+   "end": 53.29
+  },
+  {
+   "line": 7,
+   "host": "rafe",
+   "start": 53.61,
+   "end": 56.15
+  },
+  {
+   "line": 8,
+   "host": "nova",
+   "start": 56.47,
+   "end": 73.91
+  },
+  {
+   "line": 9,
+   "host": "rafe",
+   "start": 74.23,
+   "end": 77.09
+  },
+  {
+   "line": 10,
+   "host": "nova",
+   "start": 77.41,
+   "end": 89.53
+  },
+  {
+   "line": 11,
+   "host": "rafe",
+   "start": 89.85,
+   "end": 96.95
+  },
+  {
+   "line": 12,
+   "host": "nova",
+   "start": 97.27,
+   "end": 99.99
+  },
+  {
+   "line": 13,
+   "host": "rafe",
+   "start": 100.31,
+   "end": 115.53
+  },
+  {
+   "line": 14,
+   "host": "nova",
+   "start": 115.85,
+   "end": 123.97
+  },
+  {
+   "line": 15,
+   "host": "rafe",
+   "start": 124.29,
+   "end": 127.47
+  },
+  {
+   "line": 16,
+   "host": "nova",
+   "start": 127.79,
+   "end": 131.59
+  },
+  {
+   "line": 17,
+   "host": "rafe",
+   "start": 131.91,
+   "end": 140.37
+  },
+  {
+   "line": 18,
+   "host": "nova",
+   "start": 140.69,
+   "end": 144.65
+  },
+  {
+   "line": 19,
+   "host": "rafe",
+   "start": 144.97,
+   "end": 152.79
+  },
+  {
+   "line": 20,
+   "host": "nova",
+   "start": 153.11,
+   "end": 156.83
+  },
+  {
+   "line": 21,
+   "host": "rafe",
+   "start": 157.15,
+   "end": 166.29
+  },
+  {
+   "line": 22,
+   "host": "nova",
+   "start": 166.61,
+   "end": 172.44
+  },
+  {
+   "line": 23,
+   "host": "rafe",
+   "start": 172.76,
+   "end": 176.26
+  },
+  {
+   "line": 24,
+   "host": "nova",
+   "start": 176.58,
+   "end": 190.26
+  },
+  {
+   "line": 25,
+   "host": "rafe",
+   "start": 190.58,
+   "end": 192.4
+  },
+  {
+   "line": 26,
+   "host": "nova",
+   "start": 192.72,
+   "end": 207.6
+  },
+  {
+   "line": 27,
+   "host": "rafe",
+   "start": 207.92,
+   "end": 216.5
+  },
+  {
+   "line": 28,
+   "host": "nova",
+   "start": 216.82,
+   "end": 232.62
+  },
+  {
+   "line": 29,
+   "host": "rafe",
+   "start": 232.94,
+   "end": 236.63
+  },
+  {
+   "line": 30,
+   "host": "nova",
+   "start": 236.95,
+   "end": 244.87
+  },
+  {
+   "line": 31,
+   "host": "rafe",
+   "start": 245.19,
+   "end": 253.77
+  },
+  {
+   "line": 32,
+   "host": "nova",
+   "start": 254.09,
+   "end": 258.08
+  },
+  {
+   "line": 33,
+   "host": "rafe",
+   "start": 258.4,
+   "end": 260.98
+  },
+  {
+   "line": 34,
+   "host": "nova",
+   "start": 261.3,
+   "end": 277.26
+  },
+  {
+   "line": 35,
+   "host": "rafe",
+   "start": 277.58,
+   "end": 280.68
+  },
+  {
+   "line": 36,
+   "host": "nova",
+   "start": 281.0,
+   "end": 294.68
+  },
+  {
+   "line": 37,
+   "host": "rafe",
+   "start": 295.0,
+   "end": 298.58
+  },
+  {
+   "line": 38,
+   "host": "nova",
+   "start": 298.9,
+   "end": 323.02
+  },
+  {
+   "line": 39,
+   "host": "rafe",
+   "start": 323.34,
+   "end": 326.31
+  },
+  {
+   "line": 40,
+   "host": "nova",
+   "start": 326.63,
+   "end": 329.31
+  },
+  {
+   "line": 41,
+   "host": "rafe",
+   "start": 329.63,
+   "end": 345.69
+  },
+  {
+   "line": 42,
+   "host": "nova",
+   "start": 346.01,
+   "end": 351.25
+  }
+ ]
+}
