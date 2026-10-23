@@ -11,7 +11,9 @@ internal object Az305EpisodesNonRelational {
             leo("And each kind has its own home?"),
             maya("Yes. Cosmos DB for the first. A storage account, Azure's general store for files, for the second. The design work is trading features, speed and price, then keeping the data safe. Let's start with Cosmos DB."),
             leo("Cosmos DB, in plain words?"),
-            maya("A NoSQL database. That means it stores whole items, like a JSON note, rather than rows in fixed tables. And it can copy them to any Azure region in a few clicks. A region is one group of Azure buildings in one part of the world, like West Europe or Australia East."),
+            maya("A NoSQL database. That means it stores whole items, like a JSON note, rather than rows in fixed tables."),
+            leo("So the JSON my app already sends to my backend, I could save as it is? No Room-style table with fixed columns?"),
+            maya("As it is, fields and all. And Cosmos DB can copy it to any Azure region in a few clicks. A region is one group of Azure buildings in one part of the world, like West Europe or Australia East."),
             leo("Why copy them?"),
             maya("For latency, which is the wait for each answer, like the gap between asking a question and hearing the reply. A learner in Sydney reading from a copy in Australia waits far less than one reading from Amsterdam. So the Coach's lesson notes go in Cosmos DB with both regions added."),
             leo("And how do I pay for it?"),
@@ -23,9 +25,13 @@ internal object Az305EpisodesNonRelational {
             leo("Key-value. Explain that."),
             maya("You look each item up by its key, like a cloakroom ticket: hand over the ticket, get the coat. Azure Table storage, inside a storage account, does that cheaply, in one region. Move to Cosmos DB for Table when you need quick answers worldwide."),
             leo("Now, copies in two regions. If I write in Europe, does Australia see it straight away?"),
-            maya("That's consistency: how fresh a read is after a write somewhere else. Strong means every read sees the newest write, at the cost of waiting. Eventual means copies catch up a little later. Session, the default, sits between: each user always sees their own writes."),
+            maya("That's consistency: how fresh a read is after a write somewhere else. Strong means every read sees the newest write, at the cost of waiting."),
+            leo("Waiting for what? My users won't sit and stare at a spinner."),
+            maya("For the far copy to confirm. So there's eventual: copies catch up a little later. And session, the default, sits between: each user always sees their own writes. Save a note on your phone, reload, and it's there."),
             leo("Right. Now the files. Photos, audio."),
-            maya("Three choices in a storage account. Blob Storage, for files your app fetches over the web; a blob is one file, kept in a container, like a box on a shelf. Data Lake Storage Gen2, for analytics over big files in folders. And Azure Files, a shared network drive that office servers connect to."),
+            maya("Three choices in a storage account. Blob Storage, for files your app fetches over the web; a blob is one file, kept in a container, like a box on a shelf."),
+            leo("So my app uploads a profile photo, and gets back an address it can load from later?"),
+            maya("Exactly, that's Blob. Data Lake Storage Gen2 is for analytics over big files in folders. And Azure Files is a shared network drive that office servers connect to, like a mapped drive letter."),
             leo("What makes the Data Lake one different?"),
             maya("A switch called the hierarchical namespace. It makes folders real, like a filing cabinet instead of one huge drawer of labelled papers. Renaming a folder becomes one quick step, and you can set permissions on each folder, which analytics tools need."),
             leo("Okay. Now, cost. Audio piles up fast."),
@@ -35,13 +41,17 @@ internal object Az305EpisodesNonRelational {
             leo("Who moves files between tiers? Not me, I hope."),
             maya("Lifecycle management. Rules that move or delete blobs by age, so nobody has to remember. Say your app keeps practice audio: hot for a month, then cool, deleted after two years. The rule runs once a day."),
             leo("And if a whole building burns down?"),
-            maya("Azure always keeps at least three copies; redundancy decides where. LRS, locally redundant, keeps three in one datacenter. ZRS, zone-redundant, spreads them across availability zones: separate buildings in one region, each with its own power and cooling."),
+            maya("Azure always keeps at least three copies; redundancy decides where. LRS, locally redundant, keeps three in one datacenter."),
+            leo("One building? So one fire, and all three are gone."),
+            maya("Right. ZRS, zone-redundant, spreads them across availability zones: separate buildings in one region, each with its own power and cooling."),
             leo("And a whole region?"),
             maya("GRS, geo-redundant, adds copies in the paired region, a second region far away, like North Europe for West Europe. GZRS is zones at home plus the paired region. Put RA in front, for read access, and you can read the far copy any time, not only after failover, the switch to that region."),
             leo("Any catch?"),
             maya("One. Archive works only with LRS, GRS or RA-GRS, not with ZRS or GZRS."),
             leo("Last part. Keeping files safe from people."),
-            maya("Soft delete is a recycle bin for blobs and containers, kept 1 to 365 days. Versioning keeps every earlier version when a file is overwritten. And immutable storage is WORM, write once, read many: like a sealed evidence bag. A time-based retention policy seals data for a set period, even from admins."),
+            maya("Soft delete is a recycle bin for blobs and containers, kept 1 to 365 days. Versioning keeps every earlier version when a file is overwritten."),
+            leo("Like git history, for my files."),
+            maya("Close. And immutable storage is WORM, write once, read many: like a sealed evidence bag. A time-based retention policy seals data for a set period, even from admins."),
             leo("So exam results a regulator wants unchanged for seven years?"),
             maya("Immutable storage with a time-based retention policy. Soft delete won't do: it stops at 365 days and can be emptied. And a legal hold seals data until someone lifts it."),
             leo("So what do I remember for the exam?"),
@@ -62,17 +72,23 @@ internal object Az305EpisodesNonRelational {
             leo("Then my next suspect is the network. Slow phone, slow Wi-Fi."),
             maya("Also wrong. Clue one: last month the team added a lifecycle rule. Lifecycle management means rules that move or delete blobs by age, so nobody has to remember. Their rule moved every recording to the archive tier after 30 days."),
             leo("The archive tier being?"),
-            maya("One of four access tiers, which trade the price of keeping a file against the price of reading it. Hot is for daily use: dear to keep, cheap to read. Cool and cold are cheaper to keep, dearer to read, still instant. Archive is the cheapest of all, but offline, like a box in a warehouse."),
+            maya("One of four access tiers, which trade the price of keeping a file against the price of reading it. Hot is for daily use: dear to keep, cheap to read."),
+            leo("So the cheaper the shelf, the dearer the fetch?"),
+            maya("Exactly. Cool and cold are cheaper to keep, dearer to read, still instant. Archive is the cheapest of all, but offline, like a box in a warehouse."),
             leo("Offline. So you can't just open it."),
             maya("Now you're detecting. An archived blob must be rehydrated first: copied back to an online tier. That can take up to 15 hours. How it works: archived data sits on cheap offline storage, and Azure has to fetch it back before anyone can read a byte. The learner was waiting on a warehouse."),
             leo("So what should the rule have done?"),
-            maya("Practice audio is played often in the first month, rarely after. So hot, then cool after 30 days, deleted after two years. Cool stays instant. Archive is for things almost never opened, like old compliance records. And mind the minimum stays: cool 30 days, cold 90, archive 180. Leave early, and you pay an early deletion charge."),
+            maya("Practice audio is played often in the first month, rarely after. So hot, then cool after 30 days, deleted after two years. Cool stays instant."),
+            leo("And archive? Never touch it?"),
+            maya("For things almost never opened, like old compliance records. And mind the minimum stays: cool 30 days, cold 90, archive 180. Leave early, and you pay an early deletion charge."),
             leo("Case one solved. Is there a second witness?"),
             maya("When the team tried to archive the compliance records, the portal refused. Their account used ZRS."),
             leo("Suspect: the portal is broken."),
             maya("[chuckle] Never the portal. Azure always keeps at least three copies of your data; redundancy decides where. LRS, locally redundant, keeps three in one datacenter. ZRS, zone-redundant, spreads them across availability zones: separate buildings in one region, each with its own power and cooling."),
             leo("And ZRS can't archive?"),
-            maya("Archive works only with LRS, GRS or RA-GRS. Not ZRS, not GZRS. GRS, geo-redundant, keeps copies at home plus in the paired region, a second region far away, like North Europe for West Europe. A region is one group of Azure buildings in one part of the world. So the records moved to a separate GRS account."),
+            maya("Archive works only with LRS, GRS or RA-GRS. Not ZRS, not GZRS."),
+            leo("GRS being the far-away copy?"),
+            maya("Geo-redundant: copies at home plus in the paired region, a second region far away, like North Europe for West Europe. A region is one group of Azure buildings in one part of the world. So the records moved to a separate GRS account."),
             leo("Third witness?"),
             maya("The outage drill. The team promised the app would read profile photos from the second region during an outage, without waiting. They had GRS. The reads failed until failover, the switch to the second region."),
             leo("Suspect: the second copy didn't exist."),
@@ -88,7 +104,9 @@ internal object Az305EpisodesNonRelational {
             leo("And Cosmos DB charges how?"),
             maya("In RUs, request units. A request unit is the price tag on every read and write. And it speaks several APIs. An API is the language your code uses to talk to a service. For new JSON, the NoSQL API. A team already on MongoDB keeps the MongoDB API."),
             leo("And with copies on two continents, does Sydney see a write from Amsterdam straight away?"),
-            maya("That's consistency: how fresh a read is. Strong means always the newest, at the cost of waiting. Eventual means copies catch up later. Session, the default, means each user always sees their own writes. Where does all this stop? Files an office server mounts as a drive go to Azure Files, not Blob. And the high availability episode goes deeper on regions."),
+            maya("That's consistency: how fresh a read is. Strong means always the newest, at the cost of waiting. Eventual means copies catch up later."),
+            leo("And my learner who saves a note, then reloads? It can't just vanish."),
+            maya("Session, the default: each user always sees their own writes. Where does all this stop? Files an office server mounts as a drive go to Azure Files, not Blob. And the high availability episode goes deeper on regions."),
             leo("So, the case summary for the exam?"),
             maya("Five rules. Rarely read, kept for years, cheapest: archive, and expect hours to rehydrate. Archive needs LRS, GRS or RA-GRS. Read the far region without waiting: RA in front. Unchangeable even by admins: an immutability policy, not soft delete. JSON read fast on two continents: Cosmos DB for NoSQL with both regions."),
             leo("Case closed. Anything to try today?"),
@@ -114,12 +132,16 @@ internal object Az305EpisodesNonRelational {
             leo("Tuesday?"),
             maya("Dana. Dana set up the media account with ZRS. Then she tried to put the compliance records in the archive tier, and the portal said no."),
             leo("Wait. ZRS? Archive? One at a time."),
-            maya("Azure always keeps at least three copies; redundancy decides where. LRS, locally redundant, is three in one datacenter. ZRS, zone-redundant, spreads them across availability zones: separate buildings in one region, with their own power. GRS, geo-redundant, adds copies in the paired region, a second region far away."),
+            maya("Azure always keeps at least three copies; redundancy decides where. LRS, locally redundant, is three in one datacenter. ZRS, zone-redundant, spreads them across availability zones: separate buildings in one region, with their own power."),
+            leo("And if the whole region goes?"),
+            maya("GRS, geo-redundant, adds copies in the paired region, a second region far away."),
             leo("And archive?"),
-            maya("An access tier. Hot is dear to keep, cheap to read. Cool and cold are cheaper to keep, dearer to read, still instant. Archive is cheapest of all, but offline, like a box in a warehouse. And archive works only with LRS, GRS or RA-GRS. Not ZRS. Dana made a second account, on GRS, just for records."),
+            maya("An access tier. Hot is dear to keep, cheap to read. Cool and cold are cheaper to keep, dearer to read, still instant. Archive is cheapest of all, but offline, like a box in a warehouse."),
+            leo("And Dana's ZRS account couldn't use it?"),
+            maya("No. Archive works only with LRS, GRS or RA-GRS. Not ZRS. Dana made a second account, on GRS, just for records."),
             leo("Wednesday?"),
             maya("Marcus. Marcus promised the boss that in a European outage, the app would read photos from the second region straight away. He had GRS."),
-            leo("And?"),
+            leo("Let me guess. It didn't."),
             maya("Plain GRS can't be read from the far region until failover, the switch to that region, which takes time. Put RA in front, for read access, and the far copy is readable any time. He needed RA-GZRS: zones at home plus the paired region, with read access. The boss found out in the drill."),
             leo("[sigh] Poor Marcus. Thursday, I'm guessing, the intern."),
             maya("The intern. Bless them. They wrote a lifecycle rule. Lifecycle management means rules that move or delete blobs by age, so nobody has to remember. Theirs moved practice audio to archive after 30 days. Then a learner tapped an old recording, and waited."),
@@ -168,7 +190,9 @@ internal object Az305EpisodesNonRelational {
             ivy("Graph?"),
             nova("Dots joined by lines, like a map of who knows whom. Friends, followers, recommendations. And for simple key-value data there's Azure Table storage: look each item up by its key, like a cloakroom ticket. Cheap, but in one region."),
             ivy("Now the photos and the old voice notes."),
-            nova("They go in a storage account, Azure's general store for files. Blob Storage for files the app fetches over the web; a blob is one file, in a container, like a box on a shelf. Azure Files is a shared network drive for office servers. And Data Lake Storage Gen2 is for analytics over big folders."),
+            nova("They go in a storage account, Azure's general store for files. Blob Storage for files the app fetches over the web; a blob is one file, in a container, like a box on a shelf."),
+            ivy("And the old office's shared drive?"),
+            nova("Azure Files, a shared network drive for office servers. And Data Lake Storage Gen2 is for analytics over big folders."),
             ivy("What makes the lake special?"),
             nova("The hierarchical namespace. A switch that makes folders real, like a filing cabinet instead of one huge drawer of papers. Renaming a folder becomes one quick step."),
             ivy("And all those voice notes, piling up. Isn't that expensive?"),
@@ -178,11 +202,15 @@ internal object Az305EpisodesNonRelational {
             ivy("And who moves them down the tiers, while I sleep?"),
             nova("Lifecycle management. Rules that move or delete blobs by age, so nobody has to remember. Practice audio: hot for a month, then cool, deleted after two years. Just mind the minimum stays: 30 days in cool, 90 in cold, 180 in archive. Leave early, and you pay an early deletion charge."),
             ivy("Now, the part that keeps me up. What if a whole building goes dark?"),
-            nova("Azure always keeps at least three copies. LRS keeps them in one datacenter. ZRS, zone-redundant, spreads them across availability zones, separate buildings in one region with their own power. GRS, geo-redundant, adds copies in the paired region, far away, like North Europe for West Europe."),
+            nova("Azure always keeps at least three copies. LRS keeps them in one datacenter. ZRS, zone-redundant, spreads them across availability zones, separate buildings in one region with their own power."),
+            ivy("And if the whole region goes dark at once?"),
+            nova("[pause] GRS, geo-redundant, adds copies in the paired region, far away, like North Europe for West Europe."),
             ivy("And if I want to read that faraway copy, in the middle of an outage?"),
             nova("Then put RA in front, for read access. Plain GRS waits for failover, the switch to the far region. RA-GZRS gives you zones at home, the paired region, and reads from it any time. [pause] One catch: archive works only with LRS, GRS or RA-GRS."),
             ivy("And people? Tired fingers, deleting things?"),
-            nova("Soft delete, a recycle bin for blobs, kept up to 365 days. Versioning keeps every earlier version. But for exam results a regulator wants unchanged for seven years, you need immutable storage: WORM, write once, read many, like a sealed evidence bag. A time-based retention policy seals it, even from admins."),
+            nova("Soft delete, a recycle bin for blobs, kept up to 365 days. Versioning keeps every earlier version."),
+            ivy("So nothing's ever really lost."),
+            nova("Until someone empties the bin. For exam results a regulator wants unchanged for seven years, you need immutable storage: WORM, write once, read many, like a sealed evidence bag. A time-based retention policy seals it, even from admins."),
             ivy("Where does all of this stop working, Nova?"),
             nova("At the edge of one region, if you skip the far copies; the high availability episode is your next late night. And soft delete stops at 365 days and can be emptied, so it's never the answer to a regulator. The relational data episode has the tables."),
             ivy("[sigh] Mm. Before you send me off to bed. What do I remember for the exam?"),
@@ -202,8 +230,10 @@ internal object Az305EpisodesNonRelational {
             rafe("Forever, I hope. [laugh] What are we keeping?"),
             nova("Two Tracks' things. The Android study app has gone global, with a backend on Azure and learners in Europe and Australia. Photos and audio are unstructured data: files with no shape a database understands. Lesson notes are semi-structured: JSON, text records of names and values, each one a little different."),
             rafe("Notes for Cosmos DB, files for a storage account, Azure's general store for files."),
-            nova("Cosmos DB is a NoSQL database: whole items, not rows in fixed tables, copied to any region, which is one group of Azure buildings in one part of the world. First question, exam style. Lesson notes, JSON with different fields, read with low latency in Europe and Australia. Which store?"),
-            rafe("Latency, the wait for each answer. Cosmos DB for NoSQL, with both regions added, so each learner reads close by. Table storage is one region, and a SQL database wants a fixed shape."),
+            nova("Cosmos DB is a NoSQL database: whole items, not rows in fixed tables, copied to any region, which is one group of Azure buildings in one part of the world."),
+            rafe("Whole items. So I hand it my app's JSON just as it is? I like a partner who doesn't make me change."),
+            nova("Just as it is. First question, exam style. Lesson notes, JSON with different fields, read fast in Europe and Australia, with low latency, that's the wait for each answer. Which store?"),
+            rafe("Cosmos DB for NoSQL, with both regions added, so each learner reads close by. Table storage is one region, and a SQL database wants a fixed shape."),
             nova("Right answer. You always know where I'm waiting. [kiss]"),
             rafe("Mm. And it bills us in RUs, request units. A request unit is the price tag on every read and write. Expensive habits."),
             nova("And it speaks several APIs. An API is the language your code uses to talk to a service. The team already uses MongoDB tools. Which API?"),
@@ -217,7 +247,9 @@ internal object Az305EpisodesNonRelational {
             nova("[sigh] Offline. So I can't play it at once?"),
             rafe("Not at once. It must be rehydrated, copied back to an online tier, up to 15 hours. Under the hood, archived data sits on cheap offline storage until Azure fetches it back. And mind the minimum stays: cool 30 days, cold 90, archive 180, or an early deletion charge."),
             nova("And who moves them down the tiers? Not me, I'm busy."),
-            rafe("Lifecycle management: rules that move or delete blobs by age. Hot for a month, then cool, deleted after two years. Your turn. Profile photos must survive a zone failure and a regional disaster, and be readable from the far region without waiting for failover. Which redundancy?"),
+            rafe("Lifecycle management: rules that move or delete blobs by age. Hot for a month, then cool, deleted after two years."),
+            nova("Set and forget. I like that in a rule."),
+            rafe("Your turn. Profile photos must survive a zone failure and a regional disaster, and be readable from the far region without waiting for failover. Which redundancy?"),
             nova("Azure always keeps three copies. ZRS spreads them across availability zones, separate buildings in one region. GRS adds the paired region, far away. GZRS does both. And RA, read access, lets you read the far copy any time. So RA-GZRS."),
             rafe("Right answer. Covered at home and far away. [kiss]"),
             nova("Mm. And failover, darling, is switching to the far region when home is lost. Plain GRS waits for it. One catch, too: archive works only with LRS, GRS or RA-GRS. Never ZRS."),
@@ -410,60 +442,60 @@ internal object Az305EpisodesNonRelational {
                     Beat(2, card = twoKinds),
                     Beat(4, show = setOf("cosmos", "storage"), light = setOf("cosmos", "storage"), pulse = "app" to "cosmos", card = BoardCard("Two homes", "Cosmos DB for JSON; a storage account for files.")),
                     Beat(6, light = setOf("cosmos"), card = BoardCard("NoSQL", "Whole items, not rows in fixed tables, copied to any region.")),
-                    Beat(8, show = setOf("eu", "au"), light = setOf("eu", "au"), pulse = "cosmos" to "au", card = BoardCard("Latency", "The wait for each answer. A copy near Sydney cuts it.")),
-                    Beat(10, light = setOf("cosmos"), card = ru),
+                    Beat(10, show = setOf("eu", "au"), light = setOf("eu", "au"), pulse = "cosmos" to "au", card = BoardCard("Latency", "The wait for each answer. A copy near Sydney cuts it.")),
+                    Beat(12, light = setOf("cosmos"), card = ru),
                 ),
             ),
-            // 11: "I've heard Cosmos DB speaks several languages."
+            // 13: "I've heard Cosmos DB speaks several languages."
             Scene(
-                11, "Which API?", apis(),
+                13, "Which API?", apis(),
                 beats = listOf(
-                    Beat(12, show = setOf("cosmos", "nosql", "mongo"), light = setOf("nosql", "mongo"), pulse = "cosmos" to "mongo", card = apiCard),
-                    Beat(14, show = setOf("gremlin", "cass", "table"), light = setOf("gremlin"), pulse = "cosmos" to "gremlin", card = BoardCard("Graph", "Dots joined by lines: friends, follows, recommendations.")),
-                    Beat(16, light = setOf("table"), pulse = "cosmos" to "table", card = BoardCard("Key-value", "Look up by key, like a cloakroom ticket. Table storage: one region.")),
-                    Beat(18, light = setOf("cosmos"), card = consistency),
+                    Beat(14, show = setOf("cosmos", "nosql", "mongo"), light = setOf("nosql", "mongo"), pulse = "cosmos" to "mongo", card = apiCard),
+                    Beat(16, show = setOf("gremlin", "cass", "table"), light = setOf("gremlin"), pulse = "cosmos" to "gremlin", card = BoardCard("Graph", "Dots joined by lines: friends, follows, recommendations.")),
+                    Beat(18, light = setOf("table"), pulse = "cosmos" to "table", card = BoardCard("Key-value", "Look up by key, like a cloakroom ticket. Table storage: one region.")),
+                    Beat(20, light = setOf("cosmos"), card = consistency),
                 ),
             ),
-            // 19: "Right. Now the files. Photos, audio."
+            // 23: "Right. Now the files. Photos, audio."
             Scene(
-                19, "Files in a storage account", kinds(),
+                23, "Files in a storage account", kinds(),
                 beats = listOf(
-                    Beat(20, show = setOf("blob", "lake", "files"), light = setOf("blob"), card = blobCard),
-                    Beat(22, show = setOf("note"), light = setOf("lake", "note"), pulse = "blob" to "lake", card = namespace),
+                    Beat(24, show = setOf("blob", "lake", "files"), light = setOf("blob"), card = blobCard),
+                    Beat(28, show = setOf("note"), light = setOf("lake", "note"), pulse = "blob" to "lake", card = namespace),
                 ),
             ),
-            // 23: "Okay. Now, cost. Audio piles up fast."
+            // 29: "Okay. Now, cost. Audio piles up fast."
             Scene(
-                23, "Hot, cool, cold, archive", tiers(),
+                29, "Hot, cool, cold, archive", tiers(),
                 beats = listOf(
-                    Beat(24, show = setOf("hot", "cool", "cold"), light = setOf("hot", "cool", "cold"), card = accessTiers),
-                    Beat(26, show = setOf("archive", "note"), light = setOf("archive", "note"), pulse = "cold" to "archive", card = rehydrate),
-                    Beat(28, light = setOf("hot", "cool"), pulse = "hot" to "cool", card = lifecycle),
+                    Beat(30, show = setOf("hot", "cool", "cold"), light = setOf("hot", "cool", "cold"), card = accessTiers),
+                    Beat(32, show = setOf("archive", "note"), light = setOf("archive", "note"), pulse = "cold" to "archive", card = rehydrate),
+                    Beat(34, light = setOf("hot", "cool"), pulse = "hot" to "cool", card = lifecycle),
                 ),
             ),
-            // 29: "And if a whole building burns down?"
+            // 35: "And if a whole building burns down?"
             Scene(
-                29, "How many copies, and where", redundancy(),
+                35, "How many copies, and where", redundancy(),
                 beats = listOf(
-                    Beat(30, show = setOf("lrs", "zrs"), light = setOf("lrs", "zrs"), pulse = "lrs" to "zrs", card = BoardCard("LRS and ZRS", "Three copies in one datacenter, or across availability zones.")),
-                    Beat(32, show = setOf("grs", "gzrs", "ra"), light = setOf("gzrs", "ra"), pulse = "gzrs" to "ra", card = BoardCard("GRS, GZRS and RA-", "Add the paired region; RA- reads the far copy any time.")),
-                    Beat(34, show = setOf("note"), light = setOf("note"), card = BoardCard("One catch", "Archive works only with LRS, GRS or RA-GRS.")),
+                    Beat(36, show = setOf("lrs", "zrs"), light = setOf("lrs", "zrs"), pulse = "lrs" to "zrs", card = BoardCard("LRS and ZRS", "Three copies in one datacenter, or across availability zones.")),
+                    Beat(40, show = setOf("grs", "gzrs", "ra"), light = setOf("gzrs", "ra"), pulse = "gzrs" to "ra", card = BoardCard("GRS, GZRS and RA-", "Add the paired region; RA- reads the far copy any time.")),
+                    Beat(42, show = setOf("note"), light = setOf("note"), card = BoardCard("One catch", "Archive works only with LRS, GRS or RA-GRS.")),
                 ),
             ),
-            // 35: "Last part. Keeping files safe from people."
+            // 43: "Last part. Keeping files safe from people."
             Scene(
-                35, "Safe from people", protect(),
+                43, "Safe from people", protect(),
                 beats = listOf(
-                    Beat(36, show = setOf("blob", "soft", "ver", "worm"), light = setOf("soft", "ver", "worm"), pulse = "blob" to "worm", card = worm),
-                    Beat(38, show = setOf("note"), light = setOf("worm", "note"), card = BoardCard("Seven years", "A time-based retention policy, not soft delete.")),
+                    Beat(44, show = setOf("blob", "soft", "ver", "worm"), light = setOf("soft", "ver", "worm"), pulse = "blob" to "worm", card = worm),
+                    Beat(48, show = setOf("note"), light = setOf("worm", "note"), card = BoardCard("Seven years", "A time-based retention policy, not soft delete.")),
                 ),
             ),
-            // 39: "So what do I remember for the exam?"
+            // 49: "So what do I remember for the exam?"
             Scene(
-                39, "For the exam", exam(),
+                49, "For the exam", exam(),
                 beats = listOf(
-                    Beat(40, show = all6, light = all6, card = BoardCard("Listen for the phrase", "Each requirement points to one store, tier or setting.")),
-                    Beat(42, card = today),
+                    Beat(50, show = all6, light = all6, card = BoardCard("Listen for the phrase", "Each requirement points to one store, tier or setting.")),
+                    Beat(52, card = today),
                 ),
             ),
         ),
@@ -480,51 +512,51 @@ internal object Az305EpisodesNonRelational {
                     Beat(2, show = setOf("hot"), light = setOf("hot"), card = blobCard),
                     Beat(4, show = setOf("cool", "cold", "archive"), light = setOf("archive"), pulse = "cold" to "archive", card = BoardCard("Clue one: a lifecycle rule", "Every recording to archive after 30 days.")),
                     Beat(6, light = allTiers, card = accessTiers),
-                    Beat(8, show = setOf("note"), light = setOf("archive", "note"), card = rehydrate),
-                    Beat(10, light = setOf("hot", "cool"), pulse = "hot" to "cool", card = BoardCard("The right rule", "Hot, cool after 30 days, deleted after two years.")),
+                    Beat(10, show = setOf("note"), light = setOf("archive", "note"), card = rehydrate),
+                    Beat(12, light = setOf("hot", "cool"), pulse = "hot" to "cool", card = BoardCard("The right rule", "Hot, cool after 30 days, deleted after two years.")),
                 ),
             ),
-            // 11: "Case one solved. Is there a second witness?"
+            // 15: "Case one solved. Is there a second witness?"
             Scene(
-                11, "The second witness", redundancy(),
+                15, "The second witness", redundancy(),
                 beats = listOf(
-                    Beat(12, show = setOf("zrs"), light = setOf("zrs"), card = BoardCard("The portal refused", "Archive on a ZRS account.")),
-                    Beat(14, show = setOf("lrs"), light = setOf("lrs", "zrs"), pulse = "lrs" to "zrs", card = BoardCard("LRS and ZRS", "Three copies in one datacenter, or across availability zones.")),
-                    Beat(16, show = setOf("grs", "gzrs", "ra", "note"), light = setOf("grs", "note"), card = BoardCard("Archive: LRS, GRS, RA-GRS", "So the records moved to a separate GRS account.")),
+                    Beat(16, show = setOf("zrs"), light = setOf("zrs"), card = BoardCard("The portal refused", "Archive on a ZRS account.")),
+                    Beat(18, show = setOf("lrs"), light = setOf("lrs", "zrs"), pulse = "lrs" to "zrs", card = BoardCard("LRS and ZRS", "Three copies in one datacenter, or across availability zones.")),
+                    Beat(20, show = setOf("grs", "gzrs", "ra", "note"), light = setOf("grs", "note"), card = BoardCard("Archive: LRS, GRS, RA-GRS", "So the records moved to a separate GRS account.")),
                 ),
             ),
-            // 17: "Third witness?"
+            // 23: "Third witness?"
             Scene(
-                17, "The third witness", redundancy(),
+                23, "The third witness", redundancy(),
                 beats = listOf(
-                    Beat(18, show = setOf("grs"), light = setOf("grs"), card = BoardCard("The outage drill", "GRS: no reads from the far region until failover.")),
-                    Beat(20, show = setOf("lrs", "zrs", "gzrs", "ra", "note"), light = setOf("gzrs", "ra"), pulse = "gzrs" to "ra", card = raGzrs),
+                    Beat(24, show = setOf("grs"), light = setOf("grs"), card = BoardCard("The outage drill", "GRS: no reads from the far region until failover.")),
+                    Beat(26, show = setOf("lrs", "zrs", "gzrs", "ra", "note"), light = setOf("gzrs", "ra"), pulse = "gzrs" to "ra", card = raGzrs),
                 ),
             ),
-            // 21: "Fourth. I can feel a regulator."
+            // 27: "Fourth. I can feel a regulator."
             Scene(
-                21, "The fourth witness", protect(),
+                27, "The fourth witness", protect(),
                 beats = listOf(
-                    Beat(22, show = setOf("blob", "soft"), light = setOf("soft"), pulse = "blob" to "soft", card = BoardCard("Soft delete", "A recycle bin, 365 days at most, and it can be emptied.")),
-                    Beat(24, show = setOf("ver", "worm", "note"), light = setOf("worm", "note"), pulse = "blob" to "worm", card = worm),
+                    Beat(28, show = setOf("blob", "soft"), light = setOf("soft"), pulse = "blob" to "soft", card = BoardCard("Soft delete", "A recycle bin, 365 days at most, and it can be emptied.")),
+                    Beat(30, show = setOf("ver", "worm", "note"), light = setOf("worm", "note"), pulse = "blob" to "worm", card = worm),
                 ),
             ),
-            // 25: "Last witness. The lesson notes."
+            // 31: "Last witness. The lesson notes."
             Scene(
-                25, "The last witness", stores(),
+                31, "The last witness", stores(),
                 beats = listOf(
-                    Beat(26, show = setOf("app"), light = setOf("app"), card = BoardCard("Lesson notes", "JSON in Table storage, slow in Australia.")),
-                    Beat(28, show = setOf("cosmos", "eu", "au"), light = setOf("cosmos", "eu", "au"), pulse = "cosmos" to "au", card = BoardCard("Cosmos DB", "Whole items, copied to both regions. Latency cut.")),
-                    Beat(30, light = setOf("cosmos"), card = BoardCard("RUs and APIs", "Request units: the price tag. An API: the language code speaks.")),
-                    Beat(32, card = consistency),
+                    Beat(32, show = setOf("app"), light = setOf("app"), card = BoardCard("Lesson notes", "JSON in Table storage, slow in Australia.")),
+                    Beat(34, show = setOf("cosmos", "eu", "au"), light = setOf("cosmos", "eu", "au"), pulse = "cosmos" to "au", card = BoardCard("Cosmos DB", "Whole items, copied to both regions. Latency cut.")),
+                    Beat(36, light = setOf("cosmos"), card = BoardCard("RUs and APIs", "Request units: the price tag. An API: the language code speaks.")),
+                    Beat(38, card = consistency),
                 ),
             ),
-            // 33: "So, the case summary for the exam?"
+            // 41: "So, the case summary for the exam?"
             Scene(
-                33, "Case closed", exam(),
+                41, "Case closed", exam(),
                 beats = listOf(
-                    Beat(34, show = all6, light = setOf("json", "old", "far", "sealed"), card = BoardCard("Listen for the phrase", "Archive, copies, far reads, sealing, notes: one answer each.")),
-                    Beat(36, card = today),
+                    Beat(42, show = all6, light = setOf("json", "old", "far", "sealed"), card = BoardCard("Listen for the phrase", "Archive, copies, far reads, sealing, notes: one answer each.")),
+                    Beat(44, card = today),
                 ),
             ),
         ),
@@ -556,56 +588,56 @@ internal object Az305EpisodesNonRelational {
                 beats = listOf(
                     Beat(10, show = setOf("zrs"), light = setOf("zrs"), card = BoardCard("Archive on ZRS", "The portal said no.")),
                     Beat(12, show = setOf("lrs", "grs"), light = setOf("lrs", "zrs", "grs"), pulse = "lrs" to "zrs", card = BoardCard("LRS, ZRS, GRS", "One datacenter, across zones, or plus the paired region.")),
-                    Beat(14, show = setOf("gzrs", "ra", "note"), light = setOf("note"), card = BoardCard("Archive needs", "LRS, GRS or RA-GRS. Dana made a GRS account.")),
+                    Beat(18, show = setOf("gzrs", "ra", "note"), light = setOf("note"), card = BoardCard("Archive needs", "LRS, GRS or RA-GRS. Dana made a GRS account.")),
                 ),
             ),
-            // 15: "Wednesday?"
+            // 19: "Wednesday?"
             Scene(
-                15, "Wednesday: Marcus", redundancy(),
+                19, "Wednesday: Marcus", redundancy(),
                 beats = listOf(
-                    Beat(16, show = setOf("grs"), light = setOf("grs"), card = BoardCard("Read in an outage?", "Plain GRS: no far reads until failover.")),
-                    Beat(18, show = setOf("lrs", "zrs", "gzrs", "ra", "note"), light = setOf("gzrs", "ra"), pulse = "gzrs" to "ra", card = raGzrs),
+                    Beat(20, show = setOf("grs"), light = setOf("grs"), card = BoardCard("Read in an outage?", "Plain GRS: no far reads until failover.")),
+                    Beat(22, show = setOf("lrs", "zrs", "gzrs", "ra", "note"), light = setOf("gzrs", "ra"), pulse = "gzrs" to "ra", card = raGzrs),
                 ),
             ),
-            // 19: "Poor Marcus. Thursday, I'm guessing, the intern."
+            // 23: "Poor Marcus. Thursday, I'm guessing, the intern."
             Scene(
-                19, "Thursday: the intern", tiers(),
+                23, "Thursday: the intern", tiers(),
                 beats = listOf(
-                    Beat(20, show = allTiers, light = setOf("archive"), pulse = "cold" to "archive", card = BoardCard("A lifecycle rule", "Practice audio to archive after 30 days.")),
-                    Beat(22, show = setOf("note"), light = setOf("archive", "note"), card = rehydrate),
-                    Beat(24, light = setOf("cool", "cold", "archive"), card = BoardCard("Minimum stays", "Cool 30, cold 90, archive 180 days, or an early deletion charge.")),
+                    Beat(24, show = allTiers, light = setOf("archive"), pulse = "cold" to "archive", card = BoardCard("A lifecycle rule", "Practice audio to archive after 30 days.")),
+                    Beat(26, show = setOf("note"), light = setOf("archive", "note"), card = rehydrate),
+                    Beat(28, light = setOf("cool", "cold", "archive"), card = BoardCard("Minimum stays", "Cool 30, cold 90, archive 180 days, or an early deletion charge.")),
                 ),
             ),
-            // 25: "And Friday? There's always a Friday."
+            // 29: "And Friday? There's always a Friday."
             Scene(
-                25, "Friday: Priya", protect(),
+                29, "Friday: Priya", protect(),
                 beats = listOf(
-                    Beat(26, show = setOf("blob", "soft", "ver"), light = setOf("soft", "ver"), pulse = "blob" to "soft", card = BoardCard("Soft delete?", "A recycle bin. Versioning keeps earlier versions.")),
-                    Beat(28, show = setOf("worm", "note"), light = setOf("worm", "note"), pulse = "blob" to "worm", card = worm),
+                    Beat(30, show = setOf("blob", "soft", "ver"), light = setOf("soft", "ver"), pulse = "blob" to "soft", card = BoardCard("Soft delete?", "A recycle bin. Versioning keeps earlier versions.")),
+                    Beat(32, show = setOf("worm", "note"), light = setOf("worm", "note"), pulse = "blob" to "worm", card = worm),
                 ),
             ),
-            // 29: "And the lesson notes? The JSON?"
+            // 33: "And the lesson notes? The JSON?"
             Scene(
-                29, "The lesson notes", apis(),
+                33, "The lesson notes", apis(),
                 beats = listOf(
-                    Beat(30, show = setOf("cosmos", "nosql"), light = setOf("nosql"), pulse = "cosmos" to "nosql", card = BoardCard("Cosmos DB for NoSQL", "Two regions cut latency. RUs: the price tag.")),
-                    Beat(32, show = setOf("mongo", "gremlin", "cass", "table"), light = setOf("mongo", "gremlin"), pulse = "cosmos" to "gremlin", card = BoardCard("API", "The language code speaks. A graph: dots joined by lines.")),
-                    Beat(34, light = setOf("cosmos"), card = consistency),
+                    Beat(34, show = setOf("cosmos", "nosql"), light = setOf("nosql"), pulse = "cosmos" to "nosql", card = BoardCard("Cosmos DB for NoSQL", "Two regions cut latency. RUs: the price tag.")),
+                    Beat(36, show = setOf("mongo", "gremlin", "cass", "table"), light = setOf("mongo", "gremlin"), pulse = "cosmos" to "gremlin", card = BoardCard("API", "The language code speaks. A graph: dots joined by lines.")),
+                    Beat(38, light = setOf("cosmos"), card = consistency),
                 ),
             ),
-            // 35: "So where does all this stop working?"
+            // 39: "So where does all this stop working?"
             Scene(
-                35, "Where it stops", kinds(),
+                39, "Where it stops", kinds(),
                 beats = listOf(
-                    Beat(36, show = setOf("blob", "lake", "files", "note"), light = setOf("lake", "note"), pulse = "blob" to "lake", card = namespace),
+                    Beat(40, show = setOf("blob", "lake", "files", "note"), light = setOf("lake", "note"), pulse = "blob" to "lake", card = namespace),
                 ),
             ),
-            // 37: "So, the gossip I should remember for the exam?"
+            // 41: "So, the gossip I should remember for the exam?"
             Scene(
-                37, "For the exam", exam(),
+                41, "For the exam", exam(),
                 beats = listOf(
-                    Beat(38, show = all6, light = all6, card = BoardCard("Listen for the phrase", "One colleague, one lesson, one answer each.")),
-                    Beat(40, card = today),
+                    Beat(42, show = all6, light = all6, card = BoardCard("Listen for the phrase", "One colleague, one lesson, one answer each.")),
+                    Beat(44, card = today),
                 ),
             ),
         ),
@@ -639,46 +671,46 @@ internal object Az305EpisodesNonRelational {
                 15, "Photos and voice notes", kinds(),
                 beats = listOf(
                     Beat(16, show = setOf("blob", "lake", "files"), light = setOf("blob", "files"), card = blobCard),
-                    Beat(18, show = setOf("note"), light = setOf("lake", "note"), pulse = "blob" to "lake", card = namespace),
+                    Beat(20, show = setOf("note"), light = setOf("lake", "note"), pulse = "blob" to "lake", card = namespace),
                 ),
             ),
-            // 19: "And all those voice notes, piling up. Isn't that expensive?"
+            // 21: "And all those voice notes, piling up. Isn't that expensive?"
             Scene(
-                19, "Tiers", tiers(),
+                21, "Tiers", tiers(),
                 beats = listOf(
-                    Beat(20, show = allTiers, light = setOf("archive"), card = accessTiers),
-                    Beat(22, show = setOf("note"), light = setOf("archive", "note"), pulse = "cold" to "archive", card = rehydrate),
-                    Beat(24, light = setOf("hot", "cool"), pulse = "hot" to "cool", card = lifecycle),
+                    Beat(22, show = allTiers, light = setOf("archive"), card = accessTiers),
+                    Beat(24, show = setOf("note"), light = setOf("archive", "note"), pulse = "cold" to "archive", card = rehydrate),
+                    Beat(26, light = setOf("hot", "cool"), pulse = "hot" to "cool", card = lifecycle),
                 ),
             ),
-            // 25: "Now, the part that keeps me up. What if a whole building goes dark?"
+            // 27: "Now, the part that keeps me up. What if a whole building goes dark?"
             Scene(
-                25, "When a building goes dark", redundancy(),
+                27, "When a building goes dark", redundancy(),
                 beats = listOf(
-                    Beat(26, show = setOf("lrs", "zrs", "grs"), light = setOf("zrs", "grs"), pulse = "lrs" to "zrs", card = BoardCard("LRS, ZRS, GRS", "One datacenter, across zones, or plus the paired region.")),
-                    Beat(28, show = setOf("gzrs", "ra", "note"), light = setOf("ra", "note"), pulse = "gzrs" to "ra", card = raGzrs),
+                    Beat(28, show = setOf("lrs", "zrs", "grs"), light = setOf("zrs", "grs"), pulse = "lrs" to "zrs", card = BoardCard("LRS, ZRS, GRS", "One datacenter, across zones, or plus the paired region.")),
+                    Beat(32, show = setOf("gzrs", "ra", "note"), light = setOf("ra", "note"), pulse = "gzrs" to "ra", card = raGzrs),
                 ),
             ),
-            // 29: "And people? Tired fingers, deleting things?"
+            // 33: "And people? Tired fingers, deleting things?"
             Scene(
-                29, "Tired fingers", protect(),
+                33, "Tired fingers", protect(),
                 beats = listOf(
-                    Beat(30, show = setOf("blob", "soft", "ver", "worm", "note"), light = setOf("worm"), pulse = "blob" to "worm", card = worm),
+                    Beat(34, show = setOf("blob", "soft", "ver", "worm", "note"), light = setOf("worm"), pulse = "blob" to "worm", card = worm),
                 ),
             ),
-            // 31: "Where does all of this stop working, Nova?"
+            // 37: "Where does all of this stop working, Nova?"
             Scene(
-                31, "Where it stops", limits(),
+                37, "Where it stops", limits(),
                 beats = listOf(
-                    Beat(32, show = allLimits, light = setOf("soft", "worm", "note"), pulse = "soft" to "worm", card = edgesCard),
+                    Beat(38, show = allLimits, light = setOf("soft", "worm", "note"), pulse = "soft" to "worm", card = edgesCard),
                 ),
             ),
-            // 33: "Before you send me off to bed. What do I remember for the exam?"
+            // 39: "Before you send me off to bed. What do I remember for the exam?"
             Scene(
-                33, "For the exam", exam(),
+                39, "For the exam", exam(),
                 beats = listOf(
-                    Beat(34, show = all6, light = setOf("json", "old", "far", "folders", "sealed"), card = BoardCard("Listen for the phrase", "Five little things, one answer each.")),
-                    Beat(36, card = today),
+                    Beat(40, show = all6, light = setOf("json", "old", "far", "folders", "sealed"), card = BoardCard("Listen for the phrase", "Five little things, one answer each.")),
+                    Beat(42, card = today),
                 ),
             ),
         ),
@@ -694,69 +726,69 @@ internal object Az305EpisodesNonRelational {
                     Beat(0, card = BoardCard("Date night", "The things we keep, and how long we keep them.")),
                     Beat(2, show = setOf("app"), card = twoKinds),
                     Beat(4, show = setOf("cosmos", "storage"), light = setOf("cosmos"), card = BoardCard("Quiz: the lesson notes", "JSON, different fields, low latency on two continents. Store?")),
-                    Beat(5, show = setOf("eu", "au"), light = setOf("eu", "au"), pulse = "cosmos" to "au", card = BoardCard("Right answer", "Cosmos DB for NoSQL with both regions added.")),
-                    Beat(7, light = setOf("cosmos"), card = ru),
+                    Beat(6, show = setOf("eu", "au"), light = setOf("eu", "au"), pulse = "cosmos" to "au", card = BoardCard("Right answer", "Cosmos DB for NoSQL with both regions added.")),
+                    Beat(9, light = setOf("cosmos"), card = ru),
                 ),
             ),
-            // 8: "And it speaks several APIs..."
+            // 10: "And it speaks several APIs..."
             Scene(
-                8, "Which API, darling", apis(),
+                10, "Which API, darling", apis(),
                 beats = listOf(
-                    Beat(8, show = allApis, light = setOf("mongo"), card = BoardCard("Quiz: MongoDB tools", "The team already uses MongoDB. Which API?")),
-                    Beat(9, light = setOf("mongo", "gremlin"), pulse = "cosmos" to "mongo", card = BoardCard("Right answer", "The MongoDB API. Gremlin for graphs, dots joined by lines.")),
-                    Beat(11, light = setOf("cosmos"), card = consistency),
+                    Beat(10, show = allApis, light = setOf("mongo"), card = BoardCard("Quiz: MongoDB tools", "The team already uses MongoDB. Which API?")),
+                    Beat(11, light = setOf("mongo", "gremlin"), pulse = "cosmos" to "mongo", card = BoardCard("Right answer", "The MongoDB API. Gremlin for graphs, dots joined by lines.")),
+                    Beat(13, light = setOf("cosmos"), card = consistency),
                 ),
             ),
-            // 13: "Then my question. Old lesson recordings..."
+            // 15: "Then my question. Old lesson recordings..."
             Scene(
-                13, "Kept for years", tiers(),
+                15, "Kept for years", tiers(),
                 beats = listOf(
-                    Beat(13, show = setOf("archive"), light = setOf("archive"), card = BoardCard("Quiz: old recordings", "Almost never opened, kept for years, lowest price. Where?")),
-                    Beat(14, show = setOf("hot"), light = setOf("hot"), card = BoardCard("The hot tier?", "Dear to keep, cheap to read.")),
-                    Beat(15, show = setOf("cool", "cold"), light = setOf("archive"), pulse = "cold" to "archive", card = BoardCard("No kiss: archive", "The cheapest of all, but offline, like a box in a warehouse.")),
-                    Beat(17, show = setOf("note"), light = setOf("note"), card = rehydrate),
-                    Beat(19, light = setOf("hot", "cool"), pulse = "hot" to "cool", card = lifecycle),
+                    Beat(15, show = setOf("archive"), light = setOf("archive"), card = BoardCard("Quiz: old recordings", "Almost never opened, kept for years, lowest price. Where?")),
+                    Beat(16, show = setOf("hot"), light = setOf("hot"), card = BoardCard("The hot tier?", "Dear to keep, cheap to read.")),
+                    Beat(17, show = setOf("cool", "cold"), light = setOf("archive"), pulse = "cold" to "archive", card = BoardCard("No kiss: archive", "The cheapest of all, but offline, like a box in a warehouse.")),
+                    Beat(19, show = setOf("note"), light = setOf("note"), card = rehydrate),
+                    Beat(21, light = setOf("hot", "cool"), pulse = "hot" to "cool", card = lifecycle),
                 ),
             ),
-            // 20: "Azure always keeps three copies..."
+            // 24: "Azure always keeps three copies..."
             Scene(
-                20, "Home and far away", redundancy(),
+                24, "Home and far away", redundancy(),
                 beats = listOf(
-                    Beat(20, show = setOf("lrs", "zrs", "grs", "gzrs", "ra"), light = setOf("gzrs", "ra"), pulse = "gzrs" to "ra", card = BoardCard("Quiz: a zone and a region", "Survive both, read the far copy without failover. Which?")),
-                    Beat(21, card = raGzrs),
-                    Beat(22, show = setOf("note"), light = setOf("note"), card = BoardCard("Archive needs", "LRS, GRS or RA-GRS. Never ZRS.")),
+                    Beat(24, show = setOf("lrs", "zrs", "grs", "gzrs", "ra"), light = setOf("gzrs", "ra"), pulse = "gzrs" to "ra", card = BoardCard("Quiz: a zone and a region", "Survive both, read the far copy without failover. Which?")),
+                    Beat(25, card = raGzrs),
+                    Beat(26, show = setOf("note"), light = setOf("note"), card = BoardCard("Archive needs", "LRS, GRS or RA-GRS. Never ZRS.")),
                 ),
             ),
-            // 23: "Then my last one. Exam results must stay unchangeable..."
+            // 27: "Then my last one. Exam results must stay unchangeable..."
             Scene(
-                23, "Promises", protect(),
+                27, "Promises", protect(),
                 beats = listOf(
-                    Beat(23, show = setOf("blob"), light = setOf("blob"), card = BoardCard("Quiz: seven years", "Unchangeable for a regulator. What do you use?")),
-                    Beat(24, show = setOf("soft"), light = setOf("soft"), pulse = "blob" to "soft", card = BoardCard("Soft delete?", "Stops at a year and can be emptied. No kiss.")),
-                    Beat(25, show = setOf("ver", "worm"), light = setOf("worm"), pulse = "blob" to "worm", card = worm),
-                    Beat(27, show = setOf("note"), light = setOf("note"), card = BoardCard("Right answer", "A legal hold seals data until someone lifts it.")),
+                    Beat(27, show = setOf("blob"), light = setOf("blob"), card = BoardCard("Quiz: seven years", "Unchangeable for a regulator. What do you use?")),
+                    Beat(28, show = setOf("soft"), light = setOf("soft"), pulse = "blob" to "soft", card = BoardCard("Soft delete?", "Stops at a year and can be emptied. No kiss.")),
+                    Beat(29, show = setOf("ver", "worm"), light = setOf("worm"), pulse = "blob" to "worm", card = worm),
+                    Beat(31, show = setOf("note"), light = setOf("note"), card = BoardCard("Right answer", "A legal hold seals data until someone lifts it.")),
                 ),
             ),
-            // 29: "And the analytics team's folders?"
+            // 33: "And the analytics team's folders?"
             Scene(
-                29, "Real folders", kinds(),
+                33, "Real folders", kinds(),
                 beats = listOf(
-                    Beat(30, show = setOf("blob", "lake", "files", "note"), light = setOf("lake", "note"), pulse = "blob" to "lake", card = namespace),
+                    Beat(34, show = setOf("blob", "lake", "files", "note"), light = setOf("lake", "note"), pulse = "blob" to "lake", card = namespace),
                 ),
             ),
-            // 31: "Where does it all stop working? Every romance has its limits."
+            // 35: "Where does it all stop working? Every romance has its limits."
             Scene(
-                31, "Every romance has limits", limits(),
+                35, "Every romance has limits", limits(),
                 beats = listOf(
-                    Beat(32, show = allLimits, light = setOf("table", "ctable"), pulse = "table" to "ctable", card = edgesCard),
+                    Beat(36, show = allLimits, light = setOf("table", "ctable"), pulse = "table" to "ctable", card = edgesCard),
                 ),
             ),
-            // 33: "Last question, for the exam. What do we remember?"
+            // 37: "Last question, for the exam. What do we remember?"
             Scene(
-                33, "For the exam", exam(),
+                37, "For the exam", exam(),
                 beats = listOf(
-                    Beat(34, show = all6, light = setOf("json", "old", "far", "folders", "sealed"), card = BoardCard("Listen for the phrase", "Five for five: one answer each.")),
-                    Beat(37, card = today),
+                    Beat(38, show = all6, light = setOf("json", "old", "far", "folders", "sealed"), card = BoardCard("Listen for the phrase", "Five for five: one answer each.")),
+                    Beat(41, card = today),
                 ),
             ),
         ),
