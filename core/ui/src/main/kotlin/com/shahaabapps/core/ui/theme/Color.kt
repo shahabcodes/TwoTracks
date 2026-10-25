@@ -53,6 +53,23 @@ internal object Palette {
     val WarnLight = Color(0xFF9E5A00)                 // 5.4:1 on the page
     val WarnDark = Color(0xFFFBC02D)
 
+    // Diagrams. Four hues that must stay apart at a glance, because in a
+    // diagram the colour carries the meaning: blue is somewhere data rests,
+    // green something that runs your code, amber something in motion, violet
+    // a way the story can go. They are their own colours and not the track or
+    // status ones, which already mean a person or an outcome elsewhere in the
+    // app; borrowing those would have the picture saying something it does
+    // not mean. Each is drawn as a wash behind ordinary ink with a firmer rim,
+    // so what matters is that the hues differ, not their contrast with text.
+    val DataLight = Color(0xFF1B62C9)
+    val DataDark = Color(0xFF7FB0FF)
+    val ComputeLight = Color(0xFF13795B)
+    val ComputeDark = Color(0xFF5FD0A8)
+    val FlowLight = Color(0xFFA85A00)
+    val FlowDark = Color(0xFFFFB053)
+    val ChoiceLight = Color(0xFF7A3BB5)
+    val ChoiceDark = Color(0xFFC79BF0)
+
     /** Ink for a solid fill; see [CupertinoColors.onSolid]. */
     val OnSolidLight = Color(0xFFFFFFFF)
     val OnSolidDark = Color(0xFF111214)
