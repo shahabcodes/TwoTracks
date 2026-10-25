@@ -259,6 +259,10 @@ EXTRA_SAY = [
     (r"\bCEO\b", "C E O"),
     (r"\bScrum\.org\b", "Scrum dot org"),
     (r"\bASP\b", "A S P"),
+    (r"\bIIS\b", "I I S"),
+    # Plural first, so "URLs" does not become "U-R-L s".
+    (r"\bURLs\b", "U R Ls"),
+    (r"\bURL\b", "U R L"),
     # After the "dot NET" rule above, so "dot NET" keeps its "dot": this one
     # catches the few places a script writes NET on its own.
     (r"\bNET\b", "net"),
