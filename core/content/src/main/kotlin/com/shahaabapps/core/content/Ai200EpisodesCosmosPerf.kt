@@ -243,7 +243,7 @@ internal object Ai200EpisodesCosmosPerf {
             nova("No number at all. You pay for each RU you use. Lovely for a test account or a small, rare app, and not meant for heavy load that never stops."),
             ivy("So, twenty thousand. Did Friday behave?"),
             nova("[long pause] Next Friday, eight o'clock, the same 429s. Five times the bill. The dashboard went dark on time, like a train."),
-            ivy("[sigh] Then I'd have cried. What did they miss?"),
+            ivy("[sigh] I would have wept. So what did they miss?"),
             nova("Cosmos DB splits a container's items across drawers, and each drawer is called a partition. There's a chart in the portal, normalised RU consumption, split by partition, and nobody had opened it."),
             ivy("And when they did?"),
             nova("One bar at a hundred per cent. Hundreds of bars near zero. [pause] The field that picks the drawer is the partition key, and theirs was the restaurant id."),

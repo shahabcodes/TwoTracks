@@ -3,6 +3,15 @@
 All notable changes to Two Tracks. Versions follow `version.properties`; the
 build number is appended by CI (for example `0.1.0 (build 12)`).
 
+## [0.93.0] - 2026-10-25
+### Changed
+- AI-200: the first ten topics are rebuilt around one app instead of explaining each service on its own. The course now builds Zaiqa, a food-delivery app of the kind you use every week: a Kotlin app, an Angular partner dashboard, a .NET API on Azure SQL, and the Azure pieces added one episode at a time.
+- Every episode says what changed in Zaiqa since the last one, and teaches the topic as a change to it: why it is needed, how it works, how you implement it, and what you look at when it breaks.
+- Azure SQL is the app's source of truth, so each data topic now has to earn its place against a table: Cosmos DB for the huge, fast writes and the vectors, Redis for what is true right now, Blob for files.
+- The conversation is shorter-turned, with the asker pushing back the way a developer would, and all fifty episodes re-recorded.
+### Added
+- A new opening topic, "Zaiqa: the app we build all course", which follows one order through every part of the system and sets out which store holds what.
+
 ## [0.92.1] - 2026-10-23
 ### Fixed
 - PSM I: 14 episodes re-recorded after a fact check against the 2020 Scrum Guide. The Daily Scrum stays fifteen minutes however short the Sprint (only Planning, Review and Retrospective are usually shorter). The Scrum Team may refine selected items during Sprint Planning. The Sprint counts as one of the five events. A Product Owner may delegate backlog ordering but stays accountable. A self-managing team decides who does what, when and how.

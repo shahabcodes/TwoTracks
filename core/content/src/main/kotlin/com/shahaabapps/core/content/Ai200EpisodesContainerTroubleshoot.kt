@@ -349,7 +349,7 @@ internal object Ai200EpisodesContainerTroubleshoot {
             nova("Container insights, which is Azure Monitor collecting container logs and Kubernetes events into that same store. Leave it off, and last Tuesday is simply gone."),
             rafe("So before pudding. What do we keep for the exam?"),
             nova("ImagePullBackOff: describe pod, check the tag and the pull permission, not the logs. CrashLoopBackOff: kubectl logs with dash dash previous. Running but zero of one ready: the readiness probe."),
-            rafe("And the Container Apps two?"),
+            rafe("And the Container Apps too?"),
             nova("A revision Degraded with no replica ready: match the target port. Pending: look for FailedScheduling. And yesterday's errors: Log Analytics, never the live stream."),
             rafe("Five for five, darling. [kiss] And something to try today?"),
             nova("Deploy a revision with the wrong target port and watch it go Degraded. Stream the system logs and find the probe failure. Fix the port and confirm the revision becomes healthy. Then open a console with az containerapp exec, call the app on localhost, and query the console logs in Log Analytics for the last hour."),

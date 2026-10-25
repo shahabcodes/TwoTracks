@@ -1,288 +1,348 @@
 {
  "topicId": "ai-cosmos-perf--couples",
- "seconds": 489.45,
+ "seconds": 440.69,
  "lines": [
   {
    "line": 0,
    "host": "nova",
    "start": 0.0,
-   "end": 4.72
+   "end": 7.4
   },
   {
    "line": 1,
    "host": "rafe",
-   "start": 5.04,
-   "end": 8.78
+   "start": 7.72,
+   "end": 20.98
   },
   {
    "line": 2,
    "host": "nova",
-   "start": 9.1,
-   "end": 29.98
+   "start": 21.3,
+   "end": 34.62
   },
   {
    "line": 3,
    "host": "rafe",
-   "start": 30.3,
-   "end": 33.88
+   "start": 34.94,
+   "end": 38.2
   },
   {
    "line": 4,
    "host": "nova",
-   "start": 34.2,
-   "end": 57.72
+   "start": 38.52,
+   "end": 45.88
   },
   {
    "line": 5,
    "host": "rafe",
-   "start": 58.04,
-   "end": 61.1
+   "start": 46.2,
+   "end": 50.14
   },
   {
    "line": 6,
    "host": "nova",
-   "start": 61.42,
-   "end": 83.62
+   "start": 50.46,
+   "end": 63.02
   },
   {
    "line": 7,
    "host": "rafe",
-   "start": 83.94,
-   "end": 87.2
+   "start": 63.34,
+   "end": 64.48
   },
   {
    "line": 8,
    "host": "nova",
-   "start": 87.52,
-   "end": 100.72
+   "start": 64.8,
+   "end": 79.84
   },
   {
    "line": 9,
    "host": "rafe",
-   "start": 101.04,
-   "end": 110.94
+   "start": 80.16,
+   "end": 85.02
   },
   {
    "line": 10,
    "host": "nova",
-   "start": 111.26,
-   "end": 121.9
+   "start": 85.34,
+   "end": 95.38
   },
   {
    "line": 11,
    "host": "rafe",
-   "start": 122.22,
-   "end": 125.63
+   "start": 95.7,
+   "end": 99.43
   },
   {
    "line": 12,
    "host": "nova",
-   "start": 125.95,
-   "end": 139.39
+   "start": 99.75,
+   "end": 112.75
   },
   {
    "line": 13,
    "host": "rafe",
-   "start": 139.71,
-   "end": 144.61
+   "start": 113.07,
+   "end": 118.93
   },
   {
    "line": 14,
    "host": "nova",
-   "start": 144.93,
-   "end": 156.37
+   "start": 119.25,
+   "end": 130.37
   },
   {
    "line": 15,
    "host": "rafe",
-   "start": 156.69,
-   "end": 158.59
+   "start": 130.69,
+   "end": 139.55
   },
   {
    "line": 16,
    "host": "nova",
-   "start": 158.91,
-   "end": 168.59
+   "start": 139.87,
+   "end": 143.18
   },
   {
    "line": 17,
    "host": "rafe",
-   "start": 168.91,
-   "end": 172.89
+   "start": 143.5,
+   "end": 155.0
   },
   {
    "line": 18,
    "host": "nova",
-   "start": 173.21,
-   "end": 185.49
+   "start": 155.32,
+   "end": 165.16
   },
   {
    "line": 19,
    "host": "rafe",
-   "start": 185.81,
-   "end": 192.31
+   "start": 165.48,
+   "end": 169.46
   },
   {
    "line": 20,
    "host": "nova",
-   "start": 192.63,
-   "end": 211.35
+   "start": 169.78,
+   "end": 181.7
   },
   {
    "line": 21,
    "host": "rafe",
-   "start": 211.67,
-   "end": 214.65
+   "start": 182.02,
+   "end": 183.08
   },
   {
    "line": 22,
    "host": "nova",
-   "start": 214.97,
-   "end": 237.97
+   "start": 183.4,
+   "end": 192.72
   },
   {
    "line": 23,
    "host": "rafe",
-   "start": 238.29,
-   "end": 246.11
+   "start": 193.04,
+   "end": 199.78
   },
   {
    "line": 24,
    "host": "nova",
-   "start": 246.43,
-   "end": 257.55
+   "start": 200.1,
+   "end": 213.74
   },
   {
    "line": 25,
    "host": "rafe",
-   "start": 257.87,
-   "end": 261.52
+   "start": 214.06,
+   "end": 218.31
   },
   {
    "line": 26,
    "host": "nova",
-   "start": 261.84,
-   "end": 274.12
+   "start": 218.63,
+   "end": 222.83
   },
   {
    "line": 27,
    "host": "rafe",
-   "start": 274.44,
-   "end": 278.82
+   "start": 223.15,
+   "end": 231.89
   },
   {
    "line": 28,
    "host": "nova",
-   "start": 279.14,
-   "end": 300.5
+   "start": 232.21,
+   "end": 235.96
   },
   {
    "line": 29,
    "host": "rafe",
-   "start": 300.82,
-   "end": 306.84
+   "start": 236.28,
+   "end": 237.94
   },
   {
    "line": 30,
    "host": "nova",
-   "start": 307.16,
-   "end": 327.16
+   "start": 238.26,
+   "end": 250.9
   },
   {
    "line": 31,
    "host": "rafe",
-   "start": 327.48,
-   "end": 330.78
+   "start": 251.22,
+   "end": 253.52
   },
   {
    "line": 32,
    "host": "nova",
-   "start": 331.1,
-   "end": 347.82
+   "start": 253.84,
+   "end": 263.63
   },
   {
    "line": 33,
    "host": "rafe",
-   "start": 348.14,
-   "end": 349.76
+   "start": 263.95,
+   "end": 266.65
   },
   {
    "line": 34,
    "host": "nova",
-   "start": 350.08,
-   "end": 370.72
+   "start": 266.97,
+   "end": 280.01
   },
   {
    "line": 35,
    "host": "rafe",
-   "start": 371.04,
-   "end": 378.02
+   "start": 280.33,
+   "end": 283.67
   },
   {
    "line": 36,
    "host": "nova",
-   "start": 378.34,
-   "end": 394.14
+   "start": 283.99,
+   "end": 294.23
   },
   {
    "line": 37,
    "host": "rafe",
-   "start": 394.46,
-   "end": 398.83
+   "start": 294.55,
+   "end": 304.17
   },
   {
    "line": 38,
    "host": "nova",
-   "start": 399.15,
-   "end": 409.95
+   "start": 304.49,
+   "end": 307.85
   },
   {
    "line": 39,
    "host": "rafe",
-   "start": 410.27,
-   "end": 423.37
+   "start": 308.17,
+   "end": 318.79
   },
   {
    "line": 40,
    "host": "nova",
-   "start": 423.69,
-   "end": 427.16
+   "start": 319.11,
+   "end": 322.27
   },
   {
    "line": 41,
    "host": "rafe",
-   "start": 427.48,
-   "end": 430.86
+   "start": 322.59,
+   "end": 332.37
   },
   {
    "line": 42,
    "host": "nova",
-   "start": 431.18,
-   "end": 454.06
+   "start": 332.69,
+   "end": 343.13
   },
   {
    "line": 43,
    "host": "rafe",
-   "start": 454.38,
-   "end": 457.91
+   "start": 343.45,
+   "end": 346.46
   },
   {
    "line": 44,
    "host": "nova",
-   "start": 458.23,
-   "end": 461.47
+   "start": 346.78,
+   "end": 352.7
   },
   {
    "line": 45,
    "host": "rafe",
-   "start": 461.79,
-   "end": 484.37
+   "start": 353.02,
+   "end": 354.56
   },
   {
    "line": 46,
    "host": "nova",
-   "start": 484.69,
-   "end": 489.45
+   "start": 354.88,
+   "end": 367.88
+  },
+  {
+   "line": 47,
+   "host": "rafe",
+   "start": 368.2,
+   "end": 371.66
+  },
+  {
+   "line": 48,
+   "host": "nova",
+   "start": 371.98,
+   "end": 381.78
+  },
+  {
+   "line": 49,
+   "host": "rafe",
+   "start": 382.1,
+   "end": 385.27
+  },
+  {
+   "line": 50,
+   "host": "nova",
+   "start": 385.59,
+   "end": 389.11
+  },
+  {
+   "line": 51,
+   "host": "rafe",
+   "start": 389.43,
+   "end": 400.85
+  },
+  {
+   "line": 52,
+   "host": "nova",
+   "start": 401.17,
+   "end": 403.93
+  },
+  {
+   "line": 53,
+   "host": "rafe",
+   "start": 404.25,
+   "end": 412.99
+  },
+  {
+   "line": 54,
+   "host": "nova",
+   "start": 413.31,
+   "end": 415.63
+  },
+  {
+   "line": 55,
+   "host": "rafe",
+   "start": 415.95,
+   "end": 434.69
+  },
+  {
+   "line": 56,
+   "host": "nova",
+   "start": 435.01,
+   "end": 440.69
   }
  ]
 }

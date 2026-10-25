@@ -40,7 +40,7 @@ internal object Ai200EpisodesAcr {
             maya("It sends your folder up, builds the image there from your Dockerfile, and pushes it into the registry. Picture a laptop with no Docker on it at all. It still works."),
             leo("Nice. What else can a task do?"),
             maya("It can start by itself. That is a triggered task: it runs on a commit, meaning a saved change to our code, or on a timer, or when the base image is updated."),
-            leo("The base image. Our dot NET one?"),
+            leo("The base image. The dot NET one we build on?"),
             maya("That one. Microsoft patches it regularly. A task with a base image trigger notices, rebuilds zaiqa-api on the patched base, and pushes it, with nobody remembering anything."),
             leo("That is the one I would forget. Any other kind?"),
             maya("A multi-step task. A short file lists the steps: build the image, run the API's tests inside it, and push only if they pass. For example, Zaiqa never ships a build whose order tests failed."),

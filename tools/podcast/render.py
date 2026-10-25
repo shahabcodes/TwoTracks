@@ -258,6 +258,10 @@ EXTRA_SAY = [
     (r"\bA1\b", "A one"),
     (r"\bCEO\b", "C E O"),
     (r"\bScrum\.org\b", "Scrum dot org"),
+    (r"\bASP\b", "A S P"),
+    # After the "dot NET" rule above, so "dot NET" keeps its "dot": this one
+    # catches the few places a script writes NET on its own.
+    (r"\bNET\b", "net"),
 ]
 
 # Two or more capital letters standing alone, as the respellings above leave
