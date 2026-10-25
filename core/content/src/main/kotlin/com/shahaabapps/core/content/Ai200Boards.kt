@@ -6,7 +6,8 @@ package com.shahaabapps.core.content
  */
 internal object Ai200Boards {
     val all: List<PodcastBoard> by lazy {
-        Ai200EpisodesAcr.boards +
+        Ai200EpisodesApp.boards +
+            Ai200EpisodesAcr.boards +
             Ai200EpisodesAppServiceContainers.boards +
             Ai200EpisodesContainerApps.boards +
             Ai200EpisodesAks.boards +

@@ -8,7 +8,8 @@ package com.shahaabapps.core.content
  */
 internal object Ai200Podcasts {
     val all: List<Podcast> by lazy {
-        Ai200EpisodesAcr.podcasts +
+        Ai200EpisodesApp.podcasts +
+            Ai200EpisodesAcr.podcasts +
             Ai200EpisodesAppServiceContainers.podcasts +
             Ai200EpisodesContainerApps.podcasts +
             Ai200EpisodesAks.podcasts +

@@ -4,6 +4,224 @@ package com.shahaabapps.core.content
 internal object Ai200Containers {
     private const val LEARN = "https://learn.microsoft.com/en-us/"
 
+    private val app = Topic(
+        id = "ai-app", title = "Zaiqa: the app we build all course", minutes = 24,
+        references = listOf(
+            B.ref("What is Azure SQL Database?", LEARN + "azure/azure-sql/database/sql-database-paas-overview"),
+            B.ref("Welcome to Azure Cosmos DB", LEARN + "azure/cosmos-db/introduction"),
+            B.ref("Criteria for choosing a data store", LEARN + "azure/architecture/guide/technology-choices/data-store-overview"),
+            B.ref("Azure Container Apps overview", LEARN + "azure/container-apps/overview"),
+            B.ref("Introduction to Azure Blob Storage", LEARN + "azure/storage/blobs/storage-blobs-introduction"),
+            B.ref("Service Bus queues, topics and subscriptions", LEARN + "azure/service-bus-messaging/service-bus-queues-topics-subscriptions"),
+        ),
+        blocks = listOf(
+            B.warmup(
+                "ai-app-w1", "ai-app",
+                "Zaiqa takes an order and captures the payment. Which store must hold the order, its lines and the payment?",
+                listOf("Azure SQL Database", "Cosmos DB for NoSQL", "Azure Managed Redis"), 0,
+                "Think about which one changes several tables in one go that either all happens or none of it does.",
+            ),
+            B.plain("""
+                Zaiqa is the app we build across this whole course. It is our own version of the food-delivery app you
+                already use every week: Zomato's real internals are not public, so we are not describing their system,
+                we are building ours. Every later topic changes one part of Zaiqa, and this page is the map it changes.
+            """),
+            B.diagram(
+                caption = "One order's journey through Zaiqa: the app and the dashboard call the API, the API owns Azure SQL, and the queue, the worker and the photo function fill Cosmos, Redis and Blob.",
+                nodes = listOf(
+                    DNode("app", "Zaiqa app", 0.17f, 0.10f, w = 0.28f, h = 0.14f, sub = "Kotlin"),
+                    DNode("dash", "Partner dash", 0.83f, 0.10f, w = 0.28f, h = 0.14f, sub = "Angular"),
+                    DNode("api", "Zaiqa API", 0.5f, 0.31f, w = 0.28f, h = 0.14f, tone = 1, sub = "dot NET 9"),
+                    DNode("sql", "Azure SQL", 0.17f, 0.52f, w = 0.28f, h = 0.16f, kind = NodeKind.CYLINDER, sub = "source of truth"),
+                    DNode("redis", "Redis", 0.5f, 0.52f, w = 0.28f, h = 0.16f, kind = NodeKind.CYLINDER, tone = 2, sub = "right now"),
+                    DNode("blob", "Blob Storage", 0.83f, 0.52f, w = 0.28f, h = 0.16f, kind = NodeKind.CYLINDER, tone = 2, sub = "dish photos"),
+                    DNode("queue", "Orders queue", 0.17f, 0.73f, w = 0.28f, h = 0.14f, sub = "Service Bus"),
+                    DNode("worker", "Order worker", 0.5f, 0.73f, w = 0.28f, h = 0.14f, tone = 1),
+                    DNode("photo", "Photo function", 0.83f, 0.73f, w = 0.28f, h = 0.14f, sub = "Python"),
+                    DNode("cosmos", "Cosmos DB", 0.5f, 0.92f, w = 0.28f, h = 0.16f, kind = NodeKind.CYLINDER, sub = "events, vectors"),
+                ),
+                edges = listOf(
+                    DEdge("app", "api", label = "order"), DEdge("dash", "api", label = "menus"),
+                    DEdge("api", "sql", label = "read write"), DEdge("api", "redis", label = "hot list"),
+                    DEdge("api", "blob", label = "photo url"), DEdge("api", "queue", label = "paid"),
+                    DEdge("queue", "worker", label = "message"), DEdge("worker", "cosmos", label = "events"),
+                    DEdge("photo", "blob", dashed = true), DEdge("photo", "cosmos", label = "vectors"),
+                ),
+                aspect = 0.9f,
+            ),
+            B.h("The parts, in the order an order meets them"),
+            B.p("""
+                You order dal makhani at eight on a Friday. The Kotlin app sends that to the Zaiqa API. The API is the
+                only thing allowed to touch the database, so every rule about money lives in one place. Everything
+                after that is work the API hands on to something else, so the person waiting is not kept waiting.
+            """),
+            B.table(
+                listOf("Part", "What it does for Zaiqa", "Built with"),
+                listOf("Zaiqa Android app", "Browse, search, order, track the rider", "Kotlin and Jetpack Compose"),
+                listOf("Partner dashboard", "A restaurant's menus and live orders", "Angular on Static Web Apps"),
+                listOf("Zaiqa API", "Everything the app asks for, and the only writer to SQL", "dot NET 9 on Container Apps"),
+                listOf("Order worker", "Sends a paid order on to the restaurant", "A dot NET worker"),
+                listOf("Photo function", "Dish thumbnails, and making them searchable", "Python on Azure Functions"),
+            ),
+            B.check(
+                "ai-app-k1", "ai-app",
+                "The Zaiqa app draws the rider creeping along the map, refreshed every few seconds. Where does that position come from?",
+                listOf("Azure Managed Redis", "Azure SQL Database", "Blob Storage"), 0,
+                "It is one short value, read thousands of times a second, and worthless a minute later. That is exactly what a cache is for.",
+                whyWrong = mapOf(
+                    1 to "Writing every rider's position to SQL thousands of times a second would cost a lot and buy nothing: nobody queries last Tuesday's dot on the map.",
+                    2 to "Blob Storage holds files. A pair of coordinates is not a file.",
+                ),
+            ),
+            B.h("Which store holds what, and why"),
+            B.p("""
+                This is the choice the exam asks about more than any other, so learn it as four sentences rather than
+                four product names. SQL holds what must be correct. Cosmos holds what must be fast and huge. Redis
+                holds what is true right now. Blob holds files.
+            """),
+            B.table(
+                listOf("Store", "What it holds for Zaiqa", "Why this one"),
+                listOf("Azure SQL Database", "Restaurants, menus, users, orders, order lines, payments", "Money needs one transaction across several tables, foreign keys, and a report finance can query"),
+                listOf("Cosmos DB for NoSQL", "The order event feed, rider ping history, dish vectors", "Huge write rates, global spread, and a change feed that starts later work"),
+                listOf("PostgreSQL with pgvector", "The payouts ledger, and the other vector store", "The comparison: when you keep vectors in Postgres instead"),
+                listOf("Azure Managed Redis", "Hot restaurant list, rider position, rate limiting", "What is true right now, read thousands of times a second"),
+                listOf("Blob Storage", "Dish photos", "Big files are not database rows"),
+            ),
+            B.code("sql", """
+                -- The spine of Zaiqa, in Azure SQL. One transaction writes all three.
+                CREATE TABLE Orders (
+                    OrderId      INT IDENTITY PRIMARY KEY,
+                    UserId       INT NOT NULL REFERENCES Users(UserId),
+                    RestaurantId INT NOT NULL REFERENCES Restaurants(RestaurantId),
+                    PlacedAtUtc  DATETIME2 NOT NULL,
+                    TotalMinor   INT NOT NULL
+                );
+                CREATE TABLE OrderLines (
+                    OrderLineId INT IDENTITY PRIMARY KEY,
+                    OrderId     INT NOT NULL REFERENCES Orders(OrderId),
+                    DishId      INT NOT NULL REFERENCES Dishes(DishId),
+                    Quantity    INT NOT NULL
+                );
+            """),
+            B.compare("Where would you put it?",
+                B.card("Azure SQL", "It has to be correct, and several rows change together.", "Orders, order lines, payments", "Transactions and foreign keys", "Reports the finance team writes"),
+                B.card("Cosmos DB", "There is a flood of it and you need it fast everywhere.", "Order events and rider pings", "A change feed other work listens to", "Dish vectors for search"),
+                B.card("Redis", "It is only interesting right now.", "The hot restaurant list", "The rider's current position", "Rate limiting"),
+                B.card("Blob Storage", "It is a file.", "Dish photos and thumbnails", "Cheap per gigabyte", "SQL keeps only the address"),
+            ),
+            B.tip("A question that says \"several tables must change together\" or \"the finance team runs a monthly report\" is pointing at a relational database. One that says \"millions of writes a second\", \"global\" or \"a feed of changes\" is pointing at Cosmos DB."),
+            B.check(
+                "ai-app-k2", "ai-app",
+                "Zaiqa takes about thirty thousand rider pings a minute and wants later work to react to each one. Where do the pings go?",
+                listOf("Cosmos DB for NoSQL, and its change feed starts the later work", "Azure SQL, with a trigger on the pings table", "Azure Managed Redis, with a key per rider"), 0,
+                "Huge write rates with a feed of what changed is the Cosmos DB shape, and the change feed is the part SQL has no answer for.",
+                whyWrong = mapOf(
+                    1 to "A table and a trigger at that rate would be expensive and would slow the same database the orders depend on.",
+                    2 to "Redis holds the latest ping well, but it keeps no history and gives nothing to replay.",
+                ),
+            ),
+            B.h("The queue, the worker and the photo function"),
+            B.bullets(
+                "Service Bus carries the paid order from the API to the kitchen, so a slow restaurant never makes the app spin.",
+                "The order worker reads that queue and can be retried; the API has already answered the phone.",
+                "Event Grid tells the photo function a dish photo landed in Blob Storage; the function makes a thumbnail and writes a dish vector to Cosmos.",
+                "Microsoft Entra signs people in, managed identities mean no passwords between services, Key Vault holds the payment provider key, and App Configuration holds the surge fee.",
+            ),
+            B.remember("The API owns Azure SQL. Nothing else writes to it. Everything that wants to react to an order reads a queue or a change feed instead, which is why one slow part of Zaiqa never stops the rest."),
+            B.worked("""
+                Worked example. It is eight on Friday and you order dal makhani. The app calls the Zaiqa API, which
+                writes the order, its two lines and the payment into Azure SQL in one transaction, so either all of it
+                is there or none of it is. The API then puts one message on the Service Bus orders queue and answers
+                the app. The order worker picks the message up and sends it to the restaurant, the order event goes
+                into Cosmos DB, the rider's position starts arriving in Redis, and the dish photo you are looking at
+                came from Blob Storage.
+            """),
+            B.faded(
+                "ai-app-f1",
+                "Zaiqa adds loyalty points: earned on every order, spent at the checkout, and the balance must never go wrong when two orders land at the same moment.",
+                listOf(
+                    "Points are money under another name, so the balance and the rows that moved it have to change together.",
+                    "Keep the balance and its ledger in ___, beside the orders the points came from.",
+                    "Show a copy of the balance from Redis on the home screen, and treat that copy as a hint rather than the truth.",
+                ),
+                blank = 1,
+                answers = listOf("azure sql", "sql"),
+                note = "Anything that must still add up after a crash belongs with the orders and payments, in the relational store that can change several tables in one transaction.",
+            ),
+            B.steps("Walk one Zaiqa order yourself",
+                "Open the order screen in the app and place an order" to "One row in Orders and two in OrderLines, written together.",
+                "Watch the API answer before the restaurant has seen anything" to "The message is on the orders queue; the worker has it next.",
+                "Refresh the rider's position twice" to "Two different values from Redis, neither of them stored for long.",
+                "Open a dish photo and look at what SQL keeps" to "A URL, not the file; the file is a blob.",
+                "Ask what started the ratings prompt after delivery" to "The Cosmos change feed, not the API.",
+            ),
+            B.mistakes(
+                "Putting rider pings in Azure SQL because the order is already there, and paying for a table nobody ever queries.",
+                "Keeping the order total only in Redis, where a restart quietly loses money nobody can reconstruct.",
+                "Storing a four megabyte dish photo as a binary column instead of a blob with its URL in the row.",
+                "Letting the worker and the photo function write to Azure SQL directly, so the rules about money live in three places.",
+                "Making the app wait for the restaurant to answer instead of putting the paid order on a queue.",
+            ),
+            B.example("Zaiqa today: a Kotlin app and an Angular dashboard calling a dot NET 9 API on Container Apps, Azure SQL as the source of truth, Service Bus to the order worker, Cosmos DB for events and vectors, Redis for what is true right now, and Blob Storage for the photos."),
+            B.check(
+                "ai-app-k3", "ai-app",
+                "A restaurant uploads a four megabyte photo of a new dish. Where does the file live, and what does Azure SQL keep?",
+                listOf("Blob Storage keeps the file; SQL keeps the dish row and the photo's URL", "SQL keeps the file in a binary column so it stays with the dish", "Redis keeps the file so the menu loads quickly"), 0,
+                "Files go in Blob Storage and the row keeps the address. The photo function then makes the thumbnail and the dish vector.",
+                whyWrong = mapOf(
+                    1 to "A binary column makes every backup, query plan and restore of the orders database drag a photo album behind it.",
+                    2 to "Redis is memory, priced like memory, and loses everything it holds on a restart.",
+                ),
+            ),
+            B.h("Check yourself"),
+            B.match(
+                "ai-x-app-match", "Pair each part of Zaiqa with what it is for.",
+                "Zaiqa API" to "The only thing that writes to Azure SQL",
+                "Azure SQL" to "Orders, payments and anything that must be correct",
+                "Cosmos DB" to "Order events, rider pings and dish vectors",
+                "Redis" to "The hot restaurant list and the rider's position",
+                "Blob Storage" to "The dish photo files themselves",
+            ),
+            B.gap(
+                "ai-x-app-gap1", "The store that must be right, even after a crash halfway through.",
+                "Orders, order lines and payments live in Azure ___.", "SQL", "sql",
+            ),
+            B.gap(
+                "ai-x-app-gap2", "What carries the paid order from the API to the kitchen.",
+                "The API puts the paid order on a Service ___ queue.", "Bus", "bus",
+            ),
+            B.tryIt("Try it in 15 minutes", "Nothing here needs an Azure subscription; it is the map you will refer back to in every later topic.",
+                "Draw Zaiqa's parts from memory and name what each one is built with",
+                "Write the four stores and one sentence each for why Zaiqa uses them",
+                "Pick three things Zaiqa stores and say which store each belongs in, and why",
+                "Trace one order from the app to the restaurant and name every part it passes",
+            ),
+            B.explain(
+                "ai-app-x1",
+                "Explain which Zaiqa store holds what, and why each one was chosen.",
+                "Azure SQL Database is the source of truth: restaurants, menus, users, orders, order lines and payments, because money needs one transaction across several tables, foreign keys, and a report the finance team can query. Cosmos DB for NoSQL takes the order event feed, the rider ping history and the dish vectors, where the write rate is huge and the change feed starts later work. Azure Managed Redis holds what is true right now, a cache of the hot restaurant list and the rider's current position. Blob Storage holds the dish photo files, and the row in SQL keeps only the address.",
+                "SQL for what must be correct" to listOf("azure sql", "transaction", "source of truth"),
+                "Cosmos for what is fast and huge" to listOf("cosmos", "change feed", "rider ping"),
+                "Redis for what is true right now" to listOf("redis", "cache"),
+                "Blob for files" to listOf("blob", "dish photo"),
+            ),
+            B.glossary(
+                "Zaiqa" to "The food-delivery app we build across this course, our own version of the one you already use.",
+                "Source of truth" to "The one store whose copy of a fact is the one that counts.",
+                "Transaction" to "Several changes that either all happen or none of them do.",
+                "Change feed" to "An ordered list of what changed in Cosmos DB, which other work can read.",
+                "Queue" to "A line of messages one service leaves for another to pick up later.",
+                "Cache" to "A fast copy of something that is cheap to lose and quick to rebuild.",
+                "Blob" to "A file kept in storage, found by a URL rather than a row.",
+            ),
+            B.recap(
+                "Zaiqa is a Kotlin app and an Angular dashboard over a dot NET 9 API on Container Apps, with a worker and a photo function behind it.",
+                "SQL holds what must be correct, Cosmos what must be fast and huge, Redis what is true right now, Blob the files.",
+                "The API owns Azure SQL; everything else reacts through the Service Bus queue or the Cosmos change feed.",
+            ),
+        ),
+    )
+
     private val acr = Topic(
         id = "ai-acr", title = "Azure Container Registry: build, store and version images", minutes = 26,
         references = listOf(
@@ -640,5 +858,5 @@ internal object Ai200Containers {
         ),
     )
 
-    val topics: List<Topic> = listOf(acr, appService, containerApps)
+    val topics: List<Topic> = listOf(app, acr, appService, containerApps)
 }
