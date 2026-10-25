@@ -175,7 +175,7 @@ internal object Ai200EpisodesOpenTelemetry {
             maya("The week ended with one picture of one order, nine seconds of it drawn as waiting. [pause] Tom has framed it."),
             leo("So what is the gossip I should remember for the exam?"),
             maya("If the next service's work shows up as a separate trace, the traceparent header did not travel, and over a queue that means the context label. If services are one blob on the map, set the service name, which becomes the cloud role name."),
-            leo("And Tom's, Marcus's and Priya's?"),
+            leo("And what about Tom, then Marcus, then Priya?"),
             maya("Set up before the app serves. The connection string comes from an environment variable, never the source. One call for traces, metrics and logs in Python is configure azure monitor. A missing trace with the bill under control is sampling."),
             leo("And something to try today, so I am not next week's story?"),
             maya("Create a workspace-based Application Insights resource and copy its connection string. Install the distro in a tiny FastAPI app, call configure azure monitor, and add one custom span with an attribute. Hit it a few times, then open transaction search and read the end-to-end view of one request. See you next time."),

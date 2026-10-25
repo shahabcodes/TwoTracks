@@ -225,7 +225,7 @@ internal object Ai200EpisodesPgvector {
             nova("Three places. An index only serves the operator it was built for, so a cosine index with a ruler query is ignored. Past many millions of rows there is DiskANN: a graph index, meaning the same web idea, dots joined by lines, that Azure adds as pg diskann."),
             ivy("And the third?"),
             nova("Memory. The index should fit in it, so memory optimized compute for big sets, never burstable in production. [pause] Otherwise it waits on disk all evening, like the rest of us."),
-            ivy("And the diner, poor soul, gets what?"),
+            ivy("And the poor tired diner gets what?"),
             nova("An answer. RAG, short for retrieval augmented generation, the same ending as the Cosmos night: fetch the five closest dishes, paste them into the message to a chat model, and tell it to answer only from those."),
             ivy("Then the question I have been saving. Cosmos or Postgres?"),
             nova("Both are right answers in different rooms. Cosmos when the vectors sit beside documents you already keep there and you want copies close to diners in every region. Postgres when they belong beside rows you are already joining to, like the ledger."),
@@ -839,7 +839,7 @@ internal object Ai200EpisodesPgvector {
                     Beat(38, show = setOf("mem", "link"), light = setOf("mem"), card = BoardCard("Keep it in memory", "Memory optimized for big sets. Never burstable in production.")),
                 ),
             ),
-            // 39: "And the diner, poor soul, gets what?"
+            // 39: "And the poor tired diner gets what?"
             Scene(
                 39, "The answer", filter(),
                 beats = listOf(

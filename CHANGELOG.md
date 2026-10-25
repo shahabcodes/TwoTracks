@@ -3,6 +3,12 @@
 All notable changes to Two Tracks. Versions follow `version.properties`; the
 build number is appended by CI (for example `0.1.0 (build 12)`).
 
+## [0.94.0] - 2026-10-25
+### Changed
+- AI-200 is now entirely built around Zaiqa. The remaining ten topics join the first ten: PostgreSQL and pgvector, Redis, Service Bus, Event Grid, Functions, Key Vault, App Configuration, OpenTelemetry and KQL are all taught as changes to the same app, with the weekly restaurant payout, the orders queue, the dish photo, the surge fee, one trace across one order, and the Friday night when orders started failing.
+- The Service Bus episode answers the question a .NET developer always asks: where does a queue worker actually run, and why not IIS. A worker is not a web site, so an app pool with no inbound traffic gets recycled mid-job; it belongs in a Windows Service, or in Azure a Function with a Service Bus trigger or a Container App with no ingress, scaling on how deep the queue is. The shorter version of that exchange is now in all five Container Apps tellings too.
+- Fifty-five episodes re-recorded. "IIS" and "URL" are now said as letters rather than read as words.
+
 ## [0.93.1] - 2026-10-25
 ### Fixed
 - A fact check of every lesson's prose, tables, diagrams, glossary and exercise answers, and of the AZ-305 podcast scripts, against the official documentation. Two independent reviewers read each file and a correction was only made when two of three further checkers agreed it was wrong.

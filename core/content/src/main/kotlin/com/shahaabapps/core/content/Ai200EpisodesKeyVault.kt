@@ -213,7 +213,7 @@ internal object Ai200EpisodesKeyVault {
             nova("Only one. The Zaiqa API, the .NET service the phone talks to, pulls its image and reads Cosmos with a managed identity, the badge Azure gives your app. [pause] No password in either place."),
             ivy("Then what is left to keep?"),
             nova("The payment provider's key. Zaiqa takes money through a payment company, and they hand us an API key, a long password that proves the caller is us. They are not in Azure, so there is no badge of ours for them to check."),
-            ivy("And it lives where, at this hour?"),
+            ivy("And where does it live, this late at night?"),
             nova("Azure Key Vault. A locked safe in Azure, holding three kinds of thing. [pause] Secrets, keys and certificates."),
             ivy("Tell me the difference, slowly."),
             nova("A secret is any value you put in and read back out: a password, an API key, a connection string. A key is cryptographic and never comes out; you send data in and the vault signs it for you."),

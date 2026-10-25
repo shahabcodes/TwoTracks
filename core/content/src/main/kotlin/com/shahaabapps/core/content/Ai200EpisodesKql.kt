@@ -197,7 +197,7 @@ internal object Ai200EpisodesKql {
             nova("AppRequests: every call into the Zaiqa API, the service the phone talks to, with Name, DurationMs and Success. AppDependencies: every call out, to Azure SQL, to Cosmos, to Redis. AppExceptions for errors. AppTraces for the plain log lines. [pause]"),
             ivy("And the language?"),
             nova("KQL, the Kusto Query Language. You name a table, then pass its rows through steps, one after another. Each step after the first begins with a pipe, which just means: hand the rows on."),
-            ivy("Like a conveyor belt at this hour. What goes first?"),
+            ivy("Like a conveyor belt, this late at night. What goes first?"),
             nova("A where, which keeps only the rows that match. And the first thing you filter on is time, always, because the workspace holds months. TimeGenerated is the column, and ago is a time counted back from now."),
             ivy("Then you narrowed it to checkout, I assume."),
             nova("Where Name has checkout. [pause] And there is a lovely little exam question hiding inside that one word."),
