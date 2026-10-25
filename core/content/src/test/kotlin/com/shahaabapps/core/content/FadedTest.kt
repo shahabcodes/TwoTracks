@@ -41,7 +41,7 @@ class FadedTest {
         // The counts are asserted so that a filter that silently stops
         // matching cannot turn this test into a no-op.
         assertEquals("az-204 topics", 22, mustFade.count { it.first.id == Az204.course.id })
-        assertEquals("ai-200 topics", 19, mustFade.count { it.first.id == Ai200.course.id })
+        assertEquals("ai-200 topics", 20, mustFade.count { it.first.id == Ai200.course.id })
         assertEquals("az-305 topics", 14, mustFade.count { it.first.id == Az305.course.id })
         assertEquals("psm-1 topics", 15, mustFade.count { it.first.id == Psm1.course.id })
         assertEquals("German writing topics", 12, mustFade.count { it.first.id == GermanA1.course.id })

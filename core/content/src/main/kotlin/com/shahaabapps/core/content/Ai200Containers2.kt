@@ -500,6 +500,24 @@ internal object Ai200Containers2 {
     val quiz: Quiz = Quiz(
         id = "ai-containers-test", title = "Containers module test",
         questions = B.spread(listOf(
+            B.q("ai-c0a", "ai-app", "Zaiqa must write an order, its order lines and the payment so that either all three land or none of them do. Which store?",
+                listOf("Azure SQL Database", "Cosmos DB for NoSQL", "Azure Managed Redis", "Blob Storage"), setOf(0),
+                "Several tables changing together is a transaction, which is what the relational source of truth is for.",
+                whyWrong = mapOf(
+                    1 to "Cosmos takes the huge, fast writes beside the order, not the money that has to add up across tables.",
+                    2 to "Redis holds what is true right now and loses it on a restart; an order total is not a cache entry.",
+                    3 to "Blob Storage holds files. An order is rows, not a file.",
+                ),
+            ),
+            B.q("ai-c0b", "ai-app", "Which pair of Zaiqa facts belongs in Cosmos DB and in Redis, in that order?",
+                listOf("The rider ping history, and the rider's current position", "The payments table, and the menu photos", "The rider's current position, and the rider ping history", "The order lines, and the finance report"), setOf(0),
+                "Cosmos takes the huge history with its change feed; Redis takes the one value that is true right now.",
+                whyWrong = mapOf(
+                    1 to "Payments belong in Azure SQL and photos belong in Blob Storage; neither of those is in either store.",
+                    2 to "That is the right idea the wrong way round: the history is the huge one, the position is the momentary one.",
+                    3 to "Order lines and the report the finance team runs are both reasons Zaiqa keeps a relational database.",
+                ),
+            ),
             B.q("ai-c1", "ai-acr", "You want ACR to build the Coach API image from your Dockerfile without Docker installed on your laptop. Which command?",
                 listOf("az acr build --registry ttcoach --image coach-api:v2 .", "docker build -t coach-api .", "az acr import --name ttcoach --source coach-api", "az acr login --name ttcoach"), setOf(0),
                 "az acr build is an ACR Tasks quick task: it uploads the build context and builds and pushes the image in Azure.",
