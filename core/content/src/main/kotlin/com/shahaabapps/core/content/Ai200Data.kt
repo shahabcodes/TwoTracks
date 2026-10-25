@@ -29,16 +29,16 @@ internal object Ai200Data {
                 Your Python code talks to it through the azure-cosmos package, signing in with Entra ID instead of a key.
             """),
             B.diagram(
-                caption = "The Coach API signs in with Entra ID, then works down from account to database to container. A point read uses the id plus the partition key.",
+                caption = "One path down from the signed-in client to the item: account, then database, then container, and finally the cheapest read there is.",
                 nodes = listOf(
-                    DNode("app", "Coach API", 0.18f, 0.2f, w = 0.3f, h = 0.22f, tone = 1, sub = "CosmosClient"),
-                    DNode("acct", "Cosmos DB account", 0.62f, 0.2f, w = 0.4f, h = 0.22f, tone = 2, sub = "tt-cosmos"),
-                    DNode("db", "Database: coach", 0.62f, 0.5f, w = 0.4f, h = 0.18f),
-                    DNode("cont", "Container: notes", 0.62f, 0.8f, w = 0.4f, h = 0.22f, kind = NodeKind.CYLINDER, sub = "partition key /userId"),
-                    DNode("pr", "Point read", 0.18f, 0.65f, w = 0.3f, h = 0.3f, kind = NodeKind.NOTE, tone = 2, sub = "id + key, about 1 RU"),
+                    DNode("app", "1. Coach API", 0.5f, 0.085f, w = 0.86f, h = 0.15f, tone = 1, hue = DHue.COMPUTE, sub = "CosmosClient with DefaultAzureCredential"),
+                    DNode("acct", "2. Cosmos DB account", 0.5f, 0.29f, w = 0.86f, h = 0.15f, tone = 1, hue = DHue.DATA, sub = "tt-cosmos, the endpoint URL"),
+                    DNode("db", "3. Database: coach", 0.5f, 0.495f, w = 0.86f, h = 0.15f, tone = 1, hue = DHue.DATA, sub = "get_database_client"),
+                    DNode("cont", "4. Container: notes", 0.5f, 0.7f, w = 0.86f, h = 0.15f, hue = DHue.DATA, sub = "partition key /userId"),
+                    DNode("pr", "5. Point read", 0.5f, 0.905f, w = 0.86f, h = 0.15f, hue = DHue.FLOW, sub = "id + partition key, about 1 RU"),
                 ),
-                edges = listOf(DEdge("app", "acct", label = "Entra token"), DEdge("acct", "db"), DEdge("db", "cont"), DEdge("pr", "cont", dashed = true)),
-                aspect = 0.9f,
+                edges = listOf(DEdge("app", "acct", label = "Entra token"), DEdge("acct", "db"), DEdge("db", "cont"), DEdge("cont", "pr", label = "read_item")),
+                aspect = 1.25f,
             ),
             B.h("The resource model"),
             B.table(
@@ -243,15 +243,16 @@ internal object Ai200Data {
                 consistency level (how fresh a read must be, which affects read cost and latency).
             """),
             B.diagram(
-                caption = "Each request spends RUs from the container's per-second budget. Within budget it succeeds and reports its charge; over budget it gets 429.",
+                caption = "A request spends RUs from the container's budget for that second, and the budget decides the answer: the charge header, or 429.",
                 nodes = listOf(
-                    DNode("app", "Coach API", 0.18f, 0.5f, w = 0.3f, h = 0.22f, tone = 1, sub = "query costs 12 RU"),
-                    DNode("cont", "notes container", 0.55f, 0.5f, w = 0.3f, h = 0.26f, kind = NodeKind.CYLINDER, sub = "1,000 RU/s"),
-                    DNode("ok", "200 OK", 0.85f, 0.2f, w = 0.28f, h = 0.2f, kind = NodeKind.PILL, sub = "x-ms-request-charge"),
-                    DNode("busy", "429 throttled", 0.85f, 0.8f, w = 0.28f, h = 0.2f, kind = NodeKind.PILL, tone = 2, sub = "retry after ms"),
+                    DNode("app", "1. Coach API", 0.5f, 0.095f, w = 0.86f, h = 0.15f, tone = 1, hue = DHue.COMPUTE, sub = "one query, 12 RU to serve"),
+                    DNode("cont", "2. notes container", 0.5f, 0.315f, w = 0.86f, h = 0.15f, hue = DHue.DATA, sub = "budget of 1,000 RU per second"),
+                    DNode("q", "Enough RU left this second?", 0.5f, 0.52f, w = 0.86f, h = 0.12f, kind = NodeKind.NOTE, tone = 1),
+                    DNode("ok", "200 OK", 0.27f, 0.8f, w = 0.46f, h = 0.21f, hue = DHue.CHOICE, sub = "x-ms-request-charge"),
+                    DNode("busy", "429 throttled", 0.73f, 0.8f, w = 0.46f, h = 0.21f, hue = DHue.CHOICE, sub = "retry after ms"),
                 ),
-                edges = listOf(DEdge("app", "cont", label = "request"), DEdge("cont", "ok", label = "in budget"), DEdge("cont", "busy", label = "over budget")),
-                aspect = 0.8f,
+                edges = listOf(DEdge("app", "cont", label = "request"), DEdge("cont", "q"), DEdge("q", "ok", label = "in budget"), DEdge("q", "busy", label = "over budget")),
+                aspect = 1.15f,
             ),
             B.h("Request units and the charge header"),
             B.bullets(
@@ -457,21 +458,23 @@ internal object Ai200Data {
                 vectors are closest. That is vector search, and it finds notes by meaning, not by matching words.
             """),
             B.diagram(
-                caption = "Retrieval for the Coach: embed the question, find the closest notes with VectorDistance, then give them to a chat model to answer from.",
+                caption = "One question, straight down: turn it into a vector, rank the learner's notes by distance, and let a chat model answer from the ones that came back.",
                 nodes = listOf(
-                    DNode("user", "Learner", 0.1f, 0.2f, w = 0.16f, h = 0.2f, kind = NodeKind.USER),
-                    DNode("api", "Coach API", 0.4f, 0.2f, w = 0.3f, h = 0.2f, tone = 1, sub = "embed the question"),
-                    DNode("emb", "Embedding model", 0.8f, 0.2f, w = 0.34f, h = 0.2f, tone = 2, sub = "Azure OpenAI"),
-                    DNode("db", "Cosmos DB notes", 0.4f, 0.7f, w = 0.34f, h = 0.26f, kind = NodeKind.CYLINDER, sub = "VectorDistance TOP 5"),
-                    DNode("chat", "Chat model", 0.8f, 0.7f, w = 0.34f, h = 0.2f, tone = 2, sub = "answers from notes"),
+                    DNode("user", "Learner", 0.5f, 0.075f, w = 0.5f, h = 0.12f, kind = NodeKind.PILL, tone = 1, sub = "asks in their own words"),
+                    DNode("emb", "1. Embedding model", 0.5f, 0.245f, w = 0.86f, h = 0.12f, hue = DHue.COMPUTE, sub = "text-embedding-3-small, 1,536 numbers"),
+                    DNode("db", "2. Cosmos DB notes", 0.5f, 0.415f, w = 0.86f, h = 0.12f, hue = DHue.DATA, sub = "vector index, filtered to the learner"),
+                    DNode("top", "3. Top 5 notes", 0.5f, 0.585f, w = 0.86f, h = 0.12f, hue = DHue.FLOW, sub = "ORDER BY VectorDistance, with scores"),
+                    DNode("chat", "4. Chat model", 0.5f, 0.755f, w = 0.86f, h = 0.12f, hue = DHue.COMPUTE, sub = "answers only from those notes"),
+                    DNode("ans", "Grounded answer", 0.5f, 0.925f, w = 0.6f, h = 0.12f, kind = NodeKind.PILL, tone = 1, sub = "shown with the notes it used"),
                 ),
                 edges = listOf(
-                    DEdge("user", "api", label = "question"),
-                    DEdge("api", "emb", label = "text", bidirectional = true),
-                    DEdge("api", "db", label = "query vector"),
-                    DEdge("db", "chat", label = "top notes"),
+                    DEdge("user", "emb", label = "question"),
+                    DEdge("emb", "db", label = "query vector"),
+                    DEdge("db", "top"),
+                    DEdge("top", "chat", label = "as context"),
+                    DEdge("chat", "ans"),
                 ),
-                aspect = 0.75f,
+                aspect = 1.3f,
             ),
             B.h("Turn on vector search and describe the vectors"),
             B.bullets(

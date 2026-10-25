@@ -31,23 +31,24 @@ internal object Ai200Secure {
                 backend, and only the backend talks to the vault.
             """),
             B.diagram(
-                caption = "The phone calls the Coach API; the API reads the key with its managed identity. Near expiry, Event Grid wakes a function that writes a new version.",
+                caption = "One path down: the phone calls the Coach API, the API reads the key with its managed identity, and near expiry an event wakes a function that writes a new version into the same vault.",
                 nodes = listOf(
-                    DNode("phone", "Android app", 0.12f, 0.2f, w = 0.2f, h = 0.2f, kind = NodeKind.USER),
-                    DNode("api", "Coach API", 0.45f, 0.2f, w = 0.3f, h = 0.2f, tone = 1, sub = "managed identity"),
-                    DNode("kv", "Key Vault", 0.82f, 0.2f, w = 0.3f, h = 0.2f, kind = NodeKind.CYLINDER, sub = "secret: OpenAiKey"),
-                    DNode("eg", "Event Grid", 0.82f, 0.55f, w = 0.3f, h = 0.18f, tone = 2, sub = "SecretNearExpiry"),
-                    DNode("fn", "Rotation function", 0.45f, 0.55f, w = 0.3f, h = 0.18f, tone = 1, sub = "new secret version"),
-                    DNode("note", "The phone never holds a secret", 0.5f, 0.86f, w = 0.8f, h = 0.14f, kind = NodeKind.NOTE, tone = 2),
+                    DNode("phone", "1. Android app", 0.5f, 0.065f, w = 0.86f, h = 0.1f, tone = 1, sub = "sends the user's own token, never a key", hue = DHue.NEUTRAL),
+                    DNode("api", "2. Coach API", 0.5f, 0.21f, w = 0.86f, h = 0.1f, sub = "signs in with its managed identity", hue = DHue.COMPUTE),
+                    DNode("kv", "3. Key Vault", 0.5f, 0.355f, w = 0.86f, h = 0.1f, sub = "secret OpenAiKey, latest version", hue = DHue.DATA),
+                    DNode("eg", "4. Event Grid", 0.5f, 0.5f, w = 0.86f, h = 0.1f, tone = 1, sub = "SecretNearExpiry, 30 days ahead", hue = DHue.FLOW),
+                    DNode("fn", "5. Rotation function", 0.5f, 0.645f, w = 0.86f, h = 0.1f, tone = 1, sub = "asks the provider for a new key", hue = DHue.COMPUTE),
+                    DNode("newver", "6. New secret version", 0.5f, 0.79f, w = 0.86f, h = 0.1f, tone = 1, sub = "the API's next read gets it", hue = DHue.DATA),
+                    DNode("note", "The phone never holds a secret", 0.5f, 0.935f, w = 0.86f, h = 0.09f, kind = NodeKind.NOTE, tone = 2),
                 ),
                 edges = listOf(
                     DEdge("phone", "api", label = "HTTPS"),
                     DEdge("api", "kv", label = "get_secret"),
                     DEdge("kv", "eg", label = "near expiry"),
                     DEdge("eg", "fn", label = "trigger"),
-                    DEdge("fn", "kv", label = "set_secret", dashed = true),
+                    DEdge("fn", "newver", label = "set_secret", dashed = true),
                 ),
-                aspect = 0.8f,
+                aspect = 1.3f,
             ),
             B.h("A vault with RBAC"),
             B.p("""
@@ -157,18 +158,18 @@ internal object Ai200Secure {
             """),
             B.h("Soft delete and purge protection"),
             B.diagram(
-                caption = "A deleted secret waits in the soft-deleted state for the retention period, where it can be recovered or, without purge protection, purged.",
+                caption = "The three states a secret can be in, top to bottom: a deleted secret waits out the retention period, where it can be recovered or, without purge protection, purged.",
                 nodes = listOf(
-                    DNode("active", "Active secret", 0.15f, 0.35f, w = 0.24f, h = 0.3f, tone = 1),
-                    DNode("deleted", "Soft-deleted", 0.5f, 0.35f, w = 0.3f, h = 0.3f, sub = "kept 7 to 90 days"),
-                    DNode("gone", "Purged for good", 0.85f, 0.35f, w = 0.26f, h = 0.3f, tone = 2),
-                    DNode("note", "Purge protection: no purge until the window ends", 0.5f, 0.82f, w = 0.9f, h = 0.22f, kind = NodeKind.NOTE, tone = 2),
+                    DNode("active", "1. Active secret", 0.5f, 0.12f, w = 0.86f, h = 0.14f, tone = 1, sub = "the version the API reads", hue = DHue.DATA),
+                    DNode("deleted", "2. Soft-deleted", 0.5f, 0.38f, w = 0.86f, h = 0.14f, sub = "recoverable for 7 to 90 days", hue = DHue.DATA),
+                    DNode("gone", "3. Purged for good", 0.5f, 0.64f, w = 0.86f, h = 0.14f, tone = 2, sub = "the name is free again", hue = DHue.NEUTRAL),
+                    DNode("note", "Purge protection blocks step 3 until the window ends", 0.5f, 0.89f, w = 0.86f, h = 0.12f, kind = NodeKind.NOTE, tone = 2),
                 ),
                 edges = listOf(
                     DEdge("active", "deleted", label = "delete / recover", bidirectional = true),
                     DEdge("deleted", "gone", label = "purge"),
                 ),
-                aspect = 0.5f,
+                aspect = 1.1f,
             ),
             B.bullets(
                 "Soft delete is a recycle bin. A deleted vault or secret is kept for a retention period of 7 to 90 days (90 by default), set when the vault is created and fixed after that.",
@@ -294,14 +295,14 @@ internal object Ai200Secure {
                 once and they all follow. Secrets stay in Key Vault; App Configuration only points to them.
             """),
             B.diagram(
-                caption = "Plain settings live in App Configuration, secrets stay in Key Vault, and the API watches one sentinel key to know when to reload.",
+                caption = "Plain settings live in App Configuration and secrets stay in Key Vault; the API loads the keys, resolves the reference with its own identity, and watches one sentinel key to know when to reload.",
                 nodes = listOf(
-                    DNode("store", "App Configuration", 0.5f, 0.12f, w = 0.5f, h = 0.16f, kind = NodeKind.CYLINDER, tone = 1),
-                    DNode("k1", "Coach:MaxTokens = 800 (prod)", 0.27f, 0.38f, w = 0.46f, h = 0.13f, kind = NodeKind.PILL),
-                    DNode("k2", "Coach:OpenAiKey (KV ref)", 0.75f, 0.38f, w = 0.44f, h = 0.13f, kind = NodeKind.PILL, tone = 2),
-                    DNode("k3", "Coach:Sentinel = 12", 0.27f, 0.58f, w = 0.46f, h = 0.13f, kind = NodeKind.PILL, tone = 2),
-                    DNode("kv", "Key Vault", 0.75f, 0.58f, w = 0.36f, h = 0.13f, kind = NodeKind.CYLINDER),
-                    DNode("app", "Coach API: load() and refresh()", 0.5f, 0.86f, w = 0.7f, h = 0.16f, tone = 1),
+                    DNode("store", "App Configuration", 0.5f, 0.09f, w = 0.86f, h = 0.13f, sub = "the one place settings live", hue = DHue.DATA),
+                    DNode("k1", "Coach:MaxTokens", 0.26f, 0.32f, w = 0.46f, h = 0.12f, kind = NodeKind.PILL, tone = 1, sub = "800 in prod", hue = DHue.DATA),
+                    DNode("k2", "Coach:OpenAiKey", 0.74f, 0.32f, w = 0.46f, h = 0.12f, kind = NodeKind.PILL, tone = 1, sub = "points at the vault", hue = DHue.DATA),
+                    DNode("k3", "Coach:Sentinel", 0.26f, 0.54f, w = 0.46f, h = 0.12f, kind = NodeKind.PILL, tone = 1, sub = "bumped last", hue = DHue.FLOW),
+                    DNode("kv", "Key Vault", 0.74f, 0.54f, w = 0.46f, h = 0.12f, sub = "holds the secret", hue = DHue.DATA),
+                    DNode("app", "Coach API", 0.5f, 0.8f, w = 0.86f, h = 0.15f, sub = "load(), then refresh()", hue = DHue.COMPUTE),
                 ),
                 edges = listOf(
                     DEdge("store", "k1"),
@@ -310,7 +311,7 @@ internal object Ai200Secure {
                     DEdge("k3", "app", label = "watched"),
                     DEdge("app", "kv", label = "own identity", dashed = true),
                 ),
-                aspect = 0.8f,
+                aspect = 1.15f,
             ),
             B.h("Keys, values and labels"),
             B.table(

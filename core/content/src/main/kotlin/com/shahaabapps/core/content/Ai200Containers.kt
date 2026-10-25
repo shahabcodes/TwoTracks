@@ -27,18 +27,18 @@ internal object Ai200Containers {
                 we are building ours. Every later topic changes one part of Zaiqa, and this page is the map it changes.
             """),
             B.diagram(
-                caption = "One order's journey through Zaiqa: the app and the dashboard call the API, the API owns Azure SQL, and the queue, the worker and the photo function fill Cosmos, Redis and Blob.",
+                caption = "The map Zaiqa changes all course: the app and the dashboard call the API, the API owns Azure SQL, and the queue, the worker and the photo function fill Cosmos, Redis and Blob.",
                 nodes = listOf(
-                    DNode("app", "Zaiqa app", 0.17f, 0.10f, w = 0.28f, h = 0.14f, sub = "Kotlin"),
-                    DNode("dash", "Partner dash", 0.83f, 0.10f, w = 0.28f, h = 0.14f, sub = "Angular"),
-                    DNode("api", "Zaiqa API", 0.5f, 0.31f, w = 0.28f, h = 0.14f, tone = 1, sub = "dot NET 9"),
-                    DNode("sql", "Azure SQL", 0.17f, 0.52f, w = 0.28f, h = 0.16f, kind = NodeKind.CYLINDER, sub = "source of truth"),
-                    DNode("redis", "Redis", 0.5f, 0.52f, w = 0.28f, h = 0.16f, kind = NodeKind.CYLINDER, tone = 2, sub = "right now"),
-                    DNode("blob", "Blob Storage", 0.83f, 0.52f, w = 0.28f, h = 0.16f, kind = NodeKind.CYLINDER, tone = 2, sub = "dish photos"),
-                    DNode("queue", "Orders queue", 0.17f, 0.73f, w = 0.28f, h = 0.14f, sub = "Service Bus"),
-                    DNode("worker", "Order worker", 0.5f, 0.73f, w = 0.28f, h = 0.14f, tone = 1),
-                    DNode("photo", "Photo function", 0.83f, 0.73f, w = 0.28f, h = 0.14f, sub = "Python"),
-                    DNode("cosmos", "Cosmos DB", 0.5f, 0.92f, w = 0.28f, h = 0.16f, kind = NodeKind.CYLINDER, sub = "events, vectors"),
+                    DNode("app", "Zaiqa app", 0.23f, 0.08f, w = 0.42f, h = 0.14f, sub = "Kotlin on your phone", hue = DHue.NEUTRAL),
+                    DNode("dash", "Partner dash", 0.77f, 0.08f, w = 0.42f, h = 0.14f, sub = "Angular dashboard", hue = DHue.NEUTRAL),
+                    DNode("api", "Zaiqa API", 0.5f, 0.29f, w = 0.46f, h = 0.14f, sub = "dot NET 9, owns SQL", hue = DHue.COMPUTE),
+                    DNode("sql", "Azure SQL", 0.17f, 0.50f, w = 0.31f, h = 0.15f, sub = "source of truth", hue = DHue.DATA),
+                    DNode("redis", "Redis", 0.5f, 0.50f, w = 0.31f, h = 0.15f, tone = 1, sub = "true right now", hue = DHue.DATA),
+                    DNode("blob", "Blob Storage", 0.83f, 0.50f, w = 0.31f, h = 0.15f, tone = 1, sub = "dish photos", hue = DHue.DATA),
+                    DNode("queue", "Orders queue", 0.17f, 0.71f, w = 0.31f, h = 0.15f, sub = "Service Bus", hue = DHue.FLOW),
+                    DNode("worker", "Order worker", 0.5f, 0.71f, w = 0.31f, h = 0.15f, tone = 1, sub = "to the kitchen", hue = DHue.COMPUTE),
+                    DNode("photo", "Photo function", 0.83f, 0.71f, w = 0.31f, h = 0.15f, tone = 1, sub = "Python", hue = DHue.COMPUTE),
+                    DNode("cosmos", "Cosmos DB", 0.5f, 0.92f, w = 0.40f, h = 0.15f, sub = "events and vectors", hue = DHue.DATA),
                 ),
                 edges = listOf(
                     DEdge("app", "api", label = "order"), DEdge("dash", "api", label = "menus"),
@@ -47,7 +47,7 @@ internal object Ai200Containers {
                     DEdge("queue", "worker", label = "message"), DEdge("worker", "cosmos", label = "events"),
                     DEdge("photo", "blob", dashed = true), DEdge("photo", "cosmos", label = "vectors"),
                 ),
-                aspect = 0.9f,
+                aspect = 1.3f,
             ),
             B.h("The parts, in the order an order meets them"),
             B.p("""
@@ -246,20 +246,20 @@ internal object Ai200Containers {
                 It can also build the images for you in the cloud, so you do not need Docker on your laptop.
             """),
             B.diagram(
-                caption = "ACR Tasks builds the image from source and pushes it to the registry. Hosts pull it with an identity that holds AcrPull.",
+                caption = "The order it happens in: source code, a build in Azure, the registry, and only then a host that pulls with AcrPull.",
                 nodes = listOf(
-                    DNode("src", "Source code", 0.15f, 0.2f, w = 0.26f, h = 0.18f, sub = "Dockerfile + app"),
-                    DNode("task", "ACR Tasks build", 0.5f, 0.2f, w = 0.3f, h = 0.18f, tone = 1),
-                    DNode("acr", "Registry", 0.5f, 0.55f, w = 0.34f, h = 0.24f, kind = NodeKind.CYLINDER, sub = "coach-api:1.4.0"),
-                    DNode("role", "AcrPull role", 0.85f, 0.55f, w = 0.26f, h = 0.14f, kind = NodeKind.NOTE, tone = 2),
-                    DNode("app", "App Service", 0.2f, 0.88f, w = 0.3f, h = 0.16f, tone = 1),
-                    DNode("aca", "Container Apps", 0.8f, 0.88f, w = 0.3f, h = 0.16f, tone = 1),
+                    DNode("src", "1. Source code", 0.5f, 0.07f, w = 0.86f, h = 0.13f, sub = "your app and its Dockerfile", hue = DHue.NEUTRAL),
+                    DNode("task", "2. ACR Tasks build", 0.5f, 0.25f, w = 0.86f, h = 0.13f, sub = "az acr build, or a trigger on a commit", hue = DHue.FLOW),
+                    DNode("acr", "3. Registry", 0.5f, 0.43f, w = 0.86f, h = 0.13f, sub = "ttcoach.azurecr.io, tag coach-api:1.4.0", hue = DHue.DATA),
+                    DNode("role", "4. AcrPull on the identity", 0.5f, 0.61f, w = 0.86f, h = 0.12f, kind = NodeKind.NOTE, tone = 2, sub = "no password, no admin user", hue = DHue.NEUTRAL),
+                    DNode("app", "App Service", 0.25f, 0.85f, w = 0.44f, h = 0.16f, tone = 1, sub = "pulls the tag", hue = DHue.COMPUTE),
+                    DNode("aca", "Container Apps", 0.75f, 0.85f, w = 0.44f, h = 0.16f, tone = 1, sub = "pulls the tag", hue = DHue.COMPUTE),
                 ),
                 edges = listOf(
                     DEdge("src", "task", label = "az acr build"), DEdge("task", "acr", label = "push"),
                     DEdge("acr", "app", label = "pull"), DEdge("acr", "aca", label = "pull"), DEdge("role", "acr", dashed = true),
                 ),
-                aspect = 0.8f,
+                aspect = 1.25f,
             ),
             B.h("Registries, repositories, tags and digests"),
             B.p("""
@@ -466,19 +466,19 @@ internal object Ai200Containers {
                 Key Vault.
             """),
             B.diagram(
-                caption = "App Service pulls the image with its identity, resolves Key Vault references and hands every setting to the container as an environment variable.",
+                caption = "In order: the image comes from the registry, the secret from Key Vault, App Service turns both into environment variables inside the container, and the staging slot swaps in the next release.",
                 nodes = listOf(
-                    DNode("acr", "Registry", 0.15f, 0.25f, w = 0.26f, h = 0.24f, kind = NodeKind.CYLINDER, tone = 2),
-                    DNode("app", "App Service", 0.5f, 0.25f, w = 0.3f, h = 0.22f, tone = 1, sub = "production slot"),
-                    DNode("kv", "Key Vault", 0.85f, 0.25f, w = 0.26f, h = 0.24f, kind = NodeKind.CYLINDER, tone = 2),
-                    DNode("stage", "staging slot", 0.5f, 0.7f, w = 0.3f, h = 0.18f),
-                    DNode("env", "Env vars in container", 0.85f, 0.7f, w = 0.26f, h = 0.18f, kind = NodeKind.NOTE),
+                    DNode("acr", "1. Registry", 0.5f, 0.07f, w = 0.86f, h = 0.14f, tone = 2, sub = "coach-api:ca7, pulled with AcrPull", hue = DHue.DATA),
+                    DNode("kv", "2. Key Vault", 0.5f, 0.25f, w = 0.86f, h = 0.14f, tone = 2, sub = "the secret behind the reference", hue = DHue.DATA),
+                    DNode("app", "3. App Service, production", 0.5f, 0.45f, w = 0.86f, h = 0.14f, sub = "pulls the image with its identity", hue = DHue.COMPUTE),
+                    DNode("env", "4. Env vars in the container", 0.5f, 0.64f, w = 0.86f, h = 0.14f, kind = NodeKind.NOTE, tone = 1, sub = "WEBSITES_PORT, COSMOS_ENDPOINT, OPENAI_KEY", hue = DHue.NEUTRAL),
+                    DNode("stage", "5. Staging slot", 0.5f, 0.87f, w = 0.86f, h = 0.14f, tone = 1, sub = "swap to release, swap back to roll back", hue = DHue.COMPUTE),
                 ),
                 edges = listOf(
                     DEdge("acr", "app", label = "pull"), DEdge("kv", "app", label = "reference"),
                     DEdge("app", "env"), DEdge("stage", "app", label = "swap", bidirectional = true),
                 ),
-                aspect = 0.8f,
+                aspect = 1.3f,
             ),
             B.h("Pulling the image with a managed identity"),
             B.p("""
@@ -672,20 +672,20 @@ internal object Ai200Containers {
                 KEDA, but you never touch them directly.
             """),
             B.diagram(
-                caption = "Ingress splits traffic between two revisions, and a KEDA rule adds replicas as the Service Bus queue grows.",
+                caption = "Inside one environment: ingress splits traffic between two revisions, and a KEDA rule watching the Service Bus queue decides how many replicas run.",
                 nodes = listOf(
-                    DNode("envb", "Container Apps environment", 0.5f, 0.1f, w = 0.9f, h = 0.12f, tone = 2),
-                    DNode("ing", "Ingress", 0.5f, 0.32f, w = 0.3f, h = 0.14f, kind = NodeKind.PILL, tone = 1),
-                    DNode("r1", "Revision v1", 0.25f, 0.58f, w = 0.32f, h = 0.18f, sub = "80% traffic"),
-                    DNode("r2", "Revision v2", 0.75f, 0.58f, w = 0.32f, h = 0.18f, sub = "20%, label beta"),
-                    DNode("sb", "Service Bus queue", 0.25f, 0.88f, w = 0.34f, h = 0.2f, kind = NodeKind.CYLINDER, tone = 2),
-                    DNode("keda", "KEDA scale rule", 0.75f, 0.88f, w = 0.34f, h = 0.16f, kind = NodeKind.NOTE),
+                    DNode("envb", "Container Apps environment", 0.5f, 0.075f, w = 0.92f, h = 0.13f, tone = 2, sub = "shared network and logs", hue = DHue.NEUTRAL),
+                    DNode("ing", "Ingress", 0.5f, 0.27f, w = 0.46f, h = 0.14f, kind = NodeKind.PILL, tone = 1, sub = "external, port 8000", hue = DHue.FLOW),
+                    DNode("r1", "Revision v1", 0.25f, 0.53f, w = 0.46f, h = 0.17f, sub = "80% of traffic", hue = DHue.COMPUTE),
+                    DNode("r2", "Revision v2", 0.75f, 0.53f, w = 0.46f, h = 0.17f, sub = "20%, label beta", hue = DHue.COMPUTE),
+                    DNode("sb", "Service Bus queue", 0.25f, 0.85f, w = 0.46f, h = 0.17f, tone = 1, sub = "the waiting backlog", hue = DHue.FLOW),
+                    DNode("keda", "KEDA scale rule", 0.75f, 0.85f, w = 0.46f, h = 0.17f, kind = NodeKind.NOTE, sub = "a replica per 20", hue = DHue.NEUTRAL),
                 ),
                 edges = listOf(
                     DEdge("ing", "r1", label = "80%"), DEdge("ing", "r2", label = "20%"),
                     DEdge("keda", "sb", label = "polls"), DEdge("keda", "r2", label = "replicas"),
                 ),
-                aspect = 0.85f,
+                aspect = 1.25f,
             ),
             B.h("Environments, ingress, secrets and environment variables"),
             B.bullets(

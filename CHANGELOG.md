@@ -3,6 +3,12 @@
 All notable changes to Two Tracks. Versions follow `version.properties`; the
 build number is appended by CI (for example `0.1.0 (build 12)`).
 
+## [0.95.0] - 2026-10-25
+### Changed
+- Lesson diagrams are redrawn. A pipeline is now a ladder: one path down the page, a whole row per step, numbered where the order matters, and any choice saved for the end under its own question. Diagrams that are genuinely a map, like the one that follows an order through the whole app, stay a map.
+- Boxes are tinted cards with dark text instead of solid blocks with reversed-out type, and a step's description is a readable sentence rather than a cramped label.
+- Colour now means something and means the same thing everywhere: blue is where data rests, green is something that runs your code, amber is something in motion, violet is a way the story can go. After three diagrams you know what a store looks like before you read its name.
+
 ## [0.94.1] - 2026-10-25
 ### Fixed
 - Locking your phone no longer loses your place. The lock screen was replacing the app rather than covering it, which threw away where you were, so a glance at a notification sent you back to Today instead of the lesson or episode you had open.

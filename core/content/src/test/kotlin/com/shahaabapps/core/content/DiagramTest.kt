@@ -90,13 +90,46 @@ class DiagramTest {
         assertTrue("${cramped.size} node(s) too small for their words:\n" + cramped.joinToString("\n"), cramped.isEmpty())
     }
 
+    /**
+     * The diagrams that have been redrawn in the newer style, which is the
+     * ones that colour their nodes. Holding the whole corpus to these rules
+     * today would be asking for a thousand pictures to be re-authored at once;
+     * scoping to the ones that opted in guards what has landed, and the net
+     * widens on its own as the rest are redrawn.
+     */
+    private val redrawn = diagrams.filter { (_, _, spec) -> spec.nodes.any { it.hue != DHue.NEUTRAL } }
+
+    @Test
+    fun `a redrawn diagram gives a sentence room to be read`() {
+        // A sub-label is a sentence about the step, not a word, and a quarter
+        // of the width cannot hold one at a readable size.
+        assertTrue("expected redrawn diagrams to check", redrawn.size >= 15)
+        val cramped = redrawn.flatMap { (courseId, topicId, spec) ->
+            spec.nodes.filter { it.sub != null && it.w < 0.3f }.map { "$courseId/$topicId [${it.id}] ${it.w}" }
+        }
+        assertTrue("a sub-label needs a box at least 0.3 wide: ${cramped.size} too narrow, ${cramped.take(5)}", cramped.isEmpty())
+    }
+
+    // There is deliberately no test that every node in a redrawn diagram
+    // carries a colour. The vocabulary has four words — a store, something
+    // that runs code, something in motion, a choice — and plenty of real
+    // things are none of them: source code, a kubectl command, the boundary
+    // of an environment, the phone in your hand. NEUTRAL is the honest answer
+    // for those, and a test insisting on colour only teaches authors to pick
+    // one at random, which is worse than no colour at all.
+
     @Test
     fun `a caption says what the picture means`() {
         diagrams.forEach { (courseId, topicId, spec) ->
             assertTrue("$courseId/$topicId has no caption", spec.caption.isNotBlank())
             assertTrue("$courseId/$topicId: the caption is a label, not a sentence", spec.caption.length > 25)
             assertTrue("$courseId/$topicId is a diagram with no nodes", spec.nodes.isNotEmpty())
-            assertTrue("$courseId/$topicId: aspect ${spec.aspect} is outside anything sensible", spec.aspect in 0.2f..1.3f)
+            // Up to 1.8 since the pipelines became ladders: one path down, a
+            // whole row per step. A lesson scrolls, so height is cheap and
+            // cramming a sequence into a square costs legibility for nothing.
+            // There is still a ceiling, because past this a picture stops
+            // being glanceable and becomes a page of its own.
+            assertTrue("$courseId/$topicId: aspect ${spec.aspect} is outside anything sensible", spec.aspect in 0.2f..1.8f)
         }
     }
 
