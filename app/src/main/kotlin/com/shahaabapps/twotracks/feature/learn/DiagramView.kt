@@ -33,6 +33,7 @@ import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.shahaabapps.core.content.DEdge
+import com.shahaabapps.core.content.DHue
 import com.shahaabapps.core.content.DNode
 import com.shahaabapps.core.content.DiagramSpec
 import com.shahaabapps.core.content.NodeKind
@@ -56,6 +57,10 @@ fun DiagramView(spec: DiagramSpec, modifier: Modifier = Modifier) {
         secondary = AppTheme.colors.secondaryLabel,
         ink = MaterialTheme.colorScheme.onSurface,
         onSolid = AppTheme.colors.onSolid,
+        data = AppTheme.colors.dData,
+        compute = AppTheme.colors.dCompute,
+        flow = AppTheme.colors.dFlow,
+        choice = AppTheme.colors.dChoice,
     )
     Column(
         modifier = modifier
@@ -81,6 +86,11 @@ data class DiagramColors(
     val secondary: Color,
     val ink: Color,
     val onSolid: Color,
+    /** What each [com.shahaabapps.core.content.DHue] is drawn in, the theme's own colours. */
+    val data: Color = accent,
+    val compute: Color = accent,
+    val flow: Color = accent,
+    val choice: Color = accent,
 )
 
 /**
@@ -108,8 +118,11 @@ fun DiagramCanvas(
     val secondary = colors.secondary
     val ink = colors.ink
     val onSolid = colors.onSolid
-    val labelStyle = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.SemiBold, textAlign = TextAlign.Center)
-    val subStyle = MaterialTheme.typography.labelSmall.copy(textAlign = TextAlign.Center, fontSize = 10.sp)
+    // Sized for a card you read, not a label you squint at. fitText shrinks
+    // these to fit a small node, so a generous starting point costs nothing
+    // where there is no room and buys legibility where there is.
+    val labelStyle = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.SemiBold, textAlign = TextAlign.Center)
+    val subStyle = MaterialTheme.typography.bodySmall.copy(textAlign = TextAlign.Center, color = secondary)
     val edgeStyle = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp, color = secondary)
     Canvas(modifier = modifier.fillMaxWidth().aspectRatio(1f / spec.aspect)) {
             val byId = spec.nodes.associateBy { it.id }
@@ -157,21 +170,56 @@ fun DiagramCanvas(
                     full.center.x + full.width * grow / 2f, full.center.y + full.height * grow / 2f,
                 )
                 fun Color.faded() = copy(alpha = this.alpha * alpha)
-                val tone = when (n.tone) { 0 -> accent; 1 -> accent.copy(alpha = 0.12f); else -> secondary.copy(alpha = 0.35f) }.faded()
-                val textColor = (if (n.tone == 0 && n.kind != NodeKind.NOTE) onSolid else ink).faded()
+                // Tinted cards rather than solid blocks. A diagram is read, not
+                // admired, and a column of black rectangles with reversed-out
+                // type is heavy going; a wash of colour inside a firmer edge
+                // separates the steps just as well and leaves every word in
+                // ordinary ink. Tone says how much a node matters: 0 is the
+                // thing being taught, 1 supports it, 2 is an aside.
+                val hue = when (n.hue) {
+                    DHue.NEUTRAL -> accent
+                    DHue.DATA -> colors.data
+                    DHue.COMPUTE -> colors.compute
+                    DHue.FLOW -> colors.flow
+                    DHue.CHOICE -> colors.choice
+                }
+                val tone = when (n.tone) {
+                    0 -> hue.copy(alpha = 0.16f)
+                    1 -> hue.copy(alpha = 0.09f)
+                    else -> secondary.copy(alpha = 0.10f)
+                }.faded()
+                val rim = when (n.tone) {
+                    0 -> hue.copy(alpha = 0.55f)
+                    1 -> hue.copy(alpha = 0.30f)
+                    else -> secondary.copy(alpha = 0.30f)
+                }.faded()
+                val textColor = ink.faded()
+                val radius = 18.dp.toPx()
+                val rimWidth = 1.5.dp.toPx()
                 when (n.kind) {
-                    NodeKind.BOX -> drawRoundRect(tone, r.topLeft, r.size, CornerRadius(12.dp.toPx()))
-                    NodeKind.PILL -> drawRoundRect(tone, r.topLeft, r.size, CornerRadius(r.height / 2f))
+                    NodeKind.BOX -> {
+                        drawRoundRect(tone, r.topLeft, r.size, CornerRadius(radius))
+                        drawRoundRect(rim, r.topLeft, r.size, CornerRadius(radius), style = Stroke(width = rimWidth))
+                    }
+                    NodeKind.PILL -> {
+                        drawRoundRect(tone, r.topLeft, r.size, CornerRadius(r.height / 2f))
+                        drawRoundRect(rim, r.topLeft, r.size, CornerRadius(r.height / 2f), style = Stroke(width = rimWidth))
+                    }
                     NodeKind.NOTE -> {
-                        drawRoundRect(fill.faded(), r.topLeft, r.size, CornerRadius(8.dp.toPx()))
-                        drawRoundRect(secondary.copy(alpha = 0.5f).faded(), r.topLeft, r.size, CornerRadius(8.dp.toPx()), style = Stroke(width = 1.5f, pathEffect = PathEffect.dashPathEffect(floatArrayOf(8f, 6f))))
+                        drawRoundRect(fill.faded(), r.topLeft, r.size, CornerRadius(radius))
+                        drawRoundRect(secondary.copy(alpha = 0.5f).faded(), r.topLeft, r.size, CornerRadius(radius), style = Stroke(width = rimWidth, pathEffect = PathEffect.dashPathEffect(floatArrayOf(8f, 6f))))
                     }
                     NodeKind.CYLINDER -> {
-                        val ry = r.height * 0.14f
+                        // A wide, shallow cylinder reads as a squashed ellipse,
+                        // so the end caps shrink as the shape gets wider: a
+                        // full-width store stays a card with a lid rather than
+                        // turning into a running track.
+                        val ry = (r.height * 0.14f).coerceAtMost(r.width * 0.045f)
                         drawRoundRect(tone, Offset(r.left, r.top + ry), Size(r.width, r.height - ry * 2), CornerRadius(ry * 2.2f, ry))
                         drawOval(tone, Offset(r.left, r.top), Size(r.width, ry * 2))
-                        drawOval(Color.White.copy(alpha = 0.35f).faded(), Offset(r.left, r.top), Size(r.width, ry * 2), style = Stroke(width = 1.5f))
+                        drawOval(rim, Offset(r.left, r.top), Size(r.width, ry * 2), style = Stroke(width = rimWidth))
                         drawOval(tone, Offset(r.left, r.bottom - ry * 2), Size(r.width, ry * 2))
+                        drawRoundRect(rim, Offset(r.left, r.top + ry), Size(r.width, r.height - ry * 2), CornerRadius(ry * 2.2f, ry), style = Stroke(width = rimWidth))
                     }
                     NodeKind.CLOUD -> {
                         val p = Path().apply {
@@ -195,7 +243,9 @@ fun DiagramCanvas(
                     NodeKind.CYLINDER -> 0.84f to 0.68f
                     NodeKind.CLOUD -> 0.60f to 0.50f
                     NodeKind.USER -> 1.35f to 0.52f
-                    else -> 0.90f to 0.86f
+                    // Room to breathe inside the card, so the words are not
+                    // pressed against its edge.
+                    else -> 0.84f to 0.74f
                 }
                 // Text is laid out on the node's full size, so a node growing
                 // into place does not re-fit its type on every frame.
@@ -215,7 +265,9 @@ fun DiagramCanvas(
                 val subH = boxH - label.size.height
                 val sub = n.sub
                     ?.takeIf { subH >= 8.sp.toPx() }
-                    ?.let { fitText(measurer, it, subStyle.copy(color = textColor.copy(alpha = textColor.alpha * 0.85f)), boxW, subH) }
+                    // Grey under the title, as a caption is: it explains the
+                    // step without competing with its name.
+                    ?.let { fitText(measurer, it, subStyle.copy(color = secondary.copy(alpha = secondary.alpha * alpha)), boxW, subH) }
 
                 val totalH = label.size.height + (sub?.size?.height ?: 0)
                 val top = if (n.kind == NodeKind.USER) full.bottom + 2f else full.center.y - totalH / 2f

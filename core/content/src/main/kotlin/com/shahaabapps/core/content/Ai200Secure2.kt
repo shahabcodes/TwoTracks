@@ -29,23 +29,21 @@ internal object Ai200Secure2 {
                 Application Insights can put the pieces back together as one story.
             """),
             B.diagram(
-                caption = "One question to Two Tracks Coach becomes one trace. The trace id travels in the traceparent header, and every service exports its spans to Application Insights.",
+                caption = "One question becomes one trace, read top to bottom in the order the spans happen. The traceparent header carries the trace id to the function, and every service exports its spans under the same operation id.",
                 nodes = listOf(
-                    DNode("note", "One trace id for all", 0.5f, 0.08f, w = 0.4f, h = 0.12f, kind = NodeKind.NOTE, tone = 2),
-                    DNode("api", "Coach API", 0.18f, 0.3f, w = 0.3f, h = 0.24f, tone = 1, sub = "Container App"),
-                    DNode("func", "Summarize function", 0.82f, 0.3f, w = 0.3f, h = 0.24f, sub = "Function app"),
-                    DNode("redis", "Managed Redis", 0.18f, 0.75f, w = 0.3f, h = 0.24f, tone = 2, sub = "client span"),
-                    DNode("appi", "Application Insights", 0.5f, 0.75f, w = 0.3f, h = 0.24f, tone = 1),
-                    DNode("cosmos", "Cosmos DB", 0.82f, 0.75f, w = 0.3f, h = 0.24f, kind = NodeKind.CYLINDER, tone = 2, sub = "dependency"),
+                    DNode("api", "1. Coach API", 0.5f, 0.1f, w = 0.86f, h = 0.17f, tone = 0, hue = DHue.COMPUTE, sub = "server span: POST /ask"),
+                    DNode("redis", "2. Managed Redis", 0.5f, 0.3f, w = 0.86f, h = 0.17f, tone = 1, hue = DHue.DATA, sub = "cache lookup, still inside the API"),
+                    DNode("func", "3. Summarize function", 0.5f, 0.5f, w = 0.86f, h = 0.17f, tone = 0, hue = DHue.COMPUTE, sub = "continues the trace from traceparent"),
+                    DNode("cosmos", "4. Cosmos DB", 0.5f, 0.7f, w = 0.86f, h = 0.17f, tone = 1, hue = DHue.DATA, sub = "the function's dependency span"),
+                    DNode("appi", "Application Insights", 0.5f, 0.9f, w = 0.86f, h = 0.17f, tone = 1, hue = DHue.DATA, sub = "one operation id joins all four"),
                 ),
                 edges = listOf(
-                    DEdge("api", "func", label = "traceparent"),
-                    DEdge("api", "redis", label = "child span"),
-                    DEdge("func", "cosmos"),
-                    DEdge("api", "appi", dashed = true),
-                    DEdge("func", "appi", dashed = true),
+                    DEdge("api", "redis", label = "client span"),
+                    DEdge("redis", "func", label = "next span"),
+                    DEdge("func", "cosmos", label = "client span"),
+                    DEdge("cosmos", "appi", label = "all spans exported", dashed = true),
                 ),
-                aspect = 0.7f,
+                aspect = 1.25f,
             ),
             B.h("Traces, spans and attributes"),
             B.table(
@@ -250,16 +248,16 @@ internal object Ai200Secure2 {
                 each after a | (pipe): filter, pick columns, group and count, then draw a chart.
             """),
             B.diagram(
-                caption = "A KQL query is a pipeline: rows flow from a table through each step, left to right, and come out as a table or a chart.",
+                caption = "A KQL query is a pipeline: rows start in a table and fall through each step in turn, coming out as a table or a chart.",
                 nodes = listOf(
-                    DNode("t", "AppRequests", 0.13f, 0.35f, w = 0.22f, h = 0.3f, kind = NodeKind.PILL, tone = 1, sub = "rows in"),
-                    DNode("w", "where", 0.38f, 0.35f, w = 0.22f, h = 0.3f, kind = NodeKind.PILL, sub = "keep last 1h"),
-                    DNode("s", "summarize", 0.63f, 0.35f, w = 0.22f, h = 0.3f, kind = NodeKind.PILL, sub = "p95 per 5 min"),
-                    DNode("r", "render", 0.88f, 0.35f, w = 0.22f, h = 0.3f, kind = NodeKind.PILL, tone = 2, sub = "timechart"),
-                    DNode("n", "Each | passes its rows to the next step", 0.5f, 0.8f, w = 0.6f, h = 0.25f, kind = NodeKind.NOTE, tone = 2),
+                    DNode("t", "1. AppRequests", 0.5f, 0.09f, w = 0.86f, h = 0.16f, tone = 1, hue = DHue.DATA, sub = "the table every incoming call lands in"),
+                    DNode("w", "2. where", 0.5f, 0.28f, w = 0.86f, h = 0.16f, tone = 0, hue = DHue.NEUTRAL, sub = "TimeGenerated > ago(1h)"),
+                    DNode("s", "3. summarize", 0.5f, 0.47f, w = 0.86f, h = 0.16f, tone = 0, hue = DHue.NEUTRAL, sub = "p95 of DurationMs per 5-minute bin"),
+                    DNode("r", "4. render", 0.5f, 0.66f, w = 0.86f, h = 0.16f, tone = 1, hue = DHue.NEUTRAL, sub = "timechart: one line across the hour"),
+                    DNode("n", "Each | hands its rows to the next step", 0.5f, 0.88f, w = 0.7f, h = 0.14f, kind = NodeKind.NOTE, tone = 2, hue = DHue.NEUTRAL),
                 ),
                 edges = listOf(DEdge("t", "w"), DEdge("w", "s"), DEdge("s", "r")),
-                aspect = 0.4f,
+                aspect = 1.2f,
             ),
             B.h("Where your data lives"),
             B.table(

@@ -29,22 +29,21 @@ internal object Ai200Connect {
                 what slow AI work needs: the API answers the user at once and a worker creates the embeddings later.
             """),
             B.diagram(
-                caption = "The API sends a job, the worker locks and processes it, and a message that keeps failing goes to the dead-letter queue to be inspected and resent.",
+                caption = "One job, read downwards: the API sends it, the queue holds it, the worker locks it, and a job that keeps failing drops out into the dead-letter queue for someone to read and send again.",
                 nodes = listOf(
-                    DNode("api", "Coach API", 0.15f, 0.3f, w = 0.26f, h = 0.22f, tone = 1, sub = "sender"),
-                    DNode("queue", "embed-jobs queue", 0.5f, 0.3f, w = 0.32f, h = 0.26f, kind = NodeKind.CYLINDER),
-                    DNode("worker", "Embedding worker", 0.85f, 0.3f, w = 0.28f, h = 0.22f, tone = 1, sub = "PeekLock receiver"),
-                    DNode("dlq", "Dead-letter queue", 0.5f, 0.78f, w = 0.36f, h = 0.26f, kind = NodeKind.CYLINDER, tone = 2),
-                    DNode("fix", "Repair script", 0.15f, 0.78f, w = 0.26f, h = 0.22f, tone = 2, sub = "fix and resend"),
+                    DNode("api", "1. Coach API", 0.5f, 0.08f, w = 0.86f, h = 0.14f, tone = 1, sub = "stores the note, returns 202 at once", hue = DHue.COMPUTE),
+                    DNode("queue", "2. embed-jobs queue", 0.5f, 0.29f, w = 0.86f, h = 0.14f, sub = "the job waits here until a worker is free", hue = DHue.FLOW),
+                    DNode("worker", "3. Embedding worker", 0.5f, 0.5f, w = 0.86f, h = 0.14f, sub = "receives in PeekLock: locked, not removed", hue = DHue.COMPUTE),
+                    DNode("dlq", "4. Dead-letter queue", 0.5f, 0.71f, w = 0.86f, h = 0.14f, sub = "past 10 tries, the message is moved here", hue = DHue.FLOW),
+                    DNode("fix", "5. Repair script", 0.5f, 0.92f, w = 0.86f, h = 0.14f, tone = 2, sub = "read the reason, fix it, send it again", hue = DHue.COMPUTE),
                 ),
                 edges = listOf(
-                    DEdge("api", "queue", label = "1 send"),
-                    DEdge("queue", "worker", label = "2 lock"),
-                    DEdge("worker", "dlq", label = "poison"),
+                    DEdge("api", "queue", label = "send"),
+                    DEdge("queue", "worker", label = "lock"),
+                    DEdge("worker", "dlq", label = "keeps failing"),
                     DEdge("dlq", "fix", label = "inspect"),
-                    DEdge("fix", "queue", label = "resend", dashed = true),
                 ),
-                aspect = 0.75f,
+                aspect = 1.25f,
             ),
             B.h("Queues, topics and subscriptions"),
             B.p("""
@@ -267,11 +266,11 @@ internal object Ai200Connect {
             B.diagram(
                 caption = "The API publishes CloudEvents to a custom topic; each subscription filters and pushes them on, and events that run out of retries are dead-lettered to blob storage.",
                 nodes = listOf(
-                    DNode("pub", "Coach API", 0.15f, 0.5f, w = 0.26f, h = 0.2f, tone = 1, sub = "publisher"),
-                    DNode("topic", "Custom topic", 0.47f, 0.5f, w = 0.3f, h = 0.3f, kind = NodeKind.CLOUD),
-                    DNode("fn", "Re-embed function", 0.83f, 0.18f, w = 0.32f, h = 0.2f, sub = "event type filter"),
-                    DNode("q", "Service Bus queue", 0.83f, 0.5f, w = 0.32f, h = 0.2f, sub = "subject filter"),
-                    DNode("dl", "Dead-letter blobs", 0.83f, 0.82f, w = 0.32f, h = 0.2f, kind = NodeKind.CYLINDER, tone = 2),
+                    DNode("pub", "Coach API", 0.17f, 0.5f, w = 0.32f, h = 0.16f, tone = 1, sub = "publishes events", hue = DHue.COMPUTE),
+                    DNode("topic", "Custom topic", 0.49f, 0.5f, w = 0.28f, h = 0.3f, kind = NodeKind.CLOUD, hue = DHue.FLOW),
+                    DNode("fn", "Re-embed function", 0.83f, 0.16f, w = 0.34f, h = 0.2f, sub = "by event type", hue = DHue.COMPUTE),
+                    DNode("q", "Service Bus queue", 0.83f, 0.5f, w = 0.34f, h = 0.2f, tone = 1, sub = "subject filter", hue = DHue.FLOW),
+                    DNode("dl", "Dead-letter blobs", 0.83f, 0.84f, w = 0.34f, h = 0.2f, tone = 1, sub = "retries ran out", hue = DHue.DATA),
                 ),
                 edges = listOf(
                     DEdge("pub", "topic", label = "publish"),
@@ -279,7 +278,7 @@ internal object Ai200Connect {
                     DEdge("topic", "q", label = "push"),
                     DEdge("topic", "dl", label = "retries out", dashed = true),
                 ),
-                aspect = 0.8f,
+                aspect = 1.1f,
             ),
             B.h("Topics and the event schema"),
             B.table(
@@ -477,12 +476,12 @@ internal object Ai200Connect {
             B.diagram(
                 caption = "Triggers start the functions declared in function_app.py; input and output bindings move data in and out without SDK code.",
                 nodes = listOf(
-                    DNode("http", "HTTP request", 0.17f, 0.15f, w = 0.3f, h = 0.14f, kind = NodeKind.PILL, tone = 1),
-                    DNode("sb", "Service Bus msg", 0.5f, 0.15f, w = 0.3f, h = 0.14f, kind = NodeKind.PILL, tone = 1),
-                    DNode("eg", "Event Grid event", 0.83f, 0.15f, w = 0.3f, h = 0.14f, kind = NodeKind.PILL, tone = 1),
-                    DNode("app", "function_app.py", 0.5f, 0.48f, w = 0.5f, h = 0.22f, sub = "app = func.FunctionApp()"),
-                    DNode("out", "Queue output", 0.2f, 0.82f, w = 0.34f, h = 0.22f, kind = NodeKind.CYLINDER, tone = 2),
-                    DNode("cosmos", "Cosmos DB input", 0.8f, 0.82f, w = 0.34f, h = 0.22f, kind = NodeKind.CYLINDER, tone = 2),
+                    DNode("http", "HTTP request", 0.17f, 0.1f, w = 0.31f, h = 0.13f, kind = NodeKind.PILL, tone = 1, hue = DHue.FLOW),
+                    DNode("sb", "Service Bus msg", 0.5f, 0.1f, w = 0.31f, h = 0.13f, kind = NodeKind.PILL, tone = 1, hue = DHue.FLOW),
+                    DNode("eg", "Event Grid event", 0.83f, 0.1f, w = 0.31f, h = 0.13f, kind = NodeKind.PILL, tone = 1, hue = DHue.FLOW),
+                    DNode("app", "function_app.py", 0.5f, 0.47f, w = 0.6f, h = 0.22f, sub = "app = func.FunctionApp()", hue = DHue.COMPUTE),
+                    DNode("out", "Queue output", 0.23f, 0.85f, w = 0.42f, h = 0.2f, tone = 1, sub = "set it, no SDK code", hue = DHue.FLOW),
+                    DNode("cosmos", "Cosmos DB input", 0.77f, 0.85f, w = 0.42f, h = 0.2f, tone = 1, sub = "read into a parameter", hue = DHue.DATA),
                 ),
                 edges = listOf(
                     DEdge("http", "app", label = "trigger"),
@@ -491,7 +490,7 @@ internal object Ai200Connect {
                     DEdge("app", "out", label = "output"),
                     DEdge("cosmos", "app", label = "input"),
                 ),
-                aspect = 0.85f,
+                aspect = 1.1f,
             ),
             B.h("The Python v2 programming model"),
             B.p("""

@@ -47,6 +47,11 @@ data class CupertinoColors(
     val deep: Color = card,
     /** An outline that has to be seen on its own: an empty stop, an idle control. */
     val strongBorder: Color = separator,
+    /** The four diagram hues: somewhere data rests, something that runs code, something in motion, a way the story can go. */
+    val dData: Color = accentText,
+    val dCompute: Color = accentText,
+    val dFlow: Color = warn,
+    val dChoice: Color = accentText,
 ) {
     /** The illustration gradient as a diagonal brush. */
     val heroBrush: Brush
@@ -76,6 +81,10 @@ internal fun parallelColors(dark: Boolean) = CupertinoColors(
     allowed = if (dark) Palette.SuccessDark else Palette.SuccessLight,
     allowedBackground = if (dark) Palette.AllowedBgDark else Palette.AllowedBgLight,
     warn = if (dark) Palette.WarnDark else Palette.WarnLight,
+    dData = if (dark) Palette.DataDark else Palette.DataLight,
+    dCompute = if (dark) Palette.ComputeDark else Palette.ComputeLight,
+    dFlow = if (dark) Palette.FlowDark else Palette.FlowLight,
+    dChoice = if (dark) Palette.ChoiceDark else Palette.ChoiceLight,
 )
 
 internal fun departuresColors() = CupertinoColors(

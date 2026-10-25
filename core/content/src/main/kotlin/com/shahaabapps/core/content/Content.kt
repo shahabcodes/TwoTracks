@@ -254,6 +254,31 @@ data class DiagramSpec(
 
 enum class NodeKind { BOX, CYLINDER, CLOUD, USER, PILL, NOTE }
 
+/**
+ * What a node is, said in colour.
+ *
+ * Not decoration. A reader who has met three diagrams knows a store is blue
+ * before reading its name, and that carries across the whole course. The node
+ * says what it is and the theme picks the colour, so dark mode and the
+ * Departures board stay coherent without the content knowing about either.
+ */
+enum class DHue {
+    /** No claim: a step, a caption, anything that is simply part of the shape. */
+    NEUTRAL,
+
+    /** Somewhere data rests: a database, a cache, a file store, a registry. */
+    DATA,
+
+    /** Something that runs your code: an API, a worker, a function, a host. */
+    COMPUTE,
+
+    /** Something in motion: a queue, an event, a message on its way. */
+    FLOW,
+
+    /** A way the story can go: the options under a question, an outcome. */
+    CHOICE,
+}
+
 data class DNode(
     val id: String,
     val label: String,
@@ -262,9 +287,10 @@ data class DNode(
     val w: Float = 0.26f,
     val h: Float = 0.16f,
     val kind: NodeKind = NodeKind.BOX,
-    /** 0 = accent, 1 = secondary, 2 = muted. */
+    /** How much this node matters: 0 the thing being taught, 1 supporting, 2 an aside. */
     val tone: Int = 0,
     val sub: String? = null,
+    val hue: DHue = DHue.NEUTRAL,
 )
 
 data class DEdge(
