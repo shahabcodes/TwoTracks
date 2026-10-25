@@ -15,6 +15,7 @@ import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import com.shahaabapps.core.content.Courses
 import com.shahaabapps.twotracks.feature.listen.ListenScreen
+import com.shahaabapps.twotracks.feature.listen.NowPlaying
 import com.shahaabapps.twotracks.feature.listen.NowPlayingBar
 import com.shahaabapps.twotracks.feature.listen.NowPlayingViewModel
 import androidx.compose.foundation.background
@@ -168,6 +169,43 @@ private fun guideAnchorFor(route: String): String = when (route) {
     else -> GuideAnchors.TAB_US
 }
 
+/**
+ * The foot of every screen: the episode you have playing, and under it the
+ * tabs when you are on one.
+ *
+ * The Column is the point of this function. Scaffold measures its bottom bar
+ * slot as a multi-child layout and places every child at the same top edge, so
+ * two composables written side by side here do not stack, they overlap: the
+ * tab bar, drawn second over an opaque background, painted the playing bar out
+ * of sight on Today, Learn and Together, while it still showed on every screen
+ * that has no tabs. Keeping them in one child also gives Scaffold the real
+ * height of the pair, so the screen above reserves room for both.
+ */
+@Composable
+internal fun BottomBars(
+    playing: NowPlaying?,
+    selectedTab: String?,
+    onOpen: (NowPlaying) -> Unit,
+    onPlayPause: (NowPlaying) -> Unit,
+    onForward30: () -> Unit,
+    onTab: (String) -> Unit,
+) {
+    Column {
+        playing?.let { now ->
+            NowPlayingBar(
+                now,
+                onOpen = { onOpen(now) },
+                onPlayPause = { onPlayPause(now) },
+                onForward30 = onForward30,
+                // The tabs below carry the gesture inset when they are there;
+                // alone, the bar carries its own.
+                modifier = if (selectedTab == null) Modifier.navigationBarsPadding() else Modifier,
+            )
+        }
+        if (selectedTab != null) CupertinoTabBar(selectedRoute = selectedTab, onSelect = onTab)
+    }
+}
+
 /** The tab bar: the page colour under a hairline, and the tab you are on in ink, or in signal yellow on the board. */
 @Composable
 private fun CupertinoTabBar(selectedRoute: String?, onSelect: (String) -> Unit) {
@@ -268,29 +306,23 @@ fun MainNavGraph(session: AppSession, widgetLaunch: WidgetLaunch) {
         containerColor = AppTheme.colors.groupedBackground,
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
         bottomBar = {
-            // The episode carries on wherever you go, so its bar does too:
-            // over the tabs, or on its own at the foot of a lesson.
-            now?.takeIf { currentDestination?.route != Routes.LISTEN }?.let { playing ->
-                NowPlayingBar(
-                    playing,
-                    onOpen = {
-                        val courseId = com.shahaabapps.twotracks.feature.listen.Episodes.courseOf(playing.episodeId)
-                        if (courseId != null) navController.navigate(Routes.listen(courseId, playing.episodeId)) { launchSingleTop = true }
-                    },
-                    onPlayPause = { if (playing.playing) nowPlaying.player.pause() else nowPlaying.player.play(playing.episodeId) },
-                    onForward30 = nowPlaying.player::forward,
-                    modifier = if (selectedTab == null) Modifier.navigationBarsPadding() else Modifier,
-                )
-            }
-            if (selectedTab != null) {
-                CupertinoTabBar(selectedRoute = selectedTab) { route ->
+            BottomBars(
+                playing = now?.takeIf { currentDestination?.route != Routes.LISTEN },
+                selectedTab = selectedTab,
+                onOpen = { playing ->
+                    val courseId = com.shahaabapps.twotracks.feature.listen.Episodes.courseOf(playing.episodeId)
+                    if (courseId != null) navController.navigate(Routes.listen(courseId, playing.episodeId)) { launchSingleTop = true }
+                },
+                onPlayPause = { playing -> if (playing.playing) nowPlaying.player.pause() else nowPlaying.player.play(playing.episodeId) },
+                onForward30 = nowPlaying.player::forward,
+                onTab = { route ->
                     navController.navigate(route) {
                         popUpTo(navController.graph.findStartDestination().id) { saveState = true }
                         launchSingleTop = true
                         restoreState = true
                     }
-                }
-            }
+                },
+            )
         },
     ) { padding ->
         val tabRoutes = tabs.map { it.route }.toSet()
