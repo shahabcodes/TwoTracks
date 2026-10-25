@@ -5,70 +5,64 @@ internal object Ai200EpisodesPgvector {
     private val classic = Podcast(
         "ai-pgvector",
         listOf(
-            maya("Hi, and welcome back. Today is about searching by meaning. Say you're building the Two Tracks Coach, a study helper in an Android app, with a Python server on Azure, Microsoft's cloud. A learner asks, what is a dead-letter queue? The answer is in their notes, but in different words."),
-            leo("So a search for the words finds nothing. [pause] How do we find it?"),
-            maya("We compare meanings, and for that we turn text into numbers. Start with a map. Three steps east, four steps north: you can write that spot as two numbers, three and four. A list of numbers like that is called a vector. It's just a spot on the map."),
-            leo("A spot on a map. And what has that got to do with meaning?"),
-            maya("An AI model reads a piece of text and writes a list of numbers for it, so texts that mean similar things get nearby spots. That list is called an embedding. The question and the note that answers it land close together, even in different words."),
-            leo("Is it really just two numbers, east and north?"),
-            maya("No. How many numbers are in the list is called the dimension. A map spot has two. The usual model, text-embedding-3-small, writes 1,536 for every text. Nobody can picture that, but the maths works the same."),
-            leo("Okay. So where do these lists live?"),
-            maya("In PostgreSQL, a popular free database that keeps data in tables of rows and columns, like a very strict spreadsheet. The Coach already keeps its notes there, so each note's embedding can sit beside it."),
-            leo("Can PostgreSQL even hold a list of numbers in one column?"),
-            maya("Not on its own. It needs an extension, an add-on, like a plug-in for your browser. This one is called pgvector. It adds a new kind of column, called vector, and ways to measure how far apart two lists are."),
-            leo("And on Azure, I just tick a box?"),
-            maya("Two steps. Azure's PostgreSQL keeps a guest list of allowed add-ons, a setting called azure.extensions, empty on a new server. Step one: put VECTOR on it."),
-            leo("And step two? I'd type CREATE EXTENSION pgvector."),
-            maya("Close, but no: CREATE EXTENSION vector, in each database. The add-on's real name is just vector."),
-            leo("[chuckle] Famous, but not under its own name. Then a table?"),
-            maya("A notes table with a vector column of 1,536 numbers, to match the model. So which notes are close to the question? pgvector gives three ways to measure. Each one is a small symbol you put in the query, called an operator."),
-            leo("Three ways. One at a time, please."),
-            maya("The first is Euclidean distance: a ruler laid between two pins on the map. From the middle of the map to the spot three east, four north, the ruler says five. Smaller means closer."),
-            leo("That's the one I'd have guessed. The second?"),
-            maya("Cosine. Picture an arrow from the middle of the map to each spot. Cosine asks only: do the two arrows point the same way, whatever their length? Same way scores 1, a right angle 0, opposite ways minus 1."),
-            leo("Give me an example."),
-            maya("Three east, four north, against six east, eight north. The second arrow is twice as long, but it points the same way, so cosine says 1. pgvector turns that into a distance, one minus the score, so the same way gives 0. Smaller means closer again. It's the usual choice for text."),
+            maya("Hi, and welcome back. Zaiqa is in good shape. The Zaiqa API, the backend our phone app talks to, runs on Container Apps, orders and payments are safe in Azure SQL, and the search that understands, something like dal makhani but vegan, is live on Cosmos DB."),
+            leo("So the meaning search is finished. Why are we opening it again?"),
+            maya("Because PostgreSQL can do the same search, and the exam wants you to know when to pick which. Postgres already holds Zaiqa's payouts ledger, the table of what each restaurant is owed. Today we build dish search a second time, right beside it."),
+            leo("Hold on. Remind me what a meaning search actually stores."),
+            maya("A list of numbers for every dish. Picture a town map: three steps east, four steps north, and your spot is three, four. A list of numbers like that is the vector. It is a spot on a map, nothing cleverer."),
+            leo("And who writes the numbers?"),
+            maya("An AI model whose only job is that. The list it writes for a piece of text is called an embedding, so two dishes that mean the same thing land close together, even in different words."),
+            leo("Right. Can Postgres hold a list like that in one column?"),
+            maya("Not on its own. It needs an extension, an add-on, like a plug-in for your browser. The one we want is pgvector. It adds a column type called vector, and ways to measure how far apart two lists are."),
+            leo("And on Azure I run create extension pgvector?"),
+            maya("[chuckle] Two traps in one line. The extension is named vector; pgvector is the project. And Azure's Postgres keeps a guest list of allowed add-ons, a setting called azure.extensions, empty on a new server. Put VECTOR on the list first, then run create extension vector."),
+            leo("Then the table."),
+            maya("A dishes table with the usual columns, plus one of type vector holding 1,536 numbers, the same count the model writes. And that is the whole argument for doing it here: it sits in the same database as the restaurant rows we already join to."),
+            leo("And searching is a normal query?"),
+            maya("Almost. Instead of equals you use a distance operator, written as a little arrow between the column and the question's numbers. There are three, one for each way of measuring."),
+            leo("Give me the three."),
+            maya("Euclidean is a ruler laid between two pins on the map. From the middle to the spot three, four, the ruler reads five. A real distance, so smaller means closer."),
+            leo("That is one."),
+            maya("Cosine distance. Picture an arrow from the middle of the map to each spot, and ask whether the two arrows point the same way, whatever their length. Same way is no distance at all. For text, this is the usual pick."),
             leo("And the third?"),
-            maya("Inner product, also called the dot product. Multiply the matching numbers and add them up. Two and three, against four and one: two times four is eight, three times one is three, and eight plus three is eleven. Bigger means the lists agree more."),
-            leo("Bigger is better? But you said smaller means closer."),
-            maya("Well spotted. So pgvector's operator is the negative inner product: minus eleven, and smaller means closer again."),
-            leo("Why bother with it, if cosine exists?"),
-            maya("With the usual models every arrow has the same length, so it ranks notes just like cosine, only cheaper to work out."),
-            leo("So the search is: sort by distance, closest first, and keep a few?"),
-            maya("That's it. In SQL, the language you talk to the database in, you write ORDER BY the distance to the question, then LIMIT 5. The catch: with no help, it measures the question against every row."),
-            leo("Which sounds fine, until the table is big."),
-            maya("For example, the Coach has 400,000 notes, and each question took nearly a second. The fix is an index. Like the index at the back of a book, it lets the database jump near the answer instead of reading every page."),
-            leo("Does it still find the very closest notes?"),
-            maya("Nearly always. These indexes are approximate: very close, but not guaranteed perfect. How much they find is called recall. A recall of 0.93 means 93 of every 100 notes that reading every row would have found."),
-            leo("And which index do I pick?"),
-            maya("Two you must know. The first is HNSW, short for hierarchical navigable small world. It's a graph: dots joined by lines, like a map of who knows whom."),
-            leo("And what is each dot?"),
-            maya("A node: one stored note, joined to a few of its nearest notes. A search hops along the lines, like asking friends of friends instead of knocking on every door."),
-            leo("Hopping sounds slow, with 400,000 notes."),
-            maya("So it has layers. The top layer has a few notes far apart, like motorways; lower layers are denser, like streets. Start on the motorway, then drop to the streets."),
-            leo("What's it good at?"),
-            maya("The best balance of speed and recall. It's slower to build and uses more memory. And it needs no training, so you can create it on an empty table and fill it later."),
-            leo("Training? Indexes go to the gym now?"),
-            maya("[laugh] One of them does. IVFFlat sorts the vectors into groups, like a library putting books on shelves by subject. A search checks only the shelves nearest the question. It builds faster and uses less memory. But it learns its shelves from the data already there, so you build it after loading."),
-            leo("So IVFFlat on an empty table is a library with shelves for nothing."),
-            maya("Perfect. Each index has a dial for recall. For HNSW it's ef search: how many candidates it keeps on its shortlist while it hops, 40 by default. Turn it up, and you find more true neighbours, a little slower."),
-            leo("And the dial on IVFFlat?"),
-            maya("It's called probes: how many shelves a search checks, one by default. More shelves, better recall, a little slower."),
-            leo("And if my table grows to many millions of notes?"),
-            maya("Then name DiskANN, an add-on only Azure offers, for very large vector tables. Now the trap the exam loves."),
-            leo("I'm listening. What's the trap?"),
-            maya("Each index is built for one operator. Build a cosine index, then sort by the ruler distance, and the database quietly ignores the index and reads every row."),
-            leo("How would I even notice?"),
-            maya("Put EXPLAIN in front of the query. It shows the database's plan. Index Scan means your index is used. Seq Scan, a sequential scan, means it's reading every row."),
-            leo("One more worry. Could my search find someone else's notes?"),
-            maya("Unless you stop it. Filter in the WHERE part of the query, on the user id and the course, so only this learner's notes compete. Don't fetch everyone's top five and filter afterwards in Python."),
-            leo("And then the Coach answers from those five notes?"),
-            maya("Yes, and that has a name: RAG, which stands for retrieval augmented generation. Retrieve the closest notes, hand them to a chat model with the question, and ask it to answer only from them."),
-            leo("So what do I remember for the exam?"),
-            maya("If CREATE EXTENSION is refused, put VECTOR in azure.extensions, and call it vector. If the index is ignored, match the query's operator to the index. Best recall, or an empty table: HNSW. Faster build with the data loaded first: IVFFlat. Low recall: raise ef search, or probes. Another learner's notes: filter on the user id in WHERE."),
-            leo("Great. Anything to try today?"),
-            maya("Allow VECTOR in azure.extensions and run CREATE EXTENSION vector. Create a table with a vector column of just three numbers, and insert five rows. Order by each of the three operators and compare the top three rows. Then build an HNSW cosine index and confirm the index scan with EXPLAIN."),
-            leo("A database that reads between the lines. See you next time."),
+            maya("Inner product, which means multiply the matching numbers and add them up. Two, three against four, one is eight plus three, so eleven. With lists already scaled to length one, as OpenAI's are, it ranks exactly like cosine and costs the least to work out."),
+            leo("So I order by the distance and keep the top five."),
+            maya("Order by it, limit five. And add a where clause on the city, so only dishes a diner could actually order are in the race."),
+            leo("Done. [pause] Is that it?"),
+            maya("With four hundred thousand dishes, no. [pause] With nothing to help it, Postgres works out the distance to every single row. Explain analyze shows that as a sequential scan, which just means reading the table top to bottom. Nine hundred milliseconds a question."),
+            leo("So I add an index."),
+            maya("You do. An index is like the one at the back of a book: jump near the answer instead of reading every page. But a vector index gives something up. It is approximate, which means very close, not guaranteed the closest."),
+            leo("How much does it miss?"),
+            maya("You measure that, and the measure is called recall: the share of the truly closest rows a search actually returns. Recall of 0.93 means ninety-three in every hundred. You test it on a set of real questions, not by feel."),
+            leo("And which index do I build?"),
+            maya("Two come with pgvector. The first is HNSW. In plain words it is a web of dishes: each dish joined to a few near ones, in layers, so a search hops from dish to closer dish instead of knocking on every door."),
+            leo("And what does that web cost?"),
+            maya("It is slow to build and hungry for memory. In return it gives the best speed against recall of anything here, and there is no training step, so you can build it on an empty table and fill the table afterwards."),
+            leo("And the second?"),
+            maya("IVFFlat, which means the rows are sorted into groups first, like shelves by subject, and a search opens only the nearest shelves. It builds much faster and takes less memory. But the shelves are worked out from the rows already in the table."),
+            leo("So an empty table breaks it."),
+            maya("It would train its shelves on nothing. Load the dishes first, then build, with roughly one shelf per thousand rows, up to about a million rows."),
+            leo("And at query time, can I buy back the misses?"),
+            maya("One knob each. For HNSW it is ef search, the size of the shortlist it keeps while hopping, forty by default. For IVFFlat it is probes, the number of shelves one search opens, one by default. Raise either and you trade time for recall."),
+            leo("And for a truly enormous table?"),
+            maya("DiskANN, which Azure adds as pg diskann. It is a graph index, meaning the same web idea, dots joined by lines, built for tables of many millions of rows, with high recall and quick builds."),
+            leo("Is there a trap waiting for me?"),
+            maya("One that catches everybody. An index only serves the operator it was built for. Build it for cosine, then order by the ruler operator, and Postgres quietly ignores it and reads every row. Explain analyze says sequential scan again, and nobody knows why."),
+            leo("How else do I keep it quick?"),
+            maya("Three habits. Filter in the where clause so fewer rows compete, for example this city, this restaurant. Keep the top few small: five good dishes beat fifty. And give the index room to live in memory, so memory optimized compute for big sets, never burstable in production."),
+            leo("And what the diner actually reads?"),
+            maya("The same ending as in Cosmos: RAG, short for retrieval augmented generation. You fetch the five closest dishes and paste their descriptions into the message you send the chat model, which is told to answer only from those."),
+            leo("Which brings me to the real question. Cosmos or Postgres?"),
+            maya("Honestly, both work, and the exam asks it exactly that way. [pause] Pick Cosmos when the vectors sit beside documents you already keep there and you want copies close to diners in every region. Pick Postgres when they belong beside rows you are already joining to."),
+            leo("And Zaiqa keeps which?"),
+            maya("Both, on purpose. Dish search stays in Cosmos, beside the order feed. The payouts team's search over restaurant notes goes in Postgres, because every answer is joined to a ledger row. Say you're building one small app with one database: use the one you already have."),
+            leo("Fair. So what do I remember for the exam?"),
+            maya("Five phrases. Create extension refused on a new server: the azure.extensions guest list, and the name is vector. A sequential scan with an index sitting right there: the query's operator does not match the index. An empty table filled overnight, high recall wanted: HNSW."),
+            leo("And the other two?"),
+            maya("Faster build, less memory, data already loaded: IVFFlat. Recall too low with time to spare: raise ef search, or probes on IVFFlat. And an answer quoting another city's dishes: the filter belongs in the where clause."),
+            leo("And anything to try today?"),
+            maya("Put VECTOR on the azure.extensions list and run create extension vector. Make a small table with a three-number vector column and insert five rows. Order by each of the three operators and compare the top three. Then build an HNSW cosine index and confirm the index scan with explain."),
+            leo("Vectors beside the feed, or vectors beside the ledger. See you next time."),
         ),
         series = PodcastSeries.AI200,
     )
@@ -76,66 +70,56 @@ internal object Ai200EpisodesPgvector {
     private val caseFiles = Podcast(
         "ai-pgvector",
         listOf(
-            maya("Welcome to Case Files. Today's case: The Borrowed Notes. A small Android app called Flashcard Fox helps students revise, with a Python server on Azure, Microsoft's cloud. A student asks, what is a dead-letter queue? And the answer quotes notes she never wrote. Someone else's notes."),
-            leo("[pause] Detective Leo is on the case. But first, how was it meant to find her notes, in plain words?"),
-            maya("By meaning. An AI model turns each note into an embedding: a list of numbers it writes for the text, so notes that mean similar things get nearby spots, like pins on a map. The question gets a list too, and the app looks for the closest notes."),
-            leo("A list of numbers is a spot on a map? Show me."),
-            maya("On a paper map, three steps east and four north is the spot three, four. That list of two numbers is a vector. An embedding is the same idea with 1,536 numbers instead of two. Nobody can picture that, but the maths works the same."),
-            leo("And where do those lists live?"),
-            maya("In PostgreSQL, a popular free database of tables, rows and columns, like a very strict spreadsheet. The team added pgvector, an extension, which is an add-on, like a plug-in for your browser, so PostgreSQL can store those lists and compare them."),
-            leo("Is it really just a plug-in? Under the picture, I mean."),
-            maya("Under the picture, it's code loaded into the database server itself, adding a column type called vector that packs the numbers side by side."),
-            leo("Then my first suspect: they installed it wrong. Somebody typed CREATE EXTENSION pgvector."),
-            maya("That did happen, on day one. The add-on's real name is just vector."),
-            leo("So they typed vector, and it worked?"),
-            maya("Not yet. Azure's PostgreSQL keeps a guest list of allowed add-ons, a setting called azure.extensions, empty at the start, so VECTOR had to go on it first. But that was fixed weeks ago. Wrong suspect."),
-            leo("Suspect two. They measured closeness the wrong way, so it picks the wrong notes."),
-            maya("How you measure changes the order of the notes, not who they belong to. The clue is in the code. The server asked for the five closest notes from the whole table, every student's. The plan was to filter by student afterwards, in Python, and the new feature skipped that step."),
-            leo("So the filter lived in the wrong place."),
-            maya("Exactly. It belongs in the query itself, in its WHERE part, on the user id and the course."),
-            leo("Isn't filtering in Python just as good, if nobody forgets?"),
-            maya("Even then, it's worse. Fetch everyone's top five, and maybe none are hers. A metadata filter in WHERE, on facts about each note like whose it is, puts only her notes in the race. And fewer rows competing is faster."),
-            leo("Faster. Good, because the second complaint says every question takes almost a second."),
-            maya("Second witness. Flashcard Fox has 400,000 notes, and with no help the database measures the question against every single one. So the team had built an index. Like the index at the back of a book, it lets the database jump near the answer instead of reading every page."),
-            leo("So the index is broken. Suspect: the table needs a clean-up. VACUUM, or whatever it's called."),
-            maya("[chuckle] VACUUM tidies away old deleted rows. Not the cause. The clue: they put EXPLAIN in front of the query, which shows the database's plan. It said Seq Scan, a sequential scan: reading every row, one after another. The index was being ignored."),
-            leo("Why would it ignore a perfectly good index?"),
-            maya("Because each index is built for one operator, a small symbol in the query that says how to measure. pgvector has three."),
-            leo("Start with the one I'd guess."),
-            maya("Euclidean distance: a ruler laid between two pins on the map. From the middle of the map to the spot three, four, the ruler says five. Smaller is closer."),
-            leo("And the second?"),
-            maya("Cosine. Picture an arrow from the middle of the map to each pin. Cosine only asks whether two arrows point the same way, whatever their length: same way 1, right angle 0, opposite ways minus 1."),
-            leo("Give me an example."),
-            maya("Three, four against six, eight. The second arrow is twice as long, but it points the same way, so cosine says 1. pgvector makes that a distance, one minus the score, so 0, and smaller is closer. It's the usual choice for text."),
-            leo("And the third?"),
-            maya("Inner product, also called the dot product: multiply the matching numbers and add them up. Two, three against four, one: two times four plus three times one is eleven. Bigger means more alike, so pgvector uses minus eleven, and smaller is closer for all three."),
-            leo("And the team mixed them up."),
-            maya("They built the index for cosine, then sorted the query by the ruler. An index only serves its own operator. They switched the query to cosine, EXPLAIN said Index Scan, and each question fell from 900 milliseconds to 15."),
-            leo("Which index was it, by the way?"),
-            maya("HNSW, short for hierarchical navigable small world. It's a graph: dots joined by lines, like a map of who knows whom."),
-            leo("And what are the dots?"),
-            maya("Each dot is a node: one stored note, joined to a few of its nearest notes. A search hops from dot to closer dot, like asking friends of friends instead of knocking on every door."),
-            leo("It can't be that simple. There must be a trick."),
-            maya("Layers. The top layer has a few notes far apart, like motorways; lower layers are denser, like streets. A search starts on the motorway and drops down. On the way it keeps a shortlist of candidates, and its size is called ef search, 40 by default."),
-            leo("Does it always find the very closest notes?"),
-            maya("Not always. It's approximate: very close, not guaranteed perfect. How much it finds is called recall. Theirs was 0.93: 93 of every 100 right notes. They set ef search to 80, a longer shortlist, and recall rose to 0.98, a little slower."),
-            leo("So, case closed?"),
-            maya("Not yet. A new table, three million flashcards, created empty and filled during the night. Recall the next morning was dreadful."),
-            leo("Easy. Raise probes."),
-            maya("[pause] Probes is the dial of the other index, IVFFlat, and that's what they'd built."),
-            leo("Another index. What does that one do?"),
-            maya("It sorts vectors into groups, like a library putting books on shelves by subject, and searches only the nearest shelves; probes says how many. But it learns its shelves from the data already there, and the table was empty."),
-            leo("Shelves for nothing. So, build it after loading?"),
-            maya("Or use HNSW, which needs no training and can be built on an empty table. They rebuilt with HNSW. IVFFlat is the pick for a faster build and less memory, with the data already loaded."),
-            leo("Any loose ends in the file?"),
-            maya("Where it stops working. Approximate means it can miss. At many millions of rows, Azure offers DiskANN, an add-on for very large vector tables. The index should fit in the server's memory. And the Cosmos DB vector search episode shows the same idea in another database."),
-            leo("And once the right notes come back?"),
-            maya("That's RAG, which stands for retrieval augmented generation. The five notes go to a chat model with the question, and it answers only from them. So the answer is built on her own notes. Truly her own, now."),
-            leo("So, the case summary for the exam?"),
-            maya("If an answer quotes another user's notes, filter on the user id in WHERE. If EXPLAIN shows a Seq Scan, match the operator to the index. Best speed and recall, or an empty table, is HNSW; faster build with data loaded is IVFFlat. Low recall: raise ef search. Refused install: VECTOR in azure.extensions, and the name is vector."),
-            leo("Case closed. Anything to try today?"),
-            maya("Allow VECTOR in azure.extensions and run CREATE EXTENSION vector. Create a table with a vector column of three numbers, and insert five rows. Order by each of the three operators and compare the top three rows. Then build an HNSW cosine index, and confirm the index scan with EXPLAIN."),
-            leo("Everyone's notes back where they belong. See you next time."),
+            maya("Welcome to Case Files. Tonight's case: The Search That Read The Whole Menu. Zaiqa's payouts team got a search over restaurant notes in PostgreSQL last month. On Monday it took nine hundred milliseconds a question. On Tuesday it quoted a restaurant in another city."),
+            leo("Detective Leo, notebook out. Start with what was built, because I thought search by meaning lived in Cosmos DB."),
+            maya("Dish search does, beside the order feed, and it stays there. This is a second one. Postgres already holds Zaiqa's payouts ledger, the table of what each restaurant is owed, so the team put their notes in the same database."),
+            leo("Notes searched by meaning. Which means storing what, exactly?"),
+            maya("A list of numbers for each note. Picture a town map: three steps east, four north, and your spot is three, four. A list of numbers like that is the vector. An AI model writes one for any text, and that list is called an embedding."),
+            leo("So notes that mean the same thing sit near each other. Can Postgres hold that in a column?"),
+            maya("Only with an extension, an add-on, like a plug-in for your browser. This one is pgvector: a column type called vector, and operators that measure how far apart two lists are."),
+            leo("Clue one, then. Where did the trouble start?"),
+            maya("Before any of it. Marcus ran create extension pgvector, and Postgres refused point blank. Two things were wrong at once, and both are exam favourites."),
+            leo("My guess: the server wanted a restart."),
+            maya("No. The extension is named vector; pgvector is the project's name. And Azure's Postgres keeps a guest list of allowed add-ons, a setting called azure.extensions, empty on a new server. Put VECTOR on it, then run create extension vector."),
+            leo("Noted. Clue two. How does the query even ask for the closest note?"),
+            maya("With a distance operator, a little arrow written between the column and the question's numbers. Three to choose from. Euclidean is a ruler laid between two pins on the map: from the middle to the spot three, four, it reads five."),
+            leo("And the other two?"),
+            maya("Cosine distance. Picture an arrow from the middle out to each spot, and ask whether two arrows point the same way, whatever their length. Same way is no distance. For text it is the usual pick."),
+            leo("Third?"),
+            maya("Inner product, which means multiply the matching numbers and add them up. With lists scaled to length one, as OpenAI's are, it ranks like cosine and costs least. For all three, smaller is closer, so you order by it and limit five."),
+            leo("Good. Now the nine hundred milliseconds."),
+            maya("Four hundred thousand notes, and nothing to help, so Postgres measured against every single row. [pause] Explain analyze called it a sequential scan, which just means reading the table top to bottom."),
+            leo("Then Dana adds an index and we all go home."),
+            maya("Dana did, built for cosine distance. The query stayed at nine hundred milliseconds. [sigh] An index is like the one at the back of a book, and this one was never opened."),
+            leo("Sabotage. Somebody dropped it in the night."),
+            maya("Nothing so exciting. The query ordered by the ruler operator, not the cosine one, and an index only serves the operator it was built for. Match the two and explain analyze says index scan instead."),
+            leo("Clue three. Tuesday's wrong restaurant."),
+            maya("That query took the five closest notes from the whole table. No filter at all, and then the code tidied up afterwards in Python."),
+            leo("So we ask for more rows and filter harder?"),
+            maya("The opposite. [pause] A where clause on the city and the restaurant, so only rows that caller may see are in the race. Fewer rows compete, it is cheaper, and nobody reads another restaurant's notes."),
+            leo("Case nearly closed. Was the index even the right kind?"),
+            maya("That is the last file. Two kinds come with pgvector, and they cost different things. HNSW first: in plain words a web of notes, each joined to a few near ones in layers, so a search hops from note to closer note."),
+            leo("Slow to build, I assume."),
+            maya("Slow, and hungry for memory. In return it gives the best speed against recall there is, and recall means the share of the truly closest rows a search actually returns. No training step either, so an empty table is fine."),
+            leo("And the other kind?"),
+            maya("IVFFlat, which means the rows are sorted into groups first, like shelves by subject, so a search opens only the nearest shelves. It builds far faster and takes less memory. But the shelves are worked out from the rows already loaded."),
+            leo("And on an empty table?"),
+            maya("It trains on nothing, and the answers are poor. That was Priya's week: she built it before the night load, then rebuilt it after, with about one shelf per thousand rows."),
+            leo("And when recall is simply short?"),
+            maya("One knob each. For HNSW, ef search, the size of the shortlist it keeps while hopping, forty by default. For IVFFlat, probes, the number of shelves a search opens, one by default. Raise either and you pay in time."),
+            leo("Anything for a table of many millions?"),
+            maya("DiskANN, which Azure adds as pg diskann. It is a graph index, meaning the same web idea, dots joined by lines, built for very large tables, with high recall and quick builds."),
+            leo("And the answer the payouts team reads?"),
+            maya("RAG, short for retrieval augmented generation, the same ending as the Cosmos episode. Fetch the five closest notes, paste them into the message to a chat model, and tell it to answer only from those."),
+            leo("One thing still bothers me. Why Postgres at all, when Cosmos already does this?"),
+            maya("Because every one of these notes is joined to a ledger row the team already queries. Cosmos earns it when the vectors sit beside documents you keep there anyway, and you want copies close to diners in every region."),
+            leo("Case closed. What goes in the report for the exam?"),
+            maya("Create extension refused: the azure.extensions guest list, and the name is vector. A sequential scan with an index right there: the operator does not match. An empty table and high recall: HNSW. Faster build with data already loaded: IVFFlat."),
+            leo("And the last two?"),
+            maya("Recall too low with time to spare: raise ef search, or probes on IVFFlat. And someone else's rows in the answer: the filter belongs in the where clause, not in Python afterwards."),
+            leo("And something to try today?"),
+            maya("Allow VECTOR in azure.extensions and run create extension vector. Make a table with a three-number vector column and insert five rows. Order by each of the three operators and compare the top three. Then build an HNSW cosine index and confirm the index scan with explain."),
+            leo("Case closed, and the index finally used. See you next time."),
         ),
         series = PodcastSeries.AI200,
         style = PodcastStyle.CASE_FILES,
@@ -144,68 +128,56 @@ internal object Ai200EpisodesPgvector {
     private val gossip = Podcast(
         "ai-pgvector",
         listOf(
-            maya("Okay, did you hear what happened on the Coach team this week? They added search by meaning to the Two Tracks Coach, the study helper in the Android app, with its Python server on Azure, Microsoft's cloud. And every day, someone made the week a little longer."),
-            leo("[laugh] I heard there was a whiteboard titled shelves for nothing. What were they building?"),
-            maya("A search that finds a learner's notes by meaning, not by words. An AI model turns each note into an embedding: a list of numbers it writes for the text, so notes that mean similar things get nearby spots, like pins on a map."),
-            leo("Numbers as spots on a map? Explain that like I'm new."),
-            maya("On a paper map, three steps east and four north is the spot three, four. A list of numbers like that is called a vector. An embedding is a vector with 1,536 numbers instead of two. Nobody can picture that many directions, but the maths works the same."),
-            leo("And they kept those lists where?"),
-            maya("In PostgreSQL, the database the Coach already uses. It's popular and free, and keeps data in tables of rows and columns, like a very strict spreadsheet."),
-            leo("A strict spreadsheet that understands meaning? Since when?"),
-            maya("Since pgvector. It's an extension, an add-on, like a plug-in for your browser. Under the picture, it's code loaded into the database server, adding a column type called vector that packs the numbers side by side. Okay. Monday. Ben."),
-            leo("What did Ben do?"),
-            maya("Ben opened the database and typed CREATE EXTENSION pgvector, the command that installs an add-on. Refused. He typed it again, louder, somehow. Refused."),
-            leo("[pause] Why?"),
-            maya("Two reasons. Azure's PostgreSQL service keeps a guest list of allowed add-ons, a setting called azure.extensions, and on a new server it's empty."),
-            leo("So Ben's add-on wasn't even on the list."),
-            maya("Not even close. VECTOR goes on the list first. And its real name is just vector, so it's CREATE EXTENSION vector, in every database that needs it."),
-            leo("Poor Ben. Tuesday?"),
-            maya("Tuesday was Aisha. Searches took nearly a second each, because the database measured the question against every single note. So Aisha built an index. Like the index at the back of a book, it lets the database jump near the answer instead of reading every page."),
-            leo("That sounds like a win."),
-            maya("It would have been. But pgvector has three ways to measure closeness, each its own operator, a small symbol in the query."),
-            leo("Three? Give me the obvious one first."),
-            maya("Euclidean distance: a ruler laid between two pins on the map. From the middle of the map to the spot three, four, the ruler says five."),
-            leo("Sensible. And the second?"),
-            maya("Cosine. Picture an arrow from the middle of the map to each pin. Cosine asks only whether two arrows point the same way, whatever their length: same way 1, right angle 0, opposite ways minus 1."),
-            leo("An example, for the people at the back."),
-            maya("Three, four against six, eight. Twice as long, same way, so cosine says 1. pgvector turns it into a distance, one minus that, so 0. The usual one for text."),
-            leo("You said three."),
-            maya("The third is inner product, also called the dot product: multiply the matching numbers and add them up. Two, three against four, one: two times four plus three times one, eleven."),
-            leo("So here, bigger means closer?"),
-            maya("Bigger means more alike, so pgvector flips it to minus eleven. For all three, smaller means closer."),
-            leo("And Aisha's mistake?"),
-            maya("She built her index for cosine, but the query still sorted by the ruler. An index only helps its own operator, so the database ignored it completely."),
-            leo("How did she even find out?"),
-            maya("She put EXPLAIN in front of the query, which shows the database's plan. It said Seq Scan, a sequential scan, reading every row. She switched to the cosine operator, and it said Index Scan. 900 milliseconds became 15."),
-            leo("Wednesday. Let me guess. The shelves."),
-            maya("Wednesday was Marcus. A new table, three million flashcards, created empty, to be filled overnight. Marcus built an IVFFlat index on it straight away. IVFFlat sorts vectors into groups, like a library putting books on shelves by subject, and searches only the nearest shelves."),
-            leo("So where did it go wrong?"),
-            maya("It works out its shelves from the data already in the table. And the table was empty. Shelves for nothing, hence the whiteboard. Build IVFFlat after loading, or use the other index, which needs no training at all."),
-            leo("The other index. Is that a person or a thing?"),
-            maya("[chuckle] A thing, called HNSW, short for hierarchical navigable small world. It's a graph: dots joined by lines, like a map of who knows whom."),
-            leo("And the dots are the notes?"),
-            maya("Yes. Each dot is a node, one stored note, joined to a few of its nearest notes. A search hops from dot to closer dot, like asking friends of friends instead of knocking on every door."),
-            leo("Doesn't all that hopping take forever?"),
-            maya("Layers. Top layers are sparse, like motorways; lower ones are streets. Best balance of speed and recall."),
-            leo("Recall. That's the word everyone used in the Thursday meeting."),
-            maya("Because Thursday was Priya. These indexes are approximate, which means very close, not guaranteed perfect. Recall is how many of the true closest notes a search actually finds. Priya measured 0.93, 93 of every 100."),
-            leo("And Priya, being Priya, fixed it how?"),
-            maya("HNSW keeps a shortlist of candidates while it hops. Its size is called ef search, 40 by default. She raised it to 80 and got 0.98, for a slightly slower search. On IVFFlat the dial is probes, how many shelves it checks."),
-            leo("So Priya did nothing wrong? I'm disappointed."),
-            maya("Priya never does. Friday did, though. The intern. Their search fetched the five closest notes from every learner, then filtered by learner afterwards, in Python."),
-            leo("Risky, but fine if you never forget the filter."),
-            maya("And one code path forgot. A learner's answer quoted somebody else's notes."),
-            leo("Oof. What's the fix?"),
-            maya("A metadata filter, a filter on facts about each note, like whose it is. It goes in the WHERE part of the query, on the user id and the course. Then only this learner's notes compete at all. It's safer, and faster, too."),
-            leo("And after all that, what does the Coach do with the five notes?"),
-            maya("That's RAG, which stands for retrieval augmented generation. The notes go to a chat model with the question, and it answers only from them. So every answer is built on the learner's own notes."),
-            leo("Did anything still not work?"),
-            maya("Only where pgvector stops. Approximate indexes can still miss. At many millions of rows, Azure offers DiskANN, an add-on built for huge vector tables. The index should fit in memory. And the Redis episode shows how to reuse an answer when the next question means the same thing."),
-            leo("So, the gossip I should remember for the exam?"),
-            maya("Refused install: put VECTOR in azure.extensions, and call it vector. Seq Scan with an index: match the operator. Best speed and recall, or an empty table: HNSW; faster build with data loaded: IVFFlat. Low recall: raise ef search. Someone else's notes: filter on the user id in WHERE."),
-            leo("And something to try today, so I'm not next week's story?"),
-            maya("Allow VECTOR in azure.extensions and run CREATE EXTENSION vector. Create a table with a vector column of three numbers, and insert five rows. Order by each of the three operators and compare the top three rows. Then build an HNSW cosine index and confirm the index scan with EXPLAIN."),
-            leo("No empty shelves for me. See you next time."),
+            maya("Okay, did you hear what the payouts team did to PostgreSQL this week? Sit down. They decided Zaiqa needed a second search by meaning, over restaurant notes, in the same database as the payouts ledger. Five days, five disasters."),
+            leo("I heard somebody shouting the words sequential scan across the office. But first: why a second search at all? Cosmos DB already does dish search."),
+            maya("And it keeps it. This one is different. Every restaurant note the team searches is joined to a ledger row, the line that says what that restaurant is owed, and those rows live in Postgres."),
+            leo("Fine. So what are they storing?"),
+            maya("A list of numbers for each note. Picture a town map: three steps east, four north, and your spot is three, four. A list like that is the vector. An AI model writes one for any text, and that list is called an embedding."),
+            leo("Right. Monday."),
+            maya("Tom. Tom ran create extension pgvector and got refused, and spent the morning convinced the server needed a restart."),
+            leo("[chuckle] And it did not."),
+            maya("Two things were wrong. The extension is named vector; pgvector is the project. And Azure's Postgres keeps a guest list of allowed add-ons, a setting called azure.extensions, empty on a new server. Put VECTOR on it, then create extension vector."),
+            leo("Tuesday. Who is next?"),
+            maya("Dana, and Dana's was the expensive one. [pause] Four hundred thousand notes, no help of any kind, so Postgres measured the distance to every single row. Nine hundred milliseconds a question."),
+            leo("Measured how? What does a distance even look like here?"),
+            maya("A little arrow written between the column and the question's numbers, and there are three. Euclidean is a ruler laid between two pins on the map: from the middle to three, four, it reads five."),
+            leo("Go on, the other two."),
+            maya("Cosine distance. Picture an arrow from the middle out to each spot and ask whether two arrows point the same way, whatever their length. Same way is no distance, and for text it is what everybody uses."),
+            leo("And the third?"),
+            maya("Inner product, which means multiply the matching numbers and add them up. With lists scaled to length one, as OpenAI's are, it ranks like cosine and is the cheapest to work out. Smaller is closer for all three."),
+            leo("So Dana's query was fine, it just read everything."),
+            maya("Explain analyze called it a sequential scan, which just means reading the table top to bottom. So on Wednesday Priya built an index, and that is where it gets good."),
+            leo("An index should have fixed it."),
+            maya("An index is like the one at the back of a book: jump near the answer instead of reading every page. Priya built hers for cosine distance. The query still took nine hundred milliseconds."),
+            leo("[laugh] Why?"),
+            maya("Because the query ordered by the ruler operator, not the cosine one, and an index only serves the operator it was built for. Postgres ignored it and read every row, politely, without a word of complaint."),
+            leo("Thursday. Please tell me Thursday was calm."),
+            maya("Thursday was Marcus, and Marcus had read about the other kind. Two come with pgvector. HNSW, which in plain words is a web of notes, each joined to a few near ones in layers, so a search hops from note to closer note."),
+            leo("And the other?"),
+            maya("IVFFlat, which means the rows are sorted into groups first, like shelves by subject, and a search opens only the nearest shelves. Faster to build, lighter on memory. The catch is that the shelves are worked out from the rows already loaded."),
+            leo("And Marcus built it on?"),
+            maya("An empty table, the night before the big load. It trained its shelves on nothing. [sigh] HNSW has no training step, which is exactly why it is the safe pick for a table that fills later."),
+            leo("What did that cost in quality, measurably?"),
+            maya("Recall fell through the floor, and recall means the share of the truly closest rows a search actually returns. His was about 0.4: four in every ten. After a rebuild, with about one shelf per thousand rows, it came back."),
+            leo("And if it is merely a bit low?"),
+            maya("One knob each. For HNSW, ef search, the size of the shortlist it keeps while hopping, forty by default. For IVFFlat, probes, the number of shelves a search opens, one by default. Raise either and you trade time for recall."),
+            leo("Friday. Last one, and I can tell it is the embarrassing one."),
+            maya("The intern. [pause] The search returned the five closest notes from the whole table, with no filter, and an answer quoted a restaurant in another city to the payouts team."),
+            leo("Which they presumably noticed."),
+            maya("Within a minute. The fix is a where clause on the city and the restaurant, so only rows that caller may see are in the race. Filtering afterwards in Python is the mistake the exam loves most."),
+            leo("Did anything go right all week?"),
+            maya("Plenty. The ending is RAG, short for retrieval augmented generation, the same as in the Cosmos episode: fetch the five closest notes and paste them into the message to a chat model, told to answer only from those."),
+            leo("And did anyone ask the obvious question? Why not just use Cosmos?"),
+            maya("Priya did, on Friday, and she is right to. Cosmos when the vectors sit beside documents you already keep there and you want copies close to diners in every region. Postgres when they belong beside rows you are already joining to."),
+            leo("And if the table grows to many millions of notes?"),
+            maya("Then DiskANN, which Azure adds as pg diskann. It is a graph index, meaning the same web idea, dots joined by lines, built for very large tables, with high recall and quick builds."),
+            leo("So what is the gossip I should remember for the exam?"),
+            maya("Create extension refused: the azure.extensions guest list, and the name is vector. A sequential scan with an index right there: the operator does not match. An empty table filled overnight: HNSW, not Marcus's choice."),
+            leo("And Dana's and the intern's?"),
+            maya("Faster build with the data already loaded: IVFFlat. Recall too low with time to spare: raise ef search, or probes. And someone else's rows in an answer: the filter belongs in the where clause."),
+            leo("And something to try today, so I am not next week's story?"),
+            maya("Allow VECTOR in azure.extensions and run create extension vector. Make a table with a three-number vector column and insert five rows. Order by each of the three operators and compare the top three. Then build an HNSW cosine index and confirm the index scan with explain."),
+            leo("No sequential scans, and no shelves built on an empty table. See you next time."),
         ),
         series = PodcastSeries.AI200,
         style = PodcastStyle.GOSSIP,
@@ -214,64 +186,56 @@ internal object Ai200EpisodesPgvector {
     private val lateNight = Podcast(
         "ai-pgvector",
         listOf(
-            nova("Hey, you. It's late, the kettle's cooling, and you're still up, still learning. [pause] Tonight, Ivy and I want to teach an old database a new trick."),
-            ivy("An old database, at this hour. You do know how to spoil a girl, Nova."),
-            nova("Mm. Picture a learner, revising late, like you. They ask their study app, what is a dead-letter queue? The answer is in their notes. Just in different words. [pause] So a search for the words finds nothing."),
-            ivy("So how does the app find it?"),
-            nova("By meaning. And for that, we need a map. Three steps east, four steps north: you can write that spot as two numbers, three and four. A list of numbers like that is called a vector. [pause] Just a spot on the map."),
-            ivy("A spot on a map. And where does meaning come in?"),
-            nova("An AI model reads each note and writes a list of numbers for it, so notes that mean similar things get nearby spots. That list is an embedding. Only, it isn't two numbers. It's 1,536. Nobody can picture that many directions, [pause] but the maths works just the same."),
-            ivy("Pins on a map, in the dark. And where do the pins live?"),
-            nova("Tonight, in PostgreSQL. A popular free database that keeps data in tables of rows and columns, like a very strict spreadsheet. The Two Tracks Coach, the study helper in the Android app, already keeps its notes there, behind a Python server on Azure, Microsoft's cloud."),
-            ivy("And a strict spreadsheet just understands meaning now?"),
-            nova("Not on its own. It needs an extension, an add-on, like a plug-in for your browser. This one's called pgvector. Under the picture, it's code loaded into the database server itself, adding a column type called vector that holds the numbers side by side."),
-            ivy("And on Azure, I just switch it on?"),
-            nova("Two gentle steps. Azure's PostgreSQL keeps a guest list of add-ons it allows, a setting called azure.extensions. On a new server it's empty, so VECTOR goes on the list."),
-            ivy("And then I type CREATE EXTENSION pgvector?"),
-            nova("[pause] Vector, not pgvector. CREATE EXTENSION vector, in each database. The add-on goes by a shorter name than its fame."),
-            ivy("[chuckle] Don't we all. So how does it measure closeness?"),
-            nova("Three ways, each a small symbol in the query, called an operator. The first is Euclidean distance: a ruler laid between two pins. From the middle of the map to the spot three, four, the ruler says five. Smaller means closer."),
-            ivy("A ruler. So practical. And the second?"),
-            nova("Cosine. [pause] Picture an arrow from the middle of the map to each pin. Cosine only asks: do the two arrows point the same way, whatever their length? Same way 1, a right angle 0, opposite ways minus 1."),
-            ivy("Which way you're facing. I like that one. Show me."),
-            nova("Three, four, and six, eight. One arrow is twice as long, but they face the same way, so cosine says 1. pgvector makes it a distance, one minus that, so 0. That's the usual one for text."),
+            nova("Hey, you. It is late, the kitchen is shut, and it is just the three of us. Me, Ivy, and you, still awake. [pause] Tonight: the same search Zaiqa already has, built a second time, somewhere else."),
+            ivy("Somewhere else being PostgreSQL. Why would anyone do it twice, Nova?"),
+            nova("Because the exam will ask you to choose, and because Postgres already holds Zaiqa's payouts ledger, the table of what each restaurant is owed. [pause] Numbers like these prefer to live near the rows they belong to."),
+            ivy("Start me from the beginning. What is actually stored?"),
+            nova("A list of numbers for every dish. Picture a town map: three steps east, four steps north, and your spot is three, four. A list of numbers like that is the vector. Just a spot on a map."),
+            ivy("And the numbers come from somewhere clever, I assume."),
+            nova("An AI model whose whole job is that. The list it writes for a piece of text is called an embedding. [pause] Two dishes that mean the same thing land close together, even in different words."),
+            ivy("And Postgres can hold such a thing?"),
+            nova("Not on its own. It needs an extension, an add-on, like a plug-in for your browser, and ours is pgvector. It brings a column type called vector, and ways to measure how far apart two lists are."),
+            ivy("Then I switch it on and go to bed."),
+            nova("Not quite. The extension is named vector, not pgvector, and Azure's Postgres keeps a guest list of allowed add-ons, a setting called azure.extensions, empty on a new server. [pause] Put VECTOR on the list, then run create extension vector."),
+            ivy("Mm. And the search itself?"),
+            nova("A normal query, with a distance operator instead of equals: a little arrow between the column and the question's numbers. Three of them, and I will give you one at a time."),
+            ivy("Slowly, please. It is late."),
+            nova("Euclidean is a ruler laid between two pins on the map. From the middle to the spot three, four, the ruler reads five. [pause] A real distance, so smaller means closer."),
+            ivy("One. Next."),
+            nova("Cosine distance. Picture an arrow from the middle of the map out to each spot, and ask whether the two arrows point the same way, whatever their length. Same way is no distance at all. For text, this is the one you want."),
+            ivy("And the third, before I drift off?"),
+            nova("Inner product, which means multiply the matching numbers and add them up. With lists already scaled to length one, as OpenAI's are, it ranks exactly like cosine and is the cheapest. Order by the distance, limit five, and filter by city."),
+            ivy("So that is the whole thing working."),
+            nova("Working, and slow. Four hundred thousand dishes and nothing to help, so Postgres measures against every row. [pause] Explain analyze calls it a sequential scan, which just means reading the table top to bottom. Nine hundred milliseconds a question."),
+            ivy("Then give it an index and let us both sleep."),
+            nova("An index is like the one at the back of a book: jump near the answer instead of reading every page. But a vector index is approximate, which means very close, not guaranteed the closest."),
+            ivy("[sigh] And how badly does it cheat?"),
+            nova("You measure it, and the measure is called recall: the share of the truly closest rows a search actually returns. Recall of 0.93 is ninety-three in every hundred. Test it on real questions, never by feel."),
+            ivy("Which index, then?"),
+            nova("Two come with pgvector. HNSW, which in plain words is a web of dishes: each one joined to a few near ones, in layers, so a search hops from dish to closer dish instead of knocking on every door."),
+            ivy("Sounds expensive to build."),
+            nova("Slow, and hungry for memory. In return, the best speed against recall of anything here, and no training step. [pause] You can build it on an empty table tonight and fill the table tomorrow."),
+            ivy("And its rival?"),
+            nova("IVFFlat, which means the rows are sorted into groups first, like shelves by subject, so a search opens only the nearest shelves. Builds far faster, takes less memory. But its shelves are worked out from the rows already loaded."),
+            ivy("So never on an empty table."),
+            nova("Never. It would train on nothing. Load first, then build, about one shelf per thousand rows. [pause] That is the trade, and the exam loves to put it to you as a table filled overnight."),
+            ivy("And if the answers are still a little thin?"),
+            nova("One knob each. For HNSW, ef search, the size of the shortlist it keeps while hopping, forty by default. For IVFFlat, probes, the number of shelves a search opens, one by default. Raise either and you pay in time."),
+            ivy("And where does all this stop working?"),
+            nova("Three places. An index only serves the operator it was built for, so a cosine index with a ruler query is ignored. Past many millions of rows there is DiskANN: a graph index, meaning the same web idea, dots joined by lines, that Azure adds as pg diskann."),
             ivy("And the third?"),
-            nova("Inner product, also called the dot product. Multiply the matching numbers, and add them up. Two, three against four, one: two times four is eight, three times one is three. Eleven. [pause] Bigger means the lists agree more."),
-            ivy("Bigger is better? You said smaller means closer."),
-            nova("Sharp, as ever. So pgvector uses the negative inner product, minus eleven, and smaller is closer again. It's the cheapest of the three."),
-            ivy("And then? I ask, it measures, and?"),
-            nova("It sorts the notes by distance, closest first, and keeps five. In SQL, the database's language, that's ORDER BY the distance, then LIMIT 5."),
-            ivy("Sort every note, every time? That sounds like a long night."),
-            nova("It is, without help. With 400,000 notes, it took almost a second a question. So you build an index. Like the index at the back of a book, it lets the database jump near the answer instead of turning every page."),
-            ivy("Which index, Nova? There's always more than one."),
-            nova("Two to know. HNSW, short for hierarchical navigable small world. It's a graph: dots joined by lines, like a map of who knows whom."),
-            ivy("And the dots?"),
-            nova("Each dot is a node, one stored note, holding hands with a few of its nearest notes. A search hops from dot to closer dot, like friends of friends, instead of knocking on every door."),
-            ivy("Hop, hop, hop. Through every note?"),
-            nova("No. Top layers are sparse, like motorways; lower ones are streets. [pause] It keeps a shortlist on the way, and its size is ef search, 40 by default."),
-            ivy("And the other index?"),
-            nova("IVFFlat. It sorts vectors into groups, like a library shelving books by subject, and checks only the nearest shelves. Faster to build, less memory."),
-            ivy("There's a but. I can hear it."),
-            nova("It learns its shelves from the data already there, so it's built after loading. HNSW needs no training, so it's fine on an empty table."),
-            ivy("Hopping, shelves. Do they ever miss?"),
-            nova("Sometimes. They're approximate, which means very close, not guaranteed perfect. How much they find is called recall. A recall of 0.93 means 93 of every 100 true closest notes. The Coach raised ef search to 80, and recall went to 0.98."),
-            ivy("And the dial on IVFFlat?"),
-            nova("It's called probes: how many shelves a search checks, one by default. [pause] More shelves, better recall, a little slower."),
-            ivy("And now the trap. I can feel one coming."),
-            nova("An index serves only its own operator. Build it for cosine, then sort by the ruler, and the database ignores your index and reads every row."),
-            ivy("Silently? How would I ever know?"),
-            nova("Put EXPLAIN in front of the query to see its plan. Seq Scan, a sequential scan, every row. Index Scan, you're fine."),
-            ivy("Mm. And whose notes come back? Only mine, I hope."),
-            nova("Only yours, if the query says so. A filter in its WHERE part, on your user id and the course. Never fetch the top five from everyone and filter later in Python. That's how a stranger's notes slip into your answer."),
-            ivy("Then the Coach answers me from my own notes?"),
-            nova("That's RAG, which stands for retrieval augmented generation. Your five notes go to a chat model with your question, and it answers only from them. [pause] Built on your notes, not its imagination."),
-            ivy("Now tell me where it all stops working."),
-            nova("Approximate can miss, so check your recall. At many millions of rows, Azure offers DiskANN, an add-on made for huge vector tables. And the index should fit in the server's memory. The Cosmos DB vector search episode does this same dance in another database, if you're not sleepy yet."),
-            ivy("[sigh] Almost. Before I go, what do I remember for the exam?"),
-            nova("Refused install: VECTOR in azure.extensions, and the name is vector. A Seq Scan despite an index: match the operator. Best speed and recall, or an empty table: HNSW. Faster build, data loaded first: IVFFlat. Low recall: raise ef search. Someone else's notes: filter on the user id in WHERE."),
-            ivy("And something to try today, before I sleep?"),
-            nova("Allow VECTOR in azure.extensions and run CREATE EXTENSION vector. Create a table with a vector column of three numbers, and insert five rows. [pause] Order by each of the three operators and compare the top three rows. Then build an HNSW cosine index, and confirm the index scan with EXPLAIN."),
-            ivy("Pins on a map, all facing the same way. Goodnight, you. See you next time."),
+            nova("Memory. The index should fit in it, so memory optimized compute for big sets, never burstable in production. [pause] Otherwise it waits on disk all evening, like the rest of us."),
+            ivy("And the diner, poor soul, gets what?"),
+            nova("An answer. RAG, short for retrieval augmented generation, the same ending as the Cosmos night: fetch the five closest dishes, paste them into the message to a chat model, and tell it to answer only from those."),
+            ivy("Then the question I have been saving. Cosmos or Postgres?"),
+            nova("Both are right answers in different rooms. Cosmos when the vectors sit beside documents you already keep there and you want copies close to diners in every region. Postgres when they belong beside rows you are already joining to, like the ledger."),
+            ivy("Mm. Before I give in. What do I remember for the exam?"),
+            nova("Create extension refused on a new server: the azure.extensions guest list, and the name is vector. A sequential scan with an index right there: the operator does not match. An empty table filled overnight, high recall: HNSW."),
+            ivy("And two more, quietly."),
+            nova("Faster build with the data already loaded: IVFFlat. Recall a little low with time to spare: raise ef search, or probes. And another city's dishes in an answer: the filter belongs in the where clause."),
+            ivy("And something to try today, before the light goes off?"),
+            nova("Allow VECTOR in azure.extensions and run create extension vector. Make a table with a three-number vector column and insert five rows. Order by each of the three operators and compare the top three. Then build an HNSW cosine index and confirm the index scan with explain."),
+            ivy("Vectors beside the feed, or vectors beside the ledger. Goodnight, you. See you next time."),
         ),
         series = PodcastSeries.AI200,
         style = PodcastStyle.LATE_NIGHT,
@@ -280,58 +244,54 @@ internal object Ai200EpisodesPgvector {
     private val couples = Podcast(
         "ai-pgvector",
         listOf(
-            nova("Tonight is date night, darling. Candles, a little wine, and you and me, Rafe, talking about how to find your perfect match."),
-            rafe("I already found mine. But go on, tell me how a database does it."),
-            nova("[laugh] With pgvector, in PostgreSQL. Picture the Two Tracks Coach, the study helper in the Android app, with a Python server on Azure, Microsoft's cloud. A learner asks, what is a dead-letter queue? The answer's in their notes, in completely different words."),
-            rafe("Different words, same meaning. The story of our first date."),
-            nova("Exactly. So the app compares meaning, on a map. Three steps east, four steps north: that spot is the list of numbers three, four. A list of numbers like that is called a vector. A spot on the map."),
-            rafe("And meaning becomes a spot how?"),
-            nova("An AI model writes a list of numbers for each note, so notes that mean similar things get nearby spots. That's an embedding. Not two numbers, though: 1,536. Nobody can picture that, but the maths works the same."),
-            rafe("Close together on a map. I like where this is going. Where do the pins live?"),
-            nova("In PostgreSQL, a popular free database that keeps data in tables of rows and columns, like a very strict spreadsheet."),
-            rafe("Strict. And it understands meaning?"),
-            nova("Not alone. It needs an extension, an add-on, like a plug-in for your browser. That's pgvector: code inside the database server, adding a column type called vector."),
-            rafe("A strict spreadsheet with a plug-in. My type. Then let me test you, darling. Exam style. On a brand-new Azure server, you run CREATE EXTENSION vector, the command that installs the add-on, and it's refused. Why?"),
-            nova("Because Azure's PostgreSQL service keeps a guest list of add-ons it allows, a setting called azure.extensions, and on a new server it's empty. Put VECTOR on the list first. And the add-on is named vector, never pgvector."),
-            rafe("Right answer. You always know how to get on the list. [kiss]"),
-            nova("Mm. Now, measuring closeness. pgvector has three small symbols for it, called operators. The first is Euclidean distance: a ruler laid between two pins. From the middle of the map to three, four, the ruler says five. Smaller is closer."),
-            rafe("A ruler. How very romantic. And the second?"),
-            nova("Cosine. Picture an arrow from the middle of the map to each pin. Do two arrows point the same way, whatever their length? Same way 1, right angle 0, opposite ways minus 1."),
-            rafe("Which way you're facing, not how tall you are. Thank goodness. Example?"),
-            nova("Three, four, and six, eight. Twice as long, same way: cosine says 1. pgvector makes it a distance, one minus that, so 0. The usual choice for text."),
-            rafe("My turn to teach the third. Inner product, also called the dot product. Multiply the matching numbers and add them up. Two, three with four, one: two times four plus three times one is eleven. Bigger means the lists agree more."),
-            nova("But we wanted smaller to mean closer."),
-            rafe("So pgvector uses the negative inner product, minus eleven. The cheapest of the three. Then sort by distance, closest first, keep five. In SQL, the database's language, ORDER BY the distance, LIMIT 5."),
-            nova("Sorting every note every time sounds exhausting. 400,000 notes took almost a second a question. So you build an index, like the one at the back of a book, to jump near the answer."),
-            rafe("And here's my question. The index was built for cosine. The query sorts by the ruler. The database's plan says Seq Scan: it's reading every row. What went wrong?"),
-            nova("An index only serves its own operator. Cosine index, cosine operator. Mix them, and the database ignores the index and reads every row, one after another. EXPLAIN shows you the plan; you want Index Scan."),
-            rafe("Right answer. We should always speak the same language. [kiss]"),
-            nova("Mm. Now the indexes. HNSW, short for hierarchical navigable small world. It's a graph: dots joined by lines, like a map of who knows whom."),
-            rafe("And who are the dots?"),
-            nova("Each dot is a node, one stored note, holding hands with a few of its nearest notes. A search hops from dot to closer dot, friends of friends, instead of knocking on every door. Top layers sparse like motorways, lower ones dense like streets."),
-            rafe("And IVFFlat sorts vectors into groups, like a library shelving books by subject, and checks only the nearest shelves."),
-            nova("Faster to build, less memory. I like it already."),
-            rafe("Then, darling: three million flashcards, a table created empty and filled during the night. Which index?"),
-            nova("IVFFlat. It builds faster, and I'm impatient."),
-            rafe("No kiss for that one. IVFFlat learns its shelves from the data already there, and an empty table has none. HNSW needs no training, so you build it first and fill it later."),
-            nova("Recall. Remind me, gently."),
-            rafe("These indexes are approximate, which means very close, not guaranteed perfect. Recall is how many of the true closest notes a search actually finds. 0.93 means 93 of every 100. HNSW gives the best balance of speed and recall."),
-            nova("Then here's mine. Recall from an HNSW index is too low, and there's time to spare. What do you change first?"),
-            rafe("Raise ef search. That's the size of the shortlist it keeps while hopping, 40 by default. Longer list, more true neighbours, a little slower. For IVFFlat the dial is probes, the number of shelves it checks."),
-            nova("Right answer. A longer list of candidates, and you still picked me. [kiss]"),
-            rafe("Last quiz of the evening. The Coach's answer quoted another learner's notes. What should the query have had?"),
-            nova("A filter in its WHERE part, on the user id and the course, so only this learner's notes compete at all. Not everyone's top five, filtered later in Python."),
-            rafe("And then the notes go where?"),
-            nova("Then RAG, which stands for retrieval augmented generation: those notes go to a chat model, and it answers only from them."),
-            rafe("Right answer. What's yours stays yours. [kiss]"),
-            nova("And where does it all stop working, Rafe? Every romance has its limits."),
-            rafe("Approximate can miss, so measure recall. Past many millions of rows, Azure offers DiskANN, an add-on built for huge vector tables. Keep the index in the server's memory. And the Cosmos DB vector search episode shows the same idea in another database."),
-            nova("Then the last question, for the exam. What do we remember?"),
-            rafe("Refused install: VECTOR in azure.extensions, and call it vector. Seq Scan despite an index: match the operator. Best speed and recall, or an empty table: HNSW; faster build with data loaded: IVFFlat. Low recall: raise ef search. Someone else's notes: filter on the user id in WHERE."),
-            nova("Five for five. That one earns a long one. [kiss]"),
-            rafe("Mm. And something to try today, darling?"),
-            nova("Allow VECTOR in azure.extensions and run CREATE EXTENSION vector. Create a table with a vector column of three numbers, and insert five rows. Order by each of the three operators and compare the top three rows. Then build an HNSW cosine index, and confirm the index scan with EXPLAIN."),
-            rafe("And I know who's closest to me, by every measure. Goodnight, everyone. See you next time."),
+            nova("Tonight is date night, darling, and I have brought a database to the table. PostgreSQL, since you ask. Zaiqa already searches dishes by meaning in Cosmos DB, and tonight we do the whole thing again, in Postgres, beside the payouts ledger."),
+            rafe("You know how to spoil me. The ledger being the table of what each restaurant is owed."),
+            nova("That one. And the rule of the evening is the usual: I ask, you answer, and a right answer gets paid for. First, warm up. What does a search by meaning actually store?"),
+            rafe("A list of numbers for every dish. Picture a town map: three steps east, four north, and your spot is three, four. A list like that is the vector, and an AI model writes one for any text. That list is called an embedding."),
+            nova("Right answer, and beautifully said. [kiss]"),
+            rafe("Then my turn. Postgres holds no such column. What do we do about it?"),
+            nova("We add an extension, an add-on, like a plug-in for your browser. Ours is pgvector: a column type called vector, and operators that measure how far apart two lists are."),
+            rafe("Good. Now the exam version, and I will be strict. On a brand new Azure flexible server, create extension pgvector is refused. Two things are wrong. Name them both."),
+            nova("One: the extension is named vector; pgvector is only the project's name. Two: Azure's Postgres keeps a guest list of allowed add-ons, a setting called azure.extensions, and it starts empty. Put VECTOR on it, then create extension vector."),
+            rafe("Two for two. [kiss] Now, how does the query ask for something close?"),
+            nova("With a distance operator, a little arrow between the column and the question's numbers. Three to pick from, and here is where you earn your dinner. Describe Euclidean."),
+            rafe("A ruler laid between two pins on the map. From the middle to the spot three, four, it reads five. Smaller means closer."),
+            nova("Mm, correct. And cosine distance?"),
+            rafe("Picture an arrow from the middle out to each spot, and ask whether two arrows point the same way, whatever their length. Same way is no distance. It is the usual pick for text."),
+            nova("Right answer, twice over. [kiss] And the third, love?"),
+            rafe("Inner product, which means multiply the matching numbers and add them up. With lists scaled to length one, as OpenAI's are, it ranks like cosine and is the cheapest. Order by the distance, limit five, filter by city."),
+            nova("Lovely. Now something harder. Four hundred thousand dishes, no help at all, and the search takes nine hundred milliseconds. What does explain analyze say, and why?"),
+            rafe("Sequential scan, which just means reading the table top to bottom, measuring the distance to every single row. Exact, and far too slow for a hungry diner."),
+            nova("And the cure?"),
+            rafe("An index. Which is like the one at the back of a book: jump near the answer instead of reading every page."),
+            nova("Right answer, and quick with it. [kiss] But a vector index asks something of you in return."),
+            rafe("It is approximate, which means very close, not guaranteed the closest. And you measure what it misses."),
+            nova("With what, exactly? Give me the word and the meaning."),
+            rafe("Recall: the share of the truly closest rows a search actually returns. Recall of 0.93 is ninety-three in every hundred, tested on real questions."),
+            nova("Mm, good. Now the real exam question of the evening. A new table, filled overnight by a loading job, and high recall matters. Which index, and why?"),
+            rafe("IVFFlat, because it is cheaper to build."),
+            nova("[sigh] No kiss for that one. IVFFlat means the rows are sorted into groups first, like shelves by subject, and the shelves are worked out from the rows already loaded. On an empty table it trains on nothing."),
+            rafe("Then HNSW. Which is, in plain words?"),
+            nova("A web of dishes: each one joined to a few near ones, in layers, so a search hops from dish to closer dish instead of knocking on every door. Slow to build, hungry for memory, best speed against recall, and no training step."),
+            rafe("So an empty table is fine, and I have learned my lesson. Let me win one back. Recall is low and there is time to spare. What do we turn?"),
+            nova("Say it properly and it is yours."),
+            rafe("Ef search for HNSW, the size of the shortlist it keeps while hopping, forty by default. Probes for IVFFlat, the number of shelves a search opens, one by default. Either way, time for recall."),
+            nova("Right answer. [kiss] And if the table ever reaches many millions of rows?"),
+            rafe("DiskANN, which Azure adds as pg diskann. It is a graph index, meaning the same web idea, dots joined by lines, built for very large tables, with high recall and quick builds."),
+            nova("One more trap, and it catches everybody. The index exists, and explain analyze still says sequential scan."),
+            rafe("The query ordered by the wrong operator. An index only serves the operator it was built for, so a cosine index wants the cosine arrow, not the ruler."),
+            nova("Right answer, darling. [kiss] And an answer that quoted a restaurant in another city?"),
+            rafe("No filter. A where clause on the city and the restaurant, so only rows that caller may see are in the race. Never tidy it up afterwards in Python."),
+            nova("Perfect. And the ending the diner sees is the one from our Cosmos date: RAG, short for retrieval augmented generation, where the five closest dishes go into the message to a chat model, told to answer only from those."),
+            rafe("Then the question we have been circling all evening. Cosmos, or Postgres?"),
+            nova("Both, and knowing which is the whole point. Cosmos when the vectors sit beside documents you already keep there and you want copies close to diners in every region. Postgres when they belong beside rows you are already joining to."),
+            rafe("Like the ledger. So what do we take to the exam, love?"),
+            nova("Create extension refused: the azure.extensions guest list, and the name is vector. A sequential scan with an index right there: the operator does not match. An empty table filled overnight: HNSW."),
+            rafe("And the last two?"),
+            nova("Faster build with the data already loaded: IVFFlat. Recall low with time to spare: raise ef search, or probes. And another city's dishes in an answer: the filter belongs in the where clause."),
+            rafe("Five for five, between us. And something to try today?"),
+            nova("Allow VECTOR in azure.extensions and run create extension vector. Make a table with a three-number vector column and insert five rows. Order by each of the three operators and compare the top three. Then build an HNSW cosine index and confirm the index scan with explain."),
+            rafe("Vectors beside the ledger, and the washing up beside me. Goodnight, everyone. See you next time."),
         ),
         series = PodcastSeries.AI200,
         style = PodcastStyle.COUPLES,
@@ -341,29 +301,13 @@ internal object Ai200EpisodesPgvector {
 
     // The diagrams the five boards draw, each scene keyed to its own episode's lines.
 
-    private fun meaning() = DiagramSpec(
-        "Two texts in different words get nearby embeddings, so the note is found by meaning.",
-        nodes = listOf(
-            DNode("q", "Question", 0.24f, 0.18f, w = 0.4f, h = 0.2f, kind = NodeKind.NOTE, sub = "dead-letter queue?"),
-            DNode("note", "Note", 0.24f, 0.78f, w = 0.4f, h = 0.2f, kind = NodeKind.NOTE, sub = "other words"),
-            DNode("model", "Embedding model", 0.76f, 0.18f, w = 0.4f, h = 0.2f, tone = 2, sub = "text to numbers"),
-            DNode("vec", "Nearby pins", 0.76f, 0.78f, w = 0.4f, h = 0.2f, kind = NodeKind.PILL, sub = "similar meaning"),
-        ),
-        edges = listOf(
-            DEdge("q", "model", "embed"),
-            DEdge("note", "model", "embed"),
-            DEdge("model", "vec"),
-        ),
-        aspect = 0.8f,
-    )
-
     private fun setup() = DiagramSpec(
         "Put VECTOR on the server's guest list, run CREATE EXTENSION vector, then store embeddings in a vector column.",
         nodes = listOf(
             DNode("srv", "Azure PostgreSQL", 0.25f, 0.15f, w = 0.44f, h = 0.2f, tone = 1, sub = "run for you"),
             DNode("allow", "Guest list", 0.75f, 0.15f, w = 0.44f, h = 0.2f, kind = NodeKind.NOTE, sub = "azure.extensions"),
             DNode("ext", "CREATE EXTENSION", 0.25f, 0.55f, w = 0.44f, h = 0.2f, sub = "vector, not pgvector"),
-            DNode("table", "Notes table", 0.75f, 0.58f, w = 0.44f, h = 0.3f, kind = NodeKind.CYLINDER, sub = "vector column"),
+            DNode("table", "Dishes table", 0.75f, 0.58f, w = 0.44f, h = 0.3f, kind = NodeKind.CYLINDER, sub = "vector column"),
         ),
         edges = listOf(
             DEdge("srv", "allow", "guest list"),
@@ -420,12 +364,12 @@ internal object Ai200EpisodesPgvector {
     )
 
     private fun filter() = DiagramSpec(
-        "The query filters on the learner in WHERE, takes the five closest notes, and a chat model answers only from them.",
+        "The query filters on the city in WHERE, takes the five closest dishes, and a chat model answers only from them.",
         nodes = listOf(
-            DNode("user", "Learner", 0.1f, 0.2f, w = 0.16f, h = 0.2f, kind = NodeKind.USER),
-            DNode("api", "Coach API", 0.42f, 0.2f, w = 0.34f, h = 0.2f, tone = 1, sub = "Python"),
-            DNode("where", "WHERE user id", 0.8f, 0.2f, w = 0.36f, h = 0.2f, kind = NodeKind.NOTE, sub = "and course"),
-            DNode("pg", "PostgreSQL", 0.42f, 0.72f, w = 0.4f, h = 0.3f, kind = NodeKind.CYLINDER, sub = "top 5 notes"),
+            DNode("user", "Diner", 0.1f, 0.2f, w = 0.16f, h = 0.2f, kind = NodeKind.USER),
+            DNode("api", "Taste service", 0.42f, 0.2f, w = 0.34f, h = 0.2f, tone = 1, sub = "Python"),
+            DNode("where", "WHERE city", 0.8f, 0.2f, w = 0.36f, h = 0.2f, kind = NodeKind.NOTE, sub = "and restaurant"),
+            DNode("pg", "PostgreSQL", 0.42f, 0.72f, w = 0.4f, h = 0.3f, kind = NodeKind.CYLINDER, sub = "top 5 dishes"),
             DNode("chat", "Chat model", 0.84f, 0.72f, w = 0.3f, h = 0.2f, tone = 2, sub = "answers"),
         ),
         edges = listOf(
@@ -433,7 +377,22 @@ internal object Ai200EpisodesPgvector {
             DEdge("api", "where", "filter"),
             DEdge("api", "pg", "query"),
             DEdge("where", "pg"),
-            DEdge("pg", "chat", "5 notes"),
+            DEdge("pg", "chat", "5 dishes"),
+        ),
+        aspect = 0.8f,
+    )
+
+    private fun choose() = DiagramSpec(
+        "The exam's choice: Cosmos DB beside the documents you already keep there, Postgres beside the rows you join to.",
+        nodes = listOf(
+            DNode("cosmos", "Cosmos DB", 0.26f, 0.2f, w = 0.46f, h = 0.22f, tone = 1, sub = "beside the order feed"),
+            DNode("pg", "PostgreSQL", 0.76f, 0.2f, w = 0.42f, h = 0.22f, tone = 2, sub = "beside the ledger"),
+            DNode("global", "Copies everywhere", 0.26f, 0.76f, w = 0.46f, h = 0.2f, kind = NodeKind.NOTE, sub = "pick Cosmos"),
+            DNode("join", "Joined to rows", 0.76f, 0.76f, w = 0.42f, h = 0.2f, kind = NodeKind.NOTE, sub = "pick Postgres"),
+        ),
+        edges = listOf(
+            DEdge("cosmos", "global"),
+            DEdge("pg", "join"),
         ),
         aspect = 0.8f,
     )
@@ -457,7 +416,7 @@ internal object Ai200EpisodesPgvector {
             DNode("hnsw", "Empty table", 0.26f, 0.47f, w = 0.46f, h = 0.2f, kind = NodeKind.NOTE, sub = "HNSW"),
             DNode("ivf", "Faster build", 0.76f, 0.47f, w = 0.44f, h = 0.2f, kind = NodeKind.NOTE, sub = "IVFFlat, data first"),
             DNode("recall", "Low recall", 0.26f, 0.8f, w = 0.46f, h = 0.2f, kind = NodeKind.NOTE, sub = "raise ef search"),
-            DNode("user", "Others' notes", 0.76f, 0.8f, w = 0.44f, h = 0.2f, kind = NodeKind.NOTE, sub = "WHERE user id"),
+            DNode("city", "Another city's dish", 0.76f, 0.8f, w = 0.44f, h = 0.2f, kind = NodeKind.NOTE, sub = "WHERE city"),
         ),
         aspect = 0.8f,
     )
@@ -477,14 +436,14 @@ internal object Ai200EpisodesPgvector {
     )
 
     private fun graphWeb() = DiagramSpec(
-        "A graph: each node is one stored note joined to its near notes, and a search hops from dot to closer dot.",
+        "HNSW as a web: each stored dish is joined to a few near dishes, and a search hops from dot to closer dot.",
         nodes = listOf(
-            DNode("start", "Start note", 0.2f, 0.16f, w = 0.34f, h = 0.2f),
-            DNode("far", "Far note", 0.2f, 0.52f, w = 0.34f, h = 0.2f),
+            DNode("start", "Start dish", 0.2f, 0.16f, w = 0.34f, h = 0.2f),
+            DNode("far", "Far dish", 0.2f, 0.52f, w = 0.34f, h = 0.2f),
             DNode("a", "Neighbour", 0.6f, 0.16f, w = 0.34f, h = 0.2f),
-            DNode("b", "Closer note", 0.6f, 0.52f, w = 0.34f, h = 0.2f),
+            DNode("b", "Closer dish", 0.6f, 0.52f, w = 0.34f, h = 0.2f),
             DNode("q", "Question", 0.2f, 0.86f, w = 0.34f, h = 0.2f, kind = NodeKind.NOTE),
-            DNode("best", "Closest note", 0.66f, 0.86f, w = 0.4f, h = 0.2f, tone = 1),
+            DNode("best", "Closest dish", 0.66f, 0.86f, w = 0.4f, h = 0.2f, tone = 1),
         ),
         edges = listOf(
             DEdge("start", "far"),
@@ -495,117 +454,123 @@ internal object Ai200EpisodesPgvector {
         aspect = 0.8f,
     )
 
-    private val all6 = setOf("ext", "seq", "hnsw", "ivf", "recall", "user")
-    private val tableCode = BoardCard("SQL", "CREATE TABLE notes (id bigserial PRIMARY KEY, user_id text, embedding vector(1536))", code = true)
-    private val searchCode = BoardCard("SQL", "SELECT body FROM notes WHERE user_id = %s ORDER BY embedding <=> %s LIMIT 5", code = true)
+    private val all6 = setOf("ext", "seq", "hnsw", "ivf", "recall", "city")
     private val today = BoardCard("Today", "Allow VECTOR, a three-number table, three operators, an HNSW index, EXPLAIN.")
     private val vectorCard = BoardCard("Vector", "A list of numbers: 3 east, 4 north is the vector (3, 4), a spot on a map.")
-    private val dimensionCard = BoardCard("Dimension", "How many numbers in the list. A map spot has 2; this model writes 1,536.")
+    private val embeddingCard = BoardCard("Embedding", "The list a model writes for a text. Similar meanings land close together.")
+    private val extensionCard = BoardCard("The name is vector", "pgvector is the project. The extension you create is called vector.")
+    private val allowCard = BoardCard("azure.extensions", "Azure's guest list of allowed add-ons, empty on a new server.")
     private val rulerCard = BoardCard("Euclidean: a ruler", "From (0, 0) to (3, 4) the ruler says 5. Smaller means closer.")
-    private val arrowsCard = BoardCard("Cosine: the arrows", "Same way 1, right angle 0, opposite minus 1, whatever the length.")
-    private val sameWayCard = BoardCard("(3, 4) and (6, 8)", "Twice as long, same way: cosine 1, distance 0. Usual for text.")
-    private val dotCard = BoardCard("Dot product", "(2, 3) and (4, 1): 2 x 4 + 3 x 1 = 11. Bigger means more alike.")
-    private val negativeCard = BoardCard("Negative inner product", "pgvector uses minus 11, so smaller still means closer. The cheapest.")
-    private val graphCard = BoardCard("Graph", "Dots joined by lines, like a map of who knows whom.")
-    private val nodeCard = BoardCard("Node", "One dot: one stored note. A search hops friends of friends.")
+    private val arrowsCard = BoardCard("Cosine: the arrows", "Do they point the same way, whatever their length? The usual for text.")
+    private val innerCard = BoardCard("Inner product", "Multiply the matching numbers and add them up. The cheapest of the three.")
+    private val scanCard = BoardCard("Sequential scan", "No index: every row measured. 400,000 dishes, nine hundred milliseconds.")
+    private val indexCard = BoardCard("An index", "Like the one at the back of a book: jump near, do not read every page.")
     private val recallCard = BoardCard("Approximate, and recall", "Very close, not guaranteed. Recall 0.93: 93 of every 100 found.")
+    private val hnswCard = BoardCard("HNSW", "A web in layers. Slow build, more memory, and no training step.")
+    private val ivfCard = BoardCard("IVFFlat", "Shelves worked out from loaded rows. Fast build, less memory.")
+    private val knobsCard = BoardCard("Two knobs", "ef search for HNSW, probes for IVFFlat. Time bought back as recall.")
+    private val mismatchCard = BoardCard("Match the operator", "A cosine index serves cosine queries. A ruler query reads every row.")
+    private val filterCard = BoardCard("Filter in WHERE", "City and restaurant, so fewer rows compete and nobody sees another's.")
+    private val ragCard = BoardCard("RAG", "Retrieval augmented generation: five dishes into the message, answer from those.")
+    private val chooseCard = BoardCard("Cosmos or Postgres", "Beside documents and copies everywhere, or beside rows you join to.")
 
     private fun classicBoard() = PodcastBoard(
         "ai-pgvector",
         listOf(
-            // 0: "Hi, and welcome back. Today is about searching by meaning..."
+            // 0: "Hi, and welcome back. Zaiqa is in good shape..."
             Scene(
-                0, "Meaning, not words", meaning(),
+                0, "The same search, elsewhere", choose(),
                 beats = listOf(
-                    Beat(0, show = setOf("q", "note"), light = setOf("q", "note"), card = BoardCard("The puzzle", "The answer is in the learner's notes, but in different words.")),
+                    Beat(0, show = setOf("cosmos"), light = setOf("cosmos"), card = BoardCard("Today", "Dish search again, in PostgreSQL, beside the payouts ledger.")),
+                    Beat(2, show = setOf("pg", "join"), light = setOf("pg"), pulse = "pg" to "join", card = BoardCard("Postgres is already here", "It holds the payouts ledger: what each restaurant is owed.")),
                 ),
             ),
-            // 2: "We compare meanings, and for that we turn text into numbers..."
+            // 4: "A list of numbers for every dish. Picture a town map..."
             Scene(
-                2, "A vector is a spot on a map", mapSpot(),
+                4, "A spot on a map", mapSpot(),
                 beats = listOf(
-                    Beat(2, show = setOf("mid", "p"), light = setOf("p"), card = vectorCard),
-                    Beat(4, show = setOf("r"), light = setOf("p", "r"), card = BoardCard("Embedding", "The numbers a model writes for a text: similar meaning, nearby spots.")),
-                    Beat(6, card = dimensionCard),
+                    Beat(4, show = setOf("mid", "p"), light = setOf("p"), pulse = "mid" to "p", card = vectorCard),
+                    Beat(6, show = setOf("r"), light = setOf("r"), card = embeddingCard),
                 ),
             ),
-            // 7: "Okay. So where do these lists live?"
+            // 8: "Not on its own. It needs an extension..."
             Scene(
-                7, "PostgreSQL plus pgvector", setup(),
+                8, "Turning it on", setup(),
                 beats = listOf(
-                    Beat(8, show = setOf("table"), light = setOf("table"), card = BoardCard("PostgreSQL", "A free database of tables, rows and columns: a very strict spreadsheet.")),
-                    Beat(10, show = setOf("ext"), light = setOf("ext"), pulse = "ext" to "table", card = BoardCard("pgvector", "An add-on: a vector column, and ways to measure distance.")),
-                    Beat(12, show = setOf("srv", "allow"), light = setOf("allow", "ext"), pulse = "srv" to "allow", card = BoardCard("Two steps", "VECTOR in azure.extensions, then CREATE EXTENSION vector. Not pgvector.")),
-                    Beat(16, light = setOf("table"), card = tableCode),
+                    Beat(8, show = setOf("srv", "ext"), light = setOf("ext"), card = BoardCard("An extension", "An add-on for Postgres, like a plug-in for your browser.")),
+                    Beat(10, show = setOf("allow"), light = setOf("allow"), pulse = "srv" to "allow", card = extensionCard),
+                    Beat(11, light = setOf("allow"), card = allowCard),
+                    Beat(12, show = setOf("table"), light = setOf("table"), pulse = "ext" to "table", card = BoardCard("The dishes table", "A vector column of 1,536 numbers, beside the rows you join to.")),
                 ),
             ),
-            // 17: "Three ways. One at a time, please."
+            // 14: "Almost. Instead of equals you use a distance operator..."
             Scene(
-                17, "The ruler and the arrows", mapSpot(),
+                14, "Three ways to measure", operators(),
                 beats = listOf(
-                    Beat(18, show = setOf("mid", "p"), light = setOf("mid", "p"), pulse = "mid" to "p", card = rulerCard),
-                    Beat(20, card = arrowsCard),
-                    Beat(22, show = setOf("r"), light = setOf("p", "r"), pulse = "p" to "r", card = sameWayCard),
+                    Beat(14, show = setOf("q", "l2", "cos", "ip"), light = setOf("q"), card = BoardCard("A distance operator", "A little arrow between the column and the question's numbers.")),
+                    Beat(16, light = setOf("l2"), pulse = "q" to "l2", card = rulerCard),
+                    Beat(18, light = setOf("cos"), pulse = "q" to "cos", card = arrowsCard),
+                    Beat(20, light = setOf("ip"), pulse = "q" to "ip", card = innerCard),
+                    Beat(22, light = setOf("cos"), card = BoardCard("Order by, limit five", "Smaller is closer. And a WHERE on the city before anything is ranked.")),
                 ),
             ),
-            // 23: "And the third?"
+            // 24: "With four hundred thousand dishes, no..."
             Scene(
-                23, "Multiply and add", operators(),
+                24, "Every row, exactly", indexes(),
                 beats = listOf(
-                    Beat(24, show = setOf("q", "ip"), light = setOf("ip"), pulse = "q" to "ip", card = dotCard),
-                    Beat(26, show = setOf("l2", "cos"), light = setOf("ip", "cos"), card = negativeCard),
-                    Beat(30, light = setOf("cos"), card = searchCode),
+                    Beat(24, show = setOf("scan"), light = setOf("scan"), card = scanCard),
+                    Beat(26, show = setOf("hnsw"), light = setOf("hnsw"), pulse = "scan" to "hnsw", card = indexCard),
+                    Beat(28, light = setOf("hnsw"), card = recallCard),
                 ),
             ),
-            // 31: "Which sounds fine, until the table is big."
+            // 30: "Two come with pgvector. The first is HNSW..."
             Scene(
-                31, "An index, not every row", indexes(),
+                30, "HNSW: a web in layers", graphWeb(),
                 beats = listOf(
-                    Beat(32, show = setOf("scan"), light = setOf("scan"), card = BoardCard("Every row", "400,000 notes read in full: nearly a second. An index jumps near.")),
-                    Beat(34, card = recallCard),
+                    Beat(30, show = setOf("start", "a", "b", "best"), light = setOf("start", "a"), pulse = "start" to "a", card = hnswCard),
+                    Beat(32, show = setOf("far", "q"), light = setOf("b", "best"), pulse = "b" to "best", card = BoardCard("What the web costs", "Slow build, more memory. Best speed against recall, and no training.")),
                 ),
             ),
-            // 35: "And which index do I pick?"
+            // 34: "IVFFlat, which means the rows are sorted into groups first..."
             Scene(
-                35, "HNSW: a web of notes", graphWeb(),
+                34, "IVFFlat: shelves by subject", indexes(),
                 beats = listOf(
-                    Beat(36, show = setOf("start", "far", "a", "b", "best"), card = graphCard),
-                    Beat(38, show = setOf("q"), light = setOf("a", "b"), pulse = "a" to "b", card = nodeCard),
-                    Beat(42, light = setOf("best"), pulse = "b" to "best", card = BoardCard("HNSW", "Layers, motorway then streets. Best speed and recall; fine on an empty table.")),
+                    Beat(34, show = setOf("scan", "ivf"), light = setOf("ivf"), pulse = "scan" to "ivf", card = ivfCard),
+                    Beat(36, light = setOf("ivf"), card = BoardCard("Load first, then build", "Its shelves are worked out from the rows already in the table.")),
+                    Beat(38, show = setOf("hnsw", "efs", "probes"), light = setOf("efs", "probes"), pulse = "hnsw" to "efs", card = knobsCard),
+                    Beat(40, light = setOf("scan"), card = BoardCard("DiskANN", "Azure adds pg diskann: the same web idea, for many millions of rows.")),
                 ),
             ),
-            // 43: "Training? Indexes go to the gym now?"
+            // 42: "One that catches everybody. An index only serves the operator..."
             Scene(
-                43, "Shelves and dials", indexes(),
+                42, "Match the operator", match(),
                 beats = listOf(
-                    Beat(44, show = setOf("scan", "ivf"), light = setOf("ivf"), pulse = "scan" to "ivf", card = BoardCard("IVFFlat", "Shelves by subject, learned from the data: build after loading.")),
-                    Beat(46, show = setOf("hnsw", "efs"), light = setOf("efs"), pulse = "hnsw" to "efs", card = BoardCard("ef search", "HNSW's shortlist, 40 by default. Higher: more recall, a bit slower.")),
-                    Beat(48, show = setOf("probes"), light = setOf("probes"), pulse = "ivf" to "probes", card = BoardCard("probes", "How many IVFFlat shelves a search checks, one by default.")),
+                    Beat(42, show = setOf("idx", "qry", "seq", "iscan"), light = setOf("idx", "qry"), pulse = "idx" to "qry", card = mismatchCard),
+                    Beat(44, light = setOf("iscan"), card = BoardCard("Three habits", "Filter in WHERE, keep the top few small, give the index memory.")),
                 ),
             ),
-            // 49: "And if my table grows to many millions of notes?"
+            // 45: "And what the diner actually reads?"
             Scene(
-                49, "One index, one operator", match(),
+                45, "The answer the diner reads", filter(),
                 beats = listOf(
-                    Beat(52, show = setOf("idx", "qry"), light = setOf("idx", "qry"), pulse = "idx" to "qry", card = BoardCard("The trap", "Cosine index, ruler query: the index is quietly ignored.")),
-                    Beat(54, show = setOf("seq", "iscan"), light = setOf("seq"), pulse = "qry" to "seq", card = BoardCard("EXPLAIN", "Shows the plan. Seq Scan: every row. Index Scan: the index is used.")),
+                    Beat(46, show = setOf("user", "api", "where", "pg", "chat"), light = setOf("pg", "chat"), pulse = "pg" to "chat", card = ragCard),
                 ),
             ),
-            // 55: "One more worry. Could my search find someone else's notes?"
+            // 47: "Which brings me to the real question. Cosmos or Postgres?"
             Scene(
-                55, "Only this learner's notes", filter(),
+                47, "Cosmos or Postgres", choose(),
                 beats = listOf(
-                    Beat(55, show = setOf("user", "api", "pg"), pulse = "user" to "api"),
-                    Beat(56, show = setOf("where"), light = setOf("where"), pulse = "api" to "where", card = BoardCard("Filter in WHERE", "On user id and course, so only this learner's notes compete.")),
-                    Beat(58, show = setOf("chat"), light = setOf("chat"), pulse = "pg" to "chat", card = BoardCard("RAG", "Retrieve the closest notes; a chat model answers only from them.")),
+                    Beat(48, show = setOf("cosmos", "pg", "global", "join"), light = setOf("cosmos", "global"), pulse = "cosmos" to "global", card = chooseCard),
+                    Beat(50, light = setOf("pg", "join"), pulse = "pg" to "join", card = BoardCard("Zaiqa keeps both", "Dish search in Cosmos; the payouts team's notes in Postgres.")),
                 ),
             ),
-            // 59: "So what do I remember for the exam?"
+            // 51: "Fair. So what do I remember for the exam?"
             Scene(
-                59, "For the exam", exam(),
+                51, "For the exam", exam(),
                 beats = listOf(
-                    Beat(60, show = all6, light = setOf("ext", "seq", "hnsw", "ivf", "recall", "user"), card = BoardCard("Listen for the phrase", "Refused install, Seq Scan, empty table, low recall: each has one answer.")),
-                    Beat(62, card = today),
+                    Beat(52, show = all6, light = setOf("ext", "seq", "hnsw"), card = BoardCard("Listen for the phrase", "Refused install, a sequential scan, an empty table: one answer each.")),
+                    Beat(54, light = setOf("ivf", "recall", "city"), card = BoardCard("And three more", "IVFFlat, raise ef search, and the filter in the WHERE clause.")),
+                    Beat(56, card = today),
                 ),
             ),
         ),
@@ -614,118 +579,96 @@ internal object Ai200EpisodesPgvector {
     private fun caseFilesBoard() = PodcastBoard(
         "ai-pgvector--case-files",
         listOf(
-            // 0: "Welcome to Case Files. Today's case: The Borrowed Notes..."
+            // 0: "Welcome to Case Files. Tonight's case: The Search That Read The Whole Menu..."
             Scene(
-                0, "The Borrowed Notes",
-                DiagramSpec(
-                    "Flashcard Fox's answer quotes notes the student never wrote: the search reached someone else's rows.",
-                    nodes = listOf(
-                        DNode("phone", "Android app", 0.22f, 0.18f, w = 0.38f, h = 0.2f, sub = "Flashcard Fox"),
-                        DNode("api", "Python server", 0.22f, 0.72f, w = 0.38f, h = 0.2f, sub = "on Azure"),
-                        DNode("bad", "Someone's notes", 0.76f, 0.18f, w = 0.4f, h = 0.2f, kind = NodeKind.NOTE, tone = 2, sub = "in her answer"),
-                        DNode("pg", "PostgreSQL", 0.76f, 0.72f, w = 0.4f, h = 0.3f, kind = NodeKind.CYLINDER),
-                    ),
-                    edges = listOf(
-                        DEdge("phone", "api", "question"),
-                        DEdge("api", "pg", "search"),
-                        DEdge("pg", "bad", dashed = true),
-                    ),
-                    aspect = 0.8f,
-                ),
+                0, "The case", filter(),
                 beats = listOf(
-                    Beat(0, show = setOf("phone", "api", "bad"), light = setOf("bad"), pulse = "phone" to "api", card = BoardCard("The case", "A student's answer quotes notes she never wrote.")),
-                    Beat(2, show = setOf("pg"), light = setOf("pg"), pulse = "api" to "pg", card = BoardCard("Embedding", "Numbers a model writes for a text: similar meaning, nearby spots.")),
+                    Beat(0, show = setOf("user", "api", "pg"), light = setOf("pg"), pulse = "api" to "pg", card = BoardCard("The case", "Nine hundred milliseconds a question, then another city's restaurant.")),
+                    Beat(2, show = setOf("where"), light = setOf("api"), card = BoardCard("Why Postgres at all", "These notes are joined to the payouts ledger rows already there.")),
                 ),
             ),
-            // 3: "A list of numbers is a spot on a map? Show me."
+            // 4: "A list of numbers for each note. Picture a town map..."
             Scene(
-                3, "A vector is a spot on a map", mapSpot(),
+                4, "A note as a spot on a map", mapSpot(),
                 beats = listOf(
-                    Beat(4, show = setOf("mid", "p"), light = setOf("p"), card = vectorCard),
+                    Beat(4, show = setOf("mid", "p"), light = setOf("p"), pulse = "mid" to "p", card = vectorCard),
+                    Beat(6, show = setOf("r"), light = setOf("r"), card = embeddingCard),
                 ),
             ),
-            // 5: "And where do those lists live?"
+            // 8: "Before any of it. Marcus ran create extension pgvector..."
             Scene(
-                5, "PostgreSQL plus pgvector", setup(),
+                8, "Clue one: refused", setup(),
                 beats = listOf(
-                    Beat(6, show = setOf("table", "ext"), light = setOf("ext"), pulse = "ext" to "table", card = BoardCard("pgvector", "An extension, an add-on, that stores and compares embeddings.")),
-                    Beat(8, light = setOf("table"), card = BoardCard("Under the picture", "Code inside the server: a vector column packs the numbers side by side.")),
-                    Beat(12, show = setOf("srv", "allow"), light = setOf("allow"), pulse = "srv" to "allow", card = BoardCard("Suspect one: cleared", "Fixed weeks ago: VECTOR in azure.extensions, and the name is vector.")),
+                    Beat(8, show = setOf("srv", "ext"), light = setOf("ext"), card = BoardCard("Clue one", "Create extension pgvector, refused point blank. Two reasons at once.")),
+                    Beat(10, show = setOf("allow"), light = setOf("allow"), pulse = "srv" to "allow", card = extensionCard),
+                    Beat(11, light = setOf("allow"), card = allowCard),
                 ),
             ),
-            // 13: "Suspect two..."
+            // 12: "With a distance operator, a little arrow..."
             Scene(
-                13, "The filter in the wrong place", filter(),
+                12, "Three operators", operators(),
                 beats = listOf(
-                    Beat(14, show = setOf("user", "api", "pg"), light = setOf("pg"), pulse = "api" to "pg", card = BoardCard("The clue", "Top five from every student; the Python filter was skipped.")),
-                    Beat(16, show = setOf("where"), light = setOf("where"), pulse = "api" to "where", card = BoardCard("Metadata filter", "In WHERE, on user id and course: only her notes compete.")),
+                    Beat(12, show = setOf("q", "l2", "cos", "ip"), light = setOf("l2"), pulse = "q" to "l2", card = rulerCard),
+                    Beat(14, light = setOf("cos"), pulse = "q" to "cos", card = arrowsCard),
+                    Beat(16, light = setOf("ip"), pulse = "q" to "ip", card = innerCard),
                 ),
             ),
-            // 19: "Faster. Good, because the second complaint..."
+            // 18: "Four hundred thousand notes, and nothing to help..."
             Scene(
-                19, "The second witness", match(),
+                18, "Clue two: every row", indexes(),
                 beats = listOf(
-                    Beat(20, show = setOf("idx"), light = setOf("idx"), card = BoardCard("Nearly a second", "400,000 notes. The index should let it jump near the answer.")),
-                    Beat(22, show = setOf("qry", "seq"), light = setOf("seq"), pulse = "qry" to "seq", card = BoardCard("Seq Scan", "Not VACUUM. EXPLAIN shows every row read: the index is ignored.")),
+                    Beat(18, show = setOf("scan"), light = setOf("scan"), card = scanCard),
+                    Beat(20, show = setOf("hnsw"), light = setOf("hnsw"), pulse = "scan" to "hnsw", card = indexCard),
                 ),
             ),
-            // 23: "Why would it ignore a perfectly good index?"
+            // 22: "Nothing so exciting. The query ordered by the ruler operator..."
             Scene(
-                23, "The ruler and the arrows", mapSpot(),
+                22, "The index never opened", match(),
                 beats = listOf(
-                    Beat(26, show = setOf("mid", "p"), light = setOf("mid", "p"), pulse = "mid" to "p", card = rulerCard),
-                    Beat(28, card = arrowsCard),
-                    Beat(30, show = setOf("r"), light = setOf("p", "r"), pulse = "p" to "r", card = sameWayCard),
+                    Beat(22, show = setOf("idx", "qry", "seq", "iscan"), light = setOf("idx", "qry"), pulse = "idx" to "qry", card = mismatchCard),
                 ),
             ),
-            // 31: "And the third?"
+            // 24: "That query took the five closest notes from the whole table..."
             Scene(
-                31, "Multiply and add", operators(),
+                24, "Clue three: no filter", filter(),
                 beats = listOf(
-                    Beat(32, show = setOf("q", "ip"), light = setOf("ip"), pulse = "q" to "ip", card = dotCard),
-                    Beat(34, show = setOf("l2", "cos"), light = setOf("cos", "l2"), card = BoardCard("The mismatch", "Cosine index, ruler query. Switch to cosine: 900 ms fell to 15.")),
+                    Beat(24, show = setOf("user", "api", "pg"), light = setOf("pg"), pulse = "api" to "pg", card = BoardCard("Clue three", "Five closest notes from the whole table, tidied up in Python after.")),
+                    Beat(26, show = setOf("where"), light = setOf("where"), pulse = "api" to "where", card = filterCard),
                 ),
             ),
-            // 35: "Which index was it, by the way?"
+            // 28: "That is the last file. Two kinds come with pgvector..."
             Scene(
-                35, "HNSW: a web of notes", graphWeb(),
+                28, "Two indexes, two costs", indexes(),
                 beats = listOf(
-                    Beat(36, show = setOf("start", "far", "a", "b", "best"), card = graphCard),
-                    Beat(38, show = setOf("q"), light = setOf("a", "b"), pulse = "a" to "b", card = nodeCard),
-                    Beat(40, light = setOf("best"), pulse = "b" to "best", card = BoardCard("Layers and a shortlist", "Motorway, then streets. The shortlist is ef search, 40 by default.")),
-                    Beat(42, card = BoardCard("ef search 80", "Approximate: recall 0.93, 93 of 100. A longer shortlist: 0.98.")),
+                    Beat(28, show = setOf("scan", "hnsw"), light = setOf("hnsw"), pulse = "scan" to "hnsw", card = hnswCard),
+                    Beat(30, light = setOf("hnsw"), card = recallCard),
+                    Beat(32, show = setOf("ivf"), light = setOf("ivf"), pulse = "scan" to "ivf", card = ivfCard),
+                    Beat(34, light = setOf("ivf"), card = BoardCard("Trained on nothing", "Built before the night load, its shelves learned from an empty table.")),
+                    Beat(36, show = setOf("efs", "probes"), light = setOf("efs", "probes"), pulse = "ivf" to "probes", card = knobsCard),
                 ),
             ),
-            // 43: "So, case closed?"
+            // 38: "DiskANN, which Azure adds as pg diskann..."
             Scene(
-                43, "The empty table", indexes(),
+                38, "Where it stops", limits("Cosmos DB episode", "the same idea"),
                 beats = listOf(
-                    Beat(44, show = setOf("scan"), card = BoardCard("Third case", "Three million flashcards, a table filled overnight. Recall dreadful.")),
-                    Beat(48, show = setOf("ivf", "probes"), light = setOf("ivf"), pulse = "ivf" to "probes", card = BoardCard("Shelves for nothing", "IVFFlat learns its shelves from data. The table was empty.")),
-                    Beat(50, show = setOf("hnsw", "efs"), light = setOf("hnsw"), pulse = "scan" to "hnsw", card = BoardCard("Rebuilt with HNSW", "No training, fine on an empty table. IVFFlat: faster build, data first.")),
+                    Beat(38, show = setOf("miss", "disk", "mem"), light = setOf("disk"), card = BoardCard("DiskANN", "Azure adds pg diskann: the same web idea, for very large tables.")),
+                    Beat(40, show = setOf("link"), light = setOf("link"), card = ragCard),
                 ),
             ),
-            // 51: "Any loose ends in the file?"
+            // 41: "One thing still bothers me. Why Postgres at all...?"
             Scene(
-                51, "Loose ends", limits("Cosmos DB episode", "same idea"),
+                41, "Why Postgres, not Cosmos", choose(),
                 beats = listOf(
-                    Beat(52, light = setOf("miss", "disk", "mem"), card = BoardCard("Where it stops", "Approximate can miss. DiskANN for many millions. Fit in memory.")),
+                    Beat(42, show = setOf("cosmos", "pg", "global", "join"), light = setOf("pg", "join"), pulse = "pg" to "join", card = chooseCard),
                 ),
             ),
-            // 53: "And once the right notes come back?"
+            // 43: "Case closed. What goes in the report for the exam?"
             Scene(
-                53, "Then comes RAG", filter(),
+                43, "Case closed", exam(),
                 beats = listOf(
-                    Beat(53, show = setOf("user", "api", "pg", "where")),
-                    Beat(54, show = setOf("chat"), light = setOf("chat"), pulse = "pg" to "chat", card = BoardCard("RAG", "The five notes go to a chat model, which answers only from them.")),
-                ),
-            ),
-            // 55: "So, the case summary for the exam?"
-            Scene(
-                55, "Case closed", exam(),
-                beats = listOf(
-                    Beat(56, show = all6, light = setOf("user", "seq"), card = BoardCard("Listen for the phrase", "Each exam phrase points to one answer: filter, operator, index, dial.")),
-                    Beat(58, card = today),
+                    Beat(44, show = all6, light = setOf("ext", "seq"), card = BoardCard("Listen for the phrase", "A refused install, and a sequential scan with the index sitting there.")),
+                    Beat(46, light = setOf("hnsw", "ivf", "recall", "city"), card = BoardCard("And four more", "HNSW, IVFFlat, raise ef search, and the filter in the WHERE clause.")),
+                    Beat(48, card = today),
                 ),
             ),
         ),
@@ -734,103 +677,91 @@ internal object Ai200EpisodesPgvector {
     private fun gossipBoard() = PodcastBoard(
         "ai-pgvector--gossip",
         listOf(
-            // 0: "Okay, did you hear what happened on the Coach team this week?..."
+            // 0: "Okay, did you hear what the payouts team did to PostgreSQL this week?"
             Scene(
-                0, "What the Coach team built", meaning(),
+                0, "Did you hear", choose(),
                 beats = listOf(
-                    Beat(0, show = setOf("q", "note"), card = BoardCard("Search by meaning", "The Coach finds a learner's notes by meaning, not by words.")),
-                    Beat(2, show = setOf("model", "vec"), light = setOf("vec"), pulse = "model" to "vec", card = BoardCard("Embedding", "Numbers a model writes for a text: similar meaning, nearby spots.")),
+                    Beat(0, show = setOf("pg"), light = setOf("pg"), card = BoardCard("The week", "A second search by meaning, in Postgres, beside the payouts ledger.")),
+                    Beat(2, show = setOf("join"), light = setOf("join"), pulse = "pg" to "join", card = BoardCard("Why there", "Every note is joined to a ledger row the team already queries.")),
                 ),
             ),
-            // 3: "Numbers as spots on a map? Explain that like I'm new."
+            // 4: "A list of numbers for each note. Picture a town map..."
             Scene(
-                3, "A vector is a spot on a map", mapSpot(),
+                4, "What they stored", mapSpot(),
                 beats = listOf(
-                    Beat(4, show = setOf("mid", "p"), light = setOf("p"), card = vectorCard),
+                    Beat(4, show = setOf("mid", "p"), light = setOf("p"), pulse = "mid" to "p", card = vectorCard),
+                    Beat(5, show = setOf("r"), light = setOf("r"), card = embeddingCard),
                 ),
             ),
-            // 5: "And they kept those lists where?"
+            // 6: "Tom. Tom ran create extension pgvector and got refused..."
             Scene(
-                5, "Monday: Ben", setup(),
+                6, "Monday: Tom", setup(),
                 beats = listOf(
-                    Beat(6, show = setOf("table"), light = setOf("table"), card = BoardCard("PostgreSQL", "A free database of tables, rows and columns: a very strict spreadsheet.")),
-                    Beat(8, show = setOf("ext"), light = setOf("ext"), pulse = "ext" to "table", card = BoardCard("pgvector", "An add-on inside the server: a vector column, numbers side by side.")),
-                    Beat(10, card = BoardCard("CREATE EXTENSION pgvector", "Refused. Twice.")),
-                    Beat(12, show = setOf("srv", "allow"), light = setOf("allow"), pulse = "srv" to "allow", card = BoardCard("Two reasons", "VECTOR goes in azure.extensions first, and the add-on is named vector.")),
+                    Beat(6, show = setOf("srv", "ext"), light = setOf("ext"), card = BoardCard("Monday: Tom", "Create extension pgvector, refused, and a morning lost to restarts.")),
+                    Beat(8, show = setOf("allow"), light = setOf("allow"), pulse = "srv" to "allow", card = extensionCard),
+                    Beat(9, light = setOf("allow"), card = allowCard),
                 ),
             ),
-            // 15: "Poor Ben. Tuesday?"
+            // 10: "Dana, and Dana's was the expensive one..."
             Scene(
-                15, "Tuesday: the ruler and arrows", mapSpot(),
+                10, "Tuesday: Dana", indexes(),
                 beats = listOf(
-                    Beat(16, show = setOf("mid"), card = BoardCard("Slow searches", "Nearly a second each: every note measured. Aisha built an index.")),
-                    Beat(20, show = setOf("p"), light = setOf("mid", "p"), pulse = "mid" to "p", card = rulerCard),
-                    Beat(22, card = arrowsCard),
-                    Beat(24, show = setOf("r"), light = setOf("p", "r"), pulse = "p" to "r", card = sameWayCard),
+                    Beat(10, show = setOf("scan"), light = setOf("scan"), card = scanCard),
                 ),
             ),
-            // 25: "You said three."
+            // 12: "A little arrow written between the column and the question's numbers..."
             Scene(
-                25, "Aisha's mismatch", operators(),
+                12, "Three operators", operators(),
                 beats = listOf(
-                    Beat(26, show = setOf("q", "ip"), light = setOf("ip"), pulse = "q" to "ip", card = dotCard),
-                    Beat(30, show = setOf("l2", "cos"), light = setOf("cos", "l2"), card = BoardCard("The mismatch", "Index built for cosine; the query sorted by the ruler.")),
+                    Beat(12, show = setOf("q", "l2", "cos", "ip"), light = setOf("l2"), pulse = "q" to "l2", card = rulerCard),
+                    Beat(14, light = setOf("cos"), pulse = "q" to "cos", card = arrowsCard),
+                    Beat(16, light = setOf("ip"), pulse = "q" to "ip", card = innerCard),
                 ),
             ),
-            // 31: "How did she even find out?"
+            // 18: "Explain analyze called it a sequential scan..."
             Scene(
-                31, "Aisha's EXPLAIN", match(),
+                18, "Wednesday: the quiet index", match(),
                 beats = listOf(
-                    Beat(31, show = setOf("idx", "qry"), light = setOf("idx", "qry"), pulse = "idx" to "qry"),
-                    Beat(32, show = setOf("seq", "iscan"), light = setOf("iscan"), pulse = "idx" to "iscan", card = BoardCard("EXPLAIN", "Seq Scan: ignored. With the cosine operator: Index Scan, 15 ms.")),
+                    Beat(18, show = setOf("seq"), light = setOf("seq"), card = BoardCard("Sequential scan", "Top to bottom, every row: nine hundred milliseconds a question.")),
+                    Beat(20, show = setOf("idx", "qry", "iscan"), light = setOf("idx"), card = indexCard),
+                    Beat(22, light = setOf("qry", "seq"), pulse = "idx" to "qry", card = mismatchCard),
                 ),
             ),
-            // 33: "Wednesday. Let me guess. The shelves."
+            // 24: "Thursday was Marcus, and Marcus had read about the other kind..."
             Scene(
-                33, "Wednesday: Marcus", indexes(),
+                24, "Thursday: Marcus", indexes(),
                 beats = listOf(
-                    Beat(34, show = setOf("scan", "ivf"), light = setOf("ivf"), pulse = "scan" to "ivf", card = BoardCard("IVFFlat", "Shelves by subject; a search checks only the nearest shelves.")),
-                    Beat(36, show = setOf("hnsw"), light = setOf("hnsw"), pulse = "scan" to "hnsw", card = BoardCard("Shelves for nothing", "Shelves learned from an empty table. Build after loading, or HNSW.")),
+                    Beat(24, show = setOf("scan", "hnsw"), light = setOf("hnsw"), pulse = "scan" to "hnsw", card = hnswCard),
+                    Beat(26, show = setOf("ivf"), light = setOf("ivf"), pulse = "scan" to "ivf", card = ivfCard),
+                    Beat(28, light = setOf("ivf"), card = BoardCard("Built on an empty table", "Its shelves trained on nothing. HNSW has no training step at all.")),
+                    Beat(30, light = setOf("hnsw"), card = recallCard),
+                    Beat(32, show = setOf("efs", "probes"), light = setOf("efs", "probes"), pulse = "hnsw" to "efs", card = knobsCard),
                 ),
             ),
-            // 37: "The other index. Is that a person or a thing?"
+            // 33: "Friday. Last one, and I can tell it is the embarrassing one."
             Scene(
-                37, "HNSW: a web of notes", graphWeb(),
+                33, "Friday: the intern", filter(),
                 beats = listOf(
-                    Beat(38, show = setOf("start", "far", "a", "b", "best"), card = graphCard),
-                    Beat(40, show = setOf("q"), light = setOf("a", "b", "best"), pulse = "a" to "b", card = nodeCard),
+                    Beat(34, show = setOf("user", "api", "pg"), light = setOf("pg"), pulse = "api" to "pg", card = BoardCard("Friday: the intern", "Five closest notes from the whole table, and another city in the answer.")),
+                    Beat(36, show = setOf("where"), light = setOf("where"), pulse = "api" to "where", card = filterCard),
+                    Beat(38, show = setOf("chat"), light = setOf("chat"), pulse = "pg" to "chat", card = ragCard),
                 ),
             ),
-            // 43: "Recall. That's the word everyone used in the Thursday meeting."
+            // 39: "And did anyone ask the obvious question? Why not just use Cosmos?"
             Scene(
-                43, "Thursday: Priya", indexes(),
+                39, "Why not Cosmos", choose(),
                 beats = listOf(
-                    Beat(44, show = setOf("scan", "hnsw"), light = setOf("hnsw"), card = recallCard),
-                    Beat(46, show = setOf("efs", "ivf", "probes"), light = setOf("efs"), pulse = "hnsw" to "efs", card = BoardCard("ef search 40 to 80", "A longer shortlist: recall 0.98, a little slower. IVFFlat: probes.")),
+                    Beat(40, show = setOf("cosmos", "pg", "global", "join"), light = setOf("cosmos", "global"), pulse = "cosmos" to "global", card = chooseCard),
+                    Beat(42, light = setOf("pg"), card = BoardCard("DiskANN", "Azure adds pg diskann: the same web idea, for many millions of rows.")),
                 ),
             ),
-            // 47: "So Priya did nothing wrong? I'm disappointed."
+            // 43: "So what is the gossip I should remember for the exam?"
             Scene(
-                47, "Friday: the intern", filter(),
+                43, "For the exam", exam(),
                 beats = listOf(
-                    Beat(48, show = setOf("user", "api", "pg"), light = setOf("pg"), pulse = "api" to "pg", card = BoardCard("Top five from everyone", "Filtered later in Python, and one code path forgot.")),
-                    Beat(52, show = setOf("where"), light = setOf("where"), pulse = "api" to "where", card = BoardCard("Metadata filter", "In WHERE, on user id and course: only this learner's notes compete.")),
-                    Beat(54, show = setOf("chat"), light = setOf("chat"), pulse = "pg" to "chat", card = BoardCard("RAG", "The notes go to a chat model, which answers only from them.")),
-                ),
-            ),
-            // 55: "Did anything still not work?"
-            Scene(
-                55, "Where it stops", limits("Redis episode", "reuse answers"),
-                beats = listOf(
-                    Beat(56, light = setOf("miss", "disk", "link"), card = BoardCard("Where pgvector stops", "It can miss; DiskANN for huge tables. Redis reuses answers.")),
-                ),
-            ),
-            // 57: "So, the gossip I should remember for the exam?"
-            Scene(
-                57, "For the exam", exam(),
-                beats = listOf(
-                    Beat(58, show = all6, light = setOf("ext", "hnsw", "ivf"), card = BoardCard("Listen for the phrase", "Each exam phrase points to one answer. Nobody wants to be next week's story.")),
-                    Beat(60, card = today),
+                    Beat(44, show = all6, light = setOf("ext", "seq", "hnsw"), card = BoardCard("Listen for the phrase", "Refused install, a sequential scan, an empty table: one answer each.")),
+                    Beat(46, light = setOf("ivf", "recall", "city"), card = BoardCard("And three more", "IVFFlat, raise ef search, and the filter in the WHERE clause.")),
+                    Beat(48, card = today),
                 ),
             ),
         ),
@@ -839,95 +770,96 @@ internal object Ai200EpisodesPgvector {
     private fun lateNightBoard() = PodcastBoard(
         "ai-pgvector--late-night",
         listOf(
-            // 0: "Hey, you. It's late, the kettle's cooling..."
+            // 0: "Hey, you. It is late, the kitchen is shut..."
             Scene(
-                0, "Finding things by meaning", meaning(),
+                0, "Tonight: the other store", choose(),
                 beats = listOf(
-                    Beat(0, show = setOf("q"), card = BoardCard("Tonight", "Teaching an old database a new trick: search by meaning.")),
-                    Beat(2, show = setOf("note"), light = setOf("q", "note"), card = BoardCard("Different words", "The answer is in the notes, so a word search finds nothing.")),
+                    Beat(0, show = setOf("pg"), light = setOf("pg"), card = BoardCard("Tonight", "The same search again, in PostgreSQL, beside the payouts ledger.")),
+                    Beat(2, show = setOf("join"), light = setOf("join"), pulse = "pg" to "join", card = BoardCard("Near its own rows", "Numbers prefer to live beside the rows they are joined to.")),
                 ),
             ),
-            // 3: "So how does the app find it?"
+            // 4: "A list of numbers for every dish. Picture a town map..."
             Scene(
-                3, "A vector is a spot on a map", mapSpot(),
+                4, "A spot on a map", mapSpot(),
                 beats = listOf(
-                    Beat(4, show = setOf("mid", "p"), light = setOf("p"), card = vectorCard),
-                    Beat(6, show = setOf("r"), light = setOf("p", "r"), card = BoardCard("Embedding", "Similar meaning, nearby spots. 1,536 numbers, not 2: same maths.")),
+                    Beat(4, show = setOf("mid", "p"), light = setOf("p"), pulse = "mid" to "p", card = vectorCard),
+                    Beat(6, show = setOf("r"), light = setOf("r"), card = embeddingCard),
                 ),
             ),
-            // 7: "Pins on a map, in the dark. And where do the pins live?"
+            // 8: "Not on its own. It needs an extension..."
             Scene(
-                7, "PostgreSQL plus pgvector", setup(),
+                8, "Switching it on", setup(),
                 beats = listOf(
-                    Beat(8, show = setOf("table"), light = setOf("table"), card = BoardCard("PostgreSQL", "A free database of tables, rows and columns: a very strict spreadsheet.")),
-                    Beat(10, show = setOf("ext"), light = setOf("ext"), pulse = "ext" to "table", card = BoardCard("pgvector", "Code inside the server: a vector column, numbers side by side.")),
-                    Beat(12, show = setOf("srv", "allow"), light = setOf("allow", "ext"), pulse = "srv" to "allow", card = BoardCard("Two gentle steps", "VECTOR in azure.extensions, then CREATE EXTENSION vector.")),
+                    Beat(8, show = setOf("srv", "ext"), light = setOf("ext"), card = BoardCard("An extension", "An add-on for Postgres, like a plug-in for your browser.")),
+                    Beat(10, show = setOf("allow"), light = setOf("allow"), pulse = "srv" to "allow", card = extensionCard),
+                    Beat(11, light = setOf("allow"), card = allowCard),
                 ),
             ),
-            // 15: "Don't we all. So how does it measure closeness?"
+            // 12: "A normal query, with a distance operator instead of equals..."
             Scene(
-                15, "The ruler and the arrows", mapSpot(),
+                12, "Three ways to measure", operators(),
                 beats = listOf(
-                    Beat(16, show = setOf("mid", "p"), light = setOf("mid", "p"), pulse = "mid" to "p", card = rulerCard),
-                    Beat(18, card = arrowsCard),
-                    Beat(20, show = setOf("r"), light = setOf("p", "r"), pulse = "p" to "r", card = sameWayCard),
+                    Beat(12, show = setOf("q", "l2", "cos", "ip"), light = setOf("q"), card = BoardCard("A distance operator", "A little arrow between the column and the question's numbers.")),
+                    Beat(14, light = setOf("l2"), pulse = "q" to "l2", card = rulerCard),
+                    Beat(16, light = setOf("cos"), pulse = "q" to "cos", card = arrowsCard),
+                    Beat(18, light = setOf("ip"), pulse = "q" to "ip", card = innerCard),
                 ),
             ),
-            // 21: "And the third?"
+            // 20: "Working, and slow. Four hundred thousand dishes..."
             Scene(
-                21, "Multiply and add", operators(),
+                20, "Every row, exactly", indexes(),
                 beats = listOf(
-                    Beat(22, show = setOf("q", "ip"), light = setOf("ip"), pulse = "q" to "ip", card = dotCard),
-                    Beat(24, show = setOf("l2", "cos"), light = setOf("ip"), card = negativeCard),
-                    Beat(28, card = BoardCard("Almost a second", "400,000 notes read every time. An index jumps near the answer.")),
+                    Beat(20, show = setOf("scan"), light = setOf("scan"), card = scanCard),
+                    Beat(22, show = setOf("hnsw"), light = setOf("hnsw"), pulse = "scan" to "hnsw", card = indexCard),
+                    Beat(24, light = setOf("hnsw"), card = recallCard),
                 ),
             ),
-            // 29: "Which index, Nova? There's always more than one."
+            // 26: "Two come with pgvector. HNSW, which in plain words is a web of dishes..."
             Scene(
-                29, "A web of notes", graphWeb(),
+                26, "HNSW: a web in layers", graphWeb(),
                 beats = listOf(
-                    Beat(30, show = setOf("start", "far", "a", "b", "best"), card = graphCard),
-                    Beat(32, light = setOf("a", "b", "best"), pulse = "a" to "b", card = nodeCard),
+                    Beat(26, show = setOf("start", "a", "b", "best"), light = setOf("start", "a"), pulse = "start" to "a", card = hnswCard),
+                    Beat(28, show = setOf("far", "q"), light = setOf("best"), pulse = "b" to "best", card = BoardCard("What it costs", "Slow build, more memory, best speed against recall, no training.")),
                 ),
             ),
-            // 35: "And the other index?"
+            // 30: "IVFFlat, which means the rows are sorted into groups first..."
             Scene(
-                35, "Shelves and recall", indexes(),
+                30, "IVFFlat: shelves by subject", indexes(),
                 beats = listOf(
-                    Beat(36, show = setOf("scan", "hnsw", "ivf"), light = setOf("ivf"), pulse = "scan" to "ivf", card = BoardCard("IVFFlat", "Shelves by subject, learned from data: built after loading.")),
-                    Beat(40, show = setOf("efs"), light = setOf("efs"), pulse = "hnsw" to "efs", card = BoardCard("Recall", "Approximate: 0.93 is 93 of 100. ef search at 80 took the Coach to 0.98.")),
-                    Beat(42, show = setOf("probes"), light = setOf("probes"), pulse = "ivf" to "probes", card = BoardCard("probes", "How many shelves a search checks, one by default.")),
+                    Beat(30, show = setOf("scan", "ivf"), light = setOf("ivf"), pulse = "scan" to "ivf", card = ivfCard),
+                    Beat(32, light = setOf("ivf"), card = BoardCard("Load first, then build", "Its shelves are worked out from the rows already there.")),
+                    Beat(34, show = setOf("hnsw", "efs", "probes"), light = setOf("efs", "probes"), pulse = "hnsw" to "efs", card = knobsCard),
                 ),
             ),
-            // 43: "And now the trap. I can feel one coming."
+            // 35: "And where does all this stop working?"
             Scene(
-                43, "The trap", match(),
+                35, "Where it stops", limits("Cosmos DB night", "the same idea"),
                 beats = listOf(
-                    Beat(44, show = setOf("idx", "qry", "seq"), light = setOf("idx", "qry", "seq"), pulse = "idx" to "qry", card = BoardCard("One index, one operator", "Cosine index, ruler query: Seq Scan. EXPLAIN shows the plan.")),
+                    Beat(36, show = setOf("miss", "disk"), light = setOf("disk"), card = BoardCard("DiskANN", "Azure adds pg diskann: the same web idea, for many millions of rows.")),
+                    Beat(38, show = setOf("mem", "link"), light = setOf("mem"), card = BoardCard("Keep it in memory", "Memory optimized for big sets. Never burstable in production.")),
                 ),
             ),
-            // 47: "Mm. And whose notes come back? Only mine, I hope."
+            // 39: "And the diner, poor soul, gets what?"
             Scene(
-                47, "Only your notes", filter(),
+                39, "The answer", filter(),
                 beats = listOf(
-                    Beat(47, show = setOf("user", "api", "pg"), pulse = "user" to "api"),
-                    Beat(48, show = setOf("where"), light = setOf("where"), pulse = "api" to "where", card = BoardCard("Filter in WHERE", "On your user id and the course, never afterwards in Python.")),
-                    Beat(50, show = setOf("chat"), light = setOf("chat"), pulse = "pg" to "chat", card = BoardCard("RAG", "Retrieval augmented generation: answers only from your notes.")),
+                    Beat(40, show = setOf("user", "api", "where", "pg", "chat"), light = setOf("pg", "chat"), pulse = "pg" to "chat", card = ragCard),
                 ),
             ),
-            // 51: "Now tell me where it all stops working."
+            // 41: "Then the question I have been saving. Cosmos or Postgres?"
             Scene(
-                51, "Where it stops", limits("Cosmos DB episode", "same idea"),
+                41, "Cosmos or Postgres", choose(),
                 beats = listOf(
-                    Beat(52, light = setOf("miss", "disk", "mem"), card = BoardCard("Where it stops", "It can miss; DiskANN at many millions; keep the index in memory.")),
+                    Beat(42, show = setOf("cosmos", "pg", "global", "join"), light = setOf("cosmos", "global"), pulse = "cosmos" to "global", card = chooseCard),
                 ),
             ),
-            // 53: "Almost. Before I go, what do I remember for the exam?"
+            // 43: "Mm. Before I give in. What do I remember for the exam?"
             Scene(
-                53, "For the exam", exam(),
+                43, "For the exam", exam(),
                 beats = listOf(
-                    Beat(54, show = all6, light = setOf("ext", "seq", "recall"), card = BoardCard("Listen for the phrase", "Each exam phrase points to one answer: install, operator, index, dial.")),
-                    Beat(56, card = today),
+                    Beat(44, show = all6, light = setOf("ext", "seq", "hnsw"), card = BoardCard("Listen for the phrase", "Refused install, a sequential scan, an empty table: one answer each.")),
+                    Beat(46, light = setOf("ivf", "recall", "city"), card = BoardCard("And three more", "IVFFlat, raise ef search, and the filter in the WHERE clause.")),
+                    Beat(48, card = today),
                 ),
             ),
         ),
@@ -936,96 +868,95 @@ internal object Ai200EpisodesPgvector {
     private fun couplesBoard() = PodcastBoard(
         "ai-pgvector--couples",
         listOf(
-            // 0: "Tonight is date night, darling..."
+            // 0: "Tonight is date night, darling, and I have brought a database to the table..."
             Scene(
-                0, "Date night", meaning(),
+                0, "Date night, with a database", choose(),
                 beats = listOf(
-                    Beat(0, show = setOf("q"), card = BoardCard("Date night", "How a database finds your perfect match: pgvector.")),
-                    Beat(2, show = setOf("note"), light = setOf("q", "note"), card = BoardCard("Different words", "Same meaning, completely different words.")),
+                    Beat(0, show = setOf("pg"), light = setOf("pg"), card = BoardCard("Date night", "The same search again, in PostgreSQL, beside the payouts ledger.")),
+                    Beat(2, show = setOf("join"), light = setOf("join"), pulse = "pg" to "join", card = BoardCard("Why here", "These notes are joined to the ledger rows we already query.")),
                 ),
             ),
-            // 4: "Exactly. So the app compares meaning, on a map..."
+            // 3: "A list of numbers for every dish. Picture a town map..."
             Scene(
-                4, "A vector is a spot on a map", mapSpot(),
+                3, "A spot on a map", mapSpot(),
                 beats = listOf(
-                    Beat(4, show = setOf("mid", "p"), light = setOf("p"), card = vectorCard),
-                    Beat(6, show = setOf("r"), light = setOf("p", "r"), card = BoardCard("Embedding", "Similar meaning, nearby spots. 1,536 numbers, not 2: same maths.")),
+                    Beat(3, show = setOf("mid", "p"), light = setOf("p"), pulse = "mid" to "p", card = vectorCard),
+                    Beat(4, show = setOf("r"), light = setOf("r"), card = embeddingCard),
                 ),
             ),
-            // 8: "In PostgreSQL, a popular free database..."
+            // 5: "Then my turn. Postgres holds no such column..."
             Scene(
-                8, "PostgreSQL plus pgvector", setup(),
+                5, "Quiz: the refused install", setup(),
                 beats = listOf(
-                    Beat(8, show = setOf("table", "ext"), light = setOf("ext"), pulse = "ext" to "table", card = BoardCard("pgvector", "An add-on inside the server: a vector column, side by side numbers.")),
-                    Beat(11, show = setOf("srv"), light = setOf("srv", "ext"), card = BoardCard("Quiz: a refused install", "CREATE EXTENSION vector on a brand-new server is refused. Why?")),
-                    Beat(12, show = setOf("allow"), light = setOf("allow"), pulse = "srv" to "allow", card = BoardCard("Right answer", "VECTOR goes in azure.extensions first; the add-on is named vector.")),
+                    Beat(6, show = setOf("srv", "ext"), light = setOf("ext"), card = BoardCard("An extension", "An add-on for Postgres: pgvector adds the vector column type.")),
+                    Beat(7, show = setOf("allow"), light = setOf("allow"), card = BoardCard("Quiz: refused", "Create extension pgvector on a new server. Name two things wrong.")),
+                    Beat(8, light = setOf("allow"), pulse = "srv" to "allow", card = extensionCard),
+                    Beat(9, light = setOf("ext"), card = allowCard),
                 ),
             ),
-            // 14: "Mm. Now, measuring closeness..."
+            // 10: "With a distance operator, a little arrow..."
             Scene(
-                14, "The ruler and the arrows", mapSpot(),
+                10, "Three operators", operators(),
                 beats = listOf(
-                    Beat(14, show = setOf("mid", "p"), light = setOf("mid", "p"), pulse = "mid" to "p", card = rulerCard),
-                    Beat(16, card = arrowsCard),
-                    Beat(18, show = setOf("r"), light = setOf("p", "r"), pulse = "p" to "r", card = sameWayCard),
+                    Beat(10, show = setOf("q", "l2", "cos", "ip"), light = setOf("q"), card = BoardCard("A distance operator", "A little arrow between the column and the question's numbers.")),
+                    Beat(11, light = setOf("l2"), pulse = "q" to "l2", card = rulerCard),
+                    Beat(13, light = setOf("cos"), pulse = "q" to "cos", card = arrowsCard),
+                    Beat(15, light = setOf("ip"), pulse = "q" to "ip", card = innerCard),
                 ),
             ),
-            // 19: "My turn to teach the third..."
+            // 16: "Lovely. Now something harder. Four hundred thousand dishes..."
             Scene(
-                19, "Multiply and add", operators(),
+                16, "Quiz: nine hundred ms", indexes(),
                 beats = listOf(
-                    Beat(19, show = setOf("q", "ip"), light = setOf("ip"), pulse = "q" to "ip", card = dotCard),
-                    Beat(21, show = setOf("l2", "cos"), light = setOf("ip"), card = negativeCard),
+                    Beat(16, show = setOf("scan"), light = setOf("scan"), card = BoardCard("Quiz: nine hundred ms", "400,000 dishes and no help. What does explain analyze say, and why?")),
+                    Beat(17, light = setOf("scan"), card = scanCard),
+                    Beat(19, show = setOf("hnsw"), light = setOf("hnsw"), pulse = "scan" to "hnsw", card = indexCard),
+                    Beat(21, light = setOf("hnsw"), card = BoardCard("Approximate", "Very close, not guaranteed the closest. So you measure what it misses.")),
+                    Beat(23, light = setOf("scan"), card = recallCard),
                 ),
             ),
-            // 22: "Sorting every note every time sounds exhausting..."
+            // 24: "Mm, good. Now the real exam question of the evening..."
             Scene(
-                22, "The ignored index", match(),
+                24, "Quiz: the empty table", indexes(),
                 beats = listOf(
-                    Beat(23, show = setOf("idx", "qry", "seq"), light = setOf("idx", "qry"), pulse = "idx" to "qry", card = BoardCard("Quiz: a Seq Scan", "Cosine index, ruler query, every row read. What went wrong?")),
-                    Beat(24, show = setOf("iscan"), light = setOf("iscan"), pulse = "idx" to "iscan", card = BoardCard("Right answer", "One index, one operator. EXPLAIN shows the plan: want Index Scan.")),
+                    Beat(24, show = setOf("scan", "ivf"), light = setOf("ivf"), card = BoardCard("Quiz: an empty table", "Filled overnight, and high recall matters. Which index, and why?")),
+                    Beat(26, light = setOf("ivf"), pulse = "scan" to "ivf", card = ivfCard),
+                    Beat(28, show = setOf("hnsw"), light = setOf("hnsw"), pulse = "scan" to "hnsw", card = hnswCard),
+                    Beat(31, show = setOf("efs", "probes"), light = setOf("efs", "probes"), pulse = "hnsw" to "efs", card = knobsCard),
+                    Beat(33, light = setOf("scan"), card = BoardCard("DiskANN", "Azure adds pg diskann: the same web idea, for many millions of rows.")),
                 ),
             ),
-            // 26: "Mm. Now the indexes. HNSW..."
+            // 34: "One more trap, and it catches everybody..."
             Scene(
-                26, "HNSW: a web of notes", graphWeb(),
+                34, "Quiz: still a Seq Scan", match(),
                 beats = listOf(
-                    Beat(26, show = setOf("start", "far", "a", "b", "best"), card = graphCard),
-                    Beat(28, show = setOf("q"), light = setOf("a", "b", "best"), pulse = "a" to "b", card = nodeCard),
+                    Beat(34, show = setOf("idx", "qry", "seq", "iscan"), light = setOf("seq"), card = BoardCard("Quiz: still a Seq Scan", "The index is there and every row is still read. What went wrong?")),
+                    Beat(35, light = setOf("idx", "qry"), pulse = "idx" to "qry", card = mismatchCard),
                 ),
             ),
-            // 29: "And IVFFlat sorts vectors into groups..."
+            // 36: "Right answer, darling. And an answer that quoted a restaurant in another city?"
             Scene(
-                29, "Two indexes", indexes(),
+                36, "Quiz: another city", filter(),
                 beats = listOf(
-                    Beat(29, show = setOf("scan", "hnsw", "ivf"), light = setOf("ivf"), pulse = "scan" to "ivf", card = BoardCard("Quiz: an empty table", "Three million flashcards, a table filled overnight. Which index?")),
-                    Beat(33, light = setOf("hnsw"), card = BoardCard("No kiss: it's HNSW", "IVFFlat learns its shelves from nothing. HNSW needs no training.")),
-                    Beat(35, card = recallCard),
-                    Beat(36, show = setOf("efs"), light = setOf("efs"), pulse = "hnsw" to "efs", card = BoardCard("Quiz: low recall", "HNSW recall too low, time to spare. What first?")),
-                    Beat(37, show = setOf("probes"), light = setOf("efs", "probes"), pulse = "ivf" to "probes", card = BoardCard("Right answer", "Raise ef search, the shortlist. For IVFFlat, probes.")),
+                    Beat(36, show = setOf("user", "api", "pg"), light = setOf("pg"), pulse = "api" to "pg", card = BoardCard("Quiz: another city", "The answer quoted a restaurant in another city. What was missing?")),
+                    Beat(37, show = setOf("where"), light = setOf("where"), pulse = "api" to "where", card = filterCard),
+                    Beat(38, show = setOf("chat"), light = setOf("chat"), pulse = "pg" to "chat", card = ragCard),
                 ),
             ),
-            // 39: "Last quiz of the evening..."
+            // 39: "Then the question we have been circling all evening. Cosmos, or Postgres?"
             Scene(
-                39, "What's yours stays yours", filter(),
+                39, "Cosmos or Postgres", choose(),
                 beats = listOf(
-                    Beat(39, show = setOf("user", "api", "pg"), light = setOf("pg"), pulse = "api" to "pg", card = BoardCard("Quiz: someone else's notes", "The answer quoted another learner. What did the query lack?")),
-                    Beat(40, show = setOf("where", "chat"), light = setOf("where"), pulse = "api" to "where", card = BoardCard("Right answer", "A filter in WHERE on user id and course. Then RAG answers from them.")),
+                    Beat(40, show = setOf("cosmos", "pg", "global", "join"), light = setOf("cosmos", "global"), pulse = "cosmos" to "global", card = chooseCard),
                 ),
             ),
-            // 44: "And where does it all stop working, Rafe?..."
+            // 41: "Like the ledger. So what do we take to the exam, love?"
             Scene(
-                44, "Every romance has limits", limits("Cosmos DB episode", "same idea"),
+                41, "For the exam", exam(),
                 beats = listOf(
-                    Beat(45, light = setOf("miss", "disk", "mem"), card = BoardCard("Where it stops", "It can miss; DiskANN past many millions; keep the index in memory.")),
-                ),
-            ),
-            // 46: "Then the last question, for the exam. What do we remember?"
-            Scene(
-                46, "For the exam", exam(),
-                beats = listOf(
-                    Beat(47, show = all6, light = setOf("ext", "seq", "hnsw", "recall", "user"), card = BoardCard("Listen for the phrase", "Each exam phrase points to one answer. Five for five.")),
-                    Beat(50, card = today),
+                    Beat(42, show = all6, light = setOf("ext", "seq", "hnsw"), card = BoardCard("Listen for the phrase", "Refused install, a sequential scan, an empty table: one answer each.")),
+                    Beat(44, light = setOf("ivf", "recall", "city"), card = BoardCard("And three more", "IVFFlat, raise ef search, and the filter in the WHERE clause.")),
+                    Beat(46, card = today),
                 ),
             ),
         ),

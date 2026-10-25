@@ -5,53 +5,55 @@ internal object Ai200EpisodesContainerApps {
     private val classic = Podcast(
         "ai-container-apps",
         listOf(
-            maya("Hi, and welcome back. Zaiqa is our own food-delivery app, and so far we have drawn the map and filled the shelf. The Zaiqa API, the dot NET service that answers everything the phone asks for, sits in Azure Container Registry as an image."),
+            maya("Hi, and welcome back. Zaiqa is our own food-delivery app, and so far we have drawn the map and filled the shelf. The Zaiqa API, the dot NET service behind every tap on the phone, sits in Azure Container Registry as an image."),
             leo("And last time we tried running it on App Service, Azure's managed web hosting. It worked. It pulled the image, handed the container its settings, and swapped a staging copy into production."),
-            maya("It did. But two things hurt. At four in the morning nobody orders dinner, and we still paid for a machine that was awake. And the order worker, the small service that passes a paid order on to the restaurant, takes its work from a queue, not from web requests."),
+            maya("It did. But two things hurt. At four in the morning nobody orders dinner, and we still paid for a machine that was awake. And the order worker, which passes a paid order to the restaurant, takes its work from a queue, not from web requests."),
             leo("So App Service could not shrink to nothing, and could not count a queue."),
-            maya("Right on both. Today, where the Zaiqa API really lives: Azure Container Apps. You hand it an image, and Azure runs copies of it, adds more at dinner time, and takes them all away when nobody is ordering."),
+            maya("Right on both. Today, where the Zaiqa API really lives: Azure Container Apps. You hand it an image, and Azure runs copies of it, more at dinner time, and none at all when nobody is ordering."),
             leo("Copies. Does a copy have a name?"),
             maya("A copy is called a replica: one running instance of your container, with its own memory. Picture a counter at a takeaway: one replica is one person serving."),
             leo("And where do the replicas live? Do I pick a machine?"),
-            maya("You never see a machine. You make an environment first: a fence around a group of container apps. Inside it they share one private network and one log workspace, and they can call each other by name. Ours is called zaiqa-env."),
+            maya("You never see a machine. You make an environment first: a fence around a group of container apps. Inside it they share one private network and one log workspace, and call each other by name. Ours is zaiqa-env."),
             leo("So the API and the order worker go inside the same fence."),
-            maya("They do, and the taste service later. Now, how does the phone get in? That is ingress: the front door Container Apps puts in front of an app, with a web address, a certificate, and requests arriving over HTTPS."),
+            maya("They do, and the taste service later. Now, how does the phone get in? That is ingress: the front door Container Apps puts in front of an app, with a web address, a certificate, and requests over HTTPS."),
             leo("And the order worker gets a front door too?"),
             maya("No, and that is the point. Ingress is external, internal, or off. External means the internet may knock, which the Zaiqa API needs. The order worker has none: its work arrives in the orders queue."),
+            leo("So where does the worker actually run? On IIS I would host a web site, and a worker has no address to give anyone."),
+            maya("A worker is not a web site. With no request arriving, IIS idle-times out the app pool and shuts it down mid-job. Here the worker is simply an app with no ingress, scaling on queue length instead of requests."),
             leo("What is internal for, then?"),
             maya("Only apps in the same fence may call it. For example, say you're building a small shop: the web app is external, and the stock service behind it is internal. Nobody outside ever reaches the stock service."),
             leo("And the door needs to know which port?"),
-            maya("You set the target port: the number your container is listening on. Our dot NET image listens on 8080, so the target port is 8080. Name the wrong one, and every request times out while a healthy container sits there."),
+            maya("You set the target port: the number your container is listening on. Ours listens on 8080. Name the wrong one, and every request times out while a healthy container sits there."),
             leo("Now the awkward one. The API needs the payment provider's key, and the database. Do I type those into a settings box?"),
-            maya("Never a plain settings box. Container Apps has secrets: values stored on the app, kept apart from ordinary settings. Your code reads environment variables, named values handed to it at start, so you point one at a secret with the word secretref and the secret's name."),
+            maya("Never a plain settings box. Container Apps has secrets: values stored on the app, apart from ordinary settings. Your code reads environment variables, named values handed to it at start, and one points at a secret with the word secretref."),
             leo("And the key itself still sits in Key Vault?"),
-            maya("It can. A secret can be a reference to Key Vault, fetched by the app's managed identity, which is a badge Azure gives the app so it carries no password of its own. For the Azure SQL database, the same badge, and no connection string anywhere."),
+            maya("It can. A secret can be a reference to Key Vault, fetched by the app's managed identity, a badge Azure gives the app so it carries no password. For the Azure SQL database, the same badge, and no connection string anywhere."),
             leo("Good. Now the release. On Friday I push a new build of the API. What happens?"),
-            maya("You get a new revision. A revision is a frozen snapshot of the app's template: the image, the environment variables and the scale rules, exactly as they were. Change any of those, and Container Apps makes a new one rather than editing the old."),
+            maya("You get a new revision. A revision is a frozen snapshot of the app's template: the image, the environment variables and the scale rules. Change any of those, and Container Apps makes a new one rather than editing the old."),
             leo("And a changed secret? Is that a new revision too?"),
-            maya("No, and this one catches people. Secrets, ingress and traffic weights are settings, not the template. Change a secret and nothing new is made, and the replicas already running keep the old value, because they read it when they started. Restart the revision and they see the new one."),
+            maya("No, and this one catches people. Secrets, ingress and traffic weights are settings, not the template. Change a secret and nothing new is made: the replicas already running keep the old value, read when they started. Restart the revision and they see the new one."),
             leo("Fine. Can I put the new build in front of ten percent of diners first?"),
-            maya("Only in multiple revision mode. The default is single mode: one revision active, and the newest ready one takes all the traffic. Switch the app to multiple mode, and old and new run side by side."),
+            maya("Only in multiple revision mode. The default is single mode: one revision active, and the newest ready one takes all the traffic. Switch to multiple mode, and old and new run side by side."),
             leo("And then I decide who sees which?"),
-            maya("That is traffic splitting. You give each revision a percentage, and ingress divides the requests that way. Ninety to version seven, ten to version eight. Watch the failures for twenty minutes, then move to nought and a hundred."),
+            maya("That is traffic splitting. You give each revision a percentage, and ingress divides the requests. Ninety to version seven, ten to version eight. Watch the failures for twenty minutes, then move to nought and a hundred."),
             leo("And suppose version eight goes bad at eight on a Friday?"),
             maya("Move the weights back. No rebuild, no deploy, seconds. The cheapest rollback you will ever write."),
             leo("Can our testers see the new one on purpose, before any diner does?"),
-            maya("Give it a label: a name stuck to one revision, which gets its own fixed web address. Testers go there and always land on version eight, even while it is at zero percent of real traffic."),
+            maya("Give it a label: a name stuck to one revision, with its own fixed web address. Testers go there and always land on version eight, even at zero percent of real traffic."),
             leo("Now the dinner rush. Who decides to add replicas at eight on a Friday?"),
-            maya("A scale rule, run by KEDA, which stands for Kubernetes Event-driven Autoscaling: the engine that watches something and sets the replica count. For the API, the rule watches concurrent requests, meaning requests being handled at the same time by one replica."),
+            maya("A scale rule, run by KEDA, which stands for Kubernetes Event-driven Autoscaling: the engine that watches something and sets the replica count. For the API, the rule watches concurrent requests, meaning requests handled at the same time by one replica."),
             leo("So I say how busy one replica is allowed to be."),
-            maya("Exactly. Say a hundred at once. Two thousand diners is then about twenty replicas. Set the minimum to two, so somebody is always at the counter, and the maximum to thirty."),
+            maya("Exactly. Say a hundred at once. Two thousand diners is about twenty replicas. Set the minimum to two, so somebody is always at the counter, and the maximum to thirty."),
             leo("And the order worker, with no web requests at all?"),
             maya("A custom rule of type azure-servicebus, watching the orders queue. Twenty messages per replica. Four hundred waiting means twenty workers. Minimum replicas nought, so at four in the morning the worker costs nothing."),
             leo("Nothing at all? It just disappears?"),
-            maya("It does, and that is scale to zero. KEDA checks the queue about every thirty seconds, and after five quiet minutes it removes the last replica. The first order after that waits a few seconds while one starts, which an order can afford."),
+            maya("It does, and that is scale to zero. KEDA checks the queue about every thirty seconds, and after five quiet minutes it removes the last replica. The first order after that waits a few seconds while one starts."),
             leo("Could I scale it on the processor instead? That sounds simpler."),
-            maya("It is simpler, and it is the trap. A processor or memory rule can never reach zero, so you pay all night for an idle worker. And an app with no ingress and no scale rule, at a minimum of nought, never wakes up at all."),
+            maya("It is simpler, and it is the trap. A processor or memory rule can never reach zero, so you pay all night for an idle worker. And an app with no ingress and no scale rule, at a minimum of nought, never wakes at all."),
             leo("[sigh] A worker asleep for ever. What about the nightly payouts run? It starts, it finishes, it goes away."),
-            maya("Then it should not be an app. Make it a Container Apps job: a container that runs to completion and then ends. Jobs come three ways: started by hand, on a schedule, or one run per batch of queue messages."),
+            maya("Then it should not be an app. Make it a Container Apps job: a container that runs to completion and then ends. Jobs come three ways: started by hand, on a schedule, or once per batch of queue messages."),
             leo("So Zaiqa's nightly menu refresh is a scheduled job, not a service pretending to be one."),
-            maya("Exactly. And where does all this stop? Waking from zero takes a moment, so anything a diner waits on keeps a minimum of one. If you want the Kubernetes knobs yourself, that is the next episode. And the image still comes off the shelf, pulled with that same badge."),
+            maya("Exactly. And where does this stop? Waking from zero takes a moment, so anything a diner waits on keeps a minimum of one. Want the Kubernetes knobs yourself, and that is the next episode. The image still comes off the shelf, pulled with the same badge."),
             leo("So what do I remember for the exam?"),
             maya("If it says send twenty percent to the new version, that is multiple revision mode with traffic splitting. If testers need a stable address, a label. If a changed secret is not seen, restart the revision."),
             leo("And the money ones?"),
@@ -85,6 +87,10 @@ internal object Ai200EpisodesContainerApps {
             maya("Nothing. An app with no front door and no scale rule, at a minimum of nought, is a lamp nobody is standing next to. It stays off for ever."),
             leo("No front door. Meaning?"),
             maya("Meaning no ingress. Ingress is the front door Container Apps puts in front of an app: a web address, a certificate, and requests arriving over HTTPS. The Zaiqa API has external ingress, so the internet may knock. The worker has none, on purpose."),
+            leo("Hold on. If the worker has no front door, where does it actually run? On IIS I would host a web site, and this thing has no address at all."),
+            maya("That is the question the case turns on. A worker is not a web site. IIS gives an app pool to things that answer calls, and with no request for twenty minutes it is idle-timed out and shut down, mid-job."),
+            leo("[sigh] So on IIS our nine hundred dinners would die quietly at three in the morning instead."),
+            maya("They would. In Container Apps a worker is simply an app with no ingress, and its scale rule counts queue length instead of requests. Nothing about it has to answer a call."),
             leo("Because the worker's work arrives in the queue, not from a diner."),
             maya("Exactly. And a request arriving is the thing that would otherwise have woken it. So the fix is a scale rule that watches the queue instead."),
             leo("And the engine that does the watching?"),
@@ -139,6 +145,10 @@ internal object Ai200EpisodesContainerApps {
             maya("Tuesday. Tom was told the worker should cost nothing overnight, so he added a scale rule on the processor: add copies when the processor is busy. Very sensible, and quite wrong."),
             leo("Why wrong? The processor is quiet at night."),
             maya("Because a processor or memory rule can never take an app down to zero replicas. The lowest it reaches is one. Tom's worker sat there all night, idle, billing."),
+            leo("Hold on, where was Tom's worker even running? On IIS I would be hosting a web site, and a worker has no address for anyone to call."),
+            maya("That is the part nobody says out loud. A worker is not a web site. IIS hands it an app pool, and with no request arriving for twenty minutes the pool is idle-timed out and shut down, usually mid-order."),
+            leo("So on IIS it dies quietly, and here it only sleeps."),
+            maya("Here it is simply an app with no ingress, meaning no front door and no web address, so nothing on the internet can call it. The rule counts queue length rather than requests, and Tom was only ever counting the wrong thing."),
             leo("So what should he have used?"),
             maya("A custom rule of type azure-servicebus, watching the queue length: twenty messages per replica. That one can reach nought, which is called scale to zero. The engine behind all of them is KEDA, which stands for Kubernetes Event-driven Autoscaling."),
             leo("And it wakes the worker again when a message lands?"),
@@ -195,6 +205,10 @@ internal object Ai200EpisodesContainerApps {
             nova("Through ingress: the front door Container Apps puts in front of an app, with a web address, a certificate, and requests arriving over HTTPS. [pause] External ingress means the whole internet may knock. That is what the Zaiqa API wants."),
             ivy("And the order worker, the one that tells the restaurant? Does it get a door?"),
             nova("No door at all, and it is happier that way. Its work arrives in the orders queue, so nothing outside ever needs to reach it. Internal is the third choice: only apps inside the same fence may call."),
+            ivy("[pause] But where does a worker like that actually run? On IIS I would be hosting a web site, and a worker has no address to give anybody."),
+            nova("A worker is not a web site, and that is the whole trouble. IIS puts it in an app pool, and with no request for twenty minutes the pool is idle-timed out and closed, often mid-order."),
+            ivy("So it dies in its sleep, and nobody hears."),
+            nova("Nobody. Here it is simply an app with no ingress, and its rule counts queue length instead of requests. [pause] It is allowed to be quiet."),
             ivy("What does a door need to know?"),
             nova("The target port, the number your container is listening on. Ours listens on 8080. Name the wrong one, and every request waits in the dark while a perfectly healthy container sits two doors down."),
             ivy("[pause] And the payment key? The one we must never say out loud."),
@@ -248,6 +262,10 @@ internal object Ai200EpisodesContainerApps {
             rafe("Through ingress: the front door Container Apps puts in front of an app, with its own web address and a certificate, over HTTPS. External for the API, because the whole world may knock."),
             nova("Mm, and warm with it. And the order worker, the one that whispers to the restaurant?"),
             rafe("No door. It takes its work from the orders queue, so nothing outside should ever reach it. Internal would mean only our own apps may call."),
+            nova("Right answer, and no door to keep open. Though you are frowning, darling."),
+            rafe("Because where does a worker like that actually run? On IIS I would host a web site, and a worker has no address to give anyone."),
+            nova("A worker is not a web site, love. IIS puts it in an app pool, and with no request for twenty minutes the pool is idle-timed out and shut down, usually mid-order."),
+            rafe("So here it is simply an app with no ingress, scaling on queue length instead of requests."),
             nova("Clever. Now something delicate. The payment provider's key. Where does a careful person keep it?"),
             rafe("Not in a plain setting. Container Apps has secrets, kept apart from the ordinary values, and an environment variable points at one with the word secretref. Better still, in Key Vault."),
             nova("Fetched how?"),
@@ -448,61 +466,61 @@ internal object Ai200EpisodesContainerApps {
                     Beat(8, show = setOf("env"), light = setOf("env"), card = envCard),
                     Beat(10, show = setOf("phone"), light = setOf("api", "phone"), pulse = "phone" to "api", card = BoardCard("Ingress", "The front door: a web address, a certificate, requests over HTTPS.")),
                     Beat(12, show = setOf("worker", "sb"), light = setOf("worker", "sb"), pulse = "sb" to "worker", card = BoardCard("No ingress for the worker", "Its work arrives in the orders queue, not from the internet.")),
-                    Beat(16, light = setOf("api"), card = BoardCard("Target port", "The port the container listens on. Our dot NET image uses 8080.")),
+                    Beat(18, light = setOf("api"), card = BoardCard("Target port", "The port the container listens on. Our dot NET image uses 8080.")),
                 ),
             ),
-            // 17: "Now the awkward one. The API needs the payment provider's key..."
+            // 19: "Now the awkward one. The API needs the payment provider's key..."
             Scene(
-                17, "Secrets", secrets(),
+                19, "Secrets", secrets(),
                 beats = listOf(
-                    Beat(18, show = setOf("sec", "env"), light = setOf("env"), pulse = "sec" to "env", card = secretRef),
-                    Beat(20, show = setOf("kv", "cont"), light = setOf("kv"), pulse = "kv" to "sec", card = BoardCard("Key Vault reference", "Fetched by the app's badge, its managed identity. No password kept.")),
+                    Beat(20, show = setOf("sec", "env"), light = setOf("env"), pulse = "sec" to "env", card = secretRef),
+                    Beat(22, show = setOf("kv", "cont"), light = setOf("kv"), pulse = "kv" to "sec", card = BoardCard("Key Vault reference", "Fetched by the app's badge, its managed identity. No password kept.")),
                 ),
             ),
-            // 21: "Good. Now the release. On Friday I push a new build of the API."
+            // 23: "Good. Now the release. On Friday I push a new build of the API."
             Scene(
-                21, "What makes a revision", snapshot(),
+                23, "What makes a revision", snapshot(),
                 beats = listOf(
-                    Beat(22, show = setOf("template", "newrev"), light = setOf("newrev"), pulse = "template" to "newrev", card = revisionCard),
-                    Beat(24, show = setOf("same", "restart"), light = setOf("same", "restart"), pulse = "same" to "restart", card = BoardCard("A changed secret", "Nothing new is made. Restart, so replicas read the new value.")),
+                    Beat(24, show = setOf("template", "newrev"), light = setOf("newrev"), pulse = "template" to "newrev", card = revisionCard),
+                    Beat(26, show = setOf("same", "restart"), light = setOf("same", "restart"), pulse = "same" to "restart", card = BoardCard("A changed secret", "Nothing new is made. Restart, so replicas read the new value.")),
                 ),
             ),
-            // 25: "Fine. Can I put the new build in front of ten percent of diners first?"
+            // 27: "Fine. Can I put the new build in front of ten percent of diners first?"
             Scene(
-                25, "Releasing on a Friday", splitting(),
+                27, "Releasing on a Friday", splitting(),
                 beats = listOf(
-                    Beat(26, show = setOf("ing", "r1", "r2", "mode"), light = setOf("mode"), pulse = "mode" to "r1", card = BoardCard("Multiple revision mode", "Old and new both active. Single mode gives the newest everything.")),
-                    Beat(28, light = setOf("r1", "r2"), pulse = "ing" to "r2", card = trafficCode),
-                    Beat(30, light = setOf("r1"), pulse = "ing" to "r1", card = BoardCard("Rollback", "Move the weights back. Seconds, and no rebuild.")),
-                    Beat(32, show = setOf("label"), light = setOf("label"), pulse = "label" to "r2", card = labelCard),
+                    Beat(28, show = setOf("ing", "r1", "r2", "mode"), light = setOf("mode"), pulse = "mode" to "r1", card = BoardCard("Multiple revision mode", "Old and new both active. Single mode gives the newest everything.")),
+                    Beat(30, light = setOf("r1", "r2"), pulse = "ing" to "r2", card = trafficCode),
+                    Beat(32, light = setOf("r1"), pulse = "ing" to "r1", card = BoardCard("Rollback", "Move the weights back. Seconds, and no rebuild.")),
+                    Beat(34, show = setOf("label"), light = setOf("label"), pulse = "label" to "r2", card = labelCard),
                 ),
             ),
-            // 33: "Now the dinner rush. Who decides to add replicas at eight on a Friday?"
+            // 35: "Now the dinner rush. Who decides to add replicas at eight on a Friday?"
             Scene(
-                33, "The dinner rush", scaling(),
+                35, "The dinner rush", scaling(),
                 beats = listOf(
-                    Beat(34, show = setOf("keda", "reps"), light = setOf("keda"), pulse = "keda" to "reps", card = kedaCard),
-                    Beat(36, light = setOf("reps"), card = httpRuleCard),
-                    Beat(38, show = setOf("sb"), light = setOf("sb", "keda"), pulse = "keda" to "sb", card = queueRuleCard),
-                    Beat(40, light = setOf("reps"), card = queueRule),
-                    Beat(42, show = setOf("cpu", "none"), light = setOf("cpu", "none"), pulse = "cpu" to "reps", card = trapsCard),
+                    Beat(36, show = setOf("keda", "reps"), light = setOf("keda"), pulse = "keda" to "reps", card = kedaCard),
+                    Beat(38, light = setOf("reps"), card = httpRuleCard),
+                    Beat(40, show = setOf("sb"), light = setOf("sb", "keda"), pulse = "keda" to "sb", card = queueRuleCard),
+                    Beat(42, light = setOf("reps"), card = queueRule),
+                    Beat(44, show = setOf("cpu", "none"), light = setOf("cpu", "none"), pulse = "cpu" to "reps", card = trapsCard),
                 ),
             ),
-            // 43: "A worker asleep for ever. What about the nightly payouts run?"
+            // 45: "A worker asleep for ever. What about the nightly payouts run?"
             Scene(
-                43, "Work that ends", jobs("Nightly menu refresh"),
+                45, "Work that ends", jobs("Nightly menu refresh"),
                 beats = listOf(
-                    Beat(44, light = setOf("sched", "work"), pulse = "work" to "sched", card = jobCard),
-                    Beat(46, light = setOf("work"), card = wholeZaiqa),
+                    Beat(46, light = setOf("sched", "work"), pulse = "work" to "sched", card = jobCard),
+                    Beat(48, light = setOf("work"), card = wholeZaiqa),
                 ),
             ),
-            // 47: "So what do I remember for the exam?"
+            // 49: "So what do I remember for the exam?"
             Scene(
-                47, "For the exam", exam(),
+                49, "For the exam", exam(),
                 beats = listOf(
-                    Beat(48, light = setOf("split", "label", "secret"), card = BoardCard("Listen for the phrase", "Multiple mode and splitting, a label, a restart for a secret.")),
-                    Beat(50, light = all6, card = BoardCard("And the money ones", "Nought with a queue rule; a new image; work that ends is a job.")),
-                    Beat(52, card = today),
+                    Beat(50, light = setOf("split", "label", "secret"), card = BoardCard("Listen for the phrase", "Multiple mode and splitting, a label, a restart for a secret.")),
+                    Beat(52, light = all6, card = BoardCard("And the money ones", "Nought with a queue rule; a new image; work that ends is a job.")),
+                    Beat(54, card = today),
                 ),
             ),
         ),
@@ -523,55 +541,55 @@ internal object Ai200EpisodesContainerApps {
                     Beat(18, show = setOf("env"), light = setOf("api", "phone"), pulse = "phone" to "api", card = BoardCard("Ingress", "The front door. External for the API; the worker has none.")),
                 ),
             ),
-            // 20: "And a request arriving is the thing that would have woken it."
+            // 24: "And a request arriving is the thing that would have woken it."
             Scene(
-                20, "Who wakes the worker", scaling(),
+                24, "Who wakes the worker", scaling(),
                 beats = listOf(
-                    Beat(20, show = setOf("reps"), light = setOf("reps"), card = BoardCard("The hole in the case", "No scale rule at all. Nothing was watching the queue for it.")),
-                    Beat(22, show = setOf("keda", "sb"), light = setOf("keda"), pulse = "keda" to "sb", card = kedaCard),
-                    Beat(24, show = setOf("cpu", "none"), light = setOf("keda", "reps"), pulse = "keda" to "reps", card = queueRule),
+                    Beat(24, show = setOf("reps"), light = setOf("reps"), card = BoardCard("The hole in the case", "No scale rule at all. Nothing was watching the queue for it.")),
+                    Beat(26, show = setOf("keda", "sb"), light = setOf("keda"), pulse = "keda" to "sb", card = kedaCard),
+                    Beat(28, show = setOf("cpu", "none"), light = setOf("keda", "reps"), pulse = "keda" to "reps", card = queueRule),
                 ),
             ),
-            // 26: "Not quite. At nine that night, every diner got the new version."
+            // 30: "Not quite. At nine that night, every diner got the new version."
             Scene(
-                26, "Everyone got the new one", snapshot(),
+                30, "Everyone got the new one", snapshot(),
                 beats = listOf(
-                    Beat(28, show = setOf("template", "newrev"), light = setOf("newrev"), pulse = "template" to "newrev", card = revisionCard),
-                    Beat(30, show = setOf("single"), light = setOf("single"), pulse = "newrev" to "single", card = BoardCard("Single revision mode", "The newest ready revision takes all the traffic. Weights ignored.")),
+                    Beat(32, show = setOf("template", "newrev"), light = setOf("newrev"), pulse = "template" to "newrev", card = revisionCard),
+                    Beat(34, show = setOf("single"), light = setOf("single"), pulse = "newrev" to "single", card = BoardCard("Single revision mode", "The newest ready revision takes all the traffic. Weights ignored.")),
                 ),
             ),
-            // 31: "So the percentage was typed, and quietly ignored."
+            // 35: "So the percentage was typed, and quietly ignored."
             Scene(
-                31, "Splitting it properly", splitting(),
+                35, "Splitting it properly", splitting(),
                 beats = listOf(
-                    Beat(32, show = setOf("ing", "r1", "r2", "mode"), light = setOf("mode", "r1", "r2"), pulse = "ing" to "r2", card = trafficCode),
-                    Beat(34, show = setOf("label"), light = setOf("label"), pulse = "label" to "r2", card = labelCard),
+                    Beat(36, show = setOf("ing", "r1", "r2", "mode"), light = setOf("mode", "r1", "r2"), pulse = "ing" to "r2", card = trafficCode),
+                    Beat(38, show = setOf("label"), light = setOf("label"), pulse = "label" to "r2", card = labelCard),
                 ),
             ),
-            // 35: "Third complaint. The payment key was rotated at noon."
+            // 39: "Third complaint. The payment key was rotated at noon."
             Scene(
-                35, "The key that would not change", secrets(),
+                39, "The key that would not change", secrets(),
                 beats = listOf(
-                    Beat(36, show = setOf("sec", "env"), light = setOf("env"), pulse = "sec" to "env", card = secretRef),
-                    Beat(38, show = setOf("cont"), light = setOf("cont"), pulse = "env" to "cont", card = BoardCard("Read at start", "Running replicas keep the old value. A secret makes no revision.")),
-                    Beat(40, show = setOf("kv"), light = setOf("kv"), pulse = "kv" to "sec", card = BoardCard("Key Vault reference", "Fetched with the app's badge, its managed identity. No password.")),
+                    Beat(40, show = setOf("sec", "env"), light = setOf("env"), pulse = "sec" to "env", card = secretRef),
+                    Beat(42, show = setOf("cont"), light = setOf("cont"), pulse = "env" to "cont", card = BoardCard("Read at start", "Running replicas keep the old value. A secret makes no revision.")),
+                    Beat(44, show = setOf("kv"), light = setOf("kv"), pulse = "kv" to "sec", card = BoardCard("Key Vault reference", "Fetched with the app's badge, its managed identity. No password.")),
                 ),
             ),
-            // 41: "Can I see the whole picture? What should Friday have looked like?"
+            // 45: "Can I see the whole picture? What should Friday have looked like?"
             Scene(
-                41, "What Friday should have been", apps("zaiqa-api", "order-worker"),
+                45, "What Friday should have been", apps("zaiqa-api", "order-worker"),
                 beats = listOf(
-                    Beat(42, light = setOf("env", "api", "worker"), card = BoardCard("One environment", "API external, an HTTP rule, minimum two; the worker at nought.")),
-                    Beat(44, light = setOf("worker"), card = BoardCard("And the nightly run", "Not an app. A job: it runs to completion and then ends.")),
+                    Beat(46, light = setOf("env", "api", "worker"), card = BoardCard("One environment", "API external, an HTTP rule, minimum two; the worker at nought.")),
+                    Beat(48, light = setOf("worker"), card = BoardCard("And the nightly run", "Not an app. A job: it runs to completion and then ends.")),
                 ),
             ),
-            // 45: "Case closed. So what do I take to the exam?"
+            // 49: "Case closed. So what do I take to the exam?"
             Scene(
-                45, "Case closed", exam(),
+                49, "Case closed", exam(),
                 beats = listOf(
-                    Beat(46, light = setOf("zero", "split", "label"), card = BoardCard("Listen for the phrase", "Nought with a queue rule, multiple mode and splitting, a label.")),
-                    Beat(48, light = all6, card = BoardCard("And the rest", "A restart for a secret, a new image for a revision, a job that ends.")),
-                    Beat(50, card = today),
+                    Beat(50, light = setOf("zero", "split", "label"), card = BoardCard("Listen for the phrase", "Nought with a queue rule, multiple mode and splitting, a label.")),
+                    Beat(52, light = all6, card = BoardCard("And the rest", "A restart for a secret, a new image for a revision, a job that ends.")),
+                    Beat(54, card = today),
                 ),
             ),
         ),
@@ -602,59 +620,59 @@ internal object Ai200EpisodesContainerApps {
                 10, "Tuesday: the processor rule", scaling(),
                 beats = listOf(
                     Beat(10, show = setOf("reps", "cpu"), light = setOf("cpu"), pulse = "cpu" to "reps", card = BoardCard("Tom's processor rule", "A processor or memory rule stops at one replica. Never zero.")),
-                    Beat(14, show = setOf("keda", "sb"), light = setOf("keda"), pulse = "keda" to "sb", card = queueRuleCard),
-                    Beat(16, show = setOf("none"), light = setOf("reps"), pulse = "keda" to "reps", card = queueRule),
+                    Beat(18, show = setOf("keda", "sb"), light = setOf("keda"), pulse = "keda" to "sb", card = queueRuleCard),
+                    Beat(20, show = setOf("none"), light = setOf("reps"), pulse = "keda" to "reps", card = queueRule),
                 ),
             ),
-            // 17: "Right. Wednesday?"
+            // 21: "Right. Wednesday?"
             Scene(
-                17, "Wednesday: the old key", snapshot(),
+                21, "Wednesday: the old key", snapshot(),
                 beats = listOf(
-                    Beat(18, show = setOf("template", "same", "restart"), light = setOf("same"), pulse = "template" to "same", card = BoardCard("Dana's rotated key", "Saved at noon, and the API charged with the old one all afternoon.")),
-                    Beat(20, light = setOf("same", "restart"), pulse = "same" to "restart", card = BoardCard("A secret is a setting", "No new revision, and replicas read secrets when they start.")),
-                    Beat(22, light = setOf("restart"), card = BoardCard("The fix", "Restart the revision, or keep the key in Key Vault.")),
+                    Beat(22, show = setOf("template", "same", "restart"), light = setOf("same"), pulse = "template" to "same", card = BoardCard("Dana's rotated key", "Saved at noon, and the API charged with the old one all afternoon.")),
+                    Beat(24, light = setOf("same", "restart"), pulse = "same" to "restart", card = BoardCard("A secret is a setting", "No new revision, and replicas read secrets when they start.")),
+                    Beat(26, light = setOf("restart"), card = BoardCard("The fix", "Restart the revision, or keep the key in Key Vault.")),
                 ),
             ),
-            // 23: "Thursday, then. Who is left?"
+            // 27: "Thursday, then. Who is left?"
             Scene(
-                23, "Thursday: everyone at once", splitting(),
+                27, "Thursday: everyone at once", splitting(),
                 beats = listOf(
-                    Beat(24, show = setOf("ing", "r1", "r2"), light = setOf("r2"), pulse = "ing" to "r2", card = BoardCard("Marcus set ten percent", "And every diner got the new version at nine that evening.")),
-                    Beat(26, show = setOf("mode"), light = setOf("mode"), pulse = "mode" to "r1", card = BoardCard("Single revision mode", "The newest ready revision takes everything. Weights ignored.")),
-                    Beat(28, light = setOf("r1", "r2"), pulse = "ing" to "r1", card = trafficCode),
-                    Beat(30, show = setOf("label"), light = setOf("label"), pulse = "label" to "r2", card = labelCard),
+                    Beat(28, show = setOf("ing", "r1", "r2"), light = setOf("r2"), pulse = "ing" to "r2", card = BoardCard("Marcus set ten percent", "And every diner got the new version at nine that evening.")),
+                    Beat(30, show = setOf("mode"), light = setOf("mode"), pulse = "mode" to "r1", card = BoardCard("Single revision mode", "The newest ready revision takes everything. Weights ignored.")),
+                    Beat(32, light = setOf("r1", "r2"), pulse = "ing" to "r1", card = trafficCode),
+                    Beat(34, show = setOf("label"), light = setOf("label"), pulse = "label" to "r2", card = labelCard),
                 ),
             ),
-            // 31: "And Friday? Please tell me Friday was quiet."
+            // 35: "And Friday? Please tell me Friday was quiet."
             Scene(
-                31, "Friday: the intern's app", scaling(),
+                35, "Friday: the intern's app", scaling(),
                 beats = listOf(
-                    Beat(32, show = setOf("none", "reps"), light = setOf("none"), pulse = "none" to "reps", card = BoardCard("No door, no rule, nought", "Nothing calls it, nothing watches for it. It never ran once.")),
-                    Beat(34, light = setOf("none"), card = BoardCard("A shop with no door", "And no bell. Nobody is coming.")),
+                    Beat(36, show = setOf("none", "reps"), light = setOf("none"), pulse = "none" to "reps", card = BoardCard("No door, no rule, nought", "Nothing calls it, nothing watches for it. It never ran once.")),
+                    Beat(38, light = setOf("none"), card = BoardCard("A shop with no door", "And no bell. Nobody is coming.")),
                 ),
             ),
-            // 35: "What should it have been?"
+            // 39: "What should it have been?"
             Scene(
-                35, "What it should have been", jobs("Nightly photo tidy"),
+                39, "What it should have been", jobs("Nightly photo tidy"),
                 beats = listOf(
-                    Beat(36, light = setOf("sched", "work"), pulse = "work" to "sched", card = jobCard),
+                    Beat(40, light = setOf("sched", "work"), pulse = "work" to "sched", card = jobCard),
                 ),
             ),
-            // 37: "Does all of this sit in one place, or is it scattered?"
+            // 41: "Does all of this sit in one place, or is it scattered?"
             Scene(
-                37, "One fence around it all", limits(),
+                41, "One fence around it all", limits(),
                 beats = listOf(
-                    Beat(38, light = setOf("wake", "conn"), card = envCard),
-                    Beat(40, light = limitNodes, pulse = "conn" to "next", card = whereItStops),
+                    Beat(42, light = setOf("wake", "conn"), card = envCard),
+                    Beat(44, light = limitNodes, pulse = "conn" to "next", card = whereItStops),
                 ),
             ),
-            // 41: "Before anyone else hears us. What goes on the exam?"
+            // 45: "Before anyone else hears us. What goes on the exam?"
             Scene(
-                41, "Before anyone else hears", exam(),
+                45, "Before anyone else hears", exam(),
                 beats = listOf(
-                    Beat(42, light = setOf("zero", "split", "label", "secret"), card = BoardCard("Listen for the phrase", "Nought and a queue rule, multiple mode, a label, a restart.")),
-                    Beat(44, light = all6, card = BoardCard("And the rest", "A string belongs in a secret. A new image makes a new revision.")),
-                    Beat(46, card = today),
+                    Beat(46, light = setOf("zero", "split", "label", "secret"), card = BoardCard("Listen for the phrase", "Nought and a queue rule, multiple mode, a label, a restart.")),
+                    Beat(48, light = all6, card = BoardCard("And the rest", "A string belongs in a secret. A new image makes a new revision.")),
+                    Beat(50, card = today),
                 ),
             ),
         ),
@@ -672,65 +690,65 @@ internal object Ai200EpisodesContainerApps {
                     Beat(8, show = setOf("env"), light = setOf("env"), card = envCard),
                     Beat(10, light = setOf("api", "phone"), pulse = "phone" to "api", card = BoardCard("Ingress", "The front door: a web address, a certificate, requests over HTTPS.")),
                     Beat(12, show = setOf("worker", "sb"), light = setOf("worker", "sb"), pulse = "sb" to "worker", card = BoardCard("No door for the worker", "Work arrives in the orders queue. Internal is the third choice.")),
-                    Beat(14, light = setOf("api"), card = BoardCard("Target port", "The port the container is listening on. Ours is 8080.")),
+                    Beat(18, light = setOf("api"), card = BoardCard("Target port", "The port the container is listening on. Ours is 8080.")),
                 ),
             ),
-            // 15: "And the payment key? The one we must never say out loud."
+            // 19: "And the payment key? The one we must never say out loud."
             Scene(
-                15, "Things we never say aloud", secrets(),
+                19, "Things we never say aloud", secrets(),
                 beats = listOf(
-                    Beat(16, show = setOf("sec", "env"), light = setOf("env"), pulse = "sec" to "env", card = secretRef),
-                    Beat(18, show = setOf("kv", "cont"), light = setOf("kv"), pulse = "kv" to "sec", card = BoardCard("Key Vault reference", "Fetched with the app's badge, its managed identity. No password.")),
+                    Beat(20, show = setOf("sec", "env"), light = setOf("env"), pulse = "sec" to "env", card = secretRef),
+                    Beat(22, show = setOf("kv", "cont"), light = setOf("kv"), pulse = "kv" to "sec", card = BoardCard("Key Vault reference", "Fetched with the app's badge, its managed identity. No password.")),
                 ),
             ),
-            // 19: "Now. Friday. We ship a new version at nine."
+            // 23: "Now. Friday. We ship a new version at nine."
             Scene(
-                19, "Shipping at nine", snapshot(),
+                23, "Shipping at nine", snapshot(),
                 beats = listOf(
-                    Beat(20, show = setOf("template", "newrev"), light = setOf("newrev"), pulse = "template" to "newrev", card = revisionCard),
-                    Beat(22, show = setOf("single"), light = setOf("single"), pulse = "newrev" to "single", card = BoardCard("Single mode", "The default: the newest ready revision takes everything.")),
+                    Beat(24, show = setOf("template", "newrev"), light = setOf("newrev"), pulse = "template" to "newrev", card = revisionCard),
+                    Beat(26, show = setOf("single"), light = setOf("single"), pulse = "newrev" to "single", card = BoardCard("Single mode", "The default: the newest ready revision takes everything.")),
                 ),
             ),
-            // 23: "And I decide who meets who."
+            // 27: "And I decide who meets who."
             Scene(
-                23, "Who meets who", splitting(),
+                27, "Who meets who", splitting(),
                 beats = listOf(
-                    Beat(24, show = setOf("ing", "r1", "r2", "mode"), light = setOf("r1", "r2"), pulse = "ing" to "r2", card = trafficCode),
-                    Beat(26, show = setOf("label"), light = setOf("label"), pulse = "label" to "r2", card = labelCard),
+                    Beat(28, show = setOf("ing", "r1", "r2", "mode"), light = setOf("r1", "r2"), pulse = "ing" to "r2", card = trafficCode),
+                    Beat(30, show = setOf("label"), light = setOf("label"), pulse = "label" to "r2", card = labelCard),
                 ),
             ),
-            // 27: "Good. Now the part you promised. Eight on a Friday."
+            // 31: "Good. Now the part you promised. Eight on a Friday."
             Scene(
-                27, "Eight on a Friday", scaling(),
+                31, "Eight on a Friday", scaling(),
                 beats = listOf(
-                    Beat(28, show = setOf("keda", "reps"), light = setOf("keda"), pulse = "keda" to "reps", card = kedaCard),
-                    Beat(30, light = setOf("reps"), card = httpRuleCard),
-                    Beat(32, show = setOf("sb"), light = setOf("sb"), pulse = "keda" to "sb", card = queueRuleCard),
-                    Beat(34, light = setOf("reps"), card = queueRule),
-                    Beat(36, show = setOf("cpu", "none"), light = setOf("cpu", "none"), pulse = "cpu" to "reps", card = trapsCard),
+                    Beat(32, show = setOf("keda", "reps"), light = setOf("keda"), pulse = "keda" to "reps", card = kedaCard),
+                    Beat(34, light = setOf("reps"), card = httpRuleCard),
+                    Beat(36, show = setOf("sb"), light = setOf("sb"), pulse = "keda" to "sb", card = queueRuleCard),
+                    Beat(38, light = setOf("reps"), card = queueRule),
+                    Beat(40, show = setOf("cpu", "none"), light = setOf("cpu", "none"), pulse = "cpu" to "reps", card = trapsCard),
                 ),
             ),
-            // 37: "And the nightly payouts run, the one that finishes and goes away?"
+            // 41: "And the nightly payouts run, the one that finishes and goes away?"
             Scene(
-                37, "Runs, then ends", jobs("Nightly menu refresh"),
+                41, "Runs, then ends", jobs("Nightly menu refresh"),
                 beats = listOf(
-                    Beat(38, light = setOf("sched", "work"), pulse = "work" to "sched", card = jobCard),
+                    Beat(42, light = setOf("sched", "work"), pulse = "work" to "sched", card = jobCard),
                 ),
             ),
-            // 39: "Where does all this stop, before I fall asleep believing in it?"
+            // 43: "Where does all this stop, before I fall asleep believing in it?"
             Scene(
-                39, "Where it stops", limits(),
+                43, "Where it stops", limits(),
                 beats = listOf(
-                    Beat(40, light = limitNodes, pulse = "conn" to "next", card = whereItStops),
+                    Beat(44, light = limitNodes, pulse = "conn" to "next", card = whereItStops),
                 ),
             ),
-            // 41: "One more before the lights. What does the exam want?"
+            // 45: "One more before the lights. What does the exam want?"
             Scene(
-                41, "For the exam", exam(),
+                45, "For the exam", exam(),
                 beats = listOf(
-                    Beat(42, light = setOf("split", "label", "secret"), card = BoardCard("Listen for the phrase", "Multiple mode and splitting, a label, a restart for a secret.")),
-                    Beat(44, light = all6, card = BoardCard("And the money ones", "Nought with a queue rule; a new image; work that ends is a job.")),
-                    Beat(46, card = today),
+                    Beat(46, light = setOf("split", "label", "secret"), card = BoardCard("Listen for the phrase", "Multiple mode and splitting, a label, a restart for a secret.")),
+                    Beat(48, light = all6, card = BoardCard("And the money ones", "Nought with a queue rule; a new image; work that ends is a job.")),
+                    Beat(50, card = today),
                 ),
             ),
         ),
@@ -750,63 +768,63 @@ internal object Ai200EpisodesContainerApps {
                     Beat(8, show = setOf("worker", "sb"), light = setOf("worker", "sb"), pulse = "sb" to "worker", card = BoardCard("Ingress", "The front door. External for the API; the worker wants none.")),
                 ),
             ),
-            // 10: "Clever. Now something delicate. The payment provider's key."
+            // 14: "Clever. Now something delicate. The payment provider's key."
             Scene(
-                10, "Something delicate", secrets(),
+                14, "Something delicate", secrets(),
                 beats = listOf(
-                    Beat(11, show = setOf("sec", "env"), light = setOf("env"), pulse = "sec" to "env", card = secretRef),
-                    Beat(13, show = setOf("kv", "cont"), light = setOf("kv"), pulse = "kv" to "sec", card = BoardCard("Right answer", "A managed identity: the app's badge. No password between us.")),
+                    Beat(15, show = setOf("sec", "env"), light = setOf("env"), pulse = "sec" to "env", card = secretRef),
+                    Beat(17, show = setOf("kv", "cont"), light = setOf("kv"), pulse = "kv" to "sec", card = BoardCard("Right answer", "A managed identity: the app's badge. No password between us.")),
                 ),
             ),
-            // 14: "Now, Friday. You ship a new version at nine."
+            // 18: "Now, Friday. You ship a new version at nine."
             Scene(
-                14, "What have you just made", snapshot(),
+                18, "What have you just made", snapshot(),
                 beats = listOf(
-                    Beat(15, show = setOf("template", "newrev"), light = setOf("newrev"), pulse = "template" to "newrev", card = revisionCard),
-                    Beat(18, show = setOf("same", "restart"), light = setOf("same"), pulse = "template" to "same", card = BoardCard("No kiss for that one", "A secret is a setting, not the template. Nothing new is made.")),
-                    Beat(19, light = setOf("restart"), pulse = "same" to "restart", card = BoardCard("Restart the revision", "Running replicas read their secrets when they started.")),
+                    Beat(19, show = setOf("template", "newrev"), light = setOf("newrev"), pulse = "template" to "newrev", card = revisionCard),
+                    Beat(22, show = setOf("same", "restart"), light = setOf("same"), pulse = "template" to "same", card = BoardCard("No kiss for that one", "A secret is a setting, not the template. Nothing new is made.")),
+                    Beat(23, light = setOf("restart"), pulse = "same" to "restart", card = BoardCard("Restart the revision", "Running replicas read their secrets when they started.")),
                 ),
             ),
-            // 20: "Try again. Ten percent of diners on the new version."
+            // 24: "Try again. Ten percent of diners on the new version."
             Scene(
-                20, "Ten percent of diners", splitting(),
+                24, "Ten percent of diners", splitting(),
                 beats = listOf(
-                    Beat(21, show = setOf("ing", "r1", "r2", "mode"), light = setOf("mode"), pulse = "ing" to "r2", card = BoardCard("Right answer", "Multiple mode, then traffic splitting: ingress divides by weight.")),
-                    Beat(23, show = setOf("label"), light = setOf("label"), pulse = "label" to "r2", card = trafficCode),
+                    Beat(25, show = setOf("ing", "r1", "r2", "mode"), light = setOf("mode"), pulse = "ing" to "r2", card = BoardCard("Right answer", "Multiple mode, then traffic splitting: ingress divides by weight.")),
+                    Beat(27, show = setOf("label"), light = setOf("label"), pulse = "label" to "r2", card = trafficCode),
                 ),
             ),
-            // 24: "Now my favourite part. Eight on a Friday, two thousand at once."
+            // 28: "Now my favourite part. Eight on a Friday, two thousand at once."
             Scene(
-                24, "Two thousand at once", scaling(),
+                28, "Two thousand at once", scaling(),
                 beats = listOf(
-                    Beat(25, show = setOf("keda", "reps"), light = setOf("keda"), pulse = "keda" to "reps", card = kedaCard),
-                    Beat(27, light = setOf("reps"), card = BoardCard("Right answer", "100 at once per replica, minimum two. Nobody waits for a start.")),
-                    Beat(29, show = setOf("sb"), light = setOf("sb"), pulse = "keda" to "sb", card = BoardCard("Right answer", "An azure-servicebus rule, 20 a replica, minimum nought.")),
-                    Beat(31, show = setOf("cpu"), light = setOf("cpu"), pulse = "cpu" to "reps", card = BoardCard("Why not the processor", "It never reaches zero. One replica, awake all night.")),
-                    Beat(33, show = setOf("none"), light = setOf("none"), pulse = "none" to "reps", card = BoardCard("No door, no rule, nought", "It never wakes. Give it a rule, or a minimum of one.")),
+                    Beat(29, show = setOf("keda", "reps"), light = setOf("keda"), pulse = "keda" to "reps", card = kedaCard),
+                    Beat(31, light = setOf("reps"), card = BoardCard("Right answer", "100 at once per replica, minimum two. Nobody waits for a start.")),
+                    Beat(33, show = setOf("sb"), light = setOf("sb"), pulse = "keda" to "sb", card = BoardCard("Right answer", "An azure-servicebus rule, 20 a replica, minimum nought.")),
+                    Beat(35, show = setOf("cpu"), light = setOf("cpu"), pulse = "cpu" to "reps", card = BoardCard("Why not the processor", "It never reaches zero. One replica, awake all night.")),
+                    Beat(37, show = setOf("none"), light = setOf("none"), pulse = "none" to "reps", card = BoardCard("No door, no rule, nought", "It never wakes. Give it a rule, or a minimum of one.")),
                 ),
             ),
-            // 34: "Good. Last one before pudding. The nightly payouts run."
+            // 38: "Good. Last one before pudding. The nightly payouts run."
             Scene(
-                34, "Before pudding", jobs("Nightly payouts run"),
+                38, "Before pudding", jobs("Nightly payouts run"),
                 beats = listOf(
-                    Beat(35, light = setOf("sched", "work"), pulse = "work" to "sched", card = jobCard),
+                    Beat(39, light = setOf("sched", "work"), pulse = "work" to "sched", card = jobCard),
                 ),
             ),
-            // 36: "Right answer. And where does all this stop?"
+            // 40: "Right answer. And where does all this stop?"
             Scene(
-                36, "Where it stops", limits(),
+                40, "Where it stops", limits(),
                 beats = listOf(
-                    Beat(37, light = setOf("wake", "job"), card = whereItStops),
-                    Beat(39, light = limitNodes, pulse = "conn" to "next", card = BoardCard("Still off the shelf", "The image comes from the registry, pulled with the same badge.")),
+                    Beat(41, light = setOf("wake", "job"), card = whereItStops),
+                    Beat(43, light = limitNodes, pulse = "conn" to "next", card = BoardCard("Still off the shelf", "The image comes from the registry, pulled with the same badge.")),
                 ),
             ),
-            // 40: "Then one last question, for the exam."
+            // 44: "Then one last question, for the exam."
             Scene(
-                40, "For the exam", exam(),
+                44, "For the exam", exam(),
                 beats = listOf(
-                    Beat(41, light = all6, card = BoardCard("Four phrases, four answers", "Multiple mode and splitting, a label, a restart, nought and a rule.")),
-                    Beat(43, card = today),
+                    Beat(45, light = all6, card = BoardCard("Four phrases, four answers", "Multiple mode and splitting, a label, a restart, nought and a rule.")),
+                    Beat(47, card = today),
                 ),
             ),
         ),
