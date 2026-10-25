@@ -691,7 +691,7 @@ internal object Az305EpisodesRelational {
                     Beat(31, show = setOf("app", "db"), light = setOf("db"), card = BoardCard("Quiz: health notes", "Unreadable to the administrators. Which feature?")),
                     Beat(32, show = setOf("tde"), light = setOf("tde"), card = BoardCard("TDE?", "Files on disk only. Close, but no kiss.")),
                     Beat(33, show = setOf("ae"), light = setOf("ae"), card = alwaysEncrypted),
-                    Beat(35, show = setOf("mask"), light = setOf("mask"), card = BoardCard("Right answer", "Dynamic data masking: XXXX instead of the value.")),
+                    Beat(35, show = setOf("mask"), light = setOf("mask"), card = BoardCard("Support sees XXXX", "Dynamic data masking: hides values from users without UNMASK. Admins still see real data.")),
                     Beat(38, light = setOf("app", "db"), pulse = "app" to "db", card = endpoint),
                 ),
             ),

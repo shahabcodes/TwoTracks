@@ -382,7 +382,7 @@ internal object Psm1Events {
                     DNode("goal", "Sprint Goal", 0.5f, 0.12f, w = 0.34f, h = 0.14f, kind = NodeKind.PILL, tone = 1),
                     DNode("insp", "Inspect", 0.18f, 0.5f, w = 0.3f, h = 0.2f, sub = "progress"),
                     DNode("adapt", "Adapt", 0.82f, 0.5f, w = 0.3f, h = 0.2f, sub = "Sprint Backlog"),
-                    DNode("day", "Next 24 hours", 0.5f, 0.85f, w = 0.32f, h = 0.2f, tone = 2, sub = "actionable plan"),
+                    DNode("day", "Next day of work", 0.5f, 0.85f, w = 0.32f, h = 0.2f, tone = 2, sub = "actionable plan"),
                 ),
                 edges = listOf(
                     DEdge("goal", "insp", label = "toward"),
@@ -503,7 +503,7 @@ internal object Psm1Events {
                 "psm-daily-scrum-x1",
                 "Explain the purpose and rules of the Daily Scrum, using an Android team as the example.",
                 "The Daily Scrum is a 15-minute event for the Developers, held at the same time and place each working day. They inspect progress toward the Sprint Goal and adapt the Sprint Backlog, leaving with a plan for the next day. They choose its structure, since the three questions were removed. The Product Owner or Scrum Master joins as a Developer only when working on Sprint Backlog items, and the plan can change at any time.",
-                "15 minutes, same time and place" to listOf("15 minutes", "fifteen minutes", "same time"),
+                "15 minutes, same time and place" to listOf("15 minute", "15-minute", "15 min", "fifteen minute", "fifteen-minute", "same time"),
                 "For the Developers" to listOf("for the developers", "developers"),
                 "Inspect progress, adapt the plan" to listOf("sprint goal", "adapt", "inspect"),
                 "Structure is theirs, not a status meeting" to listOf("structure", "three questions", "status"),
@@ -692,7 +692,7 @@ internal object Psm1Events {
                 "Review: inspect the Increment with stakeholders" to listOf("stakeholders", "increment"),
                 "Review adapts the Product Backlog, not a gate" to listOf("product backlog", "not a release gate", "not a gate"),
                 "Retro: improve quality and effectiveness" to listOf("effectiveness", "improvements", "processes"),
-                "Order and timeboxes" to listOf("concludes", "four hours", "three hours"),
+                "Order and timeboxes" to listOf("concludes", "ends the sprint", "comes last", "last event", "four hours", "three hours", "4 hours", "3 hours"),
             ),
             B.glossary(
                 "Sprint Review" to "The event where the Scrum Team and stakeholders inspect the Sprint's outcome and adapt the Product Backlog.",

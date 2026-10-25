@@ -378,7 +378,7 @@ internal object Az305Data {
                 "az storage account create --name ttmedia<unique> --resource-group tt-data-rg --location westeurope --sku Standard_ZRS --kind StorageV2" to "A general-purpose v2 account with three copies across zones.",
                 "az storage account blob-service-properties update --account-name ttmedia<unique> --resource-group tt-data-rg --enable-delete-retention true --delete-retention-days 14 --enable-versioning true" to "Soft delete for 14 days and versioning switched on.",
                 "In the portal, open the account, then Lifecycle management, and add a rule: move to cool after 30 days, delete after 730" to "The rule appears in the list; it runs once a day.",
-                "az cosmosdb create --name tt-coach-db --resource-group tt-data-rg --locations regionName=westeurope --locations regionName=australiaeast" to "A Cosmos DB account in two regions, session consistency by default.",
+                "az cosmosdb create --name tt-coach-db --resource-group tt-data-rg --locations regionName=westeurope failoverPriority=0 --locations regionName=australiaeast failoverPriority=1" to "A Cosmos DB account in two regions (West Europe writes, Australia East reads), session consistency by default.",
             ),
             B.mistakes(
                 "Expecting archive blobs to open at once; they must be rehydrated first, for hours.",

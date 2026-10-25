@@ -90,7 +90,7 @@ internal object Ai200Data2 {
                 listOf("Start time", "Where a brand-new processor begins: now (default), a date, or the beginning", "the beginning, once, to embed old notes"),
             ),
             B.bullets(
-                "The bookmark moves only after your code finishes a batch without error, so delivery is at least once: the same change can arrive twice, and your handler must cope.",
+                "In the change feed processor library, the bookmark moves only after your code finishes a batch without error, so delivery is at least once: the same change can arrive twice, and your handler must cope. The Azure Functions trigger is different: by default it does not retry a batch your code failed on, so that batch is skipped unless you catch errors yourself or turn on a Functions retry policy. Duplicates can still reach a Function, for example from retries or when leases move between instances, so keep the handler safe to run twice.",
                 "Several instances with the same processor name and lease container share the work: each lease belongs to one instance at a time.",
                 "The start time only matters the first time. Once leases exist, the processor resumes from them and ignores the setting.",
                 "Python has no change feed processor library. A Python app either uses the Functions trigger or the pull model, where it reads the feed itself and saves a continuation token as its bookmark.",

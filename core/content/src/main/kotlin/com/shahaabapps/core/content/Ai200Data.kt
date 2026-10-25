@@ -325,11 +325,11 @@ internal object Ai200Data {
             B.h("The five consistency levels"),
             B.table(
                 listOf("Level", "What a reader sees", "Read cost"),
-                listOf("Strong", "Always the latest committed write", "Highest; about twice a weaker read"),
-                listOf("Bounded staleness", "At most K versions or T time behind", "High"),
-                listOf("Session (default)", "Your own writes, in order, within your session", "Low"),
-                listOf("Consistent prefix", "Never out of order, but may lag", "Low"),
-                listOf("Eventual", "Possibly out of order; catches up eventually", "Lowest"),
+                listOf("Strong", "Always the latest committed write", "High; about twice a Session read (reads two copies)"),
+                listOf("Bounded staleness", "At most K versions or T time behind", "High; same as Strong (reads two copies)"),
+                listOf("Session (default)", "Your own writes, in order, within your session", "Low (reads one copy)"),
+                listOf("Consistent prefix", "Never out of order, but may lag", "Low; same as Session"),
+                listOf("Eventual", "Possibly out of order; catches up eventually", "Low; same as Session"),
             ),
             B.p("""
                 Set the default on the account. A client can ask for a weaker level than the default, never a stronger
@@ -337,7 +337,8 @@ internal object Ai200Data {
                 moment later. The SDK carries the session token for you.
             """),
             B.code("python", """
-                # This reporting job tolerates lag, so it reads more cheaply than the account default
+                # This reporting job tolerates lag and does not need to read its own writes, so Eventual is enough
+                # (it costs the same RUs per read as Session; only Strong and Bounded staleness cost more)
                 report_client = CosmosClient(url, credential=DefaultAzureCredential(), consistency_level="Eventual")
             """),
             B.check(

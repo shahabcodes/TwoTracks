@@ -177,7 +177,7 @@ internal object Psm1Exam {
                 "The exam tests only the Scrum Guide, not common practice. Story points, velocity and user stories are complementary practices: a team may use them, but they are not required. Habits such as a Sprint 0, a hardening Sprint or an extended Sprint break the Guide's rules. Several options can be partly true, so read them all and choose the best answer, the one closest to the Guide.",
                 "Only the Scrum Guide counts" to listOf("scrum guide", "the guide"),
                 "Complementary practices are allowed but not required" to listOf("complementary", "not required"),
-                "Some habits break the rules" to listOf("sprint 0", "hardening", "extended sprint"),
+                "Some habits break the rules" to listOf("sprint 0", "sprint-0", "sprint zero", "hardening", "release sprint", "extend", "longer sprint"),
                 "Choose the best answer" to listOf("best answer", "closest"),
             ),
             B.glossary(

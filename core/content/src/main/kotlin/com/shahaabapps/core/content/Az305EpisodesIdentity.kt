@@ -37,7 +37,7 @@ internal object Az305EpisodesIdentity {
             leo("Why is that the default?"),
             maya("Least to run, and it works even if the office is down. And because Entra holds those fingerprints, it can spot leaked passwords."),
             leo("But say the office locks someone's account. The cloud still has their old fingerprint. Can they still get in?"),
-            maya("[pause] Good doubt. With hash sync, the cloud doesn't see that lockout at once. If office rules like that must apply at once, pick the second choice, pass-through authentication: agents in the office check each cloud sign-in against Active Directory, live."),
+            maya("[pause] Good doubt. With hash sync, yes, they can: an office lockout never reaches the cloud at all. Only a disabled account does, and even that can take up to about half an hour. If office rules like that must apply at once, pick the second choice, pass-through authentication: agents in the office check each cloud sign-in against Active Directory, live."),
             leo("And the third?"),
             maya("Federation, with AD FS, Active Directory Federation Services: every sign-in is handed to your own servers. It's the most effort and the most to fail, with servers facing the internet. Only when Entra can't do something itself, like a third-party MFA system you must keep."),
             leo("Now outsiders. Two Tracks hires that translation agency in Australia."),
