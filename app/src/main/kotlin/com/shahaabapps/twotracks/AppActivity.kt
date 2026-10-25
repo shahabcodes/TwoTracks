@@ -17,6 +17,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import android.content.Intent
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.semantics
 import androidx.fragment.app.FragmentActivity
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -107,14 +110,48 @@ private fun AppRoot(appLock: AppLock, widgetLaunch: WidgetLaunch, viewModel: App
     val state by viewModel.state.collectAsStateWithLifecycle()
     val locked by appLock.locked.collectAsStateWithLifecycle()
     val signedIn = state is SessionState.Ready || state is SessionState.NoSpace
-    if (locked && signedIn) {
-        LockScreen(allowedAuthenticators = appLock.allowedAuthenticators, onUnlocked = appLock::unlock)
-        return
-    }
-    when (val current = state) {
-        SessionState.Loading -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { TracksLoader(label = "Opening your space") }
-        SessionState.SignedOut -> AuthScreen()
-        is SessionState.NoSpace -> OnboardingScreen()
-        is SessionState.Ready -> MainNavGraph(session = current.session, widgetLaunch = widgetLaunch)
+    LockedOver(
+        locked = locked && signedIn,
+        lock = { LockScreen(allowedAuthenticators = appLock.allowedAuthenticators, onUnlocked = appLock::unlock) },
+    ) {
+        when (val current = state) {
+            SessionState.Loading -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { TracksLoader(label = "Opening your space") }
+            SessionState.SignedOut -> AuthScreen()
+            is SessionState.NoSpace -> OnboardingScreen()
+            is SessionState.Ready -> MainNavGraph(session = current.session, widgetLaunch = widgetLaunch)
+        }
     }
 }
+
+/**
+ * The lock, drawn over the app rather than in place of it.
+ *
+ * This used to be an early return, which took the whole navigation graph out
+ * of the composition while the lock was up. The back stack went with it, so
+ * locking the phone for a moment and coming back landed you on Today instead
+ * of the lesson or episode you were on. Leaving [content] composed underneath
+ * is what fixes that: it costs nothing while hidden, and the lock covers it
+ * completely and swallows every touch, so nothing behind it can be seen,
+ * pressed or reached by a screen reader.
+ */
+@Composable
+internal fun LockedOver(locked: Boolean, lock: @Composable () -> Unit, content: @Composable () -> Unit) {
+    Box(Modifier.fillMaxSize()) {
+        content()
+        if (locked) {
+            Box(
+                Modifier
+                    .fillMaxSize()
+                    // Takes every press, drag and swipe, so a tap that lands on
+                    // the lock never reaches whatever sits beneath it.
+                    .pointerInput(Unit) { awaitPointerEventScope { while (true) awaitPointerEvent() } }
+                    .testTag(LOCK_OVERLAY),
+            ) {
+                lock()
+            }
+        }
+    }
+}
+
+/** The lock layer, for the test that holds it over the app rather than in place of it. */
+internal const val LOCK_OVERLAY = "lock-overlay"

@@ -3,6 +3,11 @@
 All notable changes to Two Tracks. Versions follow `version.properties`; the
 build number is appended by CI (for example `0.1.0 (build 12)`).
 
+## [0.94.1] - 2026-10-25
+### Fixed
+- Locking your phone no longer loses your place. The lock screen was replacing the app rather than covering it, which threw away where you were, so a glance at a notification sent you back to Today instead of the lesson or episode you had open.
+- The playing bar now shows on Today, Learn and Together. It was being drawn underneath the tab bar and hidden completely, so there was no sign anywhere outside the player that an episode was running. Tapping it opens the episode where you left it.
+
 ## [0.94.0] - 2026-10-25
 ### Changed
 - AI-200 is now entirely built around Zaiqa. The remaining ten topics join the first ten: PostgreSQL and pgvector, Redis, Service Bus, Event Grid, Functions, Key Vault, App Configuration, OpenTelemetry and KQL are all taught as changes to the same app, with the weekly restaurant payout, the orders queue, the dish photo, the surge fee, one trace across one order, and the Friday night when orders started failing.
