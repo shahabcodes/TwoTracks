@@ -81,10 +81,10 @@ internal object Psm1Theory {
             B.h("Where the inspecting happens: the events"),
             B.p("""
                 Scrum does not leave inspection to chance. It has five events: the Sprint, which is the container,
-                and four events inside it. An event is a fixed meeting with a purpose and a timebox, a maximum
-                length. The Guide calls each event a formal opportunity to inspect and adapt, and says the events
-                create regularity, so fewer extra meetings are needed. Leaving one out removes one of those
-                chances, and the Guide says that using only parts of Scrum is not Scrum.
+                and four events inside it. Each event has a purpose and a timebox, a maximum length; the Sprint
+                itself is a fixed length of one month or less, and it is not a meeting. The Guide calls each event
+                a formal opportunity to inspect and adapt, and says the events create regularity and reduce the
+                need for meetings not defined in Scrum. Leaving one out removes one of those chances, and the Guide says that using only parts of Scrum is not Scrum.
             """),
             B.table(
                 listOf("Event", "What is inspected", "What is adapted"),

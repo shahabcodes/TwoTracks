@@ -33,7 +33,7 @@ internal object Az305EpisodesNetworkOptimize {
             leo("Sounds handy. What's the catch?"),
             maya("Phones and laptops remember a phone book answer for a while. So when a region fails, they keep calling the old number until they forget it, and failover is slower than Front Door. Its strength: any kind of traffic, not just web, across regions."),
             leo("So how do I choose in the exam?"),
-            maya("Two questions. Is it web traffic, and does it cover more than one region? Web and global: Front Door. Web and one region: Application Gateway. Not web and global: Traffic Manager. Not web and one region: Load Balancer."),
+            maya("Two questions. Is it web traffic, and does it cover more than one region? Web and global: Front Door. Web and one region: Application Gateway. Not web and global: Traffic Manager, or Load Balancer's global tier when you need one fixed address and failover in seconds. Not web and one region: Load Balancer."),
             leo("Give me a real one."),
             maya("Say you're building the Two Tracks web API, the door the app calls on the backend, in West Europe and Australia East. Users want caching and protection from web attacks. You pick."),
             leo("Web, two regions, caching. Front Door?"),
@@ -94,11 +94,11 @@ internal object Az305EpisodesNetworkOptimize {
             leo("So why the long outage?"),
             maya("How it works: phones remember a phone book answer for a while. When Europe failed, they kept calling the old number until they forgot it. And there was no caching, which means keeping copies of images near users, like a corner shop stocking popular items."),
             leo("So the right door is?"),
-            maya("Azure Front Door: layer 7, global, caching at the edge, meaning in Microsoft's buildings close to users worldwide. It fails over fast, because the traffic really passes through it. Traffic Manager still fits non-web traffic across regions."),
+            maya("Azure Front Door: layer 7, global, caching at the edge, meaning in Microsoft's buildings close to users worldwide. It fails over fast, because the traffic really passes through it. For non-web traffic across regions, Traffic Manager still fits, and so does Load Balancer's global tier, which gives one fixed address and fails over in seconds."),
             leo("Second crime?"),
             maya("An earlier draft put one Application Gateway in West Europe in front of both regions. Application Gateway is layer 7, but regional. It routes by URL path, and can decrypt HTTPS, the sealed kind of web traffic, so the servers don't have to."),
             leo("Suspect: it worked fine, just slow for Australia."),
-            maya("Worse. One gateway in one region is a single point of failure. If West Europe falls, Australia falls with it. Regional means regional; that's where it stops working. The fourth box, Azure Load Balancer, is layer 4 and regional too, for non-web traffic like a live game's fast messages."),
+            maya("Worse. One gateway in one region is a single point of failure. If West Europe falls, Australia falls with it. Regional means regional; that's where it stops working. The fourth box, Azure Load Balancer, is layer 4, for non-web traffic like a live game's fast messages. The standard kind is regional, so here it sits inside each region; its separate global tier can sit across regions."),
             leo("Third crime. The attack."),
             maya("The sign-up form got SQL injection attempts. That's someone typing database commands into a form box, hoping your database runs them, like writing, and also open the safe, on a delivery note."),
             leo("Easy. Add an NSG rule to block it."),
@@ -160,7 +160,7 @@ internal object Az305EpisodesNetworkOptimize {
             leo("Was it?"),
             maya("No. Application Gateway is regional. One in Europe is a single point of failure for Australia, and every Australian request crossed the planet. Regional means regional."),
             leo("Did anyone use the plain Load Balancer?"),
-            maya("The game team, quietly, with no drama at all. Azure Load Balancer is layer 4 and regional. It passes any kind of traffic straight through, such as UDP, the fast, unchecked way a live quiz game sends its answers."),
+            maya("The game team, quietly, with no drama at all. Azure Load Balancer is layer 4. It passes any kind of traffic straight through, such as UDP, the fast, unchecked way a live quiz game sends its answers. It usually works inside one region, but it also has a global tier that puts regional load balancers behind one fixed address and fails over between them fast."),
             leo("Wednesday?"),
             maya("Dana. The sign-up form got SQL injection attempts. That's someone typing database commands into a form box, hoping your database runs them, like writing, and also open the safe, on a delivery note."),
             leo("What did Dana do?"),
@@ -216,7 +216,7 @@ internal object Az305EpisodesNetworkOptimize {
             ivy("Only answers? It doesn't carry anything?"),
             nova("Nothing. It hands out the best region's number and steps aside. And phones remember that answer for a while, so when a region fails, they keep calling the old number. [pause] Failover is slower than Front Door. Its gift: any kind of traffic, across regions."),
             ivy("So how do I choose, half asleep?"),
-            nova("Two questions. Web traffic? More than one region? Web and global, Front Door. Web and one region, Application Gateway. Not web and global, Traffic Manager. Not web and one region, Load Balancer."),
+            nova("Two questions. Web traffic? More than one region? Web and global, Front Door. Web and one region, Application Gateway. Not web and global, Traffic Manager, or Load Balancer's global tier when you need one fixed public address and failover in seconds. Not web and one region, Load Balancer."),
             ivy("Now the bouncers. Who keeps the wrong people out?"),
             nova("First, a network security group (NSG): a guest list of allow and deny rules by address and port, on a subnet, a room in your network. [pause] Checked in order, lowest number first. And an application security group (ASG) is a name tag for a set of VMs, the rented computers, so rules name the tag."),
             ivy("So the guest list stops everything bad?"),
@@ -260,7 +260,7 @@ internal object Az305EpisodesNetworkOptimize {
             rafe("Opening letters. Bold. And the second idea?"),
             nova("Regional or global. A region is a group of Azure data centres in one part of the world. Regional works inside one; global picks between them."),
             rafe("Then the four, darling. Start close to home."),
-            nova("Load Balancer: layer 4, regional. Application Gateway: layer 7, regional, and it routes by URL path."),
+            nova("Load Balancer: layer 4, usually regional, but it also has a global tier: one fixed address in front of load balancers in several regions, with instant failover. Application Gateway: layer 7, regional, and it routes by URL path."),
             rafe("And the global pair?"),
             nova("Front Door: layer 7, global, at the edge, which means Microsoft's buildings close to users. It caches, keeping copies near people, like a corner shop. Traffic Manager only answers the DNS question, the internet's phone book, then steps aside, so its failover is slower."),
             rafe("Then here's your first question, darling. Global users, web traffic, needs caching and a WAF. Which one?"),
@@ -270,7 +270,7 @@ internal object Az305EpisodesNetworkOptimize {
             rafe("A web application firewall (WAF): a guard who reads every web request and stops known attacks, like SQL injection, someone typing database commands into your sign-up form. It runs on Front Door or Application Gateway."),
             nova("Show-off. My question, then. A live quiz game sends UDP, the fast, unchecked kind of message, to servers in one region. Which balancer?"),
             rafe("Application Gateway. It's the clever one."),
-            nova("No kiss for that one. Application Gateway only speaks web. Not web and one region means Azure Load Balancer: layer 4, regional, and it passes UDP straight through."),
+            nova("No kiss for that one. Application Gateway can't carry UDP; it's built for web traffic, plus plain TCP and TLS. Not web and one region means Azure Load Balancer: layer 4, regional, and it passes UDP straight through."),
             rafe("Ouch. Let me earn it back. Ask me about guards."),
             nova("First, the basics. A network security group (NSG) is a guest list of allow and deny rules by address and port, on a subnet, a room in your network. An application security group (ASG) is a name tag for a set of VMs, the rented computers, so rules can name the tag."),
             rafe("Guest lists and name tags. Very exclusive."),
@@ -416,7 +416,7 @@ internal object Az305EpisodesNetworkOptimize {
         nodes = listOf(
             DNode("afd", "Global HTTP, caching", 0.26f, 0.14f, w = 0.46f, h = 0.2f, kind = NodeKind.NOTE, sub = "Front Door"),
             DNode("agw", "URL path, one region", 0.76f, 0.14f, w = 0.44f, h = 0.2f, kind = NodeKind.NOTE, sub = "Application Gateway"),
-            DNode("tm", "Non-web, many regions", 0.26f, 0.47f, w = 0.46f, h = 0.2f, kind = NodeKind.NOTE, sub = "Traffic Manager"),
+            DNode("tm", "Non-web, many regions", 0.26f, 0.47f, w = 0.46f, h = 0.2f, kind = NodeKind.NOTE, sub = "Traffic Manager or global LB"),
             DNode("lb", "Non-web, one region", 0.76f, 0.47f, w = 0.44f, h = 0.2f, kind = NodeKind.NOTE, sub = "Load Balancer"),
             DNode("waf", "SQL injection", 0.26f, 0.8f, w = 0.46f, h = 0.2f, kind = NodeKind.NOTE, sub = "a WAF, not an NSG"),
             DNode("route", "Outbound via firewall", 0.76f, 0.8f, w = 0.44f, h = 0.2f, kind = NodeKind.NOTE, sub = "a route, not an NSG"),
@@ -431,7 +431,7 @@ internal object Az305EpisodesNetworkOptimize {
     private val layer4 = BoardCard("Layer 4", "Reads only the envelope: the address and the port, a machine's door number.")
     private val layer7 = BoardCard("Layer 7", "Opens the letter: reads the web request, such as the URL path.")
     private val region = BoardCard("Region", "A group of Azure data centres in one part of the world, like West Europe.")
-    private val loadBalancer = BoardCard("Azure Load Balancer", "Layer 4, regional: any traffic, even a game's UDP, straight through.")
+    private val loadBalancer = BoardCard("Azure Load Balancer", "Layer 4: any traffic, even a game's UDP, straight through. Regional, plus a global tier.")
     private val appGateway = BoardCard("Application Gateway", "Layer 7, regional: routes by URL path and decrypts HTTPS.")
     private val frontDoor = BoardCard("Azure Front Door", "Layer 7, global, at the edge: caches near users, fails over at once.")
     private val trafficManager = BoardCard("Traffic Manager", "Global, DNS only: hands out the best region's number and steps aside.")
@@ -741,7 +741,7 @@ internal object Az305EpisodesNetworkOptimize {
                     Beat(15, light = setOf("afd"), pulse = "gy" to "afd", card = BoardCard("Quiz: global web with a WAF", "Answer: Front Door with a WAF policy.")),
                     Beat(19, card = wafCard),
                     Beat(20, card = BoardCard("Quiz: a UDP game, one region", "Which balancer carries a live game's fast, unchecked messages?")),
-                    Beat(22, light = setOf("lb"), pulse = "gn" to "lb", card = BoardCard("No kiss", "Application Gateway only speaks web. Load Balancer passes UDP.")),
+                    Beat(22, light = setOf("lb"), pulse = "gn" to "lb", card = BoardCard("No kiss", "Application Gateway can't carry UDP. Load Balancer passes UDP.")),
                 ),
             ),
             // 23: "Ouch. Let me earn it back. Ask me about guards."

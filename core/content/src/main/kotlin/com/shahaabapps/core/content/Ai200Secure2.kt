@@ -167,7 +167,7 @@ internal object Ai200Secure2 {
                 "Portal: Application Insights > Application map" to "Nodes for coach-api and summarize with an arrow between them.",
             ),
             B.mistakes(
-                "Calling configure_azure_monitor after the web app has been created, so its first requests go untraced.",
+                "Running 'from fastapi import FastAPI' (or 'from flask import Flask') before configure_azure_monitor(), so the framework is never instrumented and the Requests table stays empty, even when app = FastAPI() comes after the call. Call configure_azure_monitor() first, or use 'import fastapi' and fastapi.FastAPI().",
                 "Leaving every service with the default name, so the application map draws one confused node.",
                 "Hard-coding the connection string in source instead of reading APPLICATIONINSIGHTS_CONNECTION_STRING.",
                 "Making outgoing calls with a library the distro does not instrument, which drops the traceparent header.",
@@ -396,7 +396,7 @@ internal object Ai200Secure2 {
             ),
             B.gap(
                 "ai-x-kql-gap1", "Round timestamps into 5-minute buckets.",
-                "summarize count() by ___(TimeGenerated, 5m)", "bin", "Bin",
+                "summarize count() by ___(TimeGenerated, 5m)", "bin", "Bin", "floor", "Floor",
             ),
             B.gap(
                 "ai-x-kql-gap2", "Workspace-based Application Insights stores incoming requests here.",

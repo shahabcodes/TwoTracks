@@ -429,7 +429,7 @@ internal object Az305Continuity {
                 "Availability zone" to "A separate datacenter group in a region with its own power, cooling and network.",
                 "Composite SLA" to "The uptime of services in a chain: their SLAs multiplied together.",
                 "Failover group" to "Databases that fail over to another region together, keeping one listener name.",
-                "Active geo-replication" to "A readable copy of one SQL database in another region, failed over by hand.",
+                "Active geo-replication" to "A readable copy of one SQL database, usually in another region (the same region is allowed too), failed over by hand.",
                 "Multi-region writes" to "Cosmos DB accepting writes in every region; 99.999% SLA, no strong consistency.",
                 "GZRS" to "Storage copied across three zones and also to the paired region.",
             ),

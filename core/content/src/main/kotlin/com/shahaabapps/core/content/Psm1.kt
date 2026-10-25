@@ -29,19 +29,19 @@ object Psm1 {
                 Module(
                     id = "psm-team", number = 2, title = "The Scrum Team",
                     summary = "One team, no sub-teams or hierarchy, and the three accountabilities inside it.",
-                    examWeight = "About a third of the questions", componentId = "roles",
+                    examWeight = "Core Scrum Guide content; no official weighting", componentId = "roles",
                     topics = Psm1Team.topics, quiz = Psm1Team.quiz,
                 ),
                 Module(
                     id = "psm-events", number = 3, title = "The events",
                     summary = "The Sprint and the four events inside it: purpose, timebox and who attends.",
-                    examWeight = "About a third of the questions", componentId = "roles",
+                    examWeight = "Core Scrum Guide content; no official weighting", componentId = "roles",
                     topics = Psm1Events.topics, quiz = Psm1Events.quiz,
                 ),
                 Module(
                     id = "psm-artifacts", number = 4, title = "Artifacts and commitments",
                     summary = "Product Backlog, Sprint Backlog and Increment, each with the commitment that focuses it.",
-                    examWeight = "About a quarter of the questions", componentId = "roles",
+                    examWeight = "Core Scrum Guide content; no official weighting", componentId = "roles",
                     topics = Psm1Artifacts.topics, quiz = Psm1Artifacts.quiz,
                 ),
                 Module(

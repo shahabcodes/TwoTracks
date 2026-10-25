@@ -328,7 +328,7 @@ internal object Az305Identity {
             B.compare("How is the password checked?",
                 B.card("Password hash sync", "The default: least to run, works even if the office is down.", "A fingerprint of the fingerprint is copied to the cloud", "Entra ID checks the password itself", "Lets Entra spot leaked passwords"),
                 B.card("Pass-through authentication", "On-premises rules like sign-in hours or lockout must apply at once.", "Agents in the office check with AD", "No password data in the cloud", "Run three agents for availability"),
-                B.card("Federation (AD FS)", "Only when Entra cannot do it: third-party MFA, smart card systems you already run.", "Sign-in handed to your own servers, AD FS (Active Directory Federation Services)", "A server farm, plus proxies facing the internet", "Most effort and most to fail"),
+                B.card("Federation (AD FS)", "Only when Entra cannot do it: a third-party MFA or sign-in system that needs federation, or signing in with an old-style DOMAIN\\username name.", "Sign-in handed to your own servers, AD FS (Active Directory Federation Services)", "A server farm, plus proxies facing the internet", "Most effort and most to fail"),
             ),
             B.tip("Microsoft recommends turning on password hash sync whatever you choose: it is the backup if the office servers fail, and ID Protection needs it to spot leaked passwords."),
             B.check(
@@ -419,7 +419,7 @@ internal object Az305Identity {
             ),
             B.gap(
                 "sa-x-identity-gap1", "The sign-in method that checks each password against AD through agents.",
-                "That is ___ authentication.", "pass-through", "Pass-through", "passthrough",
+                "That is ___ authentication.", "pass-through", "pass through", "passthrough", "PTA",
             ),
             B.tryIt("Try it in 15 minutes", "Free with any Entra tenant; delete what you create afterwards.",
                 "Create a security group and add yourself to it",

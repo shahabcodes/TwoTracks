@@ -477,7 +477,7 @@ internal object Az305Infra {
                 "Paid orders go on a Service Bus queue, because they must be processed in order, once, and wait safely if billing is down. Phone telemetry goes to Event Hubs, which takes millions of events and keeps them for replay. Repeated leaderboard reads come from Azure Managed Redis using cache-aside. Settings and feature flags live in App Configuration, with secrets kept in Key Vault. Bicep and a GitHub Actions pipeline deploy each release to a staging slot, then a swap puts it live.",
                 "Service Bus for ordered, reliable orders" to listOf("service bus", "dead letter", "sessions"),
                 "Event Hubs for telemetry streams" to listOf("event hubs", "event hub", "telemetry"),
-                "Redis cache-aside for repeat reads" to listOf("redis", "cacheaside", "cache aside", "caching"),
+                "Redis cache-aside for repeat reads" to listOf("redis", "cache-aside", "cacheaside", "cache aside", "caching"),
                 "App Configuration and Key Vault for settings" to listOf("app configuration", "key vault", "feature flag"),
                 "Automated deployment with slots" to listOf("bicep", "github actions", "pipeline", "staging slot", "swap"),
             ),

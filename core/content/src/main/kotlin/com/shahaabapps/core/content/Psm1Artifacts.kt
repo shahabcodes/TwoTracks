@@ -16,7 +16,7 @@ internal object Psm1Artifacts {
         references = listOf(
             B.ref("The Scrum Guide (2020): Product Backlog and Product Goal", GUIDE),
             B.ref("Scrum.org: What is a Product Backlog?", RES + "what-is-a-product-backlog"),
-            B.ref("Scrum.org: What is a Product Goal?", RES + "what-is-a-product-goal"),
+            B.ref("Scrum.org: What is a Product Goal?", RES + "what-product-goal"),
             B.ref("Professional Scrum Master I (PSM I)", PSM1),
             B.ref("Scrum Open, the free practice assessment", OPEN),
         ),
@@ -337,11 +337,11 @@ internal object Psm1Artifacts {
             ),
             B.h("Check yourself"),
             B.match(
-                "psm-x-sprint-backlog-match", "Pair each part of the Sprint Backlog with the question it answers.",
+                "psm-x-sprint-backlog-match", "Pair the three parts of the Sprint Backlog with the question each answers, and the event with what it does to the plan.",
                 "Sprint Goal" to "Why",
                 "Selected Product Backlog items" to "What",
                 "The plan" to "How",
-                "Daily Scrum" to "Where the plan is adapted",
+                "Daily Scrum (an event)" to "Inspects progress and adapts the plan",
             ),
             B.gap(
                 "psm-x-sprint-backlog-gap1", "Whose plan it is.",
@@ -359,7 +359,7 @@ internal object Psm1Artifacts {
                 "The Sprint Backlog is the Developers' plan for the Sprint: the Sprint Goal for why, the selected Product Backlog items for what, and a plan for how. It belongs to the Developers, who update it every day as they learn. The Sprint Goal is its commitment and does not change during the Sprint; if the work turns out different, the Developers renegotiate scope with the Product Owner.",
                 "Why, what and how" to listOf("sprint goal", "selected"),
                 "Owned and updated by the Developers" to listOf("developers", "developer"),
-                "The Sprint Goal is fixed" to listOf("does not change", "fixed", "commitment"),
+                "The Sprint Goal is fixed" to listOf("does not change", "doesn't change", "won't change", "not change", "not be changed", "unchanged", "stays the same", "remains the same", "fixed", "endanger", "without affecting", "unaffected", "commitment"),
                 "Scope renegotiated with the PO" to listOf("renegotiate", "scope"),
             ),
             B.glossary(
@@ -381,7 +381,7 @@ internal object Psm1Artifacts {
         references = listOf(
             B.ref("The Scrum Guide (2020): Increment and Definition of Done", GUIDE),
             B.ref("Scrum.org: What is an Increment?", RES + "what-is-an-increment"),
-            B.ref("Scrum.org: What is a Definition of Done?", RES + "what-is-a-definition-of-done"),
+            B.ref("Scrum.org: What is a Definition of Done?", RES + "what-definition-done"),
             B.ref("Professional Scrum Master I (PSM I)", PSM1),
             B.ref("Scrum Open, the free practice assessment", OPEN),
         ),
@@ -516,7 +516,7 @@ internal object Psm1Artifacts {
             ),
             B.h("Check yourself"),
             B.match(
-                "psm-x-increment-match", "Pair each artifact with its commitment.",
+                "psm-x-increment-match", "Pair each of the three artifacts with its commitment, and match the last item with where it goes.",
                 "Product Backlog" to "Product Goal",
                 "Sprint Backlog" to "Sprint Goal",
                 "Increment" to "Definition of Done",
@@ -538,7 +538,7 @@ internal object Psm1Artifacts {
                 "An Increment is a usable, verified stepping stone toward the Product Goal, additive to all earlier Increments. The Definition of Done is its commitment: work that does not meet it is not part of an Increment and returns to the Product Backlog. Several Increments may be made in one Sprint, and an Increment may be released before the Sprint Review, which is not a gate. Teams on one product share one Definition of Done.",
                 "A usable, additive stepping stone" to listOf("usable", "additive", "stepping stone"),
                 "The Definition of Done decides what counts" to listOf("definition of done", "dod"),
-                "Not Done goes back to the Product Backlog" to listOf("returns to the product backlog", "back to the product backlog"),
+                "Not Done goes back to the Product Backlog" to listOf("returns to the product backlog", "return to the product backlog", "returned to the product backlog", "back to the product backlog", "back on the product backlog", "goes to the product backlog", "go to the product backlog", "moved to the product backlog", "into the product backlog"),
                 "Release before the Review; not a gate" to listOf("not a gate", "before the sprint review", "released"),
             ),
             B.glossary(

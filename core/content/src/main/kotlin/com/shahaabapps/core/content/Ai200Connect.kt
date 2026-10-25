@@ -73,9 +73,10 @@ internal object Ai200Connect {
             ),
             B.h("Sending and receiving in Python"),
             B.p("""
-                The package is azure-servicebus. You create a ServiceBusClient with the namespace name and a
-                credential; with DefaultAzureCredential the app needs the Azure Service Bus Data Sender or Data
-                Receiver role instead of a connection string.
+                The package is azure-servicebus. You create a ServiceBusClient with the namespace's full host name
+                (the fully_qualified_namespace, such as tt-coach-bus.servicebus.windows.net) and a credential. With
+                DefaultAzureCredential the app needs a role instead of a connection string: Azure Service Bus Data
+                Sender to send, Azure Service Bus Data Receiver to receive, or both.
             """),
             B.code("python", """
                 import json
@@ -204,7 +205,7 @@ internal object Ai200Connect {
             ),
             B.gap(
                 "ai-x-bus-gap1", "The receive mode that locks a message instead of removing it.",
-                "The default receive mode is ___.", "PeekLock", "peeklock", "peek lock",
+                "The default receive mode is ___.", "PeekLock", "peeklock", "peek lock", "peek-lock",
             ),
             B.gap(
                 "ai-x-bus-gap2", "Several services each need a copy of every message.",
@@ -550,8 +551,8 @@ internal object Ai200Connect {
             B.h("Connections and app settings"),
             B.p("""
                 connection="ServiceBusConnection" is not a connection string: it names an app setting. With managed
-                identity you set ServiceBusConnection__fullyQualifiedNamespace to the namespace name and grant the
-                app's identity a Service Bus data role, and no secret is stored. Locally the same settings live in
+                identity you set ServiceBusConnection__fullyQualifiedNamespace to the full namespace host name,
+                such as tt-coach-bus.servicebus.windows.net, and grant the app's identity a Service Bus data role, and no secret is stored. Locally the same settings live in
                 local.settings.json under Values; that file is for your machine only and is not deployed, so every
                 setting has to exist in Azure as an app setting too.
             """),

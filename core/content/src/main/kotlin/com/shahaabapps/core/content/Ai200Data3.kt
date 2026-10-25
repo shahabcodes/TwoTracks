@@ -126,7 +126,7 @@ internal object Ai200Data3 {
             B.tip("\"Best speed-recall trade-off, can index an empty table\" means HNSW. \"Faster build, less memory, needs data first\" means IVFFlat. Raising ef_search or probes buys recall with time."),
             B.h("Reducing compute and sizing the server"),
             B.bullets(
-                "Filter with metadata in the WHERE clause (user, course, date) so fewer rows compete; a partial index can cover a common filter.",
+                "Filter with metadata in the WHERE clause (user, course, date) so a search returns only rows the caller may see. With an HNSW or IVFFlat index the filter is applied after the index scan, so a narrow filter can return fewer rows than LIMIT. Fixes: for a very selective filter (one learner's notes), use an exact search on a B-tree index on the filter column; for a few common values, use a partial index; for many values, partition the table; or raise ef_search or turn on iterative index scans (hnsw.iterative_scan).",
                 "Return only the columns you need and keep k small; five good notes beat fifty.",
                 "Check the plan with EXPLAIN ANALYZE: is the vector index used, and were partitions pruned?",
                 "Load data first, then build the index; give the build more maintenance_work_mem and scale up during it if needed.",
@@ -169,7 +169,8 @@ internal object Ai200Data3 {
                 Worked example. Two Tracks Coach has 400,000 study notes. Asking "what is a dead-letter queue?"
                 scanned every row and took 900 ms. Usaid built an HNSW index with vector_cosine_ops, matched it
                 with the cosine operator in the query, and added WHERE user_id and course so only that learner's
-                notes compete. EXPLAIN showed an index scan and the query fell to 15 ms. Recall on a test set of
+                notes come back. The filter is applied after the index scan, so it makes results correct, not
+                cheaper, and he turned on hnsw.iterative_scan so a narrow filter still returns five rows. EXPLAIN showed an index scan and the query fell to 15 ms. Recall on a test set of
                 fifty questions was 0.93, so he set hnsw.ef_search to 80 for the RAG endpoint and got 0.98.
             """),
             B.faded(
@@ -198,7 +199,7 @@ internal object Ai200Data3 {
                 "Building IVFFlat on an empty table, so its lists are trained on nothing.",
                 "Retrieving top-k across every user's notes and filtering afterwards in Python.",
             ),
-            B.example("Two Tracks Coach: notes with vector(1536), an HNSW cosine index, WHERE user_id and course on every search, ef_search 80 on the RAG endpoint, Memory Optimized compute so the index stays in RAM."),
+            B.example("Two Tracks Coach: notes with vector(1536), an HNSW cosine index, WHERE user_id and course on every search so results are correct (the filter runs after the index scan, so hnsw.iterative_scan is on to still fill LIMIT), ef_search 80 on the RAG endpoint, Memory Optimized compute so the index stays in RAM."),
             B.check(
                 "ai-pgvector-k3", "ai-pgvector",
                 "A RAG answer quoted another learner's notes. What should the retrieval query have had?",
@@ -305,8 +306,8 @@ internal object Ai200Data3 {
             ),
             B.p("""
                 Microsoft points new work, and migrations, to Azure Managed Redis. Entra ID authentication is on by
-                default for a new cache and TLS is required. Modules are chosen when the cache is created and cannot be
-                added later, so if you will ever want vector search, tick RediSearch at creation, with the Enterprise
+                default for a new cache, and connections use TLS by default; Entra sign-in works only over TLS. Modules
+                are chosen when the cache is created and cannot be added later, so if you will ever want vector search, tick RediSearch at creation, with the Enterprise
                 clustering policy and the NoEviction eviction policy that RediSearch requires.
             """),
             B.h("Cache-aside, TTL and invalidation"),
@@ -412,7 +413,7 @@ internal object Ai200Data3 {
                     "When a score is saved, update PostgreSQL first, then delete leaderboard:week.",
                 ),
                 blank = 1,
-                answers = listOf("expiry", "expiration", "ttl", "expire"),
+                answers = listOf("expiry", "expiration", "ttl", "expire", "ex", "time to live", "time-to-live"),
                 note = "The expiry is the safety net; deleting after the database write is the real invalidation. Deleting first lets a reader cache the old value again.",
             ),
             B.steps("Do it for real",
@@ -629,7 +630,7 @@ internal object Ai200Data3 {
             ),
             B.q("ai-d18", "ai-pgvector", "A RAG search must only return the current learner's notes for one course, and should be cheap. What do you add?",
                 listOf("WHERE user_id = %s AND course = %s on the vector query", "A larger LIMIT and filtering in Python", "ivfflat.probes equal to lists", "The inner product operator"), setOf(0),
-                "A metadata filter in WHERE narrows the rows that compete, which is both correct and less work.",
+                "A metadata filter in WHERE keeps other learners' notes out of the results, inside the database. With an approximate index it is applied after the index scan, so it makes results correct rather than cheaper; for one learner's notes, an exact search on a B-tree index on user_id is both correct and cheap.",
                 whyWrong = mapOf(
                     1 to "Filtering afterwards wastes work and can leave too few results.",
                     2 to "Probes equal to lists searches every list, which is the full scan you were avoiding.",

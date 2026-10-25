@@ -3,6 +3,12 @@
 All notable changes to Two Tracks. Versions follow `version.properties`; the
 build number is appended by CI (for example `0.1.0 (build 12)`).
 
+## [0.93.1] - 2026-10-25
+### Fixed
+- A fact check of every lesson's prose, tables, diagrams, glossary and exercise answers, and of the AZ-305 podcast scripts, against the official documentation. Two independent reviewers read each file and a correction was only made when two of three further checkers agreed it was wrong.
+- AZ-305: the continuity table's recovery figures, the governance and identity episodes, the migration and networking take-aways, and several wrong-answer notes that gave a true reason for the wrong option.
+- AI-200 and PSM I: corrections in the lesson text, including module weights and statements the official guide does not actually make.
+
 ## [0.93.0] - 2026-10-25
 ### Changed
 - AI-200: the first ten topics are rebuilt around one app instead of explaining each service on its own. The course now builds Zaiqa, a food-delivery app of the kind you use every week: a Kotlin app, an Angular partner dashboard, a .NET API on Azure SQL, and the Azure pieces added one episode at a time.
