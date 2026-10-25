@@ -173,7 +173,7 @@ internal object Ai200Secure {
             B.bullets(
                 "Soft delete is a recycle bin. A deleted vault or secret is kept for a retention period of 7 to 90 days (90 by default), set when the vault is created and fixed after that.",
                 "Soft delete is on for every new vault and cannot be turned off.",
-                "Purge means deleting from the recycle bin for good. It needs its own permission, such as the Key Vault Purge Operator role.",
+                "Purge means deleting from the recycle bin for good, and it needs its own permission. To purge a deleted secret, you need a data role that includes purge, such as Key Vault Secrets Officer or Key Vault Administrator (keys and certificates use their own Officer roles). To purge a whole deleted vault, you need a role such as Key Vault Purge Operator, which works only on vaults.",
                 "Purge protection, off by default, blocks purging until the retention period ends, even for administrators. Once on, it cannot be turned off.",
                 "While a secret is soft-deleted its name is taken: recover it or wait, you cannot create a new one with the same name.",
             ),
@@ -354,7 +354,7 @@ internal object Ai200Secure {
 
                 max_tokens = int(config["MaxTokens"])
             """),
-            B.remember("Refresh is driven by activity: you call refresh(), and it only checks the store once the interval has passed. With refresh_on, only the sentinel is checked; when it changes, everything reloads."),
+            B.remember("Refresh is driven by activity: you call refresh(), and it only checks the store once the interval has passed. With refresh_on, the sentinel is the only settings key checked, and when it changes, every setting reloads. Feature flags with feature_flag_refresh_enabled=True are watched separately: each loaded flag is checked on its own."),
             B.check(
                 "ai-appconfig-k1", "ai-appconfig",
                 "You change three settings and want every Coach API instance to take all three together. What do you do last?",
@@ -401,7 +401,7 @@ internal object Ai200Secure {
                 "Same API. Product wants a new prompt template and a lower temperature live together, with no restart.",
                 listOf(
                     "Update Coach:PromptTemplate and Coach:Temperature under the prod label.",
-                    "Then change the ___ key, the only key each instance watches.",
+                    "Then change the ___ key, the one settings key each instance watches before reloading its settings.",
                     "On the next request after the interval, refresh() sees it and reloads every key.",
                 ),
                 blank = 1,

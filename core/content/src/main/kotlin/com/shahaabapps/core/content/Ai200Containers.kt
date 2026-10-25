@@ -276,7 +276,7 @@ internal object Ai200Containers {
             B.bullets(
                 "Tag each build with something unique (a version or the build id) and deploy that; latest is fine for a laptop, risky in production.",
                 "To make one version unchangeable, lock it: az acr repository update with --write-enabled false.",
-                "Old untagged images still cost storage; delete them or use a retention policy.",
+                "Old untagged images still cost storage. On any tier, delete them yourself or schedule an ACR task that runs acr purge; only a Premium registry can also turn on a retention policy (in preview) that removes untagged images automatically.",
             ),
             B.h("Tiers"),
             B.compare("Which tier?",
@@ -375,7 +375,7 @@ internal object Ai200Containers {
                 "az acr create --name ttcoach --resource-group tt-rg --sku Basic" to "Admin user is disabled by default.",
                 "az acr build --registry ttcoach --image coach-api:v1 ." to "The build log streams to your terminal; no local Docker needed.",
                 "az acr repository show-tags --name ttcoach --repository coach-api" to "Shows v1.",
-                "az acr repository show-manifests --name ttcoach --repository coach-api" to "Shows the sha256 digest for each image.",
+                "az acr manifest list-metadata --registry ttcoach --name coach-api" to "Shows the sha256 digest for each image (the az acr manifest group is still marked preview).",
                 "az role assignment create --assignee <principalId> --role AcrPull --scope <registry-id>" to "The host's identity can now pull.",
             ),
             B.mistakes(

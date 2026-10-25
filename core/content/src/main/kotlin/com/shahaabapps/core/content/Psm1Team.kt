@@ -522,7 +522,7 @@ internal object Psm1Team {
                 "The Product Owner is accountable for maximising the value of the product, mainly by managing the Product Backlog: communicating the Product Goal, writing clear items, ordering them and keeping the backlog visible. The work can be delegated, but the accountability stays. The Product Owner is one person, not a committee, so stakeholders like the CEO must convince the Product Owner, and the organisation respects those decisions.",
                 "Maximising value" to listOf("maximising the value", "maximizing the value", "value of the product"),
                 "Managing the Product Backlog" to listOf("product backlog", "ordering", "order"),
-                "Delegation keeps accountability" to listOf("delegate", "accountability stays", "remains accountable"),
+                "Delegation keeps accountability" to listOf("delegat", "accountability stays", "remains accountable", "still accountable", "stays accountable"),
                 "One person, not a committee" to listOf("one person", "not a committee", "convince"),
             ),
             B.glossary(
@@ -682,7 +682,6 @@ internal object Psm1Team {
                 "Coaching self-management" to "The Scrum Team",
                 "Techniques for backlog management" to "The Product Owner",
                 "Leading Scrum adoption" to "The organisation",
-                "Making sure events stay within the timebox" to "The Scrum Team, again",
             ),
             B.gap(
                 "psm-x-scrum-master-gap1", "How the Guide describes Scrum Masters.",

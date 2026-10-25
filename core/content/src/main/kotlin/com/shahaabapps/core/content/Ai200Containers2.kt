@@ -44,7 +44,7 @@ internal object Ai200Containers2 {
                     DEdge("dev", "api", label = "manifest"),
                     DEdge("api", "deploy"),
                     DEdge("deploy", "pods"),
-                    DEdge("svc", "pods", label = "label app=coach"),
+                    DEdge("svc", "pods", label = "label app=coach-api"),
                     DEdge("cfg", "pods", label = "env vars"),
                     DEdge("acr", "pods", label = "AcrPull"),
                 ),
@@ -222,7 +222,7 @@ internal object Ai200Containers2 {
                 "Node pool" to "A group of identical VMs that run the pods",
             ),
             B.gap(
-                "ai-x-aks-gap1", "Send a manifest file to the cluster.",
+                "ai-x-aks-gap1", "Send a manifest file to the cluster, creating its objects or updating them if they already exist.",
                 "kubectl ___ -f coach.yaml", "apply",
             ),
             B.gap(

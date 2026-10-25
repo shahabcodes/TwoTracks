@@ -80,7 +80,7 @@ internal object Az305EpisodesBackupDr {
             leo("Odd. Nobody on the team ever wrote a backup job."),
             maya("They didn't need to. Point-in-time restore, PITR, is a rewind button: it rebuilds the database as it was at any moment in the last 1 to 35 days, as a new database. They rewound to five minutes before the delete."),
             leo("Case closed, then?"),
-            maya("Not even close. Clue two arrived on Wednesday: an auditor. Under GDPR, Europe's data protection law, the company keeps records for audits, and the auditor asked for a monthly copy of the orders database from three years ago."),
+            maya("Not even close. Clue two arrived on Wednesday: an auditor. A finance rule says the company must keep its order records for years, and the auditor asked for a monthly copy of the orders database from three years ago."),
             leo("Suspect: PITR. Just stretch it to three years."),
             maya("Can't. PITR stops at 35 days. The right tool is long-term retention, LTR, the archive box in the loft: weekly, monthly or yearly copies kept for up to 10 years. Nobody had switched it on, so those copies never existed."),
             leo("Ouch. Clue three?"),
@@ -132,7 +132,7 @@ internal object Az305EpisodesBackupDr {
             leo("So the copy he was so proud of..."),
             maya("Had the same hole. Replication survives a lost region; it doesn't undo mistakes. Luckily Azure SQL backs itself up anyway, so the team used point-in-time restore, PITR: a rewind button to any moment in the last 1 to 35 days, as a new database."),
             leo("Lucky Tom. Wednesday?"),
-            maya("Dana. The auditor wanted monthly copies of the orders database for seven years, for GDPR, Europe's data protection law. Dana set PITR to 35 days and said, that'll stretch."),
+            maya("Dana. The auditor wanted monthly copies of the orders database kept for seven years, for the tax and accounting records. Dana set PITR to 35 days and said, that'll stretch."),
             leo("It doesn't stretch, does it."),
             maya("35 days is the ceiling. Long-term retention, LTR, is the archive box in the loft: weekly, monthly or yearly copies kept up to 10 years. Dana switched it on that afternoon. Only the years before that were missing. Well. Only."),
             leo("Thursday, then."),
@@ -417,7 +417,7 @@ internal object Az305EpisodesBackupDr {
                 beats = listOf(
                     Beat(36, show = setOf("db", "pitr"), light = setOf("pitr"), pulse = "db" to "pitr", card = pitrCard),
                     Beat(38, show = setOf("ltr"), light = setOf("ltr"), pulse = "db" to "ltr", card = ltrCard),
-                    Beat(40, show = setOf("geo", "fog"), light = setOf("geo", "fog"), pulse = "db" to "fog", card = BoardCard("Region lost", "Geo-restore is cheapest; a failover group switches in a minute.")),
+                    Beat(40, show = setOf("geo", "fog"), light = setOf("geo", "fog"), pulse = "db" to "fog", card = BoardCard("Region lost", "Geo-restore is cheapest; a failover group switches in a minute when you start it.")),
                 ),
             ),
             // 43: "And the office machines? The London booking system?"
@@ -457,7 +457,7 @@ internal object Az305EpisodesBackupDr {
             Scene(
                 11, "Clue two: the auditor", sqlProt(),
                 beats = listOf(
-                    Beat(12, show = setOf("db"), light = setOf("db"), card = BoardCard("A GDPR audit", "A monthly copy of the orders database from three years ago.")),
+                    Beat(12, show = setOf("db"), light = setOf("db"), card = BoardCard("A finance audit","A monthly copy of the orders database from three years ago.")),
                     Beat(14, show = setOf("pitr", "ltr"), light = setOf("ltr"), pulse = "db" to "ltr", card = ltrCard),
                 ),
             ),
@@ -537,7 +537,7 @@ internal object Az305EpisodesBackupDr {
             Scene(
                 11, "Wednesday: Dana", sqlProt(),
                 beats = listOf(
-                    Beat(12, show = setOf("db", "pitr"), light = setOf("pitr"), pulse = "db" to "pitr", card = BoardCard("Seven years of PITR?", "Monthly copies for seven years, for GDPR.")),
+                    Beat(12, show = setOf("db", "pitr"), light = setOf("pitr"), pulse = "db" to "pitr", card = BoardCard("Seven years of PITR?", "Monthly copies for seven years, for the auditor.")),
                     Beat(14, show = setOf("ltr"), light = setOf("ltr"), pulse = "db" to "ltr", card = ltrCard),
                 ),
             ),
@@ -621,7 +621,7 @@ internal object Az305EpisodesBackupDr {
                 19, "The orders database", sqlProt(),
                 beats = listOf(
                     Beat(20, show = setOf("db", "pitr", "ltr"), light = setOf("pitr", "ltr"), pulse = "db" to "pitr", card = BoardCard("PITR and LTR", "Rewind 1 to 35 days; archive copies kept up to 10 years.")),
-                    Beat(24, show = setOf("geo", "fog"), light = setOf("geo", "fog"), pulse = "db" to "fog", card = BoardCard("Region lost", "Geo-restore is cheap and slow; a failover group switches in moments.")),
+                    Beat(24, show = setOf("geo", "fog"), light = setOf("geo", "fog"), pulse = "db" to "fog", card = BoardCard("Region lost", "Geo-restore is cheap and slow; a failover group switches in moments when you start it.")),
                 ),
             ),
             // 25: "And the old booking system in London? The machines themselves?"

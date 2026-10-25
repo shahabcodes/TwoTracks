@@ -541,7 +541,7 @@ internal object Az305EpisodesMigrations {
                 27, "The last clue", files(),
                 beats = listOf(
                     Beat(28, show = setOf("office", "azcopy", "blob"), light = setOf("azcopy"), pulse = "azcopy" to "blob", card = BoardCard("The last clue", "70 TB through AzCopy on a 100 Mbps line. Weeks, still copying.")),
-                    Beat(30, show = setOf("box", "note"), light = setOf("box"), pulse = "office" to "box", card = BoardCard("Azure Data Box", "About three months by wire. Ship a box: the data goes by van.")),
+                    Beat(30, show = setOf("box", "note"), light = setOf("box"), pulse = "office" to "box", card = BoardCard("Azure Data Box", "About nine weeks by wire. Ship a box: the data goes by van.")),
                     Beat(32, show = setOf("mover"), light = setOf("mover"), pulse = "mover" to "blob", card = BoardCard("Storage Mover", "Catches up: only new and changed files.")),
                     Beat(34, light = setOf("box"), pulse = "box" to "blob", card = BoardCard("Locked in transit", "Encrypted on the box; the newest hold 120 or 525 TB.")),
                 ),

@@ -47,7 +47,7 @@ internal object Az305Identity2 {
                 identity (a service principal) or a managed identity, which is an identity Azure runs for a resource.
                 A role definition is a named list of allowed actions, like a job description. A scope is where it
                 applies. From biggest to smallest: a management group, which is a folder of subscriptions; a
-                subscription, which is one Azure account with its own bill; a resource group, which is a box of
+                subscription, which is a container for resources with its own bill and limits (one Azure account can hold several); a resource group, which is a box of
                 related resources; or one single resource. Access granted at a scope flows down to everything
                 inside it, the way a floor key opens every room on that floor.
             """),
@@ -429,7 +429,7 @@ internal object Az305Identity2 {
             B.steps("Set up a management group and a rule",
                 "In the portal open Management groups and create tt-landingzones under the Tenant root group" to "The new group appears in the tree.",
                 "Move a test subscription under it" to "The subscription now shows the group as its parent.",
-                "Open Policy, then Definitions, search Allowed locations and assign it to tt-landingzones with only West Europe allowed" to "The assignment appears on the Assignments page.",
+                "Open Policy, then Definitions, search Allowed locations and assign it to tt-landingzones with only West Europe allowed, setting the assignment name to eu-only" to "The assignment appears on the Assignments page.",
                 "Try to create a storage account in East US in that subscription" to "The deployment fails with a policy denial naming eu-only.",
                 "Open Compliance after a while" to "The assignment shows its compliance state for existing resources.",
             ),
@@ -469,7 +469,7 @@ internal object Az305Identity2 {
                 "Subscriptions sit under management groups arranged by kinds of workload, such as platform, landing zones and sandbox, so a policy or role assigned high up is inherited by every subscription, including new ones. Azure Policy enforces the rules: deny to block things like resources outside allowed regions, modify to add or inherit tags, deployIfNotExists to add missing diagnostics, with remediation for existing resources. A tagging strategy with cost centre and owner splits the bill. Defender for Cloud shows regulatory compliance, and access reviews and entitlement management keep identity access current.",
                 "Management group hierarchy and inheritance" to listOf("management group", "landing zone", "inherited", "hierarchy"),
                 "Azure Policy and its effects" to listOf("azure policy", "deny", "deployifnotexists", "modify", "initiative"),
-                "Tags, compliance and identity governance" to listOf("tagging", "cost centre", "defender for cloud", "access review", "entitlement management"),
+                "Tags, compliance and identity governance" to listOf(" tag", "cost centre", "cost center", "defender for cloud", "access review", "entitlement management"),
             ),
             B.glossary(
                 "Management group" to "A folder of subscriptions; rules and roles assigned to it flow down.",
