@@ -3,6 +3,12 @@
 All notable changes to Two Tracks. Versions follow `version.properties`; the
 build number is appended by CI (for example `0.1.0 (build 12)`).
 
+## [0.96.0] - 2026-10-30
+### Added
+- A navigation rail on tablets and in landscape. Where the window is wide, Today, Learn and Together stand on the leading edge instead of across the bottom, which on a ten-inch screen is nowhere near your hands. Below that width the bottom bar is unchanged.
+### Changed
+- Reading stops widening at a comfortable measure and sits centred, so a lesson on a tablet runs about ninety characters a line instead of a hundred and thirty. Tables and diagrams still use the width they need, and the podcast player stays full bleed.
+
 ## [0.95.0] - 2026-10-25
 ### Changed
 - Lesson diagrams are redrawn. A pipeline is now a ladder: one path down the page, a whole row per step, numbered where the order matters, and any choice saved for the end under its own question. Diagrams that are genuinely a map, like the one that follows an order through the whole app, stay a map.
