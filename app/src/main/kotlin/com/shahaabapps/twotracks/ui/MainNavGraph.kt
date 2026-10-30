@@ -23,12 +23,22 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.material3.VerticalDivider
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.MenuBook
 import androidx.compose.material.icons.outlined.People
@@ -134,6 +144,37 @@ object Routes {
     fun country(code: String) = "countries/$code"
 }
 
+/**
+ * The screens that do want every pixel they are given, so they opt out of
+ * [ReadableColumn]'s 720dp cap.
+ *
+ * Only the podcast, as it turns out. It is the one screen that is a picture
+ * rather than a page: a full-bleed navy player with an animated board in the
+ * middle of it, and capping it would have left the page colour showing down
+ * both sides of a dark screen, which looks like a mistake rather than a
+ * margin.
+ *
+ * The week and both-weeks screens were in here on the assumption that they
+ * were grids; looked at on the tablet they are lists of days, and full width
+ * stranded each session's length a thousand pixels from its name, so they are
+ * better capped like everything else. The wide table in a lesson already
+ * scrolls sideways inside its own BoxWithConstraints, so it keeps working
+ * whatever width it is given.
+ */
+private val wideRoutes = setOf(Routes.LISTEN)
+
+/**
+ * The window width at which the tabs leave the foot of the screen and become a
+ * rail on the leading edge.
+ *
+ * 840dp is Material's "expanded" break, and on this app it is also where the
+ * bottom bar stops being reachable: a 10-inch tablet in landscape is 1280dp
+ * across, and the foot of it is nowhere near either hand. A tablet held
+ * upright is 800dp, below the break, and keeps the bottom bar — which is
+ * right, because upright the foot of the screen is still in reach.
+ */
+internal const val RAIL_WIDTH_DP = 840
+
 private data class Tab(val route: String, val label: String, val icon: ImageVector)
 
 /**
@@ -206,6 +247,45 @@ internal fun BottomBars(
     }
 }
 
+/** The tabs this look names them by: the board writes them in capitals. */
+@Composable
+private fun currentTabs(): List<Tab> = if (AppTheme.departures) boardTabs else tabs
+
+/**
+ * One tab, wherever it is drawn.
+ *
+ * The bar and the rail share this so they share the selected treatment —
+ * ink in Parallel, the board's signal yellow in Departures, and the label in
+ * SemiBold — and so the tour finds its anchor either way. Only the box it sits
+ * in differs, which is what [modifier] carries.
+ */
+@Composable
+private fun TabItem(tab: Tab, selected: Boolean, modifier: Modifier, onSelect: () -> Unit) {
+    val departures = AppTheme.departures
+    // The tab you are on is ink in Parallel and the board's signal yellow in Departures.
+    val tint = when {
+        !selected -> AppTheme.colors.secondaryLabel
+        departures -> AppTheme.colors.accent
+        else -> AppTheme.colors.ink
+    }
+    val interaction = remember { MutableInteractionSource() }
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center,
+        modifier = modifier
+            .selectable(selected = selected, role = Role.Tab, interactionSource = interaction, indication = null) { onSelect() }
+            .padding(vertical = 6.dp)
+            .guideAnchor(guideAnchorFor(tab.route)),
+    ) {
+        Icon(tab.icon, contentDescription = null, tint = tint, modifier = Modifier.size(24.dp))
+        Text(
+            tab.label, style = MaterialTheme.typography.labelSmall, color = tint,
+            fontWeight = if (selected || departures) FontWeight.SemiBold else FontWeight.Medium,
+            modifier = Modifier.padding(top = 4.dp),
+        )
+    }
+}
+
 /** The tab bar: the page colour under a hairline, and the tab you are on in ink, or in signal yellow on the board. */
 @Composable
 private fun CupertinoTabBar(selectedRoute: String?, onSelect: (String) -> Unit) {
@@ -216,35 +296,110 @@ private fun CupertinoTabBar(selectedRoute: String?, onSelect: (String) -> Unit) 
             horizontalArrangement = Arrangement.SpaceEvenly,
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            val departures = AppTheme.departures
-            (if (departures) boardTabs else tabs).forEach { tab ->
-                val selected = tab.route == selectedRoute
-                // The tab you are on is ink in Parallel and the board's signal yellow in Departures.
-                val tint = when {
-                    !selected -> AppTheme.colors.secondaryLabel
-                    departures -> AppTheme.colors.accent
-                    else -> AppTheme.colors.ink
-                }
-                val interaction = remember { MutableInteractionSource() }
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center,
-                    modifier = Modifier
-                        .weight(1f)
-                        .selectable(selected = selected, role = Role.Tab, interactionSource = interaction, indication = null) { onSelect(tab.route) }
-                        .padding(vertical = 6.dp)
-                        .guideAnchor(guideAnchorFor(tab.route)),
-                ) {
-                    Icon(tab.icon, contentDescription = null, tint = tint, modifier = Modifier.size(24.dp))
-                    Text(
-                        tab.label, style = MaterialTheme.typography.labelSmall, color = tint,
-                        fontWeight = if (selected || departures) FontWeight.SemiBold else FontWeight.Medium,
-                        modifier = Modifier.padding(top = 4.dp),
-                    )
-                }
+            currentTabs().forEach { tab ->
+                TabItem(tab, selected = tab.route == selectedRoute, modifier = Modifier.weight(1f)) { onSelect(tab.route) }
             }
         }
         Column(modifier = Modifier.navigationBarsPadding()) {}
+    }
+}
+
+/**
+ * The same three tabs stood on end against the leading edge, for a window wide
+ * enough that the foot of the screen is out of reach.
+ *
+ * It is the tab bar's sibling on purpose: the same tabs in the same order, the
+ * same icons and labels, the same selected treatment through [TabItem], and
+ * the page colour behind a hairline — here the hairline runs down the trailing
+ * edge instead of across the top. The tabs sit in the middle of the rail
+ * rather than at its top: on a tablet held in landscape the middle of the
+ * leading edge is where the left thumb already is.
+ */
+@Composable
+private fun CupertinoNavRail(selectedRoute: String?, onSelect: (String) -> Unit) {
+    Row(
+        modifier = Modifier
+            .fillMaxHeight()
+            .background(AppTheme.colors.groupedBackground)
+            // The rail owns the leading edge, so it carries the inset on that
+            // side — the cutout, or the navigation bar when the device is
+            // turned. The padding goes on the Row rather than in with the
+            // tabs, so that the inset widens the rail instead of eating it:
+            // the tabs keep their full [RailWidth] either way, which they did
+            // not when this was one modifier chain and landscape's 70dp start
+            // inset left every label about one character wide.
+            .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Start)),
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxHeight()
+                .width(RailWidth)
+                .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Vertical))
+                .padding(horizontal = 4.dp)
+                .selectableGroup(),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterVertically),
+        ) {
+            currentTabs().forEach { tab ->
+                TabItem(tab, selected = tab.route == selectedRoute, modifier = Modifier.fillMaxWidth()) { onSelect(tab.route) }
+            }
+        }
+        VerticalDivider(color = AppTheme.colors.separator, thickness = 1.dp)
+    }
+}
+
+private val RailWidth = 84.dp
+
+/**
+ * The frame every screen is drawn in: the three tabs, the playing bar, and the
+ * window between them.
+ *
+ * Below [RAIL_WIDTH_DP] this is exactly what it always was — a Scaffold with
+ * [BottomBars] at its foot. At or above it the tabs move into
+ * [CupertinoNavRail] on the leading edge and the Scaffold moves over to sit
+ * beside the rail, which leaves the playing bar alone at the foot of the
+ * content, full width of it and clear of the rail: still the last thing above
+ * the gesture bar, still one tap, and now plainly the bar for the page you are
+ * looking at rather than a second row of chrome under the tabs.
+ *
+ * It is a composable of its own, rather than a few lines inside [MainNavGraph],
+ * so a test can stand it up at a given window size without a NavController,
+ * Hilt or an account.
+ */
+@Composable
+internal fun AppShell(
+    playing: NowPlaying?,
+    selectedTab: String?,
+    onOpen: (NowPlaying) -> Unit,
+    onPlayPause: (NowPlaying) -> Unit,
+    onForward30: () -> Unit,
+    onTab: (String) -> Unit,
+    content: @Composable (PaddingValues) -> Unit,
+) {
+    // There is nowhere to navigate from a screen that is not a tab, so the
+    // rail only appears where the bar would have.
+    val rail = LocalConfiguration.current.screenWidthDp >= RAIL_WIDTH_DP && selectedTab != null
+    Row(modifier = Modifier.fillMaxSize().background(AppTheme.colors.groupedBackground)) {
+        if (rail) CupertinoNavRail(selectedRoute = selectedTab, onSelect = onTab)
+        Scaffold(
+            containerColor = AppTheme.colors.groupedBackground,
+            contentWindowInsets = WindowInsets(0, 0, 0, 0),
+            bottomBar = {
+                BottomBars(
+                    playing = playing,
+                    // With a rail the tabs are already drawn, to the left.
+                    // Passing null here is also what tells the playing bar to
+                    // carry the gesture inset itself, which it must, because
+                    // there is no longer a tab bar under it to do that.
+                    selectedTab = selectedTab.takeUnless { rail },
+                    onOpen = onOpen,
+                    onPlayPause = onPlayPause,
+                    onForward30 = onForward30,
+                    onTab = onTab,
+                )
+            },
+            content = content,
+        )
     }
 }
 
@@ -302,31 +457,29 @@ fun MainNavGraph(session: AppSession, widgetLaunch: WidgetLaunch) {
     val selectedTab = tabs.firstOrNull { tab -> currentDestination?.hierarchy?.any { it.route == tab.route } == true }?.route
 
     CompositionLocalProvider(LocalGuide provides guide) {
-    Scaffold(
-        containerColor = AppTheme.colors.groupedBackground,
-        contentWindowInsets = WindowInsets(0, 0, 0, 0),
-        bottomBar = {
-            BottomBars(
-                playing = now?.takeIf { currentDestination?.route != Routes.LISTEN },
-                selectedTab = selectedTab,
-                onOpen = { playing ->
-                    val courseId = com.shahaabapps.twotracks.feature.listen.Episodes.courseOf(playing.episodeId)
-                    if (courseId != null) navController.navigate(Routes.listen(courseId, playing.episodeId)) { launchSingleTop = true }
-                },
-                onPlayPause = { playing -> if (playing.playing) nowPlaying.player.pause() else nowPlaying.player.play(playing.episodeId) },
-                onForward30 = nowPlaying.player::forward,
-                onTab = { route ->
-                    navController.navigate(route) {
-                        popUpTo(navController.graph.findStartDestination().id) { saveState = true }
-                        launchSingleTop = true
-                        restoreState = true
-                    }
-                },
-            )
+    AppShell(
+        playing = now?.takeIf { currentDestination?.route != Routes.LISTEN },
+        selectedTab = selectedTab,
+        onOpen = { playing ->
+            val courseId = com.shahaabapps.twotracks.feature.listen.Episodes.courseOf(playing.episodeId)
+            if (courseId != null) navController.navigate(Routes.listen(courseId, playing.episodeId)) { launchSingleTop = true }
+        },
+        onPlayPause = { playing -> if (playing.playing) nowPlaying.player.pause() else nowPlaying.player.play(playing.episodeId) },
+        onForward30 = nowPlaying.player::forward,
+        onTab = { route ->
+            navController.navigate(route) {
+                popUpTo(navController.graph.findStartDestination().id) { saveState = true }
+                launchSingleTop = true
+                restoreState = true
+            }
         },
     ) { padding ->
         val tabRoutes = tabs.map { it.route }.toSet()
         fun isTab(route: String?) = route in tabRoutes
+        // One cap for the whole graph. The route is read here rather than
+        // inside each destination so that nothing but this line knows about
+        // it; the screens that want the width say so in [wideRoutes].
+        ReadableColumn(wide = currentDestination?.route in wideRoutes) {
         NavHost(
             navController = navController,
             startDestination = Routes.TODAY,
@@ -465,6 +618,7 @@ fun MainNavGraph(session: AppSession, widgetLaunch: WidgetLaunch) {
             }
             composable(Routes.AVAILABILITY) { AvailabilityScreen(onBack = { navController.popBackStack() }) }
             composable(Routes.VOICES) { VoiceSettingsScreen(onBack = { navController.popBackStack() }) }
+        }
         }
     }
 

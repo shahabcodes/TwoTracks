@@ -29,6 +29,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
@@ -70,6 +71,7 @@ import java.time.LocalDate
  *   adb shell am start -n com.shahaabapps.twotracks/.preview.DesignPreviewActivity --es screen today [--ez dark true] [--es look departures]
  *
  * Screens: today, week, both, learn, course, topic, quiz, results, deck, levels, level, goal, goaledit, fit, us, partner, countries, country, tests, documents, budget, settings, hours, whatsnew, widgets.
+ * The frame itself — the tabs or, on a wide window, the rail, with the playing bar: shell (--es tab learn|us).
  * Departures only (with --es look departures): signin, signup, reset, role, space, join, lock.
  * The tour over its screen at a step: guide, with --ei step N.
  * The podcast: listen (--ez transcript true for Parallel's transcript, --ez paused true, --ei line N for the board at that line, --es topic ID for another episode's board, --ez cover true for the cover instead), nowplaying (the bar over Learn), aztopic (a topic with its Listen card), live (the real player and its notification; --es topic ID).
@@ -99,7 +101,29 @@ class DesignPreviewActivity : ComponentActivity() {
         setContent {
             AppTheme(themeMode = if (dark) ThemeMode.DARK else ThemeMode.LIGHT, look = look) {
                 Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
+                    // The app draws every screen inside ReadableColumn, so the
+                    // preview must too, or it would show a layout the app does
+                    // not have. The same screens opt out here as there.
+                    com.shahaabapps.twotracks.ui.ReadableColumn(wide = screen in setOf("listen", "live", "shell")) {
                     when (screen) {
+                        // The whole frame — tabs or rail, the playing bar, and a
+                        // screen inside it — so the wide layout can be seen
+                        // without an account. --es tab learn|us picks the tab.
+                        "shell" -> com.shahaabapps.twotracks.ui.AppShell(
+                            playing = ListenSamples.nowPlaying(),
+                            selectedTab = intent?.getStringExtra("tab") ?: "today",
+                            onOpen = {}, onPlayPause = {}, onForward30 = {}, onTab = {},
+                        ) { padding ->
+                            androidx.compose.foundation.layout.Box(Modifier.padding(padding)) {
+                                com.shahaabapps.twotracks.ui.ReadableColumn {
+                                    TodayContent(
+                                        state = Samples.today(), onOpenLevel = {}, onOpenPartner = {}, onOpenGoal = {}, onOpenWeek = {},
+                                        onOpenSettings = {}, onOpenChangelog = {}, onOpenTopic = { _, _ -> }, onOpenQuiz = { _, _ -> },
+                                        onOpenBrief = {}, onDismissBrief = {}, onDismissWhatsNew = {}, onDone = {}, onSkip = {}, onReopen = {}, onMessageShown = {},
+                                    )
+                                }
+                            }
+                        }
                         "week" -> WeekContent(
                             state = Samples.week(), onBack = {}, onOpenGoal = {}, onOpenBothWeeks = {}, onOpenFit = {},
                             onPreviousWeek = {}, onNextWeek = {}, onThisWeek = {}, onTogglePerson = {}, onReplan = {},
@@ -206,6 +230,7 @@ class DesignPreviewActivity : ComponentActivity() {
                             onOpenSettings = {}, onOpenChangelog = {}, onOpenTopic = { _, _ -> }, onOpenQuiz = { _, _ -> },
                             onOpenBrief = {}, onDismissBrief = {}, onDismissWhatsNew = {}, onDone = {}, onSkip = {}, onReopen = {}, onMessageShown = {},
                         )
+                    }
                     }
                 }
             }
