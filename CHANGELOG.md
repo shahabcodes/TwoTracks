@@ -3,6 +3,10 @@
 All notable changes to Two Tracks. Versions follow `version.properties`; the
 build number is appended by CI (for example `0.1.0 (build 12)`).
 
+## [0.98.0] - 2026-11-01
+### Added
+- Files against a module. Attach an image, a PDF or a document to any module and it is kept in your shared space, listed for both of you, and opened with whatever app handles that kind.
+
 ## [0.97.0] - 2026-11-01
 ### Added
 - An important-notes sheet for every AZ-204 and AI-200 topic, reachable from the lesson and from the podcast player: the definitions, one picture, the table that settles the choice the exam asks about, and the commands with when and why to use each.

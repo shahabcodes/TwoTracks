@@ -245,6 +245,7 @@ internal fun BoardCourseBody(
     onBack: () -> Unit,
     onOpenTopic: (String, String) -> Unit,
     onOpenQuiz: (String, String) -> Unit,
+    onOpenFiles: (String, String) -> Unit = { _, _ -> },
 ) {
     val p = state.progress[course.id]
     val partner = state.partnerProgress[course.id]
@@ -361,8 +362,18 @@ internal fun BoardCourseBody(
                                                 mine < m.topics.size -> "After topics"
                                                 else -> "${q.questions.size} questions"
                                             },
-                                            if (passedQuiz) AppTheme.colors.success else AppTheme.colors.secondaryLabel, AppTheme.colors.ink, last = true,
+                                            if (passedQuiz) AppTheme.colors.success else AppTheme.colors.secondaryLabel, AppTheme.colors.ink, last = false,
                                         ) { onOpenQuiz(course.id, m.id) }
+                                    }
+                                    // The files kept against this module, last
+                                    // on the line: somewhere to put things
+                                    // rather than a step of the course.
+                                    (state.fileCounts[m.id] ?: 0).let { files ->
+                                        Stop(
+                                            "Files",
+                                            if (files == 0) "Add" else "$files file" + if (files == 1) "" else "s",
+                                            AppTheme.colors.secondaryLabel, AppTheme.colors.ink, last = true,
+                                        ) { onOpenFiles(course.id, m.id) }
                                     }
                                 }
                             }

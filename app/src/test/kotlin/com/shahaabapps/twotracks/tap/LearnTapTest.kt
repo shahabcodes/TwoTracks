@@ -42,11 +42,14 @@ class LearnTapTest(look: AppLook) : TapTest(look) {
     @Test
     fun `a course opens its next topic, its module test and goes back`() {
         val here = de.modules[1]
-        show { CourseContent(de.id, LearnSamples.learn(), Samples.today, onBack = record("back"), onOpenTopic = record2("topic"), onOpenQuiz = record2("quiz")) }
+        show { CourseContent(de.id, LearnSamples.learn(), Samples.today, onBack = record("back"), onOpenTopic = record2("topic"), onOpenQuiz = record2("quiz"), onOpenFiles = record2("files")) }
         tap("Words · family, numbers and countries")
         expect("topic(${de.id}, ${here.topics.first().id})")
         tap("Module 2 test")
         expect("quiz(${de.id}, ${here.id})")
+        // Under the test, on the open module: the files kept against it.
+        tap("Files")
+        expect("files(${de.id}, ${here.id})")
     }
 
     @Test

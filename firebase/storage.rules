@@ -10,6 +10,14 @@ service firebase.storage {
         && request.auth.uid in firestore.get(/databases/(default)/documents/couples/$(coupleId)).data.members;
       allow write: if false;
     }
+    // Files the two of you attach to a module: a diagram, a cheat sheet, a
+    // photo of a whiteboard. Unlike the podcast audio these are written from
+    // the app, so members may write as well as read — within their own space
+    // only, and nowhere else, which the final rule below enforces.
+    match /couples/{coupleId}/modules/{courseId}/{moduleId}/{file} {
+      allow read, write: if request.auth != null
+        && request.auth.uid in firestore.get(/databases/(default)/documents/couples/$(coupleId)).data.members;
+    }
     match /{everything=**} {
       allow read, write: if false;
     }
