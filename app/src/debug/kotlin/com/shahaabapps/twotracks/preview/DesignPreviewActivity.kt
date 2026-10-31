@@ -140,6 +140,17 @@ class DesignPreviewActivity : ComponentActivity() {
                             ListenSamples.topic(), speaker = null, voiceMissing = false, recognizer = null, onBack = {}, onOpenTopic = { _, _ -> }, onOpenQuiz = { _, _ -> },
                             onInstallVoice = {}, onChecked = { _, _, _, _ -> }, onConfidence = { _, _ -> }, onMarkLearned = {}, onUnlearn = {}, onMessageShown = {}, onListen = {},
                         )
+                        // A notes sheet: --es screen notes --es topic ai-container-apps
+                        "notes" -> {
+                            val id = intent?.getStringExtra("topic") ?: ListenSamples.TOPIC
+                            val course = com.shahaabapps.core.content.Courses.all.firstOrNull { c -> c.allTopics.any { it.id == id } }
+                            com.shahaabapps.twotracks.feature.learn.NotesContent(
+                                notes = com.shahaabapps.core.content.Notes.forTopic(id),
+                                topicTitle = course?.allTopics?.firstOrNull { it.id == id }?.title,
+                                courseTitle = course?.title,
+                                onBack = {},
+                            )
+                        }
                         // The real timing from the app's assets, so the transcript lights the line actually spoken there.
                         "listen" -> com.shahaabapps.twotracks.feature.listen.ListenContent(
                             intent?.getStringExtra("topic")?.let { id ->

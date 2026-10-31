@@ -3,6 +3,10 @@
 All notable changes to Two Tracks. Versions follow `version.properties`; the
 build number is appended by CI (for example `0.1.0 (build 12)`).
 
+## [0.97.0] - 2026-11-01
+### Added
+- An important-notes sheet for every AZ-204 and AI-200 topic, reachable from the lesson and from the podcast player: the definitions, one picture, the table that settles the choice the exam asks about, and the commands with when and why to use each.
+
 ## [0.96.0] - 2026-10-30
 ### Added
 - A navigation rail on tablets and in landscape. Where the window is wide, Today, Learn and Together stand on the leading edge instead of across the bottom, which on a ten-inch screen is nowhere near your hands. Below that width the bottom bar is unchanged.

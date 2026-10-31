@@ -3,6 +3,7 @@ package com.shahaabapps.twotracks.ui
 import com.shahaabapps.twotracks.feature.learn.DeckScreen
 import com.shahaabapps.twotracks.feature.learn.CourseScreen
 import com.shahaabapps.twotracks.feature.learn.LearnScreen
+import com.shahaabapps.twotracks.feature.learn.NotesScreen
 import com.shahaabapps.twotracks.feature.learn.QuizScreen
 import com.shahaabapps.twotracks.feature.learn.TopicScreen
 import androidx.compose.animation.core.FastOutSlowInEasing
@@ -113,6 +114,7 @@ object Routes {
     const val QUIZ = "learn/{courseId}/quiz/{moduleId}"
     const val DECK = "learn/{courseId}/deck"
     const val LISTEN = "learn/{courseId}/listen/{topicId}"
+    const val NOTES = "learn/{courseId}/notes/{topicId}"
     const val LEVEL = "level/{levelId}"
     const val YOUR_WEEK = "yourweek"
     const val PARTNER = "partner"
@@ -138,6 +140,7 @@ object Routes {
     fun quiz(courseId: String, moduleId: String) = "learn/$courseId/quiz/$moduleId"
     fun deck(courseId: String) = "learn/$courseId/deck"
     fun listen(courseId: String, topicId: String) = "learn/$courseId/listen/$topicId"
+    fun notes(courseId: String, topicId: String) = "learn/$courseId/notes/$topicId"
     fun goalDetail(id: String) = "goal/$id"
     fun goalEdit(id: String) = "goal/$id/edit"
     fun newGoal(levelId: String? = null) = if (levelId == null) "goal/new/edit" else "goal/new/edit?levelId=$levelId"
@@ -549,6 +552,7 @@ fun MainNavGraph(session: AppSession, widgetLaunch: WidgetLaunch) {
                     onOpenTopic = { c, t -> navController.navigate(Routes.topic(c, t)) { popUpTo(Routes.COURSE) } },
                     onOpenQuiz = { c, m -> navController.navigate(Routes.quiz(c, m)) { popUpTo(Routes.COURSE) } },
                     onListen = { c, t -> navController.navigate(Routes.listen(c, t)) },
+                    onOpenNotes = { c, t -> navController.navigate(Routes.notes(c, t)) },
                 )
             }
             composable(
@@ -559,7 +563,20 @@ fun MainNavGraph(session: AppSession, widgetLaunch: WidgetLaunch) {
                 popEnterTransition = { fadeIn(tween(200)) },
                 popExitTransition = { slideOutVertically(tween(320, easing = FastOutSlowInEasing)) { it } },
             ) {
-                ListenScreen(onBack = { navController.popBackStack() })
+                ListenScreen(
+                    onBack = { navController.popBackStack() },
+                    onOpenNotes = { topicId ->
+                        val courseId = it.arguments?.getString("courseId").orEmpty()
+                        navController.navigate(Routes.notes(courseId, topicId))
+                    },
+                )
+            }
+            composable(Routes.NOTES, arguments = listOf(navArgument("courseId") { type = NavType.StringType }, navArgument("topicId") { type = NavType.StringType })) { entry ->
+                NotesScreen(
+                    courseId = entry.arguments?.getString("courseId").orEmpty(),
+                    topicId = entry.arguments?.getString("topicId").orEmpty(),
+                    onBack = { navController.popBackStack() },
+                )
             }
             composable(Routes.QUIZ, arguments = listOf(navArgument("courseId") { type = NavType.StringType }, navArgument("moduleId") { type = NavType.StringType })) {
                 QuizScreen(

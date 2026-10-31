@@ -138,6 +138,17 @@ data class Reference(val title: String, val url: String)
 /** One term and its meaning, listed at the end of a topic. */
 data class Term(val term: String, val meaning: String)
 
+/**
+ * One command on a notes sheet: what to type, the moment it is the right
+ * thing to type, and what it does once typed.
+ *
+ * The three are kept apart because the exam asks for the middle one. Anybody
+ * can read `az containerapp update` and still not know when to reach for it,
+ * and a list of commands with no situations beside them is a list nobody can
+ * revise from.
+ */
+data class CommandNote(val command: String, val use: String, val why: String)
+
 sealed interface Block {
     data class Heading(val text: String) : Block
     data class Paragraph(val text: String) : Block
@@ -189,6 +200,8 @@ sealed interface Block {
     ) : Block
     /** Terms used in this topic. */
     data class Glossary(val terms: List<Term>) : Block
+    /** Commands worth knowing by heart, each with when to reach for it. See [CommandNote]. */
+    data class Commands(val title: String, val items: List<CommandNote>) : Block
     /** Vocabulary cards that flip and speak; every word joins the flashcard deck. */
     data class Vocab(val words: List<Word>) : Block
     /** A short conversation, spoken line by line, with translations on demand. */
@@ -412,6 +425,13 @@ object B {
         )
 
     fun glossary(vararg terms: Pair<String, String>) = Block.Glossary(terms.map { Term(it.first, it.second) })
+    fun commands(title: String, vararg items: CommandNote) = Block.Commands(title, items.toList())
+    fun cmd(command: String, use: String, why: String) =
+        CommandNote(
+            command.trimIndent().trim(),
+            use.trimIndent().replace("\n", " ").trim(),
+            why.trimIndent().replace("\n", " ").trim(),
+        )
     fun ref(title: String, url: String) = Reference(title, url)
     fun vocab(vararg words: Word) = Block.Vocab(words.toList())
     fun w(id: String, de: String, en: String, example: String, exampleEn: String, article: String? = null, plural: String? = null) = Word(id, de, en, example, exampleEn, article, plural)

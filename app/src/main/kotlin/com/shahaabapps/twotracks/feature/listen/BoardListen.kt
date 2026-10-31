@@ -100,6 +100,7 @@ internal fun BoardListen(
     onToggleControls: () -> Unit = {},
     transcriptFirst: Boolean = false,
     onRefresh: () -> Unit = {},
+    onOpenNotes: (() -> Unit)? = null,
 ) {
     // An episode with a board shows it first, and the timetable a tap away;
     // one without keeps the timetable alone.
@@ -122,6 +123,7 @@ internal fun BoardListen(
                         modifier = Modifier.size(40.dp).clickable(role = Role.Button, onClickLabel = "Download the latest version", onClick = onRefresh),
                     ) { Icon(Icons.Rounded.Refresh, contentDescription = null, tint = AppTheme.colors.accent, modifier = Modifier.size(24.dp)) }
                 }
+                if (onOpenNotes != null) BoardLink("Notes", onOpenNotes)
                 BoardLink("Stop", onStop)
             }
             HorizontalDivider(color = AppTheme.colors.separator)

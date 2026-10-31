@@ -113,7 +113,7 @@ internal object ListenSamples {
     fun listen(timeline: com.shahaabapps.core.content.PodcastTimeline? = null, playing: Boolean = true, line: Int = 6, board: Boolean = true): com.shahaabapps.twotracks.feature.listen.ListenUiState {
         val time = timeline ?: paced()
         return com.shahaabapps.twotracks.feature.listen.ListenUiState(
-            episodeId = TOPIC, title = topic.title, module = module.number, lines = podcast.lines, timeline = time,
+            episodeId = TOPIC, topicId = TOPIC, title = topic.title, module = module.number, lines = podcast.lines, timeline = time,
             loaded = true, playing = playing, position = time.startOf(line)!! + 2.0, speed = 1.2f,
             board = if (board) com.shahaabapps.core.content.PodcastBoards.forEpisode(TOPIC) else null,
             styles = com.shahaabapps.core.content.PodcastStyle.entries,
@@ -125,7 +125,7 @@ internal object ListenSamples {
         val episode = com.shahaabapps.core.content.Podcasts.episode(episodeId)!!
         val (m, t) = Courses.all.flatMap { c -> c.modules.flatMap { m -> m.topics.map { m to it } } }.first { it.second.id == episode.topicId }
         return com.shahaabapps.twotracks.feature.listen.ListenUiState(
-            episodeId = episodeId, title = t.title, module = m.number, lines = episode.lines,
+            episodeId = episodeId, topicId = episode.topicId, title = t.title, module = m.number, lines = episode.lines,
             timeline = timeline, loaded = true, playing = true, position = (timeline.startOf(line) ?: 0.0) + 2.0, speed = 1f,
             board = com.shahaabapps.core.content.PodcastBoards.forEpisode(episodeId),
             series = episode.series,

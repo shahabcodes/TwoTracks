@@ -56,6 +56,7 @@ class LearnTapTest(look: AppLook) : TapTest(look) {
                 LearnSamples.topic(), speaker = null, voiceMissing = false, recognizer = null, onBack = record("back"), onOpenTopic = record2("topic"), onOpenQuiz = record2("quiz"),
                 onInstallVoice = record("voice"), onChecked = { _, _, _, _ -> calls += "checked" }, onConfidence = { _, _ -> calls += "confidence" },
                 onMarkLearned = record("learned"), onUnlearn = record("unlearn"), onMessageShown = {}, onListen = record("listen"),
+                onOpenNotes = record("notes"),
             )
         }
         tapDescribed("Back to the course")

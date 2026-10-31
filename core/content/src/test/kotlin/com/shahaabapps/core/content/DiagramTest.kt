@@ -23,6 +23,11 @@ class DiagramTest {
         c.allTopics.flatMap { t ->
             t.blocks.filterIsInstance<Block.Diagram>().map { Triple(c.id, t.id, it.spec) }
         }
+    } + Notes.all.flatMap { n ->
+        // A sheet's pictures are ordinary diagrams and are held to the same
+        // geometry; drawing them through the same renderer is the reason the
+        // sheets could be written at all.
+        n.blocks.filterIsInstance<Block.Diagram>().map { Triple("notes", n.topicId, it.spec) }
     } + PodcastBoards.all.flatMap { b ->
         // The podcast boards draw the same specs, so they are held to the same geometry.
         b.scenes.map { s -> Triple("podcast", "${b.episodeId} '${s.heading}'", s.diagram) }
