@@ -20,6 +20,7 @@ import com.shahaabapps.core.model.Level
 import com.shahaabapps.core.model.LevelItem
 import com.shahaabapps.core.model.LevelItemKind
 import com.shahaabapps.core.model.Milestone
+import com.shahaabapps.core.model.ModuleFile
 import com.shahaabapps.core.model.MilestoneStatus
 import com.shahaabapps.core.model.MockScore
 import com.shahaabapps.core.model.PersonRole
@@ -210,6 +211,17 @@ object Mappers {
     fun Doc.toDocument() = DocumentItem(
         id = id, owner = enum("owner", PersonRole.TECH), name = str("name"), detail = str("detail"), usedFor = str("usedFor"),
         status = enum("status", DocStatus.NOT_STARTED), expiresOnIso = strOrNull("expiresOnIso"), note = str("note"), order = int("order"),
+    )
+
+    fun ModuleFile.toMap() = mapOf(
+        "courseId" to courseId, "moduleId" to moduleId, "name" to name, "mimeType" to mimeType,
+        "sizeBytes" to sizeBytes, "path" to path, "uploadedBy" to uploadedBy, "uploadedAtIso" to uploadedAtIso,
+    )
+
+    fun Doc.toModuleFile() = ModuleFile(
+        id = id, courseId = str("courseId"), moduleId = str("moduleId"), name = str("name"),
+        mimeType = str("mimeType"), sizeBytes = lng("sizeBytes"), path = str("path"),
+        uploadedBy = str("uploadedBy"), uploadedAtIso = str("uploadedAtIso"),
     )
 
     fun BudgetItem.toMap() = mapOf(

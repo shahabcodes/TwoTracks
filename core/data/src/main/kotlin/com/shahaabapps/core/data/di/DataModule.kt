@@ -9,11 +9,15 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.FirebaseFirestoreSettings
 import com.google.firebase.firestore.PersistentCacheSettings
 import com.google.firebase.firestore.firestore
+import com.google.firebase.storage.FirebaseStorage
+import com.google.firebase.storage.storage
 import com.shahaabapps.core.data.BuildConfig
 import com.shahaabapps.core.data.auth.AuthRepository
 import com.shahaabapps.core.data.auth.FirebaseAuthRepository
 import com.shahaabapps.core.data.couple.CoupleRepository
 import com.shahaabapps.core.data.couple.FirebaseCoupleRepository
+import com.shahaabapps.core.data.files.FirebaseModuleFilesRepository
+import com.shahaabapps.core.data.files.ModuleFilesRepository
 import com.shahaabapps.core.data.study.FirebaseStudyRepository
 import com.shahaabapps.core.data.study.StudyRepository
 import com.shahaabapps.core.data.tracking.FirebaseTrackingRepository
@@ -44,6 +48,13 @@ object FirebaseModule {
             .setLocalCacheSettings(PersistentCacheSettings.newBuilder().build())
             .build()
     }
+
+    /** Cloud Storage, for the files attached to a module. */
+    @Provides
+    @Singleton
+    fun provideStorage(): FirebaseStorage = Firebase.storage.apply {
+        if (BuildConfig.USE_FIREBASE_EMULATOR) useEmulator(BuildConfig.FIREBASE_EMULATOR_HOST, 9199)
+    }
 }
 
 @Module
@@ -68,4 +79,8 @@ interface DataBindsModule {
     @Binds
     @Singleton
     fun bindLearningRepository(impl: FirebaseLearningRepository): LearningRepository
+
+    @Binds
+    @Singleton
+    fun bindModuleFilesRepository(impl: FirebaseModuleFilesRepository): ModuleFilesRepository
 }

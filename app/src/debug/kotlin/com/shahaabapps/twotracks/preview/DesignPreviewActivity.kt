@@ -136,6 +136,23 @@ class DesignPreviewActivity : ComponentActivity() {
                             LearnSamples.topic(), speaker = null, voiceMissing = false, recognizer = null, onBack = {}, onOpenTopic = { _, _ -> }, onOpenQuiz = { _, _ -> },
                             onInstallVoice = {}, onChecked = { _, _, _, _ -> }, onConfidence = { _, _ -> }, onMarkLearned = {}, onUnlearn = {}, onMessageShown = {}, onListen = {},
                         )
+                        // The files kept against a module: --es screen files
+                        "files" -> com.shahaabapps.twotracks.feature.learn.ModuleFilesContent(
+                            com.shahaabapps.twotracks.feature.learn.ModuleFilesUiState(
+                                courseTitle = "AZ-204 Azure Developer", moduleTitle = "Compute", loaded = true,
+                                files = listOf(
+                                    com.shahaabapps.core.model.ModuleFile(
+                                        id = "f1", courseId = "az-204", moduleId = "az-compute", name = "exam-guide.pdf",
+                                        mimeType = "application/pdf", sizeBytes = 2_400_000, uploadedAtIso = "2026-11-01T09:00:00Z",
+                                    ),
+                                    com.shahaabapps.core.model.ModuleFile(
+                                        id = "f2", courseId = "az-204", moduleId = "az-compute", name = "whiteboard.jpg",
+                                        mimeType = "image/jpeg", sizeBytes = 812_000, uploadedAtIso = "2026-10-30T18:20:00Z",
+                                    ),
+                                ),
+                            ),
+                            onBack = {}, onAdd = {}, onOpen = {}, onDelete = {},
+                        )
                         "aztopic" -> TopicContent(
                             ListenSamples.topic(), speaker = null, voiceMissing = false, recognizer = null, onBack = {}, onOpenTopic = { _, _ -> }, onOpenQuiz = { _, _ -> },
                             onInstallVoice = {}, onChecked = { _, _, _, _ -> }, onConfidence = { _, _ -> }, onMarkLearned = {}, onUnlearn = {}, onMessageShown = {}, onListen = {},

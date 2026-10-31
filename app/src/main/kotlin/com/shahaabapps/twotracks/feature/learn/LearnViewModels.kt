@@ -32,6 +32,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.Job
@@ -181,6 +182,8 @@ data class LearnUiState(
     val myRole: PersonRole = PersonRole.TECH,
     /** The courses starred on this phone; [courses] lists them first. */
     val favorites: Set<String> = emptySet(),
+    /** How many files are attached to each module, by module id. */
+    val fileCounts: Map<String, Int> = emptyMap(),
 )
 
 @HiltViewModel
@@ -188,6 +191,7 @@ class LearnViewModel @Inject constructor(
     sessionStore: SessionStore,
     dataStore: CoupleDataStore,
     private val favorites: CourseFavorites,
+    moduleFiles: com.shahaabapps.core.data.files.ModuleFilesRepository,
 ) : ViewModel() {
     fun toggleFavorite(courseId: String) = favorites.toggle(courseId, uiState.value.myRole)
 
@@ -210,9 +214,16 @@ class LearnViewModel @Inject constructor(
         )
     }
 
-    val uiState: StateFlow<LearnUiState> = combine(base, favorites.chosen) { s, chosen ->
+    // One listener for every module's files, rather than one per module: the
+    // counts are a badge on a row, and a listener per row would be dozens.
+    @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
+    private val fileCounts = sessionStore.session.flatMapLatest { s ->
+        if (s == null) kotlinx.coroutines.flow.flowOf(emptyMap()) else moduleFiles.counts(s.coupleId)
+    }
+
+    val uiState: StateFlow<LearnUiState> = combine(base, favorites.chosen, fileCounts) { s, chosen, counts ->
         val starred = chosen ?: CourseFavorites.starting(s.myRole)
-        s.copy(courses = CourseFavorites.sorted(s.courses, starred, s.myRole), favorites = starred)
+        s.copy(courses = CourseFavorites.sorted(s.courses, starred, s.myRole), favorites = starred, fileCounts = counts)
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), LearnUiState())
 }
 
