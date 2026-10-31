@@ -263,10 +263,11 @@ fun CourseScreen(
     onBack: () -> Unit,
     onOpenTopic: (String, String) -> Unit,
     onOpenQuiz: (String, String) -> Unit,
+    onOpenFiles: (String, String) -> Unit,
     viewModel: LearnViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
-    CourseContent(courseId, state, LocalDate.now(), onBack, onOpenTopic, onOpenQuiz)
+    CourseContent(courseId, state, LocalDate.now(), onBack, onOpenTopic, onOpenQuiz, onOpenFiles)
 }
 
 /**
@@ -284,6 +285,7 @@ fun CourseContent(
     onBack: () -> Unit,
     onOpenTopic: (String, String) -> Unit,
     onOpenQuiz: (String, String) -> Unit,
+    onOpenFiles: (String, String) -> Unit = { _, _ -> },
 ) {
     val course = Courses.byId(courseId)
     val p = state.progress[courseId]
@@ -298,7 +300,7 @@ fun CourseContent(
     val revisits = remember(course, p, today) { if (course == null || p == null) emptyList() else course.revisits(p, today) }
     val nextTopic = course?.let { p?.nextTopic(it) }
     var open by rememberSaveable(courseId) { mutableStateOf(nextTopic?.first?.id ?: course?.modules?.firstOrNull()?.id) }
-    if (AppTheme.departures && course != null) { BoardCourseBody(course, state, today, onBack, onOpenTopic, onOpenQuiz); return }
+    if (AppTheme.departures && course != null) { BoardCourseBody(course, state, today, onBack, onOpenTopic, onOpenQuiz, onOpenFiles); return }
 
     DetailScaffold(
         title = course?.title ?: "Course",
@@ -346,7 +348,8 @@ fun CourseContent(
                         mastery = mastery, isOpen = open == m.id, nextTopicId = nextTopic?.second?.id,
                         myColor = myColor, partnerColor = partnerColor,
                         onToggle = { open = if (open == m.id) null else m.id },
-                        onOpenTopic = onOpenTopic, onOpenQuiz = onOpenQuiz,
+                        onOpenTopic = onOpenTopic, onOpenQuiz = onOpenQuiz, onOpenFiles = onOpenFiles,
+                        files = state.fileCounts[m.id] ?: 0,
                     )
                 }
             }
@@ -379,6 +382,8 @@ private fun ModuleRow(
     onToggle: () -> Unit,
     onOpenTopic: (String, String) -> Unit,
     onOpenQuiz: (String, String) -> Unit,
+    onOpenFiles: (String, String) -> Unit,
+    files: Int,
 ) {
     val mine = p?.moduleLearned(m) ?: 0
     val theirs = partner?.moduleLearned(m) ?: 0
@@ -440,6 +445,16 @@ private fun ModuleRow(
                         onClick = { onOpenQuiz(course.id, m.id) },
                     )
                 }
+                // Whatever the two of you have attached to this module. Last,
+                // under the test, because it is a place to keep things rather
+                // than a step in the course.
+                TopicLine(
+                    title = "Files",
+                    status = if (files == 0) "ADD" else "$files FILE${if (files == 1) "" else "S"}",
+                    statusColor = AppTheme.colors.secondaryLabel,
+                    titleColor = AppTheme.colors.ink, bold = false,
+                    onClick = { onOpenFiles(course.id, m.id) },
+                )
             }
         }
         HorizontalDivider(color = AppTheme.colors.separator, thickness = Spacing.hairline)

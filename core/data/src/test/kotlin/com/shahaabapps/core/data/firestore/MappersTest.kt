@@ -13,6 +13,7 @@ import com.shahaabapps.core.data.firestore.Mappers.toHabitLog
 import com.shahaabapps.core.data.firestore.Mappers.toLevel
 import com.shahaabapps.core.data.firestore.Mappers.toMap
 import com.shahaabapps.core.data.firestore.Mappers.toMilestone
+import com.shahaabapps.core.data.firestore.Mappers.toModuleFile
 import com.shahaabapps.core.data.firestore.Mappers.toMockScore
 import com.shahaabapps.core.data.firestore.Mappers.toProfile
 import com.shahaabapps.core.data.firestore.Mappers.toQuizAttempt
@@ -37,6 +38,7 @@ import com.shahaabapps.core.model.GoalKind
 import com.shahaabapps.core.model.Habit
 import com.shahaabapps.core.model.HabitLog
 import com.shahaabapps.core.model.Level
+import com.shahaabapps.core.model.ModuleFile
 import com.shahaabapps.core.model.LevelItem
 import com.shahaabapps.core.model.LevelItemKind
 import com.shahaabapps.core.model.Milestone
@@ -169,6 +171,12 @@ class MappersTest {
     )
 
     /** Every model, with the id the document would carry and both halves of its mapping. */
+    private val moduleFile = ModuleFile(
+        id = "mf1", courseId = "az-204", moduleId = "az-compute", name = "exam-guide.pdf",
+        mimeType = "application/pdf", sizeBytes = 2_400_000, path = "couples/c1/modules/az-204/az-compute/mf1",
+        uploadedBy = "u1", uploadedAtIso = "2026-11-01T09:00:00Z",
+    )
+
     private val all: List<Triple<String, Any, Pair<Map<String, Any?>, (Doc) -> Any>>> = with(Mappers) {
         listOf(
             Triple("c1", couple, couple.toMap() to { d: Doc -> d.toCouple() }),
@@ -190,12 +198,13 @@ class MappersTest {
             Triple("f1", flashcard, flashcard.toMap() to { d: Doc -> d.toFlashcard() }),
             Triple("tp1", topicProgress, topicProgress.toMap() to { d: Doc -> d.toTopicProgress() }),
             Triple("qa1", attempt, attempt.toMap() to { d: Doc -> d.toQuizAttempt() }),
+            Triple("mf1", moduleFile, moduleFile.toMap() to { d: Doc -> d.toModuleFile() }),
         )
     }
 
     @Test
     fun `every model survives a round trip through the shape Firestore stores`() {
-        assertEquals("a model was added without a round trip", 19, all.size)
+        assertEquals("a model was added without a round trip", 20, all.size)
         all.forEach { (id, model, mapping) ->
             val (map, read) = mapping
             assertEquals(model::class.simpleName, model, read(doc(id, map)))

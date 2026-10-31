@@ -32,6 +32,7 @@ object Paths {
     const val TOPIC_PROGRESS = "topicProgress"
     const val QUIZ_ATTEMPTS = "quizAttempts"
     const val FLASHCARDS = "flashcards"
+    const val MODULE_FILES = "moduleFiles"
 }
 
 fun FirebaseFirestore.couple(coupleId: String): DocumentReference =

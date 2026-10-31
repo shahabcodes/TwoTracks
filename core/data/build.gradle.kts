@@ -25,6 +25,7 @@ dependencies {
     implementation(project(":core:model"))
     implementation(project(":core:common"))
     implementation(project(":core:seed"))
+    implementation(libs.firebase.storage)
     implementation(libs.kotlinx.coroutines.android)
     testImplementation(libs.junit)
 }

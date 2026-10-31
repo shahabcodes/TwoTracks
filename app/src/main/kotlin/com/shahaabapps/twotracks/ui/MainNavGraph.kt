@@ -3,6 +3,7 @@ package com.shahaabapps.twotracks.ui
 import com.shahaabapps.twotracks.feature.learn.DeckScreen
 import com.shahaabapps.twotracks.feature.learn.CourseScreen
 import com.shahaabapps.twotracks.feature.learn.LearnScreen
+import com.shahaabapps.twotracks.feature.learn.ModuleFilesScreen
 import com.shahaabapps.twotracks.feature.learn.NotesScreen
 import com.shahaabapps.twotracks.feature.learn.QuizScreen
 import com.shahaabapps.twotracks.feature.learn.TopicScreen
@@ -112,6 +113,7 @@ object Routes {
     const val COURSE = "learn/{courseId}"
     const val TOPIC = "learn/{courseId}/topic/{topicId}"
     const val QUIZ = "learn/{courseId}/quiz/{moduleId}"
+    const val MODULE_FILES = "learn/{courseId}/files/{moduleId}"
     const val DECK = "learn/{courseId}/deck"
     const val LISTEN = "learn/{courseId}/listen/{topicId}"
     const val NOTES = "learn/{courseId}/notes/{topicId}"
@@ -138,6 +140,7 @@ object Routes {
     fun course(id: String) = "learn/$id"
     fun topic(courseId: String, topicId: String) = "learn/$courseId/topic/$topicId"
     fun quiz(courseId: String, moduleId: String) = "learn/$courseId/quiz/$moduleId"
+    fun moduleFiles(courseId: String, moduleId: String) = "learn/$courseId/files/$moduleId"
     fun deck(courseId: String) = "learn/$courseId/deck"
     fun listen(courseId: String, topicId: String) = "learn/$courseId/listen/$topicId"
     fun notes(courseId: String, topicId: String) = "learn/$courseId/notes/$topicId"
@@ -544,7 +547,11 @@ fun MainNavGraph(session: AppSession, widgetLaunch: WidgetLaunch) {
                     onBack = { navController.popBackStack() },
                     onOpenTopic = { c, t -> navController.navigate(Routes.topic(c, t)) },
                     onOpenQuiz = { c, m -> navController.navigate(Routes.quiz(c, m)) },
+                    onOpenFiles = { c, m -> navController.navigate(Routes.moduleFiles(c, m)) },
                 )
+            }
+            composable(Routes.MODULE_FILES, arguments = listOf(navArgument("courseId") { type = NavType.StringType }, navArgument("moduleId") { type = NavType.StringType })) {
+                ModuleFilesScreen(onBack = { navController.popBackStack() })
             }
             composable(Routes.TOPIC, arguments = listOf(navArgument("courseId") { type = NavType.StringType }, navArgument("topicId") { type = NavType.StringType })) {
                 TopicScreen(
