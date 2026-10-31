@@ -41,6 +41,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.PushPin
 import androidx.compose.material.icons.rounded.FormatQuote
 import androidx.compose.material.icons.rounded.KeyboardArrowDown
 import androidx.compose.material.icons.rounded.Pause
@@ -111,6 +112,8 @@ import kotlin.math.max
 data class ListenUiState(
     /** The episode's id: its topic's id for a classic episode, "topic--style" for another. */
     val episodeId: String = "",
+    /** The topic the episode belongs to, which is the notes sheet's id too. */
+    val topicId: String = "",
     val title: String = "",
     val module: Int = 0,
     val lines: List<PodcastLine> = emptyList(),
@@ -175,7 +178,7 @@ class ListenViewModel @Inject constructor(
         val here = now?.takeIf { it.episodeId == id }
         val saved = place.position(id).takeIf { timeline?.resumable(it) == true } ?: 0.0
         return ListenUiState(
-            episodeId = id, title = topic.title, module = module.number,
+            episodeId = id, topicId = topicId, title = topic.title, module = module.number,
             lines = episodes.podcast(id)?.lines.orEmpty(), timeline = timeline,
             loaded = here != null, playing = here?.playing == true,
             position = here?.position ?: saved, speed = here?.speed ?: place.speed,
@@ -234,7 +237,7 @@ class ListenViewModel @Inject constructor(
 private const val SHORT_SCREEN_DP = 720
 
 @Composable
-fun ListenScreen(onBack: () -> Unit, viewModel: ListenViewModel = hiltViewModel()) {
+fun ListenScreen(onBack: () -> Unit, onOpenNotes: (String) -> Unit = {}, viewModel: ListenViewModel = hiltViewModel()) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val chosen by viewModel.controlsHidden.collectAsStateWithLifecycle()
     // Until someone chooses, a short screen starts with the controls folded,
@@ -244,6 +247,10 @@ fun ListenScreen(onBack: () -> Unit, viewModel: ListenViewModel = hiltViewModel(
         state, onBack = onBack, onPlayPause = viewModel::playPause, onBack15 = viewModel::back, onForward30 = viewModel::forward,
         onSeek = viewModel::seek, onSpeed = viewModel::speed, onStop = { viewModel.stop(); onBack() }, onLine = viewModel::line,
         onStyle = viewModel::style, onRefresh = viewModel::refresh, controlsHidden = controlsHidden, onToggleControls = { viewModel.toggleControls(controlsHidden) },
+        // The sheet for the topic being talked about, when there is one. The
+        // player is where it is wanted most: a definition or a command list
+        // is exactly what you reach for while an episode is explaining one.
+        onOpenNotes = state.topicId.takeIf { com.shahaabapps.core.content.Notes.has(it) }?.let { { onOpenNotes(it) } },
     )
 }
 
@@ -276,9 +283,10 @@ fun ListenContent(
     controlsHidden: Boolean = false,
     onToggleControls: () -> Unit = {},
     onRefresh: () -> Unit = {},
+    onOpenNotes: (() -> Unit)? = null,
 ) {
     if (AppTheme.departures) {
-        BoardListen(state, onBack, onPlayPause, onBack15, onForward30, onSeek, onSpeed, onStop, onLine, onStyle, controlsHidden, onToggleControls, transcriptFirst, onRefresh)
+        BoardListen(state, onBack, onPlayPause, onBack15, onForward30, onSeek, onSpeed, onStop, onLine, onStyle, controlsHidden, onToggleControls, transcriptFirst, onRefresh, onOpenNotes)
         return
     }
     LightStatusIcons()
@@ -295,6 +303,11 @@ fun ListenContent(
                 "${state.series.label.uppercase()} PODCAST", color = Soft, fontSize = 12.sp, fontWeight = FontWeight.SemiBold, letterSpacing = 1.4.sp,
                 textAlign = TextAlign.Center, modifier = Modifier.weight(1f),
             )
+            if (onOpenNotes != null) {
+                RoundControl("Open the notes sheet", onOpenNotes, size = 44.dp) {
+                    Icon(Icons.Filled.PushPin, contentDescription = null, tint = Ink, modifier = Modifier.size(22.dp))
+                }
+            }
             // Fetch the latest recording, replacing the copy on the phone; offered once there is one.
             if (state.downloaded && state.downloading == null) {
                 RoundControl("Download the latest version", onRefresh, size = 44.dp) {

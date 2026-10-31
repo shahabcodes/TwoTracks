@@ -22,6 +22,7 @@ class ListenTapTest(look: AppLook) : TapTest(look) {
             onBack15 = record("back15"), onForward30 = record("forward30"), onSeek = record1("seek"), onSpeed = record1("speed"),
             onStop = record("stop"), onLine = record1("line"), onStyle = record1("style"),
             controlsHidden = hidden, onToggleControls = record("toggleControls"), onRefresh = record("refresh"),
+            onOpenNotes = record("notes"),
         )
     }
 
@@ -55,6 +56,14 @@ class ListenTapTest(look: AppLook) : TapTest(look) {
         player(playing = false)
         tapAction("Play")
         expect("playPause")
+    }
+
+    @Test
+    fun `the player opens the topic's notes sheet`() {
+        player()
+        // Parallel pins it beside the download key; the board gives it a link.
+        if (board) tap("Notes") else tapAction("Open the notes sheet")
+        expect("notes")
     }
 
     @Test
@@ -150,16 +159,26 @@ class ListenTapTest(look: AppLook) : TapTest(look) {
         expect("forward30")
     }
 
+    private fun azTopic() = show {
+        TopicContent(
+            ListenSamples.topic(), speaker = null, voiceMissing = false, recognizer = null, onBack = record("back"), onOpenTopic = record2("topic"), onOpenQuiz = record2("quiz"),
+            onInstallVoice = record("voice"), onChecked = { _, _, _, _ -> calls += "checked" }, onConfidence = { _, _ -> calls += "confidence" },
+            onMarkLearned = record("learned"), onUnlearn = record("unlearn"), onMessageShown = {}, onListen = record("listen"),
+            onOpenNotes = record("notes"),
+        )
+    }
+
     @Test
     fun `an AZ-204 topic opens its episode`() {
-        show {
-            TopicContent(
-                ListenSamples.topic(), speaker = null, voiceMissing = false, recognizer = null, onBack = record("back"), onOpenTopic = record2("topic"), onOpenQuiz = record2("quiz"),
-                onInstallVoice = record("voice"), onChecked = { _, _, _, _ -> calls += "checked" }, onConfidence = { _, _ -> calls += "confidence" },
-                onMarkLearned = record("learned"), onUnlearn = record("unlearn"), onMessageShown = {}, onListen = record("listen"),
-            )
-        }
+        azTopic()
         tapAction("Listen to this topic")
         expect("listen")
+    }
+
+    @Test
+    fun `an AZ-204 topic opens its notes sheet`() {
+        azTopic()
+        tapAction("Open the notes sheet")
+        expect("notes")
     }
 }

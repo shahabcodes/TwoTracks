@@ -92,6 +92,7 @@ fun TopicScreen(
     onOpenTopic: (String, String) -> Unit,
     onOpenQuiz: (String, String) -> Unit,
     onListen: (String, String) -> Unit,
+    onOpenNotes: (String, String) -> Unit,
     viewModel: TopicViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
@@ -108,6 +109,7 @@ fun TopicScreen(
         onMarkLearned = viewModel::markLearned, onUnlearn = viewModel::unlearn, onMessageShown = viewModel::clearMessage,
         // The card opens the telling it shows: the one playing, or the one last picked.
         onListen = { state.course?.id?.let { c -> state.topic?.id?.let { t -> onListen(c, state.listen?.episodeId?.ifEmpty { null } ?: t) } } },
+        onOpenNotes = { state.course?.id?.let { c -> state.topic?.id?.let { t -> onOpenNotes(c, t) } } },
     )
 }
 
@@ -128,6 +130,7 @@ fun TopicContent(
     onUnlearn: () -> Unit,
     onMessageShown: () -> Unit,
     onListen: () -> Unit,
+    onOpenNotes: () -> Unit = {},
 ) {
     val snackbar = remember { SnackbarHostState() }
     LaunchedEffect(state.message) { state.message?.let { snackbar.showSnackbar(it); onMessageShown() } }
@@ -154,6 +157,7 @@ fun TopicContent(
                     )
                 }
                 state.listen?.let { listen -> item { com.shahaabapps.twotracks.feature.listen.ListenCard(listen, onListen) } }
+                com.shahaabapps.core.content.Notes.forTopic(topic.id)?.let { sheet -> item { NotesCard(sheet, onOpenNotes) } }
                 if (course.speechLanguage != null && voiceMissing) {
                     item {
                         Text(
@@ -228,6 +232,7 @@ fun BlockView(
         is Block.Warmup -> WarmupBlock(block)
         is Block.Faded -> FadedBlock(block)
         is Block.Glossary -> GlossaryBlock(block)
+        is Block.Commands -> CommandsBlock(block)
         is Block.Vocab -> VocabBlock(block, speaker)
         is Block.Dialogue -> DialogueBlock(block, speaker)
         is Block.Exercise -> ExerciseBlock(block, speaker, recognizer, lang)
@@ -660,6 +665,47 @@ private fun FadedBlock(block: Block.Faded) {
             }
             else -> CupertinoTextButton(text = "Check", onClick = { tried = true })
         }
+    }
+}
+
+@Composable
+private fun CommandsBlock(block: Block.Commands) {
+    Column(modifier = Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(Spacing.sm)) {
+        Text(block.title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+        block.items.forEach { c ->
+            Column(modifier = Modifier.fillMaxWidth().then(Panel).padding(bottom = Spacing.md), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                // The command itself gets the code treatment, because that is
+                // what it is: something to be typed exactly, and scrollable
+                // sideways rather than wrapped, so a long one stays readable
+                // as one line instead of breaking where a reader would retype
+                // the break.
+                Text(
+                    c.command, fontFamily = MonoFamily, fontSize = 12.sp, lineHeight = 18.sp,
+                    color = Color(0xFFECEDEF),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        // No corners of its own: the panel's own clip rounds
+                        // the top two, so the strip meets the frame exactly.
+                        .background(Color(0xFF17181B))
+                        .horizontalScroll(rememberScrollState())
+                        .padding(horizontal = Spacing.md, vertical = Spacing.sm),
+                )
+                CommandLine("When", c.use)
+                CommandLine("Why", c.why)
+            }
+        }
+    }
+}
+
+/** One labelled line under a command: the same two words in front of every one of them. */
+@Composable
+private fun CommandLine(label: String, text: String) {
+    Row(verticalAlignment = Alignment.Top, modifier = Modifier.padding(horizontal = Spacing.md)) {
+        Text(
+            label, style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.SemiBold,
+            color = AppTheme.colors.secondaryLabel, modifier = Modifier.width(44.dp),
+        )
+        Text(text, style = MaterialTheme.typography.bodySmall, lineHeight = 18.sp, modifier = Modifier.weight(1f))
     }
 }
 
