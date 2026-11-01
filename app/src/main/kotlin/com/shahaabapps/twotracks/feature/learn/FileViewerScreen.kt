@@ -5,10 +5,14 @@ import android.content.Intent
 import android.graphics.Bitmap
 import android.net.Uri
 import android.util.Log
-import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
+import androidx.compose.foundation.gestures.calculateZoom
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.gestures.detectTransformGestures
 import androidx.compose.foundation.horizontalScroll
@@ -54,6 +58,7 @@ import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
@@ -64,6 +69,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.input.pointer.PointerEvent
+import androidx.compose.ui.input.pointer.PointerEventPass
+import androidx.compose.ui.input.pointer.PointerInputScope
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onSizeChanged
@@ -105,7 +113,11 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.io.File
 import javax.inject.Inject
+import kotlin.math.abs
+import kotlin.math.ceil
+import kotlin.math.floor
 import kotlin.math.roundToInt
+import kotlin.math.sqrt
 
 /**
  * One attachment, shown in the app.
@@ -423,12 +435,14 @@ private fun ZoomableImage(file: File, name: String) {
 }
 
 /**
- * A PDF as a scrolling column of pages.
+ * A PDF as a scrolling column of pages, pinched to zoom.
  *
- * Zoom is stepped by double tap rather than pinched, and the page widens
- * inside a sideways scroller as it goes. A pinch would have to be told apart
- * from the drag that scrolls the column, and the two are the same gesture
- * until the second finger lands: the step is the honest version.
+ * The column under the fingers scrolls on a one-finger drag, and a pinch
+ * starts as one: the two are the same gesture until the second finger lands.
+ * So [detectPinch] claims nothing until it does — see there for why the events
+ * are then taken before the scroll sees them. A double tap still steps the
+ * zoom a whole number at a time, which is the quicker way to a readable page
+ * and the only way to get there one-handed.
  */
 @Composable
 private fun PdfPages(file: File, onPage: (Int, Int) -> Unit) {
@@ -438,8 +452,15 @@ private fun PdfPages(file: File, onPage: (Int, Int) -> Unit) {
         Message("This PDF cannot be opened here. It may be damaged, or locked with a password.")
         return
     }
-    var zoom by remember { mutableFloatStateOf(1f) }
-    val scale by animateFloatAsState(zoom, label = "pdf-zoom")
+    // Animatable rather than a plain float, so a pinch can snap straight to
+    // the fingers while a double tap glides: both move the same value, and
+    // whichever gesture is in hand cancels the other's animation.
+    val zoom = remember { Animatable(1f) }
+    // Whether the zoom is the person's or still the one the screen chose, so
+    // that turning the tablet re-fits a page nobody has touched and leaves
+    // alone one somebody has.
+    var touched by remember { mutableStateOf(false) }
+    val scope = rememberCoroutineScope()
     val listState = rememberLazyListState()
     val density = LocalDensity.current
     // The page the column has settled on, for the line under the file's name.
@@ -449,29 +470,53 @@ private fun PdfPages(file: File, onPage: (Int, Int) -> Unit) {
     }
     BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
         val frameWidth = with(density) { maxWidth.roundToPx() }
+        val topPad = 72.dp + WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
+        // The frame the page has to fit in is what is left under the chrome,
+        // not the window: fitted to the window, the last inch of the page
+        // would be behind the file's name.
+        val frameHeight = with(density) { (maxHeight - topPad).roundToPx() }
+        // 1x is the page fitted to the width, which is the right place to
+        // start and the wrong place to stop: an A4 sheet across a tablet held
+        // sideways is half as tall again as the screen, so a quarter of a page
+        // is all there is to see and nothing could be done about it. The floor
+        // is the whole first page in the frame, so a pinch inwards reaches it.
+        val minZoom = fitPage(source.sizes.firstOrNull(), frameWidth, frameHeight)
+        LaunchedEffect(minZoom) {
+            if (touched) zoom.snapTo(zoom.value.coerceIn(minZoom, MAX_PDF_ZOOM)) else zoom.snapTo(minZoom)
+        }
         LazyColumn(
             state = listState,
             modifier = Modifier
                 .fillMaxSize()
                 .pointerInput(Unit) {
                     detectTapGestures(
-                        onDoubleTap = { zoom = if (zoom >= MAX_PDF_ZOOM - 0.01f) 1f else zoom + 1f },
+                        onDoubleTap = {
+                            // The step lands on whole numbers from the
+                            // fitted page up, and comes back round to it.
+                            val next = if (zoom.value >= MAX_PDF_ZOOM - 0.01f) minZoom
+                            else floor(zoom.value + 1f).coerceIn(minZoom, MAX_PDF_ZOOM)
+                            touched = true
+                            scope.launch { zoom.animateTo(next, tween(220)) }
+                        },
                     )
+                }
+                .pinchable { factor ->
+                    touched = true
+                    scope.launch { zoom.snapTo((zoom.value * factor).coerceIn(minZoom, MAX_PDF_ZOOM)) }
                 },
             // Clear of the chrome at both ends: the first page starts below
             // the file's name, and the last can be scrolled past the arrows.
-            contentPadding = PaddingValues(
-                top = 72.dp + WindowInsets.statusBars.asPaddingValues().calculateTopPadding(),
-                bottom = Spacing.xl * 3,
-            ),
+            contentPadding = PaddingValues(top = topPad, bottom = Spacing.xl * 3),
             verticalArrangement = Arrangement.spacedBy(Spacing.sm),
         ) {
             items(source.pageCount) { index ->
-                PdfPage(source, index, (frameWidth * scale).roundToInt())
+                PdfPage(source, index, frameWidth, zoom.value)
             }
         }
-        if (zoom > 1f) Text(
-            "${zoom.roundToInt()}×",
+        // Only once it is the person's zoom: the fitted page a landscape
+        // tablet opens on is not something they chose, so it is not news.
+        if (touched && abs(zoom.value - 1f) > 0.01f) Text(
+            oneDecimal(zoom.value) + "\u00d7",
             style = MaterialTheme.typography.labelMedium,
             color = Color.White.copy(alpha = 0.8f),
             modifier = Modifier
@@ -484,19 +529,64 @@ private fun PdfPages(file: File, onPage: (Int, Int) -> Unit) {
     }
 }
 
+/**
+ * A two-finger pinch, and only that.
+ *
+ * Nothing is claimed on the first finger, so the column still scrolls. Once a
+ * second one is down the events are consumed in the Initial pass — before the
+ * scroll sees them at all — because a scroll reading the midpoint of two
+ * fingers walks the page up the screen while the pinch is growing it, and the
+ * page lands somewhere neither gesture asked for. It stays claimed until every
+ * finger is up: the one left behind at the end of a pinch is a leftover, not
+ * the start of a scroll.
+ *
+ * [pinchable] is the same thing as a modifier, which is how it is put on
+ * something a test can pinch: the pages themselves need a real renderer, and
+ * this half of the screen is the half a press can get wrong.
+ */
+internal fun Modifier.pinchable(onPinch: (Float) -> Unit) = pointerInput(Unit) { detectPinch(onPinch) }
+
+private suspend fun PointerInputScope.detectPinch(onPinch: (Float) -> Unit) {
+    awaitEachGesture {
+        awaitFirstDown(requireUnconsumed = false, pass = PointerEventPass.Initial)
+        var pinching = false
+        var event: PointerEvent
+        do {
+            event = awaitPointerEvent(PointerEventPass.Initial)
+            if (event.changes.count { it.pressed } >= 2) {
+                pinching = true
+                val factor = event.calculateZoom()
+                if (factor != 1f) onPinch(factor)
+            }
+            if (pinching) event.changes.forEach { it.consume() }
+        } while (event.changes.any { it.pressed })
+    }
+}
+
 @Composable
-private fun PdfPage(source: PdfSource, index: Int, widthPx: Int) {
+private fun PdfPage(source: PdfSource, index: Int, frameWidth: Int, scale: Float) {
     val density = LocalDensity.current
     val size = source.sizes.getOrNull(index) ?: IntSize(1, 1)
-    val renderWidth = widthPx.coerceIn(1, MAX_RENDER_PX)
+    val widthPx = (frameWidth * scale).roundToInt().coerceAtLeast(1)
     // The bitmap is remembered against the page and the width it was drawn
-    // for, so a page scrolled past is freed and a zoom redraws it sharp.
-    val bitmap by produceState<Bitmap?>(null, index, renderWidth) {
-        value = source.render(index, renderWidth)
+    // for, so a page scrolled past is freed and a zoom redraws it sharp. That
+    // width is stepped rather than followed: a pinch changes the layout every
+    // frame, and a page re-rendered at each of those widths would stall the
+    // gesture it is meant to answer. Between steps the step itself is
+    // stretched, and a quarter of a step is not something an eye picks up.
+    val render = renderWidthFor(frameWidth * stepped(scale), size)
+    val bitmap by produceState<Bitmap?>(null, index, render) {
+        value = source.render(index, render)
     }
     val pageWidth = with(density) { widthPx.toDp() }
     val pageHeight = with(density) { (widthPx.toFloat() * size.height / size.width).toDp() }
-    Row(modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState())) {
+    Row(
+        // Centred, because below 1x the page is narrower than the frame and a
+        // sheet of paper pinned to the left edge of a dark screen reads as a
+        // layout that broke rather than one that zoomed out.
+        horizontalArrangement = Arrangement.Center,
+        modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
+    ) {
         Box(
             modifier = Modifier
                 .width(pageWidth)
@@ -516,6 +606,52 @@ private fun PdfPage(source: PdfSource, index: Int, widthPx: Int) {
             }
         }
     }
+}
+
+/**
+ * The zoom at which the whole of a page of [size] sits in a frame this big,
+ * or 1 when the frame is tall enough for it already.
+ *
+ * Never below [MIN_PDF_ZOOM]: a page shrunk past that is a grey rectangle,
+ * and a person who pinched that far wanted the next page, not this one made
+ * unreadable.
+ */
+internal fun fitPage(size: IntSize?, frameWidth: Int, frameHeight: Int): Float {
+    if (size == null || size.width <= 0 || frameWidth <= 0) return 1f
+    val atFitWidth = frameWidth.toFloat() * size.height / size.width
+    if (atFitWidth <= 0f) return 1f
+    return (frameHeight / atFitWidth).coerceIn(MIN_PDF_ZOOM, 1f)
+}
+
+/**
+ * The zoom rounded up to the next [RENDER_STEP], which is what gets drawn.
+ *
+ * Up rather than to the nearest, so the bitmap is never narrower than the
+ * page it is drawn into: shrinking a render loses nothing an eye can see,
+ * and stretching one is exactly the blur a person pinched in to get rid of.
+ */
+internal fun stepped(scale: Float): Float =
+    (ceil(scale / RENDER_STEP) * RENDER_STEP).coerceAtLeast(RENDER_STEP)
+
+/**
+ * How wide to render a page of [size], given the [wanted] width on screen.
+ *
+ * Width alone is not a budget: a page is as tall as its own proportions make
+ * it, and an A4 sheet 2400 across is 3400 down, which is 32MB of bitmap for
+ * one page of the two or three the column keeps alive. The area is the real
+ * limit, so a tall page is rendered a little narrower rather than being
+ * allowed to cost several times what a short one does.
+ */
+internal fun renderWidthFor(wanted: Float, size: IntSize): Int {
+    val ratio = (size.height.toFloat() / size.width.coerceAtLeast(1)).coerceAtLeast(0.01f)
+    val byArea = sqrt(MAX_RENDER_PIXELS / ratio)
+    return minOf(wanted, byArea, MAX_RENDER_PX.toFloat()).roundToInt().coerceAtLeast(1)
+}
+
+/** "1.5", without a locale that would make it "1,5". */
+internal fun oneDecimal(value: Float): String {
+    val tenths = (value * 10).roundToInt()
+    return "${tenths / 10}.${tenths % 10}"
 }
 
 @Composable
@@ -579,8 +715,17 @@ private const val DOUBLE_TAP_SCALE = 2.5f
 private const val MAX_SCALE = 6f
 private const val MAX_PDF_ZOOM = 3f
 
+/** However small the frame, a page is not shrunk past a third of its width. */
+internal const val MIN_PDF_ZOOM = 0.33f
+
+/** The zoom is rendered at quarter steps between 1x and [MAX_PDF_ZOOM]. */
+internal const val RENDER_STEP = 0.25f
+
 /** A render wider than this costs memory no screen can show. */
-private const val MAX_RENDER_PX = 2400
+internal const val MAX_RENDER_PX = 2400
+
+/** About 24MB as ARGB_8888, for one page of the two or three kept alive. */
+internal const val MAX_RENDER_PIXELS = 6_000_000f
 
 const val FILE_VIEWER_SCREEN = "file-viewer-screen"
 const val VIEWER_DOWNLOAD_BAR = "file-viewer-download"

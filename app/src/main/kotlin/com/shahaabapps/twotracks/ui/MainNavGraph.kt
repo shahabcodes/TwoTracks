@@ -158,11 +158,13 @@ object Routes {
  * The screens that do want every pixel they are given, so they opt out of
  * [ReadableColumn]'s 720dp cap.
  *
- * Only the podcast, as it turns out. It is the one screen that is a picture
- * rather than a page: a full-bleed navy player with an animated board in the
- * middle of it, and capping it would have left the page colour showing down
- * both sides of a dark screen, which looks like a mistake rather than a
- * margin.
+ * The podcast and the file viewer: both are a picture rather than a page. The
+ * player is a full-bleed navy screen with an animated board in the middle of
+ * it, and the viewer is somebody's photographed whiteboard or a page of a PDF
+ * on near-black. Capping either leaves the page colour showing down both
+ * sides of a dark screen, which looks like a mistake rather than a margin —
+ * and a PDF has its own reason: the page is as wide as it is allowed to be,
+ * and 280dp taken off that is 280dp of print made smaller for nothing.
  *
  * The week and both-weeks screens were in here on the assumption that they
  * were grids; looked at on the tablet they are lists of days, and full width
@@ -171,7 +173,7 @@ object Routes {
  * scrolls sideways inside its own BoxWithConstraints, so it keeps working
  * whatever width it is given.
  */
-private val wideRoutes = setOf(Routes.LISTEN)
+private val wideRoutes = setOf(Routes.LISTEN, Routes.FILE_VIEWER)
 
 /**
  * The window width at which the tabs leave the foot of the screen and become a

@@ -21,23 +21,24 @@ import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 
 /**
- * A screen stops widening at [ReadableWidth] and centres, and a screen that
- * has opted out does not.
+ * How much of a wide window a page is given, and how much page colour is
+ * allowed to show either side of it.
  *
- * Both assertions are about the width a child that asks to fill the width
- * actually gets, which is the only thing that changed: before this, a screen
- * in a 1000dp window was 1000dp of prose. The first test fails against that
- * old behaviour by exactly the amount the cap takes off; the second one
- * guards the other direction, so that "cap everything" cannot pass either.
+ * Every assertion here is about the left inset of a child that asked to fill
+ * the width, because that one number is the whole rule: the column is centred,
+ * so the inset is the gutter. A tablet held upright must land on exactly the
+ * layout it had before the gutter was capped, which is what the 800dp test is
+ * for. Turned on its side the gutter must stop growing, which is what the
+ * 1280dp test is for, and it fails against the old cap by 240dp.
  */
 @RunWith(RobolectricTestRunner::class)
-@Config(sdk = [34], application = android.app.Application::class, qualifiers = "w1000dp-h800dp-xhdpi")
+@Config(sdk = [34], application = android.app.Application::class)
 class ReadableWidthTest {
 
     @get:Rule
     val compose = createComposeRule()
 
-    private fun show(wide: Boolean) {
+    private fun show(wide: Boolean = false) {
         compose.setContent {
             AppTheme(themeMode = ThemeMode.LIGHT, look = AppLook.PARALLEL) {
                 ReadableColumn(wide = wide) {
@@ -47,28 +48,44 @@ class ReadableWidthTest {
         }
     }
 
-    @Test
-    fun `prose stops at the readable width and sits centred`() {
-        show(wide = false)
+    /** The gutter the page actually got, read off where its left edge landed. */
+    private fun gutter() = compose.onNodeWithText("PAGE").getBoundsInRoot().left
 
-        val root = compose.onRoot().getBoundsInRoot()
-        val page = compose.onNodeWithText("PAGE").getBoundsInRoot()
-        // The Text is wrapped by the Box that fills the capped width, so its
-        // own bounds are the text's; the cap is read off where that Box's
-        // parent put it, which is the left inset.
-        val windowWidth = root.right - root.left
-        assertTrue("the window under test is wider than the cap", windowWidth > ReadableWidth)
-        assertTrue(
-            "content starts at ${page.left}, flush with the edge of a $windowWidth window, so nothing is capped",
-            page.left >= (windowWidth - ReadableWidth) / 2 - 1.dp,
-        )
+    @Test
+    @Config(qualifiers = "w800dp-h1280dp-xhdpi")
+    fun `a tablet held upright keeps the readable column, unchanged`() {
+        show()
+
+        val window = compose.onRoot().getBoundsInRoot().let { it.right - it.left }
+        assertTrue("the window under test is $window, no wider than the cap", window > ReadableWidth)
+        // 800 less the 720dp measure is 40dp either side, which is also the
+        // most gutter allowed: upright the two rules agree, and this is the
+        // test that says the new one moved nothing here.
+        assertTrue("the column starts at ${gutter()} in a $window window", gutter() in 39.dp..41.dp)
     }
 
     @Test
+    @Config(qualifiers = "w1280dp-h800dp-xhdpi")
+    fun `the same tablet on its side does not strand the page in the middle`() {
+        show()
+
+        // The old rule put this at 280dp, which is a phone screen in a frame.
+        assertTrue("the column starts at ${gutter()} on a 1280dp screen", gutter() <= MaxGutter + 1.dp)
+    }
+
+    @Test
+    @Config(qualifiers = "w400dp-h800dp-xhdpi")
+    fun `a phone is given its whole screen`() {
+        show()
+
+        assertTrue("a phone page was indented to ${gutter()}", gutter() < 1.dp)
+    }
+
+    @Test
+    @Config(qualifiers = "w1280dp-h800dp-xhdpi")
     fun `a screen that opts out keeps the whole width`() {
         show(wide = true)
 
-        val page = compose.onNodeWithText("PAGE").getBoundsInRoot()
-        assertTrue("an opted-out screen was indented to ${page.left}", page.left < 1.dp)
+        assertTrue("an opted-out screen was indented to ${gutter()}", gutter() < 1.dp)
     }
 }

@@ -1,8 +1,9 @@
 package com.shahaabapps.twotracks.ui
 
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -23,12 +24,26 @@ import androidx.compose.ui.unit.dp
 val ReadableWidth: Dp = 720.dp
 
 /**
- * Stops [content] widening past [ReadableWidth] and centres what is left, so
- * the page colour shows either side.
+ * The most page colour allowed to show either side of the column.
+ *
+ * The cap on its own was a rule about one orientation pretending to be a rule
+ * about all of them. Upright, 800dp less the 720dp cap is 40dp either side,
+ * which reads as a margin. Turned on its side the same tablet is 1280dp, and
+ * the same cap leaves 280dp either side — a phone screen in a frame, with the
+ * work pushed into the middle of a tablet that was turned precisely to get
+ * more room. So the margin is what is held constant and the column widens past
+ * the readable measure, rather than the gap growing without limit. 40dp is
+ * chosen so that a tablet held upright is laid out exactly as it was.
+ */
+val MaxGutter: Dp = 40.dp
+
+/**
+ * Holds [content] to a readable column with no more than [MaxGutter] of page
+ * colour either side, and centres what is left.
  *
  * This wraps the whole NavHost rather than each screen, so every screen gets
  * it without twenty-three edits. The screens that genuinely want the width —
- * the podcast board, the week grids — opt out through [wideRoutes] in
+ * the podcast board, the file viewer — opt out through [wideRoutes] in
  * MainNavGraph, which is why [wide] is a parameter rather than a constant: the
  * cap is the default and a screen says it does not want it, not the other way
  * round.
@@ -39,7 +54,10 @@ fun ReadableColumn(wide: Boolean = false, content: @Composable () -> Unit) {
         content()
         return
     }
-    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.TopCenter) {
-        Box(modifier = Modifier.widthIn(max = ReadableWidth).fillMaxSize()) { content() }
+    BoxWithConstraints(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.TopCenter) {
+        // Narrower than the measure and there is nothing to cap: a phone keeps
+        // its whole screen, edge to edge, exactly as before.
+        val column = maxOf(ReadableWidth, maxWidth - MaxGutter * 2).coerceAtMost(maxWidth)
+        Box(modifier = Modifier.width(column).fillMaxSize()) { content() }
     }
 }
