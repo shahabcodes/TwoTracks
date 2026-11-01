@@ -70,7 +70,7 @@ class LearnTapTest(look: AppLook) : TapTest(look) {
     }
 
     @Test
-    fun `a topic offers its own files, whether or not it has any`() {
+    fun `a topic offers its own files and notes, whether or not it has any`() {
         show {
             TopicContent(
                 LearnSamples.topic(), speaker = null, voiceMissing = false, recognizer = null, onBack = record("back"), onOpenTopic = record2("topic"), onOpenQuiz = record2("quiz"),
@@ -81,8 +81,8 @@ class LearnTapTest(look: AppLook) : TapTest(look) {
         }
         // The row is there on an empty lesson, because it is the only way to
         // attach the first thing: it asks rather than counts.
-        assertTrue("an empty lesson hides its files row in the $look look", seen("Attach a diagram"))
-        tapAction("Open this lesson's files")
+        assertTrue("an empty lesson hides its files row in the $look look", seen("write one out with your pen"))
+        tapAction("Open this lesson's files and notes")
         expect("files")
     }
 

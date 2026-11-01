@@ -241,6 +241,8 @@ data class TopicUiState(
     val listen: com.shahaabapps.twotracks.feature.listen.ListenCardState? = null,
     /** How many files the two of you have attached to this lesson. */
     val files: Int = 0,
+    /** And how many pages of handwriting are kept on it. */
+    val notes: Int = 0,
 )
 
 @HiltViewModel
@@ -249,6 +251,7 @@ class TopicViewModel @Inject constructor(
     sessionStore: SessionStore,
     dataStore: CoupleDataStore,
     moduleFiles: com.shahaabapps.core.data.files.ModuleFilesRepository,
+    inkNotes: com.shahaabapps.core.data.ink.InkNotesRepository,
     private val actions: LearningActions,
     val speaker: Speaker,
     val recognizer: Recognizer,
@@ -265,12 +268,18 @@ class TopicViewModel @Inject constructor(
     // One listener for every topic's files rather than one for this topic:
     // the same query already answers the lesson rows elsewhere, so this costs
     // nothing extra, and the number is only a word on a card.
+    // The two counts travel together so that combine below stays within the
+    // five flows it has a typed overload for, and because the card they feed
+    // is one row either way.
     @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
-    private val fileCount = sessionStore.session.flatMapLatest { s ->
-        if (s == null) kotlinx.coroutines.flow.flowOf(0) else moduleFiles.topicCounts(s.coupleId).map { it[topicId] ?: 0 }
+    private val attached = sessionStore.session.flatMapLatest { s ->
+        if (s == null) kotlinx.coroutines.flow.flowOf(0 to 0)
+        else combine(moduleFiles.topicCounts(s.coupleId), inkNotes.counts(s.coupleId)) { files, notes ->
+            (files[topicId] ?: 0) to (notes[topicId] ?: 0)
+        }
     }
 
-    val uiState: StateFlow<TopicUiState> = combine(sessionStore.state, dataStore.topicProgress, message, player.state, fileCount) { state, progress, msg, now, files ->
+    val uiState: StateFlow<TopicUiState> = combine(sessionStore.state, dataStore.topicProgress, message, player.state, attached) { state, progress, msg, now, counts ->
         val session = (state as? com.shahaabapps.twotracks.session.SessionState.Ready)?.session
         val course = Courses.byId(courseId) ?: return@combine TopicUiState(message = msg)
         val (module, topic) = Courses.topic(courseId, topicId) ?: return@combine TopicUiState(course = course, message = msg)
@@ -282,7 +291,8 @@ class TopicViewModel @Inject constructor(
             nextTopicId = module.topics.getOrNull(idx + 1)?.id,
             message = msg,
             listen = listenCard(now),
-            files = files,
+            files = counts.first,
+            notes = counts.second,
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), TopicUiState())
 

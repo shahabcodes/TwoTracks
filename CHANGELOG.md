@@ -3,6 +3,12 @@
 All notable changes to Two Tracks. Versions follow `version.properties`; the
 build number is appended by CI (for example `0.1.0 (build 12)`).
 
+## [0.100.0] - 2026-11-01
+### Added
+- Handwritten notes, for an S Pen or any other stylus. A lesson's Files row opens onto its attachments and its handwriting together; "Write a note" opens a sheet of paper, and it is saved under a name you give it, kept in your shared space for both of you, and opened again later to read or write more on. Notes can be renamed and removed like the attachments.
+- The page knows what is touching it: once a stylus has been seen the fingers are ignored, which is palm rejection, and the side button on an S Pen rubs out without changing the tool. Pressing harder writes a heavier line. Four inks, three nibs, an eraser that takes whole strokes, and undo.
+- Leaving a page with unsaved handwriting on it asks first, with three answers: save and close, keep writing, or throw it away. Nothing else in the app can lose work by backing out of it; this could.
+
 ## [0.99.3] - 2026-11-01
 ### Fixed
 - A pinch on a PDF holds the page under the fingers instead of growing it towards the top left corner. Zooming re-measures the column from its own corner, so the scroll has to move with it; where the page is at any zoom is now worked out rather than guessed, and the whole column shares one sideways scroll so that half of it is a single number. A double tap is anchored the same way, on the point tapped.

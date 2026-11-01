@@ -21,6 +21,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Description
+import androidx.compose.material.icons.filled.Draw
 import androidx.compose.material.icons.filled.DriveFileRenameOutline
 import androidx.compose.material.icons.filled.Image
 import androidx.compose.material3.Icon
@@ -50,8 +51,11 @@ import androidx.lifecycle.viewModelScope
 import com.shahaabapps.core.common.AppResult
 import com.shahaabapps.core.content.Courses
 import com.shahaabapps.core.data.files.ModuleFilesRepository
+import com.shahaabapps.core.data.ink.InkNotesRepository
+import com.shahaabapps.core.model.InkNote
 import com.shahaabapps.core.model.ModuleFile
 import com.shahaabapps.core.ui.components.CupertinoPrimaryButton
+import com.shahaabapps.core.ui.components.CupertinoSecondaryButton
 import com.shahaabapps.core.ui.theme.AppTheme
 import com.shahaabapps.core.ui.theme.Spacing
 import com.shahaabapps.twotracks.session.SessionStore
@@ -77,6 +81,8 @@ data class ModuleFilesUiState(
     /** The topic's title when the screen is a topic's, blank when it is a module's. */
     val topicTitle: String = "",
     val files: List<ModuleFile> = emptyList(),
+    /** The handwriting kept here, which is listed above the attachments. */
+    val notes: List<InkNote> = emptyList(),
     /** The fraction of the upload in flight, or null when nothing is going up. */
     val uploading: Float? = null,
     val message: String? = null,
@@ -88,6 +94,7 @@ class ModuleFilesViewModel @Inject constructor(
     @ApplicationContext private val context: Context,
     private val sessionStore: SessionStore,
     private val repository: ModuleFilesRepository,
+    private val inkNotes: InkNotesRepository,
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
 
@@ -116,14 +123,18 @@ class ModuleFilesViewModel @Inject constructor(
             sessionStore.session.flatMapLatest { s ->
                 if (s == null) flowOf(null) else repository.observe(s.coupleId, courseId, moduleId)
             },
+            sessionStore.session.flatMapLatest { s ->
+                if (s == null) flowOf(emptyList()) else inkNotes.observe(s.coupleId, courseId, moduleId)
+            },
             uploading,
             message,
-        ) { files, progress, msg ->
+        ) { files, notes, progress, msg ->
             ModuleFilesUiState(
                 courseTitle = course?.title.orEmpty(),
                 moduleTitle = module?.title.orEmpty(),
                 topicTitle = topic?.title.orEmpty(),
                 files = files.orEmpty().filter { topicId.isBlank() || it.topicId == topicId },
+                notes = notes.filter { topicId.isBlank() || it.topicId == topicId },
                 uploading = progress,
                 message = msg,
                 loaded = files != null,
@@ -207,6 +218,31 @@ class ModuleFilesViewModel @Inject constructor(
         }
     }
 
+    /** Gives a note another title. The strokes are not touched. */
+    fun renameNote(note: InkNote, title: String) = viewModelScope.launch {
+        val session = sessionStore.current() ?: return@launch
+        val wanted = title.trim()
+        if (wanted.isEmpty() || wanted == note.title) return@launch
+        message.value = when (val result = inkNotes.rename(session.coupleId, note, wanted)) {
+            is AppResult.Success -> "Now called $wanted"
+            is AppResult.Failure -> {
+                Log.w("ModuleFiles", "rename of ${note.title} failed", result.error)
+                "Could not rename ${note.title} — ${reason(result.error)}"
+            }
+        }
+    }
+
+    fun deleteNote(note: InkNote) = viewModelScope.launch {
+        val session = sessionStore.current() ?: return@launch
+        message.value = when (val result = inkNotes.delete(session.coupleId, note)) {
+            is AppResult.Success -> "${note.title} removed"
+            is AppResult.Failure -> {
+                Log.w("ModuleFiles", "removal of ${note.title} failed", result.error)
+                "Could not remove ${note.title} — ${reason(result.error)}"
+            }
+        }
+    }
+
     fun messageShown() { message.value = null }
 
     /** The display name and size the provider reports, with sane fallbacks. */
@@ -227,6 +263,7 @@ class ModuleFilesViewModel @Inject constructor(
 fun ModuleFilesScreen(
     onBack: () -> Unit,
     onView: (String) -> Unit,
+    onWrite: (String) -> Unit,
     viewModel: ModuleFilesViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
@@ -248,6 +285,11 @@ fun ModuleFilesScreen(
         onOpen = { if (it.isViewable) onView(it.id) else viewModel.open(it) },
         onRename = viewModel::rename,
         onDelete = viewModel::delete,
+        // A blank id is a page that does not exist yet; the editor makes it.
+        onWrite = { onWrite("") },
+        onOpenNote = { onWrite(it.id) },
+        onRenameNote = viewModel::renameNote,
+        onDeleteNote = viewModel::deleteNote,
         onMessageShown = viewModel::messageShown,
     )
 }
@@ -268,6 +310,10 @@ fun ModuleFilesContent(
     onOpen: (ModuleFile) -> Unit,
     onRename: (ModuleFile, String) -> Unit = { _, _ -> },
     onDelete: (ModuleFile) -> Unit,
+    onWrite: () -> Unit = {},
+    onOpenNote: (InkNote) -> Unit = {},
+    onRenameNote: (InkNote, String) -> Unit = { _, _ -> },
+    onDeleteNote: (InkNote) -> Unit = {},
     onMessageShown: () -> Unit = {},
 ) {
     // Removing a file takes the bytes with it and there is no undo, so the
@@ -275,6 +321,8 @@ fun ModuleFilesContent(
     // file, which is exactly the distance a thumb gets wrong.
     var confirming by remember { mutableStateOf<ModuleFile?>(null) }
     var renaming by remember { mutableStateOf<ModuleFile?>(null) }
+    var confirmingNote by remember { mutableStateOf<InkNote?>(null) }
+    var renamingNote by remember { mutableStateOf<InkNote?>(null) }
     DetailScaffold(
         // Named after whichever it is the files of, so a lesson's files and
         // its module's are told apart by the title rather than by memory.
@@ -298,7 +346,22 @@ fun ModuleFilesContent(
             verticalArrangement = Arrangement.spacedBy(Spacing.sm),
         ) {
             item {
-                CupertinoPrimaryButton(text = "Add a file", onClick = onAdd)
+                Column(verticalArrangement = Arrangement.spacedBy(Spacing.sm)) {
+                    CupertinoPrimaryButton(text = "Add a file", onClick = onAdd)
+                    // Second, and plainer, because attaching is the common
+                    // thing and writing is the deliberate one.
+                    CupertinoSecondaryButton(text = "Write a note", onClick = onWrite)
+                }
+            }
+            if (state.notes.isNotEmpty()) {
+                item { SectionLabel("HANDWRITTEN") }
+                items(state.notes.size) { i ->
+                    NoteRow(
+                        state.notes[i], onOpenNote,
+                        onAskRename = { renamingNote = it }, onAskDelete = { confirmingNote = it },
+                    )
+                }
+                if (state.files.isNotEmpty()) item { SectionLabel("ATTACHED") }
             }
             state.uploading?.let { fraction ->
                 item {
@@ -308,7 +371,7 @@ fun ModuleFilesContent(
                     }
                 }
             }
-            if (state.files.isEmpty() && state.uploading == null) {
+            if (state.files.isEmpty() && state.notes.isEmpty() && state.uploading == null) {
                 item {
                     Text(
                         if (state.topicTitle.isNotBlank())
@@ -326,6 +389,20 @@ fun ModuleFilesContent(
         }
         SnackbarHost(snackbar, modifier = Modifier.align(Alignment.BottomCenter))
         }
+    }
+    renamingNote?.let { note ->
+        RenameNoteDialog(
+            note = note,
+            onConfirm = { title -> renamingNote = null; onRenameNote(note, title) },
+            onDismiss = { renamingNote = null },
+        )
+    }
+    confirmingNote?.let { note ->
+        RemoveNoteDialog(
+            note = note,
+            onConfirm = { confirmingNote = null; onDeleteNote(note) },
+            onDismiss = { confirmingNote = null },
+        )
     }
     renaming?.let { file ->
         RenameFileDialog(
@@ -378,6 +455,62 @@ private fun FileRow(
             modifier = Modifier
                 .size(40.dp)
                 .clickable(role = Role.Button, onClickLabel = "Remove ${file.name}", onClick = { onAskDelete(file) }),
+        ) {
+            Icon(Icons.Filled.Delete, contentDescription = null, tint = AppTheme.colors.secondaryLabel, modifier = Modifier.size(20.dp))
+        }
+    }
+}
+
+/** The heading over a run of rows, when the list holds two kinds of thing. */
+@Composable
+private fun SectionLabel(text: String) {
+    Text(
+        text,
+        style = MaterialTheme.typography.labelMedium,
+        color = AppTheme.colors.secondaryLabel,
+        modifier = Modifier.padding(top = Spacing.sm),
+    )
+}
+
+/**
+ * A page of handwriting in the list: what it is called, how full it is, and
+ * the same two actions the attachments carry, in the same places.
+ */
+@Composable
+private fun NoteRow(
+    note: InkNote,
+    onOpen: (InkNote) -> Unit,
+    onAskRename: (InkNote) -> Unit,
+    onAskDelete: (InkNote) -> Unit,
+) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(role = Role.Button, onClickLabel = "Open ${note.title}", onClick = { onOpen(note) })
+            .padding(vertical = 10.dp),
+    ) {
+        Icon(
+            Icons.Filled.Draw, contentDescription = null,
+            tint = AppTheme.colors.accentText, modifier = Modifier.size(22.dp),
+        )
+        Column(modifier = Modifier.weight(1f).padding(horizontal = Spacing.sm)) {
+            Text(note.title, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.SemiBold)
+            Text(note.readableSize, style = MaterialTheme.typography.labelMedium, color = AppTheme.colors.secondaryLabel)
+        }
+        Box(
+            contentAlignment = Alignment.Center,
+            modifier = Modifier
+                .size(40.dp)
+                .clickable(role = Role.Button, onClickLabel = "Rename ${note.title}", onClick = { onAskRename(note) }),
+        ) {
+            Icon(Icons.Filled.DriveFileRenameOutline, contentDescription = null, tint = AppTheme.colors.secondaryLabel, modifier = Modifier.size(20.dp))
+        }
+        Box(
+            contentAlignment = Alignment.Center,
+            modifier = Modifier
+                .size(40.dp)
+                .clickable(role = Role.Button, onClickLabel = "Remove ${note.title}", onClick = { onAskDelete(note) }),
         ) {
             Icon(Icons.Filled.Delete, contentDescription = null, tint = AppTheme.colors.secondaryLabel, modifier = Modifier.size(20.dp))
         }

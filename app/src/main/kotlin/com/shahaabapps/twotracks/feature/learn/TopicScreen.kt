@@ -167,7 +167,7 @@ fun TopicContent(
                 }
                 state.listen?.let { listen -> item { com.shahaabapps.twotracks.feature.listen.ListenCard(listen, onListen) } }
                 com.shahaabapps.core.content.Notes.forTopic(topic.id)?.let { sheet -> item { NotesCard(sheet, onOpenNotes) } }
-                item { TopicFilesCard(state.files, onOpenFiles) }
+                item { TopicFilesCard(state.files, state.notes, onOpenFiles) }
                 if (course.speechLanguage != null && voiceMissing) {
                     item {
                         Text(
@@ -807,14 +807,14 @@ internal fun LetterTile(letter: String, color: Color, size: androidx.compose.ui.
  * an invitation when the lesson is empty, a count once it is not.
  */
 @Composable
-private fun TopicFilesCard(count: Int, onOpen: () -> Unit) {
+private fun TopicFilesCard(files: Int, notes: Int, onOpen: () -> Unit) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(16.dp))
             .border(Spacing.rule, AppTheme.colors.separator, RoundedCornerShape(16.dp))
-            .clickable(role = Role.Button, onClickLabel = "Open this lesson's files", onClick = onOpen)
+            .clickable(role = Role.Button, onClickLabel = "Open this lesson's files and notes", onClick = onOpen)
             .padding(horizontal = Spacing.md, vertical = Spacing.sm)
             .testTag(TOPIC_FILES_CARD),
     ) {
@@ -823,13 +823,13 @@ private fun TopicFilesCard(count: Int, onOpen: () -> Unit) {
             tint = AppTheme.colors.accentText, modifier = Modifier.size(20.dp),
         )
         Column(modifier = Modifier.weight(1f).padding(start = Spacing.sm)) {
-            Text("Files", style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.SemiBold)
+            Text("Files and notes", style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.SemiBold)
             Text(
-                when (count) {
-                    0 -> "Attach a diagram, a page, a photo of your working"
-                    1 -> "One file on this lesson"
-                    else -> "$count files on this lesson"
-                },
+                listOfNotNull(
+                    files.takeIf { it > 0 }?.let { "$it file${if (it == 1) "" else "s"}" },
+                    notes.takeIf { it > 0 }?.let { "$it note${if (it == 1) "" else "s"}" },
+                ).joinToString(" · ")
+                    .ifEmpty { "Attach a page, or write one out with your pen" },
                 style = MaterialTheme.typography.labelMedium, color = AppTheme.colors.secondaryLabel,
             )
         }

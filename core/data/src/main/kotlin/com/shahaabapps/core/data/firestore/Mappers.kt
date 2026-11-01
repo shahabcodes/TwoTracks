@@ -20,6 +20,7 @@ import com.shahaabapps.core.model.Level
 import com.shahaabapps.core.model.LevelItem
 import com.shahaabapps.core.model.LevelItemKind
 import com.shahaabapps.core.model.Milestone
+import com.shahaabapps.core.model.InkNote
 import com.shahaabapps.core.model.ModuleFile
 import com.shahaabapps.core.model.MilestoneStatus
 import com.shahaabapps.core.model.MockScore
@@ -222,6 +223,18 @@ object Mappers {
         id = id, courseId = str("courseId"), moduleId = str("moduleId"), topicId = str("topicId"), name = str("name"),
         mimeType = str("mimeType"), sizeBytes = lng("sizeBytes"), path = str("path"),
         uploadedBy = str("uploadedBy"), uploadedAtIso = str("uploadedAtIso"),
+    )
+
+    fun InkNote.toMap() = mapOf(
+        "courseId" to courseId, "moduleId" to moduleId, "topicId" to topicId, "title" to title,
+        "path" to path, "strokeCount" to strokeCount, "createdBy" to createdBy,
+        "createdAtIso" to createdAtIso, "updatedAtIso" to updatedAtIso,
+    )
+
+    fun Doc.toInkNote() = InkNote(
+        id = id, courseId = str("courseId"), moduleId = str("moduleId"), topicId = str("topicId"),
+        title = str("title"), path = str("path"), strokeCount = int("strokeCount"),
+        createdBy = str("createdBy"), createdAtIso = str("createdAtIso"), updatedAtIso = str("updatedAtIso"),
     )
 
     fun BudgetItem.toMap() = mapOf(
