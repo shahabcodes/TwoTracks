@@ -105,7 +105,7 @@ class DesignPreviewActivity : ComponentActivity() {
                     // The app draws every screen inside ReadableColumn, so the
                     // preview must too, or it would show a layout the app does
                     // not have. The same screens opt out here as there.
-                    com.shahaabapps.twotracks.ui.ReadableColumn(wide = screen in setOf("listen", "live", "shell")) {
+                    com.shahaabapps.twotracks.ui.ReadableColumn(wide = screen in setOf("listen", "live", "shell", "viewer")) {
                     when (screen) {
                         // The whole frame — tabs or rail, the playing bar, and a
                         // screen inside it — so the wide layout can be seen

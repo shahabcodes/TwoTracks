@@ -3,6 +3,13 @@
 All notable changes to Two Tracks. Versions follow `version.properties`; the
 build number is appended by CI (for example `0.1.0 (build 12)`).
 
+## [0.99.2] - 2026-11-01
+### Changed
+- A tablet in landscape no longer strands the app in a 720dp column with 280dp of empty page either side: the gutter is capped at 40dp and the column widens past the readable measure to fill what is left. A tablet held upright, and every phone, is laid out exactly as before.
+- The file viewer takes the whole window on a tablet, like the podcast board does, so a PDF page is as wide as the screen allows.
+### Added
+- A PDF is pinched to zoom, as a picture already was. The column still scrolls on one finger and claims nothing until a second lands; a double tap still steps the zoom a whole number at a time. The pinch now goes out as well as in: the floor is the whole page in the frame rather than the page fitted to the width, which is also what a tablet in landscape opens on, so a page is read whole instead of a quarter at a time. A page is rendered at quarter steps of the zoom and within a fixed pixel budget, so a pinch does not stall on the renderer or run a tall page through memory.
+
 ## [0.99.1] - 2026-11-01
 ### Changed
 - A file that will not upload, download or delete now says why — that the space is not yet allowed to keep files, or that the connection dropped — instead of "Could not add it", and the failure is written to the log. Removing a file no longer reports success when it failed.
