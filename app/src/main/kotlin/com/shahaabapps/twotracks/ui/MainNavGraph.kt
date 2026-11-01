@@ -114,8 +114,16 @@ object Routes {
     const val COURSE = "learn/{courseId}"
     const val TOPIC = "learn/{courseId}/topic/{topicId}"
     const val QUIZ = "learn/{courseId}/quiz/{moduleId}"
-    const val MODULE_FILES = "learn/{courseId}/files/{moduleId}"
-    const val FILE_VIEWER = "learn/{courseId}/files/{moduleId}/view/{fileId}"
+    /**
+     * Files, either for a whole module or for one topic inside it.
+     *
+     * The topic is a query argument rather than a second route because the
+     * screen, the view model and the viewer are the same either way: one
+     * optional word narrows what is listed and says what an upload is
+     * attached to, and a route with no topic in it is the module's own.
+     */
+    const val MODULE_FILES = "learn/{courseId}/files/{moduleId}?topicId={topicId}"
+    const val FILE_VIEWER = "learn/{courseId}/files/{moduleId}/view/{fileId}?topicId={topicId}"
     const val DECK = "learn/{courseId}/deck"
     const val LISTEN = "learn/{courseId}/listen/{topicId}"
     const val NOTES = "learn/{courseId}/notes/{topicId}"
@@ -142,9 +150,10 @@ object Routes {
     fun course(id: String) = "learn/$id"
     fun topic(courseId: String, topicId: String) = "learn/$courseId/topic/$topicId"
     fun quiz(courseId: String, moduleId: String) = "learn/$courseId/quiz/$moduleId"
-    fun moduleFiles(courseId: String, moduleId: String) = "learn/$courseId/files/$moduleId"
-    fun fileViewer(courseId: String, moduleId: String, fileId: String) =
-        "learn/$courseId/files/$moduleId/view/$fileId"
+    fun moduleFiles(courseId: String, moduleId: String, topicId: String = "") =
+        "learn/$courseId/files/$moduleId?topicId=$topicId"
+    fun fileViewer(courseId: String, moduleId: String, fileId: String, topicId: String = "") =
+        "learn/$courseId/files/$moduleId/view/$fileId?topicId=$topicId"
     fun deck(courseId: String) = "learn/$courseId/deck"
     fun listen(courseId: String, topicId: String) = "learn/$courseId/listen/$topicId"
     fun notes(courseId: String, topicId: String) = "learn/$courseId/notes/$topicId"
@@ -556,7 +565,14 @@ fun MainNavGraph(session: AppSession, widgetLaunch: WidgetLaunch) {
                     onOpenFiles = { c, m -> navController.navigate(Routes.moduleFiles(c, m)) },
                 )
             }
-            composable(Routes.MODULE_FILES, arguments = listOf(navArgument("courseId") { type = NavType.StringType }, navArgument("moduleId") { type = NavType.StringType })) { entry ->
+            composable(
+                Routes.MODULE_FILES,
+                arguments = listOf(
+                    navArgument("courseId") { type = NavType.StringType },
+                    navArgument("moduleId") { type = NavType.StringType },
+                    navArgument("topicId") { type = NavType.StringType; defaultValue = "" },
+                ),
+            ) { entry ->
                 ModuleFilesScreen(
                     onBack = { navController.popBackStack() },
                     onView = { fileId ->
@@ -565,6 +581,10 @@ fun MainNavGraph(session: AppSession, widgetLaunch: WidgetLaunch) {
                                 entry.arguments?.getString("courseId").orEmpty(),
                                 entry.arguments?.getString("moduleId").orEmpty(),
                                 fileId,
+                                // Carried through, so the arrows in the viewer
+                                // move between the same files the list showed
+                                // rather than the whole module's.
+                                entry.arguments?.getString("topicId").orEmpty(),
                             ),
                         )
                     },
@@ -576,6 +596,7 @@ fun MainNavGraph(session: AppSession, widgetLaunch: WidgetLaunch) {
                     navArgument("courseId") { type = NavType.StringType },
                     navArgument("moduleId") { type = NavType.StringType },
                     navArgument("fileId") { type = NavType.StringType },
+                    navArgument("topicId") { type = NavType.StringType; defaultValue = "" },
                 ),
             ) {
                 FileViewerScreen(onBack = { navController.popBackStack() })
@@ -587,6 +608,7 @@ fun MainNavGraph(session: AppSession, widgetLaunch: WidgetLaunch) {
                     onOpenQuiz = { c, m -> navController.navigate(Routes.quiz(c, m)) { popUpTo(Routes.COURSE) } },
                     onListen = { c, t -> navController.navigate(Routes.listen(c, t)) },
                     onOpenNotes = { c, t -> navController.navigate(Routes.notes(c, t)) },
+                    onOpenFiles = { c, m, t -> navController.navigate(Routes.moduleFiles(c, m, t)) },
                 )
             }
             composable(

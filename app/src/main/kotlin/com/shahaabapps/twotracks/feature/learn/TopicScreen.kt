@@ -51,6 +51,9 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Lightbulb
+import androidx.compose.ui.platform.testTag
+import androidx.compose.material.icons.filled.AttachFile
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.PushPin
 import androidx.compose.material.icons.filled.School
 import androidx.compose.material.icons.filled.Translate
@@ -93,6 +96,7 @@ fun TopicScreen(
     onOpenQuiz: (String, String) -> Unit,
     onListen: (String, String) -> Unit,
     onOpenNotes: (String, String) -> Unit,
+    onOpenFiles: (String, String, String) -> Unit,
     viewModel: TopicViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
@@ -110,6 +114,10 @@ fun TopicScreen(
         // The card opens the telling it shows: the one playing, or the one last picked.
         onListen = { state.course?.id?.let { c -> state.topic?.id?.let { t -> onListen(c, state.listen?.episodeId?.ifEmpty { null } ?: t) } } },
         onOpenNotes = { state.course?.id?.let { c -> state.topic?.id?.let { t -> onOpenNotes(c, t) } } },
+        onOpenFiles = {
+            val c = state.course?.id; val m = state.module?.id; val t = state.topic?.id
+            if (c != null && m != null && t != null) onOpenFiles(c, m, t)
+        },
     )
 }
 
@@ -131,6 +139,7 @@ fun TopicContent(
     onMessageShown: () -> Unit,
     onListen: () -> Unit,
     onOpenNotes: () -> Unit = {},
+    onOpenFiles: () -> Unit = {},
 ) {
     val snackbar = remember { SnackbarHostState() }
     LaunchedEffect(state.message) { state.message?.let { snackbar.showSnackbar(it); onMessageShown() } }
@@ -158,6 +167,7 @@ fun TopicContent(
                 }
                 state.listen?.let { listen -> item { com.shahaabapps.twotracks.feature.listen.ListenCard(listen, onListen) } }
                 com.shahaabapps.core.content.Notes.forTopic(topic.id)?.let { sheet -> item { NotesCard(sheet, onOpenNotes) } }
+                item { TopicFilesCard(state.files, onOpenFiles) }
                 if (course.speechLanguage != null && voiceMissing) {
                     item {
                         Text(
@@ -787,3 +797,44 @@ internal fun LetterTile(letter: String, color: Color, size: androidx.compose.ui.
         BoardMono(letter, color = color, size = 13.sp, weight = FontWeight.Bold, spacing = 0.sp)
     }
 }
+
+/**
+ * The way into this lesson's own attachments, drawn like the cards above it.
+ *
+ * Unlike those, it is shown whether or not there is anything behind it: the
+ * row is how a file gets attached in the first place, so hiding it until one
+ * exists would leave no way to add the first. What changes is what it says —
+ * an invitation when the lesson is empty, a count once it is not.
+ */
+@Composable
+private fun TopicFilesCard(count: Int, onOpen: () -> Unit) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(16.dp))
+            .border(Spacing.rule, AppTheme.colors.separator, RoundedCornerShape(16.dp))
+            .clickable(role = Role.Button, onClickLabel = "Open this lesson's files", onClick = onOpen)
+            .padding(horizontal = Spacing.md, vertical = Spacing.sm)
+            .testTag(TOPIC_FILES_CARD),
+    ) {
+        Icon(
+            Icons.Filled.AttachFile, contentDescription = null,
+            tint = AppTheme.colors.accentText, modifier = Modifier.size(20.dp),
+        )
+        Column(modifier = Modifier.weight(1f).padding(start = Spacing.sm)) {
+            Text("Files", style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.SemiBold)
+            Text(
+                when (count) {
+                    0 -> "Attach a diagram, a page, a photo of your working"
+                    1 -> "One file on this lesson"
+                    else -> "$count files on this lesson"
+                },
+                style = MaterialTheme.typography.labelMedium, color = AppTheme.colors.secondaryLabel,
+            )
+        }
+        Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null, tint = AppTheme.colors.secondaryLabel)
+    }
+}
+
+const val TOPIC_FILES_CARD = "topic-files-card"

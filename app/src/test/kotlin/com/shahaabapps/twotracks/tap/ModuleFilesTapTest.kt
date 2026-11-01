@@ -26,6 +26,7 @@ class ModuleFilesTapTest(look: AppLook) : TapTest(look) {
         ModuleFilesContent(
             state, onBack = record("back"), onAdd = record("add"),
             onOpen = { calls += "open(${it.id})" },
+            onRename = { file, name -> calls += "rename(${file.id}, $name)" },
             onDelete = { calls += "delete(${it.id})" },
         )
     }
@@ -61,6 +62,40 @@ class ModuleFilesTapTest(look: AppLook) : TapTest(look) {
         tapAction("Remove exam-guide.pdf")
         tap("Keep it")
         expect()
+    }
+
+    @Test
+    fun `a file can be given a better name than the camera gave it`() {
+        files(loaded(diagram))
+        tapAction("Rename exam-guide.pdf")
+        // The dialog is a question, the same as the bin's: nothing is written
+        // until it is answered, and the rename button is the answer.
+        expect()
+        type("Exam guide, compute.pdf")
+        tap("Rename")
+        expect("rename(f1, Exam guide, compute.pdf)")
+    }
+
+    @Test
+    fun `cancelling the rename leaves the name alone`() {
+        files(loaded(diagram))
+        tapAction("Rename exam-guide.pdf")
+        tap("Cancel")
+        expect()
+    }
+
+    @Test
+    fun `a lesson's files are titled after the lesson, not the module`() {
+        files(loaded(diagram).copy(topicTitle = "App Service"))
+        assertTrue("the lesson is not named in the $look look", seen("App Service"))
+    }
+
+    @Test
+    fun `an empty lesson says what attaching something here would mean`() {
+        // The invitation is the lesson's, so somebody reading it knows where
+        // what they add is going to end up.
+        files(ModuleFilesUiState(courseTitle = "AZ-204", moduleTitle = "Compute", topicTitle = "App Service", loaded = true))
+        assertTrue("the empty lesson reads as the module's in the $look look", seen("Nothing on this lesson yet"))
     }
 
     @Test

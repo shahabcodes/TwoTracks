@@ -10,6 +10,7 @@ import com.shahaabapps.twotracks.feature.learn.QuizContent
 import com.shahaabapps.twotracks.feature.learn.TopicContent
 import com.shahaabapps.twotracks.preview.LearnSamples
 import com.shahaabapps.twotracks.preview.Samples
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /** Learn, a course, a topic, a test and the word deck: what each press reaches. */
@@ -66,6 +67,23 @@ class LearnTapTest(look: AppLook) : TapTest(look) {
         expect("back")
         tap("Mark as learned")
         expect("learned")
+    }
+
+    @Test
+    fun `a topic offers its own files, whether or not it has any`() {
+        show {
+            TopicContent(
+                LearnSamples.topic(), speaker = null, voiceMissing = false, recognizer = null, onBack = record("back"), onOpenTopic = record2("topic"), onOpenQuiz = record2("quiz"),
+                onInstallVoice = record("voice"), onChecked = { _, _, _, _ -> calls += "checked" }, onConfidence = { _, _ -> calls += "confidence" },
+                onMarkLearned = record("learned"), onUnlearn = record("unlearn"), onMessageShown = {}, onListen = record("listen"),
+                onOpenNotes = record("notes"), onOpenFiles = record("files"),
+            )
+        }
+        // The row is there on an empty lesson, because it is the only way to
+        // attach the first thing: it asks rather than counts.
+        assertTrue("an empty lesson hides its files row in the $look look", seen("Attach a diagram"))
+        tapAction("Open this lesson's files")
+        expect("files")
     }
 
     @Test

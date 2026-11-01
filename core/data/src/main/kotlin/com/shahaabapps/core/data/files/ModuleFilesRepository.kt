@@ -46,6 +46,13 @@ interface ModuleFilesRepository {
     fun counts(coupleId: String): Flow<Map<String, Int>>
 
     /**
+     * The same, by topic id, for the row on a lesson. Files attached to a
+     * module rather than a topic are not counted: nothing on a lesson should
+     * promise something that lesson does not have.
+     */
+    fun topicCounts(coupleId: String): Flow<Map<String, Int>>
+
+    /**
      * Uploads [uri]'s bytes and writes the record. [onProgress] is called with
      * a fraction while it goes, so a large file does not look like a hang.
      */
@@ -55,6 +62,15 @@ interface ModuleFilesRepository {
         uri: Uri,
         onProgress: (Float) -> Unit = {},
     ): AppResult<ModuleFile>
+
+    /**
+     * Gives the file another name.
+     *
+     * Only the record changes. The bytes are stored under the file's id and
+     * never under its name, which is what makes this one field write rather
+     * than a copy, and what means a rename cannot lose anything.
+     */
+    suspend fun rename(coupleId: String, file: ModuleFile, name: String): AppResult<Unit>
 
     /** A link to the bytes, for handing to whatever app opens that kind of file. */
     suspend fun url(file: ModuleFile): AppResult<String>
@@ -97,6 +113,11 @@ class FirebaseModuleFilesRepository @Inject constructor(
             .asFlow { it.toModuleFile() }
             .map { files -> files.groupingBy { it.moduleId }.eachCount() }
 
+    override fun topicCounts(coupleId: String): Flow<Map<String, Int>> =
+        firestore.sub(coupleId, Paths.MODULE_FILES)
+            .asFlow { it.toModuleFile() }
+            .map { files -> files.filter { it.topicId.isNotBlank() }.groupingBy { it.topicId }.eachCount() }
+
     override suspend fun upload(coupleId: String, file: ModuleFile, uri: Uri, onProgress: (Float) -> Unit): AppResult<ModuleFile> =
         runCatchingResult {
             val doc = firestore.sub(coupleId, Paths.MODULE_FILES).document()
@@ -113,6 +134,13 @@ class FirebaseModuleFilesRepository @Inject constructor(
             // or cancelled upload never leaves a row pointing at nothing.
             doc.set(stored.toMap()).await()
             stored
+        }
+
+    override suspend fun rename(coupleId: String, file: ModuleFile, name: String): AppResult<Unit> =
+        runCatchingResult {
+            firestore.sub(coupleId, Paths.MODULE_FILES).document(file.id)
+                .update("name", name.trim()).await()
+            Unit
         }
 
     override suspend fun url(file: ModuleFile): AppResult<String> = runCatchingResult {

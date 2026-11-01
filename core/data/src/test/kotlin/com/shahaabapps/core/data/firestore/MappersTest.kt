@@ -172,7 +172,7 @@ class MappersTest {
 
     /** Every model, with the id the document would carry and both halves of its mapping. */
     private val moduleFile = ModuleFile(
-        id = "mf1", courseId = "az-204", moduleId = "az-compute", name = "exam-guide.pdf",
+        id = "mf1", courseId = "az-204", moduleId = "az-compute", topicId = "az-app-service", name = "exam-guide.pdf",
         mimeType = "application/pdf", sizeBytes = 2_400_000, path = "couples/c1/modules/az-204/az-compute/mf1",
         uploadedBy = "u1", uploadedAtIso = "2026-11-01T09:00:00Z",
     )

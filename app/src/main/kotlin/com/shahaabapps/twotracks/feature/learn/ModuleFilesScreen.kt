@@ -21,6 +21,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Description
+import androidx.compose.material.icons.filled.DriveFileRenameOutline
 import androidx.compose.material.icons.filled.Image
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
@@ -69,10 +70,12 @@ import kotlinx.coroutines.launch
 import java.time.Instant
 import javax.inject.Inject
 
-/** The files attached to one module, and whatever is on its way up. */
+/** The files attached to one module or one topic, and whatever is on its way up. */
 data class ModuleFilesUiState(
     val courseTitle: String = "",
     val moduleTitle: String = "",
+    /** The topic's title when the screen is a topic's, blank when it is a module's. */
+    val topicTitle: String = "",
     val files: List<ModuleFile> = emptyList(),
     /** The fraction of the upload in flight, or null when nothing is going up. */
     val uploading: Float? = null,
@@ -90,11 +93,22 @@ class ModuleFilesViewModel @Inject constructor(
 
     private val courseId = savedStateHandle.get<String>("courseId").orEmpty()
     private val moduleId = savedStateHandle.get<String>("moduleId").orEmpty()
+
+    /**
+     * The topic this screen is for, or blank for the module as a whole.
+     *
+     * The query reads the whole module either way and the list is narrowed
+     * here. Two equality filters need no index of their own and a third
+     * would, and a module holds a handful of files, not a thousand: the
+     * saving would be invisible and the failure would be on a phone.
+     */
+    private val topicId = savedStateHandle.get<String>("topicId").orEmpty()
     private val uploading = MutableStateFlow<Float?>(null)
     private val message = MutableStateFlow<String?>(null)
 
     private val course = Courses.all.firstOrNull { it.id == courseId }
     private val module = course?.modules?.firstOrNull { it.id == moduleId }
+    private val topic = module?.topics?.firstOrNull { it.id == topicId }
 
     @OptIn(ExperimentalCoroutinesApi::class)
     val uiState: StateFlow<ModuleFilesUiState> =
@@ -108,7 +122,8 @@ class ModuleFilesViewModel @Inject constructor(
             ModuleFilesUiState(
                 courseTitle = course?.title.orEmpty(),
                 moduleTitle = module?.title.orEmpty(),
-                files = files.orEmpty(),
+                topicTitle = topic?.title.orEmpty(),
+                files = files.orEmpty().filter { topicId.isBlank() || it.topicId == topicId },
                 uploading = progress,
                 message = msg,
                 loaded = files != null,
@@ -126,7 +141,7 @@ class ModuleFilesViewModel @Inject constructor(
         val session = sessionStore.current() ?: return@launch
         val (name, size) = describe(uri)
         val file = ModuleFile(
-            courseId = courseId, moduleId = moduleId, name = name,
+            courseId = courseId, moduleId = moduleId, topicId = topicId, name = name,
             mimeType = context.contentResolver.getType(uri).orEmpty(),
             sizeBytes = size, uploadedBy = session.uid, uploadedAtIso = Instant.now().toString(),
         )
@@ -140,6 +155,26 @@ class ModuleFilesViewModel @Inject constructor(
                 // and the stack trace is what says which half failed.
                 Log.w("ModuleFiles", "upload of ${file.name} failed", result.error)
                 "Could not add ${file.name} — ${reason(result.error)}"
+            }
+        }
+    }
+
+    /**
+     * Gives the file another name.
+     *
+     * Blank is refused rather than written: a row with no name is a row
+     * nobody can tell from the next one, and the only way back from it would
+     * be to delete the file.
+     */
+    fun rename(file: ModuleFile, name: String) = viewModelScope.launch {
+        val session = sessionStore.current() ?: return@launch
+        val wanted = name.trim()
+        if (wanted.isEmpty() || wanted == file.name) return@launch
+        message.value = when (val result = repository.rename(session.coupleId, file, wanted)) {
+            is AppResult.Success -> "Now called $wanted"
+            is AppResult.Failure -> {
+                Log.w("ModuleFiles", "rename of ${file.name} failed", result.error)
+                "Could not rename ${file.name} — ${reason(result.error)}"
             }
         }
     }
@@ -211,6 +246,7 @@ fun ModuleFilesScreen(
         // Pictures and PDFs are drawn in the app; anything else is handed to
         // whatever on the phone knows what to do with it.
         onOpen = { if (it.isViewable) onView(it.id) else viewModel.open(it) },
+        onRename = viewModel::rename,
         onDelete = viewModel::delete,
         onMessageShown = viewModel::messageShown,
     )
@@ -230,6 +266,7 @@ fun ModuleFilesContent(
     onBack: () -> Unit,
     onAdd: () -> Unit,
     onOpen: (ModuleFile) -> Unit,
+    onRename: (ModuleFile, String) -> Unit = { _, _ -> },
     onDelete: (ModuleFile) -> Unit,
     onMessageShown: () -> Unit = {},
 ) {
@@ -237,10 +274,17 @@ fun ModuleFilesContent(
     // bin asks first. It sits a few millimetres from the row that opens the
     // file, which is exactly the distance a thumb gets wrong.
     var confirming by remember { mutableStateOf<ModuleFile?>(null) }
+    var renaming by remember { mutableStateOf<ModuleFile?>(null) }
     DetailScaffold(
-        title = state.moduleTitle.ifBlank { "Files" },
+        // Named after whichever it is the files of, so a lesson's files and
+        // its module's are told apart by the title rather than by memory.
+        title = state.topicTitle.ifBlank { state.moduleTitle }.ifBlank { "Files" },
         onBack = onBack,
-        eyebrow = listOfNotNull(state.courseTitle.ifBlank { null }, "FILES").joinToString(" · ").uppercase(),
+        eyebrow = listOfNotNull(
+            state.courseTitle.ifBlank { null },
+            state.topicTitle.takeIf { it.isNotBlank() }?.let { state.moduleTitle.ifBlank { null } },
+            "FILES",
+        ).joinToString(" · ").uppercase(),
         modifier = Modifier.testTag(MODULE_FILES_SCREEN),
     ) { inner ->
         val snackbar = remember { SnackbarHostState() }
@@ -267,16 +311,28 @@ fun ModuleFilesContent(
             if (state.files.isEmpty() && state.uploading == null) {
                 item {
                     Text(
-                        "Nothing here yet. Anything you add — a diagram, a cheat sheet, a photo of a whiteboard — is kept in your shared space and shows up for both of you.",
+                        if (state.topicTitle.isNotBlank())
+                            "Nothing on this lesson yet. Anything you add here — a diagram, a worked example, a photo of what you scribbled — stays with the lesson and shows up for both of you."
+                        else
+                            "Nothing here yet. Anything you add — a diagram, a cheat sheet, a photo of a whiteboard — is kept in your shared space and shows up for both of you.",
                         style = MaterialTheme.typography.bodyMedium, color = AppTheme.colors.secondaryLabel,
                         modifier = Modifier.padding(top = Spacing.sm),
                     )
                 }
             }
-            items(state.files.size) { i -> FileRow(state.files[i], onOpen) { confirming = it } }
+            items(state.files.size) { i ->
+                FileRow(state.files[i], onOpen, onAskRename = { renaming = it }, onAskDelete = { confirming = it })
+            }
         }
         SnackbarHost(snackbar, modifier = Modifier.align(Alignment.BottomCenter))
         }
+    }
+    renaming?.let { file ->
+        RenameFileDialog(
+            file = file,
+            onConfirm = { name -> renaming = null; onRename(file, name) },
+            onDismiss = { renaming = null },
+        )
     }
     confirming?.let { file ->
         RemoveFileDialog(
@@ -288,7 +344,12 @@ fun ModuleFilesContent(
 }
 
 @Composable
-private fun FileRow(file: ModuleFile, onOpen: (ModuleFile) -> Unit, onAskDelete: (ModuleFile) -> Unit) {
+private fun FileRow(
+    file: ModuleFile,
+    onOpen: (ModuleFile) -> Unit,
+    onAskRename: (ModuleFile) -> Unit,
+    onAskDelete: (ModuleFile) -> Unit,
+) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
@@ -303,6 +364,14 @@ private fun FileRow(file: ModuleFile, onOpen: (ModuleFile) -> Unit, onAskDelete:
         Column(modifier = Modifier.weight(1f).padding(horizontal = Spacing.sm)) {
             Text(file.name, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.SemiBold)
             Text(file.readableSize, style = MaterialTheme.typography.labelMedium, color = AppTheme.colors.secondaryLabel)
+        }
+        Box(
+            contentAlignment = Alignment.Center,
+            modifier = Modifier
+                .size(40.dp)
+                .clickable(role = Role.Button, onClickLabel = "Rename ${file.name}", onClick = { onAskRename(file) }),
+        ) {
+            Icon(Icons.Filled.DriveFileRenameOutline, contentDescription = null, tint = AppTheme.colors.secondaryLabel, modifier = Modifier.size(20.dp))
         }
         Box(
             contentAlignment = Alignment.Center,

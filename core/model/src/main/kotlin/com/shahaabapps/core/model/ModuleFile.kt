@@ -1,8 +1,9 @@
 package com.shahaabapps.core.model
 
 /**
- * A file one of you attached to a module: a diagram from the exam guide, a
- * cheat sheet, a photo of a whiteboard, the PDF a colleague sent.
+ * A file one of you attached to a module, or to one topic inside it: a
+ * diagram from the exam guide, a cheat sheet, a photo of a whiteboard, the
+ * PDF a colleague sent.
  *
  * The bytes live in the couple's own Storage folder and only the two of you
  * can read them; this record is the Firestore half, which is what the app
@@ -14,6 +15,14 @@ data class ModuleFile(
     val id: String = "",
     val courseId: String = "",
     val moduleId: String = "",
+    /**
+     * The topic it was attached to, or blank for the module as a whole.
+     *
+     * Blank rather than absent because that is what everything attached
+     * before topics could hold files already is, and a file that belongs to
+     * the module is a real thing to be rather than a gap in the record.
+     */
+    val topicId: String = "",
     /** What the file was called when it was picked, shown as the row's title. */
     val name: String = "",
     val mimeType: String = "",

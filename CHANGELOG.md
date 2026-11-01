@@ -3,6 +3,13 @@
 All notable changes to Two Tracks. Versions follow `version.properties`; the
 build number is appended by CI (for example `0.1.0 (build 12)`).
 
+## [0.99.3] - 2026-11-01
+### Fixed
+- A pinch on a PDF holds the page under the fingers instead of growing it towards the top left corner. Zooming re-measures the column from its own corner, so the scroll has to move with it; where the page is at any zoom is now worked out rather than guessed, and the whole column shares one sideways scroll so that half of it is a single number. A double tap is anchored the same way, on the point tapped.
+### Added
+- Files can be attached to a single lesson, not only to the module. A lesson carries a Files row saying how many it has, what is added there stays with that lesson, and the arrows in the viewer move between that lesson's files rather than the whole module's.
+- A file can be renamed. Only the record changes — the bytes are stored under the file's id — so nothing moves and nothing can be lost, which is what makes it safe to put next to the bin.
+
 ## [0.99.2] - 2026-11-01
 ### Changed
 - A tablet in landscape no longer strands the app in a 720dp column with 280dp of empty page either side: the gutter is capped at 40dp and the column widens past the readable measure to fill what is left. A tablet held upright, and every phone, is laid out exactly as before.

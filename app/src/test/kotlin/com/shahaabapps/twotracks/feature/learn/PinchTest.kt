@@ -42,6 +42,7 @@ class PinchTest {
     val compose = createComposeRule()
 
     private val factors = mutableListOf<Float>()
+    private val centroids = mutableListOf<Offset>()
     private lateinit var listState: LazyListState
 
     private fun show() {
@@ -52,7 +53,7 @@ class PinchTest {
                 modifier = Modifier
                     .fillMaxSize()
                     .testTag(COLUMN)
-                    .pinchable { factors += it },
+                    .pinchable { factor, at -> factors += factor; centroids += at },
             ) {
                 items(40) { Text("Page ${it + 1}", modifier = Modifier.height(200.dp)) }
             }
@@ -89,6 +90,29 @@ class PinchTest {
         // Spread apart, so every step of it is larger than it was.
         assertTrue("the pinch read as $factors, which is not growing", factors.all { it > 1f })
         assertTrue("the fingers moved the page as well as zooming it", listState.firstVisibleItemIndex == 0)
+    }
+
+    @Test
+    fun `the pinch says where the fingers are, not just how far apart`() {
+        show()
+
+        // Both fingers in the top left quarter: a zoom that does not know
+        // this can only grow the page from the corner of the screen.
+        val bounds = compose.onNodeWithTag(COLUMN).fetchSemanticsNode().size
+        val here = Offset(bounds.width * 0.25f, bounds.height * 0.25f)
+        compose.onNodeWithTag(COLUMN).performTouchInput {
+            down(0, here - Offset(40f, 0f))
+            down(1, here + Offset(40f, 0f))
+            moveTo(0, here - Offset(160f, 0f))
+            moveTo(1, here + Offset(160f, 0f))
+            up(0)
+            up(1)
+        }
+        compose.waitForIdle()
+
+        assertTrue("nothing was reported as a pinch", centroids.isNotEmpty())
+        val last = centroids.last()
+        assertTrue("the centroid came back as $last, not near $here", (last - here).getDistance() < 40f)
     }
 
     @Test

@@ -35,6 +35,7 @@ class FileViewerTapTest(look: AppLook) : TapTest(look) {
             onPrevious = record("previous"),
             onNext = record("next"),
             onOpenElsewhere = record("elsewhere"),
+            onRename = { calls += "rename($it)" },
             onDelete = record("delete"),
         )
     }
@@ -52,6 +53,17 @@ class FileViewerTapTest(look: AppLook) : TapTest(look) {
         expect()
         tapAction("Remove whiteboard.jpg for both of you")
         expect("delete")
+    }
+
+    @Test
+    fun `a file can be renamed while it is on screen`() {
+        viewer(FileViewerUiState(file = one, siblings = listOf(one)))
+        tapAction("Rename whiteboard.jpg")
+        // A question, like the bin's: nothing is written until it is answered.
+        expect()
+        type("Slot swap, drawn out.jpg")
+        tap("Rename")
+        expect("rename(Slot swap, drawn out.jpg)")
     }
 
     @Test

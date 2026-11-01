@@ -177,6 +177,25 @@ class DesignPreviewActivity : ComponentActivity() {
                         }
                         // The question asked before an attachment is removed:
                         //   --es screen removefile
+                        // The rename question over the list it is asked from:
+                        //   --es screen renamefile
+                        "renamefile" -> {
+                            val scan = com.shahaabapps.core.model.ModuleFile(
+                                id = "f3", courseId = "az-204", moduleId = "az-compute", topicId = "az-app-service",
+                                name = "IMG_20261101_094312.jpg", mimeType = "image/jpeg", sizeBytes = 1_240_000,
+                                uploadedAtIso = "2026-11-01T09:43:00Z",
+                            )
+                            com.shahaabapps.twotracks.feature.learn.ModuleFilesContent(
+                                state = com.shahaabapps.twotracks.feature.learn.ModuleFilesUiState(
+                                    courseTitle = "AZ-204", moduleTitle = "Compute", topicTitle = "App Service",
+                                    files = listOf(scan), loaded = true,
+                                ),
+                                onBack = {}, onAdd = {}, onOpen = {}, onDelete = {},
+                            )
+                            com.shahaabapps.twotracks.feature.learn.RenameFileDialog(
+                                file = scan, onConfirm = {}, onDismiss = {},
+                            )
+                        }
                         "removefile" -> {
                             val picture = com.shahaabapps.core.model.ModuleFile(
                                 id = "f2", courseId = "az-204", moduleId = "az-compute", name = "whiteboard.png",

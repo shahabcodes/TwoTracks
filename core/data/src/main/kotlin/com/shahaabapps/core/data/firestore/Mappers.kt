@@ -214,12 +214,12 @@ object Mappers {
     )
 
     fun ModuleFile.toMap() = mapOf(
-        "courseId" to courseId, "moduleId" to moduleId, "name" to name, "mimeType" to mimeType,
+        "courseId" to courseId, "moduleId" to moduleId, "topicId" to topicId, "name" to name, "mimeType" to mimeType,
         "sizeBytes" to sizeBytes, "path" to path, "uploadedBy" to uploadedBy, "uploadedAtIso" to uploadedAtIso,
     )
 
     fun Doc.toModuleFile() = ModuleFile(
-        id = id, courseId = str("courseId"), moduleId = str("moduleId"), name = str("name"),
+        id = id, courseId = str("courseId"), moduleId = str("moduleId"), topicId = str("topicId"), name = str("name"),
         mimeType = str("mimeType"), sizeBytes = lng("sizeBytes"), path = str("path"),
         uploadedBy = str("uploadedBy"), uploadedAtIso = str("uploadedAtIso"),
     )

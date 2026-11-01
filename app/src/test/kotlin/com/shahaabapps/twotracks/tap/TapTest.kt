@@ -9,6 +9,8 @@ import androidx.compose.ui.test.hasContentDescription
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.performSemanticsAction
+import androidx.compose.ui.test.hasSetTextAction
+import androidx.compose.ui.test.performTextReplacement
 import androidx.compose.ui.test.performScrollToNode
 import com.shahaabapps.core.ui.theme.AppLook
 import com.shahaabapps.core.ui.theme.AppTheme
@@ -81,6 +83,18 @@ abstract class TapTest(protected val look: AppLook) {
 
     protected fun tap(text: String, index: Int = 0, substring: Boolean = false) {
         node(text, index, substring).press()
+        compose.waitForIdle()
+    }
+
+    /**
+     * Replaces what is in the only field on screen with [text].
+     *
+     * By what it can be typed into rather than by what it says: the name in
+     * a rename field is also the name on the row behind the dialog, and
+     * matching on the text finds whichever of the two came first.
+     */
+    protected fun type(text: String) {
+        compose.onNode(hasSetTextAction()).performTextReplacement(text)
         compose.waitForIdle()
     }
 
