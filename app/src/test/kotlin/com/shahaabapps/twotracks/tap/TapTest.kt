@@ -89,9 +89,16 @@ abstract class TapTest(protected val look: AppLook) {
         compose.waitForIdle()
     }
 
+    /** Whether any control on screen has its click labelled [label]. */
+    protected fun clickable(label: String): Boolean =
+        compose.onAllNodes(clickLabel(label)).fetchSemanticsNodes().isNotEmpty()
+
+    private fun clickLabel(label: String) =
+        SemanticsMatcher("click label $label") { it.config.getOrNull(SemanticsActions.OnClick)?.label == label }
+
     /** Presses the control whose click is labelled [label] for accessibility, as an icon-only one is. */
     protected fun tapAction(label: String, index: Int = 0) {
-        find(SemanticsMatcher("click label $label") { it.config.getOrNull(SemanticsActions.OnClick)?.label == label }, index).press()
+        find(clickLabel(label), index).press()
         compose.waitForIdle()
     }
 

@@ -50,7 +50,8 @@ class ModuleFilesTapTest(look: AppLook) : TapTest(look) {
         // The bin asks first: nothing is deleted until the dialog is answered.
         tapAction("Remove exam-guide.pdf")
         expect()
-        tap("Remove")
+        assertTrue("the dialog does not say how to confirm in the $look look", seen("Hold to remove"))
+        tapAction("Remove exam-guide.pdf for both of you")
         expect("delete(f1)")
     }
 

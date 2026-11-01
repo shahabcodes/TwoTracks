@@ -3,6 +3,12 @@
 All notable changes to Two Tracks. Versions follow `version.properties`; the
 build number is appended by CI (for example `0.1.0 (build 12)`).
 
+## [0.99.0] - 2026-11-01
+### Added
+- Pictures and PDFs attached to a module open in the app itself: a picture pinched to zoom, dragged to move and double-tapped to fill the screen, a PDF as a scrolling column of pages with a page count and a double tap to enlarge it. Arrows move between the attachments of the same module, and anything the app cannot draw is still handed to whatever app can.
+### Changed
+- Removing an attachment now asks with the app's own dialog, showing the picture it is about to remove, and the confirm is held for a moment rather than tapped.
+
 ## [0.98.0] - 2026-11-01
 ### Added
 - Files against a module. Attach an image, a PDF or a document to any module and it is kept in your shared space, listed for both of you, and opened with whatever app handles that kind.

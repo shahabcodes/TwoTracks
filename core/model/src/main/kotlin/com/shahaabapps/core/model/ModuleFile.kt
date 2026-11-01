@@ -27,6 +27,16 @@ data class ModuleFile(
     /** True for something the app can show as a picture rather than hand to another app. */
     val isImage: Boolean get() = mimeType.startsWith("image/")
 
+    /**
+     * Some providers hand back a blank or generic type for a file they are
+     * only passing through, so the name is the fallback: a .pdf that arrived
+     * as application/octet-stream is still a .pdf.
+     */
+    val isPdf: Boolean get() = mimeType == "application/pdf" || name.endsWith(".pdf", ignoreCase = true)
+
+    /** True when the app draws this itself, instead of handing it to another app. */
+    val isViewable: Boolean get() = isImage || isPdf
+
     /** "2.4 MB", or "812 KB" — what a person wants to read, not bytes. */
     val readableSize: String get() = when {
         sizeBytes >= 1_000_000 -> "%.1f MB".format(sizeBytes / 1_000_000.0)
