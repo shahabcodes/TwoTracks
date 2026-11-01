@@ -21,14 +21,12 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.Image
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -177,7 +175,11 @@ class ModuleFilesViewModel @Inject constructor(
 }
 
 @Composable
-fun ModuleFilesScreen(onBack: () -> Unit, viewModel: ModuleFilesViewModel = hiltViewModel()) {
+fun ModuleFilesScreen(
+    onBack: () -> Unit,
+    onView: (String) -> Unit,
+    viewModel: ModuleFilesViewModel = hiltViewModel(),
+) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
     val picker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
@@ -192,7 +194,9 @@ fun ModuleFilesScreen(onBack: () -> Unit, viewModel: ModuleFilesViewModel = hilt
         state = state,
         onBack = onBack,
         onAdd = { picker.launch(PICKABLE) },
-        onOpen = viewModel::open,
+        // Pictures and PDFs are drawn in the app; anything else is handed to
+        // whatever on the phone knows what to do with it.
+        onOpen = { if (it.isViewable) onView(it.id) else viewModel.open(it) },
         onDelete = viewModel::delete,
         onMessageShown = viewModel::messageShown,
     )
@@ -261,16 +265,10 @@ fun ModuleFilesContent(
         }
     }
     confirming?.let { file ->
-        AlertDialog(
-            onDismissRequest = { confirming = null },
-            title = { Text("Remove ${file.name}?") },
-            text = { Text("It goes for both of you, and it cannot be brought back.") },
-            confirmButton = {
-                TextButton(onClick = { confirming = null; onDelete(file) }) { Text("Remove") }
-            },
-            dismissButton = {
-                TextButton(onClick = { confirming = null }) { Text("Keep it") }
-            },
+        RemoveFileDialog(
+            file = file,
+            onConfirm = { confirming = null; onDelete(file) },
+            onDismiss = { confirming = null },
         )
     }
 }

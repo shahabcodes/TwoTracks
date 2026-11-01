@@ -1,5 +1,6 @@
 package com.shahaabapps.core.data.files
 
+import android.content.Context
 import android.net.Uri
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.storage.FirebaseStorage
@@ -11,9 +12,11 @@ import com.shahaabapps.core.data.firestore.Paths
 import com.shahaabapps.core.data.firestore.asFlow
 import com.shahaabapps.core.data.firestore.sub
 import com.shahaabapps.core.model.ModuleFile
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.tasks.await
+import java.io.File
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -56,12 +59,24 @@ interface ModuleFilesRepository {
     /** A link to the bytes, for handing to whatever app opens that kind of file. */
     suspend fun url(file: ModuleFile): AppResult<String>
 
+    /**
+     * The bytes on this phone, so the app can draw them itself.
+     *
+     * Fetched once and kept in the cache directory, which is what makes a
+     * second look at the same page instant and makes it work on the train.
+     * A PDF has to be a real file — the renderer takes a file descriptor,
+     * not a stream — and an image may as well be the same file, so both go
+     * through here. [onProgress] reports a fraction while it downloads.
+     */
+    suspend fun localFile(file: ModuleFile, onProgress: (Float) -> Unit = {}): AppResult<File>
+
     /** Removes the bytes and then the record. */
     suspend fun delete(coupleId: String, file: ModuleFile): AppResult<Unit>
 }
 
 @Singleton
 class FirebaseModuleFilesRepository @Inject constructor(
+    @ApplicationContext private val context: Context,
     private val firestore: FirebaseFirestore,
     private val storage: FirebaseStorage,
 ) : ModuleFilesRepository {
@@ -104,6 +119,31 @@ class FirebaseModuleFilesRepository @Inject constructor(
         storage.getReference(file.path).downloadUrl.await().toString()
     }
 
+    override suspend fun localFile(file: ModuleFile, onProgress: (Float) -> Unit): AppResult<File> =
+        runCatchingResult {
+            val folder = File(context.cacheDir, CACHE_FOLDER).apply { mkdirs() }
+            // Named by the Firestore id, which is unique across the couple and
+            // never changes, so one file's cache entry can never be served for
+            // another's — which a name like "scan.pdf" could not promise.
+            val target = File(folder, file.id)
+            // A size match is the whole check: these records are written once
+            // at upload and the bytes beneath them are never rewritten, so a
+            // file of the right length is the right file, already here.
+            if (file.sizeBytes > 0 && target.length() == file.sizeBytes) return@runCatchingResult target
+            val partial = File(folder, file.id + ".part")
+            storage.getReference(file.path).getFile(partial)
+                .addOnProgressListener { s ->
+                    if (s.totalByteCount > 0) onProgress(s.bytesTransferred.toFloat() / s.totalByteCount)
+                }
+                .await()
+            // Only a finished download becomes the cache entry. Downloading
+            // straight to [target] would leave half a PDF looking like a whole
+            // one to the size check above the next time it is opened.
+            target.delete()
+            check(partial.renameTo(target)) { "could not keep ${file.name}" }
+            target
+        }
+
     override suspend fun delete(coupleId: String, file: ModuleFile): AppResult<Unit> = runCatchingResult {
         // Bytes first: if this fails the record stays and the file is still
         // listed, which is recoverable. The other order leaves bytes nobody
@@ -114,6 +154,9 @@ class FirebaseModuleFilesRepository @Inject constructor(
     }
 
     private companion object {
+        /** Under cacheDir, so the system may clear it when the phone is short of room. */
+        const val CACHE_FOLDER = "module-files"
+
         /** couples/{coupleId}/modules/{courseId}/{moduleId}/{fileId} — see firebase/storage.rules. */
         fun path(coupleId: String, courseId: String, moduleId: String, fileId: String) =
             "couples/$coupleId/modules/$courseId/$moduleId/$fileId"

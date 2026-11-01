@@ -74,6 +74,7 @@ import java.time.LocalDate
  * The frame itself — the tabs or, on a wide window, the rail, with the playing bar: shell (--es tab learn|us).
  * Departures only (with --es look departures): signin, signup, reset, role, space, join, lock.
  * The tour over its screen at a step: guide, with --ei step N.
+ * An attachment in the viewer: viewer (--es kind pdf for the PDF rather than the picture); removefile for its delete question.
  * The podcast: listen (--ez transcript true for Parallel's transcript, --ez paused true, --ei line N for the board at that line, --es topic ID for another episode's board, --ez cover true for the cover instead), nowplaying (the bar over Learn), aztopic (a topic with its Listen card), live (the real player and its notification; --es topic ID).
  * Both launcher icons, as a launcher crops them: icons. --es icon departures (or parallel) runs the real icon switch;
  * --es setlook departures saves the look and closes, for the whole path through the app itself.
@@ -153,6 +154,44 @@ class DesignPreviewActivity : ComponentActivity() {
                             ),
                             onBack = {}, onAdd = {}, onOpen = {}, onDelete = {},
                         )
+                        // The viewer, over a real PNG or a real multi-page PDF:
+                        //   --es screen viewer [--es kind pdf]
+                        "viewer" -> {
+                            val pdf = intent?.getStringExtra("kind") == "pdf"
+                            val picture = com.shahaabapps.core.model.ModuleFile(
+                                id = "f2", courseId = "az-204", moduleId = "az-compute", name = "whiteboard.png",
+                                mimeType = "image/png", sizeBytes = 812_000, uploadedAtIso = "2026-10-30T18:20:00Z",
+                            )
+                            val guide = com.shahaabapps.core.model.ModuleFile(
+                                id = "f1", courseId = "az-204", moduleId = "az-compute", name = "exam-guide.pdf",
+                                mimeType = "application/pdf", sizeBytes = 2_400_000, uploadedAtIso = "2026-11-01T09:00:00Z",
+                            )
+                            com.shahaabapps.twotracks.feature.learn.FileViewerContent(
+                                state = com.shahaabapps.twotracks.feature.learn.FileViewerUiState(
+                                    file = if (pdf) guide else picture,
+                                    siblings = listOf(guide, picture),
+                                    local = if (pdf) SampleFiles.pdf(this) else SampleFiles.image(this),
+                                ),
+                                onBack = {}, onPrevious = {}, onNext = {}, onOpenElsewhere = {}, onDelete = {},
+                            )
+                        }
+                        // The question asked before an attachment is removed:
+                        //   --es screen removefile
+                        "removefile" -> {
+                            val picture = com.shahaabapps.core.model.ModuleFile(
+                                id = "f2", courseId = "az-204", moduleId = "az-compute", name = "whiteboard.png",
+                                mimeType = "image/png", sizeBytes = 812_000, uploadedAtIso = "2026-10-30T18:20:00Z",
+                            )
+                            com.shahaabapps.twotracks.feature.learn.FileViewerContent(
+                                state = com.shahaabapps.twotracks.feature.learn.FileViewerUiState(
+                                    file = picture, siblings = listOf(picture), local = SampleFiles.image(this),
+                                ),
+                                onBack = {}, onPrevious = {}, onNext = {}, onOpenElsewhere = {}, onDelete = {},
+                            )
+                            com.shahaabapps.twotracks.feature.learn.RemoveFileDialog(
+                                file = picture, preview = SampleFiles.image(this), onConfirm = {}, onDismiss = {},
+                            )
+                        }
                         "aztopic" -> TopicContent(
                             ListenSamples.topic(), speaker = null, voiceMissing = false, recognizer = null, onBack = {}, onOpenTopic = { _, _ -> }, onOpenQuiz = { _, _ -> },
                             onInstallVoice = {}, onChecked = { _, _, _, _ -> }, onConfidence = { _, _ -> }, onMarkLearned = {}, onUnlearn = {}, onMessageShown = {}, onListen = {},
