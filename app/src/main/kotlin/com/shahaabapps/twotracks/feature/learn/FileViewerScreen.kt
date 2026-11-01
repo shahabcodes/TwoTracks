@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
 import android.net.Uri
+import android.util.Log
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.Image
@@ -180,7 +181,10 @@ class FileViewerViewModel @Inject constructor(
                     downloading.value = 0f
                     when (val result = repository.localFile(file) { downloading.value = it }) {
                         is AppResult.Success -> local.value = result.data
-                        is AppResult.Failure -> error.value = "Could not download ${file.name}"
+                        is AppResult.Failure -> {
+                            Log.w("FileViewer", "download of ${file.name} failed", result.error)
+                            error.value = "Could not download ${file.name} — ${reason(result.error)}"
+                        }
                     }
                     downloading.value = null
                 }
@@ -211,7 +215,7 @@ class FileViewerViewModel @Inject constructor(
                 runCatching { context.startActivity(intent) }
                     .onFailure { error.value = "Nothing on this phone opens ${file.name}" }
             }
-            is AppResult.Failure -> error.value = "Could not open ${file.name}"
+            is AppResult.Failure -> error.value = "Could not open ${file.name} — ${reason(url.error)}"
         }
     }
 
@@ -228,8 +232,15 @@ class FileViewerViewModel @Inject constructor(
         // about to change underneath it: the one after, or failing that the
         // one before, which is where a person's eye already is.
         val nextId = list.getOrNull(at + 1)?.id ?: list.getOrNull(at - 1)?.id
-        repository.delete(session.coupleId, file)
-        if (nextId == null) onEmpty() else currentId.value = nextId
+        when (val result = repository.delete(session.coupleId, file)) {
+            is AppResult.Success -> if (nextId == null) onEmpty() else currentId.value = nextId
+            is AppResult.Failure -> {
+                Log.w("FileViewer", "removal of ${file.name} failed", result.error)
+                // Stays on the file: it is still there, and leaving the screen
+                // as though it had gone is how a person stops trusting either.
+                error.value = "Could not remove ${file.name} — ${reason(result.error)}"
+            }
+        }
     }
 }
 
