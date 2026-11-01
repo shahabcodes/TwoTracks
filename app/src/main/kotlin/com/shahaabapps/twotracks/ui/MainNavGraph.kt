@@ -3,6 +3,7 @@ package com.shahaabapps.twotracks.ui
 import com.shahaabapps.twotracks.feature.learn.DeckScreen
 import com.shahaabapps.twotracks.feature.learn.CourseScreen
 import com.shahaabapps.twotracks.feature.learn.FileViewerScreen
+import com.shahaabapps.twotracks.feature.learn.InkNoteScreen
 import com.shahaabapps.twotracks.feature.learn.LearnScreen
 import com.shahaabapps.twotracks.feature.learn.ModuleFilesScreen
 import com.shahaabapps.twotracks.feature.learn.NotesScreen
@@ -124,6 +125,15 @@ object Routes {
      */
     const val MODULE_FILES = "learn/{courseId}/files/{moduleId}?topicId={topicId}"
     const val FILE_VIEWER = "learn/{courseId}/files/{moduleId}/view/{fileId}?topicId={topicId}"
+
+    /**
+     * A page of handwriting, open for writing on.
+     *
+     * The note's id is optional because a blank one is how a new page is
+     * asked for: the editor makes the note on the first save, which is also
+     * the first time there is anything to call it.
+     */
+    const val INK_NOTE = "learn/{courseId}/ink/{moduleId}/{topicId}?noteId={noteId}"
     const val DECK = "learn/{courseId}/deck"
     const val LISTEN = "learn/{courseId}/listen/{topicId}"
     const val NOTES = "learn/{courseId}/notes/{topicId}"
@@ -154,6 +164,8 @@ object Routes {
         "learn/$courseId/files/$moduleId?topicId=$topicId"
     fun fileViewer(courseId: String, moduleId: String, fileId: String, topicId: String = "") =
         "learn/$courseId/files/$moduleId/view/$fileId?topicId=$topicId"
+    fun inkNote(courseId: String, moduleId: String, topicId: String, noteId: String = "") =
+        "learn/$courseId/ink/$moduleId/$topicId?noteId=$noteId"
     fun deck(courseId: String) = "learn/$courseId/deck"
     fun listen(courseId: String, topicId: String) = "learn/$courseId/listen/$topicId"
     fun notes(courseId: String, topicId: String) = "learn/$courseId/notes/$topicId"
@@ -575,6 +587,16 @@ fun MainNavGraph(session: AppSession, widgetLaunch: WidgetLaunch) {
             ) { entry ->
                 ModuleFilesScreen(
                     onBack = { navController.popBackStack() },
+                    onWrite = { noteId ->
+                        navController.navigate(
+                            Routes.inkNote(
+                                entry.arguments?.getString("courseId").orEmpty(),
+                                entry.arguments?.getString("moduleId").orEmpty(),
+                                entry.arguments?.getString("topicId").orEmpty(),
+                                noteId,
+                            ),
+                        )
+                    },
                     onView = { fileId ->
                         navController.navigate(
                             Routes.fileViewer(
@@ -600,6 +622,23 @@ fun MainNavGraph(session: AppSession, widgetLaunch: WidgetLaunch) {
                 ),
             ) {
                 FileViewerScreen(onBack = { navController.popBackStack() })
+            }
+            composable(
+                Routes.INK_NOTE,
+                arguments = listOf(
+                    navArgument("courseId") { type = NavType.StringType },
+                    navArgument("moduleId") { type = NavType.StringType },
+                    navArgument("topicId") { type = NavType.StringType },
+                    navArgument("noteId") { type = NavType.StringType; defaultValue = "" },
+                ),
+                // Up from below and down again, as the player comes: it is a
+                // thing you step into and out of, not a place in the course.
+                enterTransition = { slideInVertically(tween(360, easing = FastOutSlowInEasing)) { it } },
+                exitTransition = { fadeOut(tween(200)) },
+                popEnterTransition = { fadeIn(tween(200)) },
+                popExitTransition = { slideOutVertically(tween(320, easing = FastOutSlowInEasing)) { it } },
+            ) {
+                InkNoteScreen(onBack = { navController.popBackStack() })
             }
             composable(Routes.TOPIC, arguments = listOf(navArgument("courseId") { type = NavType.StringType }, navArgument("topicId") { type = NavType.StringType })) {
                 TopicScreen(

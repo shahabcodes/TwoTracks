@@ -177,6 +177,51 @@ class DesignPreviewActivity : ComponentActivity() {
                         }
                         // The question asked before an attachment is removed:
                         //   --es screen removefile
+                        // A page of handwriting, with something on it:
+                        //   --es screen ink [--es kind blank]
+                        "ink" -> {
+                            val blank = intent?.getStringExtra("kind") == "blank"
+                            com.shahaabapps.twotracks.feature.learn.InkNoteContent(
+                                state = com.shahaabapps.twotracks.feature.learn.InkNoteUiState(
+                                    note = if (blank) com.shahaabapps.core.model.InkNote() else com.shahaabapps.core.model.InkNote(
+                                        id = "n1", courseId = "az-204", moduleId = "az-compute",
+                                        topicId = "az-app-service", title = "Slot swap, worked",
+                                        strokeCount = SampleInk.page().strokes.size,
+                                    ),
+                                    page = if (blank) com.shahaabapps.core.model.InkPage() else SampleInk.page(),
+                                    heading = "App Service",
+                                    loaded = true,
+                                    unsaved = blank,
+                                ),
+                                onBack = {}, onWrite = {}, onUndo = {}, onTool = {}, onSave = {}, onDelete = {},
+                            )
+                        }
+                        // The lesson's files and handwriting in one list:
+                        //   --es screen notes
+                        "notes" -> {
+                            val scan = com.shahaabapps.core.model.ModuleFile(
+                                id = "f3", courseId = "az-204", moduleId = "az-compute", topicId = "az-app-service",
+                                name = "Exam guide, compute.pdf", mimeType = "application/pdf",
+                                sizeBytes = 2_400_000, uploadedAtIso = "2026-11-01T09:43:00Z",
+                            )
+                            com.shahaabapps.twotracks.feature.learn.ModuleFilesContent(
+                                state = com.shahaabapps.twotracks.feature.learn.ModuleFilesUiState(
+                                    courseTitle = "AZ-204", moduleTitle = "Compute", topicTitle = "App Service",
+                                    files = listOf(scan), loaded = true,
+                                    notes = listOf(
+                                        com.shahaabapps.core.model.InkNote(
+                                            id = "n1", title = "Slot swap, worked", strokeCount = 14,
+                                            updatedAtIso = "2026-11-01T09:30:00Z",
+                                        ),
+                                        com.shahaabapps.core.model.InkNote(
+                                            id = "n2", title = "Scaling rules, my version", strokeCount = 31,
+                                            updatedAtIso = "2026-10-31T20:10:00Z",
+                                        ),
+                                    ),
+                                ),
+                                onBack = {}, onAdd = {}, onOpen = {}, onDelete = {},
+                            )
+                        }
                         // The rename question over the list it is asked from:
                         //   --es screen renamefile
                         "renamefile" -> {

@@ -7,6 +7,7 @@ import androidx.compose.ui.test.hasScrollAction
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.hasContentDescription
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.performSemanticsAction
 import androidx.compose.ui.test.hasSetTextAction
@@ -124,6 +125,10 @@ abstract class TapTest(protected val look: AppLook) {
     private fun SemanticsNodeInteraction.press() = performSemanticsAction(SemanticsActions.OnClick)
 
     protected fun seen(text: String): Boolean = compose.onAllNodesWithText(text, ignoreCase = true, substring = true).fetchSemanticsNodes().isNotEmpty()
+
+    /** Whether anything on screen carries the test tag [tag]. */
+    protected fun tagged(tag: String): Boolean =
+        compose.onAllNodesWithTag(tag).fetchSemanticsNodes().isNotEmpty()
 
     /** The calls so far are exactly [expected], and the record starts again. */
     protected fun expect(vararg expected: String) {

@@ -1,5 +1,6 @@
 package com.shahaabapps.twotracks.tap
 
+import com.shahaabapps.core.model.InkNote
 import com.shahaabapps.core.model.ModuleFile
 import com.shahaabapps.core.ui.theme.AppLook
 import com.shahaabapps.twotracks.feature.learn.ModuleFilesContent
@@ -28,8 +29,18 @@ class ModuleFilesTapTest(look: AppLook) : TapTest(look) {
             onOpen = { calls += "open(${it.id})" },
             onRename = { file, name -> calls += "rename(${file.id}, $name)" },
             onDelete = { calls += "delete(${it.id})" },
+            onWrite = record("write"),
+            onOpenNote = { calls += "note(${it.id})" },
+            onRenameNote = { note, title -> calls += "renameNote(${note.id}, $title)" },
+            onDeleteNote = { calls += "deleteNote(${it.id})" },
         )
     }
+
+    private val note = InkNote(
+        id = "n1", courseId = "az-204", moduleId = "az-compute", topicId = "az-app-service",
+        title = "Slot swap, worked", path = "couples/c/modules/az-204/az-compute/n1",
+        strokeCount = 14, createdAtIso = "2026-11-01T09:00:00Z", updatedAtIso = "2026-11-01T09:30:00Z",
+    )
 
     private fun loaded(vararg list: ModuleFile) =
         ModuleFilesUiState(courseTitle = "AZ-204", moduleTitle = "Compute", files = list.toList(), loaded = true)
@@ -96,6 +107,38 @@ class ModuleFilesTapTest(look: AppLook) : TapTest(look) {
         // what they add is going to end up.
         files(ModuleFilesUiState(courseTitle = "AZ-204", moduleTitle = "Compute", topicTitle = "App Service", loaded = true))
         assertTrue("the empty lesson reads as the module's in the $look look", seen("Nothing on this lesson yet"))
+    }
+
+    @Test
+    fun `a lesson offers a blank page to write on`() {
+        files(loaded())
+        tap("Write a note")
+        expect("write")
+    }
+
+    @Test
+    fun `handwriting is listed with the attachments, and opens`() {
+        files(loaded(diagram).copy(notes = listOf(note)))
+        assertTrue("the note is not listed in the $look look", seen("Slot swap, worked"))
+        // Told apart from the attachments by a heading, because what a note
+        // is and what a file is are different things to press on.
+        assertTrue("the two kinds are not told apart in the $look look", seen("HANDWRITTEN"))
+        tapAction("Open Slot swap, worked")
+        expect("note(n1)")
+    }
+
+    @Test
+    fun `a note is renamed and removed by its own row`() {
+        files(loaded().copy(notes = listOf(note)))
+        tapAction("Rename Slot swap, worked")
+        type("Slot swap, in full")
+        tap("Rename")
+        expect("renameNote(n1, Slot swap, in full)")
+
+        tapAction("Remove Slot swap, worked")
+        expect()
+        tap("Remove it")
+        expect("deleteNote(n1)")
     }
 
     @Test
