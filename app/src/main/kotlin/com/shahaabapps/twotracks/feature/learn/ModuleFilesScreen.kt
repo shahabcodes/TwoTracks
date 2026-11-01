@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.provider.OpenableColumns
+import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
@@ -134,14 +135,27 @@ class ModuleFilesViewModel @Inject constructor(
         uploading.value = null
         message.value = when (result) {
             is AppResult.Success -> "${file.name} added"
-            is AppResult.Failure -> "Could not add ${file.name}"
+            is AppResult.Failure -> {
+                // Logged as well as shown: the line on screen has to be short
+                // and the stack trace is what says which half failed.
+                Log.w("ModuleFiles", "upload of ${file.name} failed", result.error)
+                "Could not add ${file.name} — ${reason(result.error)}"
+            }
         }
     }
 
     fun delete(file: ModuleFile) = viewModelScope.launch {
         val session = sessionStore.current() ?: return@launch
-        repository.delete(session.coupleId, file)
-        message.value = "${file.name} removed"
+        // Said only once it is true: the row disappears either way, because
+        // the list is a live query, and "removed" over a file that is still
+        // there is worse than no message at all.
+        message.value = when (val result = repository.delete(session.coupleId, file)) {
+            is AppResult.Success -> "${file.name} removed"
+            is AppResult.Failure -> {
+                Log.w("ModuleFiles", "removal of ${file.name} failed", result.error)
+                "Could not remove ${file.name} — ${reason(result.error)}"
+            }
+        }
     }
 
     /** Hands the file to whatever app opens that kind, by a link the viewer can fetch. */
@@ -315,6 +329,38 @@ private val PICKABLE = arrayOf(
     "application/vnd.ms-powerpoint",
     "application/vnd.openxmlformats-officedocument.presentationml.presentation",
 )
+
+/**
+ * Why something to do with a file failed, in a few words a person can act on.
+ *
+ * Worth the trouble because the two likely failures want opposite responses:
+ * a connection that dropped is worth trying again in a moment, and a space
+ * that is not allowed to keep files is not going to start working on the
+ * second press. "Could not add it" says neither, which is how an afternoon
+ * goes on a problem that is one line of rules.
+ */
+internal fun reason(error: Throwable): String {
+    val text = generateSequence(error) { it.cause }
+        .mapNotNull { it.message }
+        .joinToString(" ")
+    return when {
+        text.contains("does not have permission", ignoreCase = true) ||
+            text.contains("permission denied", ignoreCase = true) ||
+            // The same thing as the API's own code, underscore and all.
+            text.contains("permission_denied", ignoreCase = true) ||
+            text.contains("not authorized", ignoreCase = true) ||
+            text.contains("unauthorized", ignoreCase = true) ->
+            "your space is not allowed to keep files yet"
+        text.contains("object does not exist", ignoreCase = true) -> "it is no longer there"
+        text.contains("quota", ignoreCase = true) -> "the storage quota is used up"
+        text.contains("retry limit", ignoreCase = true) ||
+            text.contains("network", ignoreCase = true) ||
+            text.contains("timeout", ignoreCase = true) ||
+            error is java.io.IOException -> "the connection dropped"
+        text.isNotBlank() -> text.take(90)
+        else -> "the reason was not reported"
+    }
+}
 
 const val MODULE_FILES_SCREEN = "module-files-screen"
 const val UPLOAD_BAR = "module-files-upload"

@@ -3,6 +3,10 @@
 All notable changes to Two Tracks. Versions follow `version.properties`; the
 build number is appended by CI (for example `0.1.0 (build 12)`).
 
+## [0.99.1] - 2026-11-01
+### Changed
+- A file that will not upload, download or delete now says why — that the space is not yet allowed to keep files, or that the connection dropped — instead of "Could not add it", and the failure is written to the log. Removing a file no longer reports success when it failed.
+
 ## [0.99.0] - 2026-11-01
 ### Added
 - Pictures and PDFs attached to a module open in the app itself: a picture pinched to zoom, dragged to move and double-tapped to fill the screen, a PDF as a scrolling column of pages with a page count and a double tap to enlarge it. Arrows move between the attachments of the same module, and anything the app cannot draw is still handed to whatever app can.
