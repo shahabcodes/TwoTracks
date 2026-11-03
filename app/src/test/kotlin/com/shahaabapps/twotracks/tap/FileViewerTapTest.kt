@@ -28,6 +28,13 @@ class FileViewerTapTest(look: AppLook) : TapTest(look) {
     private val one = image("f1", "whiteboard.jpg")
     private val two = image("f2", "slots.jpg")
 
+    private val guide = ModuleFile(
+        id = "f3", courseId = "az-204", moduleId = "az-compute", name = "exam-guide.pdf",
+        mimeType = "application/pdf", sizeBytes = 2_400_000,
+        path = "couples/c/modules/az-204/az-compute/f3",
+        uploadedBy = "u1", uploadedAtIso = "2026-11-01T09:00:00Z",
+    )
+
     private fun viewer(state: FileViewerUiState) = show {
         FileViewerContent(
             state = state,
@@ -75,6 +82,24 @@ class FileViewerTapTest(look: AppLook) : TapTest(look) {
         // Last of the two: there is nowhere further to go, so there is no
         // arrow to press rather than an arrow that does nothing.
         assertFalse("a next arrow is offered at the end in the $look look", clickable("Next file"))
+    }
+
+    @Test
+    fun `a document is not given a pager that reads as its pages`() {
+        // The bug this is here for: the arrows and "1 / 2" at the foot are
+        // the attachment pager, and under a PDF everybody reads them as the
+        // page — so a two-page document said 1 / 2 about something else.
+        viewer(FileViewerUiState(file = guide, siblings = listOf(guide, one), local = java.io.File("none.pdf")))
+
+        assertFalse("a document was given file arrows in the $look look", clickable("Next file"))
+        assertFalse("a document was given file arrows in the $look look", clickable("Previous file"))
+    }
+
+    @Test
+    fun `the line above a document says file, so it is not read as a page`() {
+        viewer(FileViewerUiState(file = guide, siblings = listOf(guide, one), local = java.io.File("none.pdf")))
+
+        assertTrue("the position is not called a file in the $look look", seen("FILE 1 OF 2"))
     }
 
     @Test

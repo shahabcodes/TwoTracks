@@ -3,6 +3,11 @@
 All notable changes to Two Tracks. Versions follow `version.properties`; the
 build number is appended by CI (for example `0.1.0 (build 12)`).
 
+## [0.100.1] - 2026-11-03
+### Fixed
+- A PDF no longer shows the attachment pager under it. "1 / 2" floating at the foot of a document means the page to anybody who has ever used a reader, and it meant which of the lesson's files you were on; a document now shows its own page there instead, and the line under the file's name says "file 1 of 2" in words. The other attachments are a press of Back away. A picture, which has no pages to be confused with, keeps the arrows.
+- The page number follows the scroll properly: it is the page under the middle of the screen rather than the first one still showing, so it no longer stays a page behind what is being read.
+
 ## [0.100.0] - 2026-11-01
 ### Added
 - Handwritten notes, for an S Pen or any other stylus. A lesson's Files row opens onto its attachments and its handwriting together; "Write a note" opens a sheet of paper, and it is saved under a name you give it, kept in your shared space for both of you, and opened again later to read or write more on. Notes can be renamed and removed like the attachments.
