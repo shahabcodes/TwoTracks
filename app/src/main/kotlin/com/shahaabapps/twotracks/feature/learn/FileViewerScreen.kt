@@ -19,10 +19,12 @@ import androidx.compose.foundation.gestures.detectTransformGestures
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
@@ -37,6 +39,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -313,7 +316,10 @@ fun FileViewerContent(
 ) {
     var confirming by remember { mutableStateOf(false) }
     var renaming by remember { mutableStateOf(false) }
-    var page by remember { mutableStateOf(1 to 1) }
+    // Which page of a PDF the column has settled on, and how many there
+    // are. Zero until the renderer says, so a document that will not open
+    // never shows a page count it does not have.
+    var page by remember { mutableStateOf(0 to 0) }
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -347,10 +353,12 @@ fun FileViewerContent(
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                     )
+                    // "File 1 of 2", with the word, because this line sits
+                    // above a document that has pages of its own and a bare
+                    // "1 of 2" over a PDF is read as the page every time.
                     val line = listOfNotNull(
                         file?.readableSize,
-                        if (state.siblings.size > 1) "${state.position + 1} of ${state.siblings.size}" else null,
-                        if (file?.isPdf == true && state.local != null) "page ${page.first} of ${page.second}" else null,
+                        if (state.siblings.size > 1) "file ${state.position + 1} of ${state.siblings.size}" else null,
                     ).joinToString(" · ")
                     if (line.isNotEmpty()) Text(
                         line.uppercase(),
@@ -367,18 +375,27 @@ fun FileViewerContent(
             }
         }
 
-        if (state.siblings.size > 1) {
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(Spacing.md),
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier
-                    .align(Alignment.BottomCenter)
-                    .navigationBarsPadding()
-                    .padding(bottom = Spacing.md)
-                    .clip(RoundedCornerShape(24.dp))
-                    .background(PILL)
-                    .padding(horizontal = Spacing.sm, vertical = 4.dp),
-            ) {
+        // The pill at the foot says where you are in whatever you are
+        // actually reading. Over a picture that is which attachment of the
+        // lesson, with arrows to the next one. Over a PDF it is the page,
+        // because a document has pages and "1 / 2" floating under one of
+        // them means the page to everybody who has ever used a reader —
+        // which is exactly what it did not mean.
+        val pages = page.second
+        when {
+            pages > 0 -> Pill {
+                Text(
+                    "PAGE ${page.first} / $pages",
+                    style = MaterialTheme.typography.labelMedium,
+                    letterSpacing = 1.sp,
+                    color = Color.White.copy(alpha = 0.8f),
+                    modifier = Modifier.padding(horizontal = Spacing.sm, vertical = 4.dp),
+                )
+            }
+            // No arrows under a document, even one of several: the other
+            // attachments are a press of Back away, and a control that moves
+            // between files is the thing that was being misread.
+            file?.isPdf != true && state.siblings.size > 1 -> Pill {
                 if (state.hasPrevious) RoundAction(Icons.Filled.ChevronLeft, "Previous file", onPrevious)
                 else Spacer(Modifier.size(40.dp))
                 Text(
@@ -406,6 +423,34 @@ fun FileViewerContent(
             onDismiss = { confirming = false },
         )
     }
+}
+
+/** Which item of [state] the middle of the viewport is over. */
+private fun middleItem(state: LazyListState): Int {
+    val info = state.layoutInfo
+    val middle = (info.viewportStartOffset + info.viewportEndOffset) / 2
+    val under = info.visibleItemsInfo.firstOrNull { middle in it.offset..(it.offset + it.size) }
+    // Nothing under the middle means the gap between two pages, which the
+    // page above owns, the same way [PageRuler] counts it.
+    return (under ?: info.visibleItemsInfo.lastOrNull { it.offset <= middle } ?: info.visibleItemsInfo.firstOrNull())
+        ?.index ?: 0
+}
+
+/** The floating strip at the foot of the viewer, over whatever is behind it. */
+@Composable
+private fun BoxScope.Pill(content: @Composable RowScope.() -> Unit) {
+    Row(
+        horizontalArrangement = Arrangement.spacedBy(Spacing.md),
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier
+            .align(Alignment.BottomCenter)
+            .navigationBarsPadding()
+            .padding(bottom = Spacing.md)
+            .clip(RoundedCornerShape(24.dp))
+            .background(PILL)
+            .padding(horizontal = Spacing.sm, vertical = 4.dp),
+        content = content,
+    )
 }
 
 /** A picture, pinched to zoom, dragged to move, double-tapped to fill or fit. */
@@ -508,9 +553,15 @@ private fun PdfPages(file: File, onPage: (Int, Int) -> Unit) {
     val listState = rememberLazyListState()
     val sideways = rememberScrollState()
     val density = LocalDensity.current
-    // The page the column has settled on, for the line under the file's name.
+    // The page the column has settled on, for the pill at the foot.
+    //
+    // The one under the middle of the screen, not the first one still
+    // showing: scrolled to where a page's last inch is at the top and the
+    // next page fills the rest, "first visible" is the page you have
+    // finished with, and the number stays behind what is being read.
     LaunchedEffect(listState, source) {
-        snapshotFlow { listState.firstVisibleItemIndex }
+        snapshotFlow { middleItem(listState) }
+            .distinctUntilChanged()
             .collect { onPage(it + 1, source.pageCount) }
     }
     BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
