@@ -3,6 +3,10 @@
 All notable changes to Two Tracks. Versions follow `version.properties`; the
 build number is appended by CI (for example `0.1.0 (build 12)`).
 
+## [0.102.0] - 2026-11-11
+### Added
+- Scrolling a lesson shows how far through it you are. The percentage comes while the thumb is moving and goes a moment after it stops, and a lesson that fits on one screen never shows it at all.
+
 ## [0.101.1] - 2026-11-11
 ### Fixed
 - With the pen out, the lesson can be scrolled clear of the inks. The strip floats over the page, so without room under the column the last paragraph of every lesson sat permanently behind it — which is exactly where somebody marking up the end of a lesson wants to see.
