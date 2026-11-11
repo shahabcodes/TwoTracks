@@ -277,12 +277,14 @@ object Mappers {
     )
 
     fun TopicProgress.toMap() = mapOf(
-        "owner" to owner.name, "courseId" to courseId, "topicId" to topicId, "learnedAtIso" to learnedAtIso, "minutes" to minutes,
+        "owner" to owner.name, "courseId" to courseId, "topicId" to topicId, "learnedAtIso" to learnedAtIso,
+        "minutes" to minutes, "seconds" to seconds,
     )
 
     fun Doc.toTopicProgress() = TopicProgress(
         id = id, owner = enum("owner", PersonRole.TECH),
-        courseId = str("courseId"), topicId = str("topicId"), learnedAtIso = str("learnedAtIso"), minutes = int("minutes"),
+        courseId = str("courseId"), topicId = str("topicId"), learnedAtIso = str("learnedAtIso"),
+        minutes = int("minutes"), seconds = int("seconds"),
     )
 
     fun QuizAttempt.toMap() = mapOf(

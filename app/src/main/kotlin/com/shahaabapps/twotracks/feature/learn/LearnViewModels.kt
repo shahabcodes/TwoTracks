@@ -57,12 +57,23 @@ class LearningActions @Inject constructor(
      * topic's stated length plus a little, so a page left open overnight does not
      * record a night of study.
      */
-    suspend fun markLearned(course: Course, module: Module, topic: Topic, minutesOnPage: Int): String? {
+    /**
+     * [secondsOnPage] is the reading as it actually happened and is kept as
+     * it is, to be shown back to the reader. [minutesOnPage] is the same
+     * reading rounded, and it is clamped before it reaches the hours: a
+     * lesson skimmed in ten seconds should not log nothing, and one left
+     * open over lunch should not log an afternoon.
+     */
+    suspend fun markLearned(course: Course, module: Module, topic: Topic, minutesOnPage: Int, secondsOnPage: Int = 0): String? {
         val s = sessionStore.current() ?: return "Not signed in"
         val today = Clock.todayIso(s.me)
         val minutes = minutesOnPage.coerceIn(3, topic.minutes + 10)
         val r = learningRepository.markLearned(
-            s.coupleId, TopicProgress(owner = s.myRole, courseId = course.id, topicId = topic.id, learnedAtIso = today, minutes = minutes),
+            s.coupleId,
+            TopicProgress(
+                owner = s.myRole, courseId = course.id, topicId = topic.id, learnedAtIso = today,
+                minutes = minutes, seconds = secondsOnPage.coerceAtLeast(0),
+            ),
         )
         if (r is AppResult.Failure) return r.error.message ?: "Could not save"
         studyActions.logMinutes(myGoalId(course, s.myRole), module.componentId, minutes, today, note = "Learn: ${topic.title}", quiet = true)
@@ -252,6 +263,10 @@ data class TopicUiState(
      * here is the only place the badge can actually be cleared.
      */
     val waiting: Int = 0,
+    /** Seconds of reading so far on this visit, counting only while it is on screen. */
+    val reading: Int = 0,
+    /** How long it took the last time it was finished; zero when it never was. */
+    val lastReading: Int = 0,
 )
 
 @HiltViewModel
@@ -275,7 +290,55 @@ class TopicViewModel @Inject constructor(
     private val topicId: String = savedStateHandle.get<String>("topicId").orEmpty()
     init { Courses.byId(courseId)?.speechLanguage?.let { recognizer.setLanguage(it) } }
     private val message = MutableStateFlow<String?>(null)
-    private val openedAt = System.currentTimeMillis()
+
+    /**
+     * The reading clock, and the second-by-second reading of it the header
+     * draws. It runs only between [reading] and [stopReading], which the
+     * lesson calls as it comes to the front and leaves it, so a lesson open
+     * in a pocket counts nothing.
+     */
+    private val clock = ReadingClock()
+    private val onClock = MutableStateFlow(0)
+    private var ticking: Job? = null
+
+    fun startReading() {
+        clock.resumed()
+        if (ticking != null) return
+        ticking = viewModelScope.launch {
+            while (true) {
+                onClock.value = clock.seconds()
+                delay(1_000)
+            }
+        }
+    }
+
+    /**
+     * How long this lesson took the last time it was finished, as it stood
+     * when this visit began.
+     *
+     * Held rather than read live because the moment the reader marks the
+     * lesson learned their own row is rewritten, and a line saying "last
+     * time" that changes to the reading happening right now is a line about
+     * nothing. One document per reader per topic, so there is nothing to
+     * choose between.
+     */
+    private var before: Int? = null
+    private var finishedHere = false
+
+    private fun lastReadingBefore(me: PersonRole?, progress: List<TopicProgress>): Int {
+        if (!finishedHere) {
+            val mine = progress.firstOrNull { it.owner == me && it.topicId == topicId }
+            if (mine != null) before = mine.seconds
+        }
+        return before ?: 0
+    }
+
+    fun stopReading() {
+        ticking?.cancel()
+        ticking = null
+        clock.paused()
+        onClock.value = clock.seconds()
+    }
 
     // One listener for every topic's files rather than one for this topic:
     // the same query already answers the lesson rows elsewhere, so this costs
@@ -357,11 +420,11 @@ class TopicViewModel @Inject constructor(
      * player: the counts, the marks and the sittings on record. They travel
      * together because combine has five typed slots and this is the fifth.
      */
-    private val aside = combine(attached, marks, dataStore.quizAttempts) { counts, drawn, attempts ->
-        Triple(counts, drawn, attempts)
+    private val aside = combine(attached, marks, dataStore.quizAttempts, onClock) { counts, drawn, attempts, seconds ->
+        Aside(counts, drawn, attempts, seconds)
     }
 
-    val uiState: StateFlow<TopicUiState> = combine(sessionStore.state, dataStore.topicProgress, message, player.state, aside) { state, progress, msg, now, (counts, drawn, attempts) ->
+    val uiState: StateFlow<TopicUiState> = combine(sessionStore.state, dataStore.topicProgress, message, player.state, aside) { state, progress, msg, now, (counts, drawn, attempts, seconds) ->
         val session = (state as? com.shahaabapps.twotracks.session.SessionState.Ready)?.session
         val course = Courses.byId(courseId) ?: return@combine TopicUiState(message = msg)
         val (module, topic) = Courses.topic(courseId, topicId) ?: return@combine TopicUiState(course = course, message = msg)
@@ -381,6 +444,8 @@ class TopicViewModel @Inject constructor(
             notes = counts.second,
             marks = drawn,
             waiting = waiting,
+            reading = seconds,
+            lastReading = lastReadingBefore(session?.myRole, progress),
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), TopicUiState())
 
@@ -402,8 +467,10 @@ class TopicViewModel @Inject constructor(
     fun markLearned() = viewModelScope.launch {
         val s = uiState.value
         val c = s.course ?: return@launch; val m = s.module ?: return@launch; val t = s.topic ?: return@launch
-        val minutes = ((System.currentTimeMillis() - openedAt) / 60_000L).toInt()
-        message.value = actions.markLearned(c, m, t, minutes)
+        // The reading is over the moment it is called over.
+        stopReading()
+        finishedHere = true
+        message.value = actions.markLearned(c, m, t, clock.minutes(), clock.seconds())
     }
 
     fun unlearn() = viewModelScope.launch { message.value = actions.clearLearned(topicId) }
@@ -423,6 +490,19 @@ class TopicViewModel @Inject constructor(
         actions.recordSure(id, question.id, sure)
     }
     fun clearMessage() { message.value = null }
+
+    override fun onCleared() {
+        stopReading()
+        super.onCleared()
+    }
+
+    /** The four things the lesson needs beside the session, the reading and the player. */
+    private data class Aside(
+        val counts: Pair<Int, Int>,
+        val marks: List<com.shahaabapps.core.model.LessonMark>,
+        val attempts: List<com.shahaabapps.core.model.QuizAttempt>,
+        val seconds: Int,
+    )
 
     private companion object {
         const val MARK_UNDO_DEPTH = 40

@@ -3,6 +3,13 @@
 All notable changes to Two Tracks. Versions follow `version.properties`; the
 build number is appended by CI (for example `0.1.0 (build 12)`).
 
+## [0.104.0] - 2026-11-11
+### Added
+- A lesson keeps a clock while you read it, in the corner of its header, and remembers what the reading took when you mark it learned. Open it again and it says so: "You read this in 20 min 30 sec last time."
+
+### Fixed
+- The reading time behind a lesson now counts only the time the lesson is actually on screen. A lesson left open in a pocket was logging that time into the hours behind the course.
+
 ## [0.103.0] - 2026-11-11
 ### Fixed
 - A topic that says "Look again" can now be cleared from the topic itself. The badge is earned by that topic's questions being missed or due, and the only places to answer them were the course-wide review and the daily, both drawn across every topic and both capped — so a topic could say look again, be read again, and say it still. The lesson now carries a card for exactly the questions waiting on it.
