@@ -146,7 +146,13 @@ class DesignPreviewActivity : ComponentActivity() {
                                 }
                             }
                             TopicContent(
-                                LearnSamples.topic().copy(marks = drawn.toList()),
+                                LearnSamples.topic().copy(
+                                    marks = drawn.toList(),
+                                    // --es kind waiting shows the lesson as the
+                                    // course page sends it when the topic says
+                                    // look again.
+                                    waiting = if (intent?.getStringExtra("kind") == "waiting") 2 else 0,
+                                ),
                                 speaker = null, voiceMissing = false, recognizer = null, onBack = {}, onOpenTopic = { _, _ -> }, onOpenQuiz = { _, _ -> },
                                 onInstallVoice = {}, onChecked = { _, _, _, _ -> }, onConfidence = { _, _ -> }, onMarkLearned = {}, onUnlearn = {}, onMessageShown = {}, onListen = {},
                                 onMark = { drawn.add(it) },

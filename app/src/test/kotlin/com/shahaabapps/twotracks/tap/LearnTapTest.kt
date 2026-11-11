@@ -87,6 +87,42 @@ class LearnTapTest(look: AppLook) : TapTest(look) {
     }
 
     @Test
+    fun `a topic with questions waiting offers the one sitting that clears it`() {
+        // The whole point of the card. The course page sends somebody here
+        // with "look again" on the topic, and before this the lesson had no
+        // way of answering the questions that put it there: they could read
+        // it over and over and the badge would not move.
+        val topic = LearnSamples.topic().topic!!
+        val course = LearnSamples.topic().course!!
+        show {
+            TopicContent(
+                LearnSamples.topic().copy(waiting = 2), speaker = null, voiceMissing = false, recognizer = null,
+                onBack = record("back"), onOpenTopic = record2("topic"), onOpenQuiz = record2("quiz"),
+                onInstallVoice = record("voice"), onChecked = { _, _, _, _ -> calls += "checked" }, onConfidence = { _, _ -> calls += "confidence" },
+                onMarkLearned = record("learned"), onUnlearn = record("unlearn"), onMessageShown = {}, onListen = record("listen"),
+                onOpenNotes = record("notes"), onOpenFiles = record("files"),
+            )
+        }
+        assertTrue("the lesson did not say what was waiting on it in the $look look", seen("2 questions on this topic"))
+        tapAction("Answer the questions waiting on this topic")
+        expect("quiz(${course.id}, ${com.shahaabapps.core.content.Courses.topicCheckId(topic.id)})")
+    }
+
+    @Test
+    fun `a topic with nothing waiting does not ask`() {
+        show {
+            TopicContent(
+                LearnSamples.topic(), speaker = null, voiceMissing = false, recognizer = null,
+                onBack = record("back"), onOpenTopic = record2("topic"), onOpenQuiz = record2("quiz"),
+                onInstallVoice = record("voice"), onChecked = { _, _, _, _ -> calls += "checked" }, onConfidence = { _, _ -> calls += "confidence" },
+                onMarkLearned = record("learned"), onUnlearn = record("unlearn"), onMessageShown = {}, onListen = record("listen"),
+                onOpenNotes = record("notes"), onOpenFiles = record("files"),
+            )
+        }
+        assertTrue("a lesson with nothing waiting still asked in the $look look", !seen("questions on this topic"))
+    }
+
+    @Test
     fun `a test takes an answer, checks it and can be left`() {
         val state = LearnSamples.quiz()
         val q = state.asked[state.index]
