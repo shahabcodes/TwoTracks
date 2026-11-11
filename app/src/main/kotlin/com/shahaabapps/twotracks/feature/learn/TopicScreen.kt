@@ -182,7 +182,15 @@ fun TopicContent(
             LazyColumn(
                 state = listState,
                 verticalArrangement = Arrangement.spacedBy(Spacing.md),
-                contentPadding = PaddingValues(start = Spacing.listHorizontal, end = Spacing.listHorizontal, top = Spacing.sm, bottom = Spacing.xl * 2),
+                // The pen's strip floats over the lesson, so while it is out
+                // the column is given room to scroll clear of it. Without
+                // this the last paragraph of every lesson sits permanently
+                // under the inks, which is where somebody marking up the end
+                // of a lesson most wants to see.
+                contentPadding = PaddingValues(
+                    start = Spacing.listHorizontal, end = Spacing.listHorizontal, top = Spacing.sm,
+                    bottom = Spacing.xl * 2 + if (pen) PEN_CLEARANCE else 0.dp,
+                ),
             ) {
                 // Every item is keyed, and the keys are what the marks are
                 // anchored to. They have to be stable for the same lesson
@@ -358,6 +366,9 @@ private fun LessonInkTools(
         }
     }
 }
+
+/** Room under the lesson for the pen's own strip and the button beside it. */
+private val PEN_CLEARANCE = 116.dp
 
 const val LESSON_PEN = "lesson-pen"
 const val LESSON_INK_TOOLS = "lesson-ink-tools"
