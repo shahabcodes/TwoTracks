@@ -3,6 +3,10 @@
 All notable changes to Two Tracks. Versions follow `version.properties`; the
 build number is appended by CI (for example `0.1.0 (build 12)`).
 
+## [0.101.1] - 2026-11-11
+### Fixed
+- With the pen out, the lesson can be scrolled clear of the inks. The strip floats over the page, so without room under the column the last paragraph of every lesson sat permanently behind it — which is exactly where somebody marking up the end of a lesson wants to see.
+
 ## [0.101.0] - 2026-11-11
 ### Added
 - A pen on the lesson itself. The button at the foot of a lesson takes it out, and then you can underline a sentence, ring a definition or work something out in the margin, in four inks and three nibs, with an eraser that takes a whole mark and an undo behind it. One finger draws and two fingers scroll; where there is a stylus, the pen draws and a finger still scrolls. Put the pen away and the lesson reads as it did.

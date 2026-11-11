@@ -135,13 +135,26 @@ class DesignPreviewActivity : ComponentActivity() {
                         "course" -> CourseContent(LearnSamples.germanId, LearnSamples.learn(), Samples.today, onBack = {}, onOpenTopic = { _, _ -> }, onOpenQuiz = { _, _ -> })
                         // A lesson, optionally already marked up with a pen:
                         //   --es screen topic [--es kind marked]
-                        "topic" -> TopicContent(
-                            LearnSamples.topic().let {
-                                if (intent?.getStringExtra("kind") == "marked") it.copy(marks = SampleMarks.marks()) else it
-                            },
-                            speaker = null, voiceMissing = false, recognizer = null, onBack = {}, onOpenTopic = { _, _ -> }, onOpenQuiz = { _, _ -> },
-                            onInstallVoice = {}, onChecked = { _, _, _, _ -> }, onConfidence = { _, _ -> }, onMarkLearned = {}, onUnlearn = {}, onMessageShown = {}, onListen = {},
-                        )
+                        "topic" -> {
+                            // The marks are held here rather than thrown
+                            // away, so the pen can actually be drawn with in
+                            // the preview: a no-op onMark looks exactly like
+                            // a pen that does not work.
+                            val drawn = androidx.compose.runtime.remember {
+                                androidx.compose.runtime.mutableStateListOf<com.shahaabapps.core.model.LessonMark>().also {
+                                    if (intent?.getStringExtra("kind") == "marked") it.addAll(SampleMarks.marks())
+                                }
+                            }
+                            TopicContent(
+                                LearnSamples.topic().copy(marks = drawn.toList()),
+                                speaker = null, voiceMissing = false, recognizer = null, onBack = {}, onOpenTopic = { _, _ -> }, onOpenQuiz = { _, _ -> },
+                                onInstallVoice = {}, onChecked = { _, _, _, _ -> }, onConfidence = { _, _ -> }, onMarkLearned = {}, onUnlearn = {}, onMessageShown = {}, onListen = {},
+                                onMark = { drawn.add(it) },
+                                onErase = { taken -> drawn.removeAll(taken.toSet()) },
+                                onUndoMark = { drawn.removeLastOrNull() },
+                                onClearMarks = { drawn.clear() },
+                            )
+                        }
                         // The files kept against a module: --es screen files
                         "files" -> com.shahaabapps.twotracks.feature.learn.ModuleFilesContent(
                             com.shahaabapps.twotracks.feature.learn.ModuleFilesUiState(
