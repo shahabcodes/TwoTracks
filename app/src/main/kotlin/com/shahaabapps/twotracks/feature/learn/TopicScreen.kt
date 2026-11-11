@@ -260,6 +260,10 @@ fun TopicContent(
                 onMark = onMark,
                 onErase = onErase,
             )
+            // Over the lesson too, and for the same reason the ink layer is:
+            // how far down a lesson somebody has got belongs to the scroll
+            // and to this moment, not to the text or to the record.
+            ReadProgress(listState)
 
             Column(
                 horizontalAlignment = Alignment.End,
