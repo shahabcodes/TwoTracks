@@ -123,6 +123,40 @@ class LearnTapTest(look: AppLook) : TapTest(look) {
     }
 
     @Test
+    fun `a lesson says how long this reading has taken, and how long the last one did`() {
+        show {
+            TopicContent(
+                LearnSamples.topic().copy(reading = 252, lastReading = 20 * 60 + 30),
+                speaker = null, voiceMissing = false, recognizer = null,
+                onBack = record("back"), onOpenTopic = record2("topic"), onOpenQuiz = record2("quiz"),
+                onInstallVoice = record("voice"), onChecked = { _, _, _, _ -> calls += "checked" }, onConfidence = { _, _ -> calls += "confidence" },
+                onMarkLearned = record("learned"), onUnlearn = record("unlearn"), onMessageShown = {}, onListen = record("listen"),
+                onOpenNotes = record("notes"), onOpenFiles = record("files"),
+            )
+        }
+        // In the header, where it does not scroll away and is not over the
+        // words: four minutes and twelve seconds of this sitting.
+        assertTrue("the lesson did not show the running clock in the $look look", seen("4:12"))
+        assertTrue("the lesson did not say what the last reading took in the $look look", seen("You read this in 20 min 30 sec last time."))
+    }
+
+    @Test
+    fun `a lesson never finished says nothing about last time`() {
+        show {
+            TopicContent(
+                LearnSamples.topic(), speaker = null, voiceMissing = false, recognizer = null,
+                onBack = record("back"), onOpenTopic = record2("topic"), onOpenQuiz = record2("quiz"),
+                onInstallVoice = record("voice"), onChecked = { _, _, _, _ -> calls += "checked" }, onConfidence = { _, _ -> calls += "confidence" },
+                onMarkLearned = record("learned"), onUnlearn = record("unlearn"), onMessageShown = {}, onListen = record("listen"),
+                onOpenNotes = record("notes"), onOpenFiles = record("files"),
+            )
+        }
+        assertTrue("a first reading was told about a last one in the $look look", !seen("last time"))
+        // The clock is there from the first second, at nothing.
+        assertTrue("the lesson hid its clock in the $look look", seen("0:00"))
+    }
+
+    @Test
     fun `a test takes an answer, checks it and can be left`() {
         val state = LearnSamples.quiz()
         val q = state.asked[state.index]

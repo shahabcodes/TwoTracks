@@ -7,7 +7,22 @@ data class TopicProgress(
     val courseId: String = "",
     val topicId: String = "",
     val learnedAtIso: String = "",
+    /**
+     * The minutes credited to the goal's hours, which are clamped: a lesson
+     * cannot log less than a few minutes or much more than its estimate, so
+     * a page left open all afternoon does not distort a forecast.
+     */
     val minutes: Int = 0,
+    /**
+     * How long the reading actually took, to the second, unclamped.
+     *
+     * Kept apart from [minutes] because the two answer different questions.
+     * The hours want a figure that cannot be distorted; the reader wants the
+     * truth about their own reading, which is the only thing worth showing
+     * them next time they open the lesson. Zero means a reading from before
+     * the lesson kept a clock.
+     */
+    val seconds: Int = 0,
 )
 
 /** One sitting of a module test. */

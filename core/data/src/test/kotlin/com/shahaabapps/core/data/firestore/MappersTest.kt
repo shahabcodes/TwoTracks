@@ -163,7 +163,7 @@ class MappersTest {
     private val budget = BudgetItem(id = "bi1", owner = PersonRole.TEACHER, item = "IELTS fee", planned = 250.0, spent = 245.5, currency = "QAR", paidOnIso = "2026-05-01", order = 4)
     private val deadline = Deadline(id = "dl1", title = "Book IELTS", dateIso = "2026-04-01", owner = PersonRole.TEACHER, detail = "British Council")
     private val flashcard = Flashcard(id = "f1", owner = PersonRole.TEACHER, courseId = "de-a1", wordId = "apfel", step = 3, dueIso = "2026-02-10", lastReviewIso = "2026-02-03", correct = 5, misses = 2)
-    private val topicProgress = TopicProgress(id = "tp1", owner = PersonRole.TEACHER, courseId = "de-a1", topicId = "de4-grammar", learnedAtIso = "2026-02-03", minutes = 26)
+    private val topicProgress = TopicProgress(id = "tp1", owner = PersonRole.TEACHER, courseId = "de-a1", topicId = "de4-grammar", learnedAtIso = "2026-02-03", minutes = 26, seconds = 1_583)
     private val attempt = QuizAttempt(
         id = "qa1", owner = PersonRole.TEACHER, courseId = "de-a1", moduleId = "de-m4", dateIso = "2026-02-03",
         score = 9, total = 12, passed = true, missed = listOf("de4-q3"), asked = listOf("de4-q1", "de4-q3"), at = 1_700_000_000_002L,

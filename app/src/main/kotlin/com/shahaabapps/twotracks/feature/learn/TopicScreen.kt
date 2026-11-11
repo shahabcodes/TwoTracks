@@ -113,6 +113,13 @@ fun TopicScreen(
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val speakerState by viewModel.speaker.state.collectAsStateWithLifecycle()
+    // The clock runs while the lesson is actually in front of somebody. A
+    // timer started on open and read on close counts the walk to the
+    // kitchen, and that number was going into the hours.
+    androidx.lifecycle.compose.LifecycleResumeEffect(Unit) {
+        viewModel.startReading()
+        onPauseOrDispose { viewModel.stopReading() }
+    }
     LaunchedEffect(state.course?.speechLanguage) { state.course?.speechLanguage?.let { viewModel.speaker.setLanguage(it) } }
     TopicContent(
         state = state,
@@ -170,7 +177,7 @@ fun TopicContent(
     val course = state.course
     LessonScaffold(
         label = listOfNotNull(course?.title, module?.let { if (AppTheme.departures) "M${it.number}" else "Module ${it.number}" }).joinToString(" · "),
-        index = state.index, count = state.count, onBack = onBack,
+        index = state.index, count = state.count, clock = readingClockFace(state.reading), onBack = onBack,
     ) {
         if (topic == null || module == null || course == null) return@LessonScaffold
         // The pen and what it is set to are the screen's own: they are how
@@ -210,6 +217,16 @@ fun TopicContent(
                         "TOPIC ${state.index + 1} OF ${state.count} · ${topic.minutes} MIN",
                         style = MaterialTheme.typography.labelMedium, color = AppTheme.colors.secondaryLabel, modifier = Modifier.padding(top = 8.dp),
                     )
+                    // What it took the last time, against the estimate above
+                    // it. Nothing at all the first time through, which is
+                    // most times a lesson is opened.
+                    lastReadingLine(state.lastReading)?.let { line ->
+                        Text(
+                            line,
+                            style = MaterialTheme.typography.bodySmall, color = AppTheme.colors.secondaryLabel,
+                            modifier = Modifier.padding(top = 6.dp),
+                        )
+                    }
                 }
                 state.listen?.let { listen -> item(key = KEY_LISTEN) { com.shahaabapps.twotracks.feature.listen.ListenCard(listen, onListen) } }
                 com.shahaabapps.core.content.Notes.forTopic(topic.id)?.let { sheet -> item(key = KEY_NOTES) { NotesCard(sheet, onOpenNotes) } }
@@ -710,9 +727,9 @@ private val Panel: Modifier
  * module filled up to this one, and the page under it.
  */
 @Composable
-private fun LessonScaffold(label: String, index: Int, count: Int, onBack: () -> Unit, content: @Composable () -> Unit) {
+private fun LessonScaffold(label: String, index: Int, count: Int, clock: String, onBack: () -> Unit, content: @Composable () -> Unit) {
     if (AppTheme.departures) {
-        BoardLessonScaffold(label, index, count, onBack, content)
+        BoardLessonScaffold(label, index, count, clock, onBack, content)
         return
     }
     Scaffold(containerColor = AppTheme.colors.groupedBackground) { inner ->
@@ -724,7 +741,15 @@ private fun LessonScaffold(label: String, index: Int, count: Int, onBack: () -> 
                         modifier = Modifier.offset(x = (-10).dp).size(44.dp).clip(CircleShape).clickable(role = Role.Button, onClickLabel = "Back to the course", onClick = onBack),
                     ) { Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back to the course", tint = AppTheme.colors.ink) }
                     Text(label.uppercase(), style = MaterialTheme.typography.labelMedium, color = AppTheme.colors.secondaryLabel, textAlign = TextAlign.Center, maxLines = 1, modifier = Modifier.weight(1f))
-                    Box(Modifier.width(34.dp))
+                    // Where a spacer balanced the back button: the reading
+                    // clock, which has to be somewhere that does not scroll
+                    // away and is not over the words.
+                    Text(
+                        clock,
+                        style = MaterialTheme.typography.labelMedium.copy(fontFamily = MonoFamily),
+                        color = AppTheme.colors.secondaryLabel, maxLines = 1, textAlign = TextAlign.End,
+                        modifier = Modifier.width(52.dp).semantics { contentDescription = "Reading for $clock" },
+                    )
                 }
                 if (count > 0) {
                     Row(horizontalArrangement = Arrangement.spacedBy(3.dp), modifier = Modifier.fillMaxWidth().semantics { contentDescription = "Topic ${index + 1} of $count" }) {
@@ -947,14 +972,16 @@ private fun ReferencesBlock(refs: List<com.shahaabapps.core.content.Reference>) 
  * one ringed.
  */
 @Composable
-private fun BoardLessonScaffold(label: String, index: Int, count: Int, onBack: () -> Unit, content: @Composable () -> Unit) {
+private fun BoardLessonScaffold(label: String, index: Int, count: Int, clock: String, onBack: () -> Unit, content: @Composable () -> Unit) {
     Scaffold(containerColor = AppTheme.colors.groupedBackground) { inner ->
         Column(modifier = Modifier.fillMaxSize().padding(inner)) {
             Column(modifier = Modifier.padding(start = BoardGutter, end = BoardGutter, top = 6.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.height(44.dp)) {
                     BoardBack(onBack, "Back to the course")
                     BoardLabel("In transit · $label", size = 13.sp, textAlign = TextAlign.Center, modifier = Modifier.weight(1f))
-                    BoardMono(if (count > 0) "${index + 1}/$count" else "", modifier = Modifier.width(34.dp), textAlign = TextAlign.End, spacing = 0.sp)
+                    // The stop dots on the row below already say which stop
+                    // this is, so the slot goes to the reading clock.
+                    BoardMono(clock, modifier = Modifier.width(52.dp).semantics { contentDescription = "Reading for $clock" }, textAlign = TextAlign.End, spacing = 0.sp)
                 }
                 if (count > 0) {
                     Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth().semantics { contentDescription = "Stop ${index + 1} of $count" }) {
