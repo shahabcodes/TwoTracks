@@ -27,7 +27,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.layout.layout
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.text.font.FontWeight
@@ -177,20 +176,17 @@ private fun ReadProgressPill(percent: Int) {
                 .clip(RoundedCornerShape(2.dp))
                 .background(AppTheme.colors.groupedBackground.copy(alpha = 0.3f)),
         ) {
-            Box(
-                modifier = Modifier
-                    .fillMaxHeight()
-                    .fillMaxWidth()
-                    .layout { measurable, constraints ->
-                        // Measured against the whole track and then cut to
-                        // the fraction, so the fill and the track agree at
-                        // every width and every text scale.
-                        val placeable = measurable.measure(constraints)
-                        val width = Math.round(placeable.width * percent.coerceIn(0, 100) / 100f)
-                        layout(width, placeable.height) { placeable.place(0, 0) }
-                    }
-                    .background(AppTheme.colors.groupedBackground.copy(alpha = 0.9f)),
-            )
+            // Nothing read draws no fill at all, rather than a sliver that
+            // would read as a little.
+            val read = percent.coerceIn(0, 100) / 100f
+            if (read > 0f) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth(read)
+                        .fillMaxHeight()
+                        .background(AppTheme.colors.groupedBackground.copy(alpha = 0.9f)),
+                )
+            }
         }
     }
 }
