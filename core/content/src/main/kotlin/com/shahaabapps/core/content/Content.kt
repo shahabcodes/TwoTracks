@@ -60,6 +60,25 @@ data class Course(
             Quiz(Courses.DAILY_MODULE_ID, "Daily review", passPercent = 0, questions = questions),
         )
 
+    /**
+     * The questions of one topic that are waiting on it: the ones missed and
+     * not yet put right, and the ones the schedule has brought back round.
+     *
+     * This is what "look again" means, made answerable. The badge on a topic
+     * is earned by its questions, and until now the only places to answer
+     * them were the course-wide review and the daily, both of which draw
+     * across every topic and both of which are capped. So a topic could say
+     * look again, be looked again at, and say it still. A sitting of exactly
+     * the questions that put the badge there is the one thing that takes it
+     * away.
+     */
+    fun topicCheckModule(topic: Topic, questions: List<Question>): Module =
+        Module(
+            Courses.topicCheckId(topic.id), 0, "Check: ${topic.title.substringBefore(":")}",
+            "The questions waiting on this topic.", "", "practice", listOf(topic),
+            Quiz(Courses.topicCheckId(topic.id), "Questions on this topic", passPercent = 0, questions = questions),
+        )
+
     /** A review test built from [questions] the person got wrong; also logs to practice. */
     fun reviewModule(questions: List<Question>): Module =
         Module(Courses.REVIEW_MODULE_ID, 0, "Review", "The questions you missed, until you get them right.", "", "practice", allTopics, Quiz(Courses.REVIEW_MODULE_ID, "Review missed questions", passPercent = 0, questions = questions))
@@ -562,6 +581,16 @@ object Courses {
     const val DAILY_MODULE_ID = "daily"
     /** Attempts recorded for the one-question checks inside a topic. */
     const val CHECK_MODULE_ID = "checks"
+
+    /**
+     * A sitting of the questions waiting on one topic. The topic is carried
+     * in the module id because that is all a quiz route takes, and because
+     * the attempt then records which topic was checked without a new field.
+     */
+    const val TOPIC_CHECK_PREFIX = "topic-check-"
+    fun topicCheckId(topicId: String): String = "$TOPIC_CHECK_PREFIX$topicId"
+    fun topicOfCheck(moduleId: String): String? =
+        moduleId.removePrefix(TOPIC_CHECK_PREFIX).takeIf { moduleId.startsWith(TOPIC_CHECK_PREFIX) && it.isNotBlank() }
     /** Built once; the courses behind it are immutable and so is this. */
     val all: List<Course> by lazy { listOf(Az204.course, GermanA1.course, Ielts.course, Ai200.course, Az305.course, Psm1.course) }
     fun forGoal(goalId: String): Course? = all.firstOrNull { it.feeds(goalId) }

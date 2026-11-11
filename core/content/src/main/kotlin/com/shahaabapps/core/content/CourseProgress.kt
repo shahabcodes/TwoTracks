@@ -34,6 +34,22 @@ data class CourseProgress(
     fun reviewQuestions(c: Course): List<Question> = c.allQuestions.filter { it.id in missedQuestionIds }
 
     /**
+     * The questions waiting on one topic: the ones missed and not yet put
+     * right first, then the ones the schedule has brought back round.
+     *
+     * Exactly the questions that make a topic say "look again", so a sitting
+     * of these is the sitting that clears it. Unlike [dailyDue] there is no
+     * cap and no skipping: this is one topic rather than a day's worth across
+     * a course, and leaving one out would leave the badge up.
+     */
+    fun topicRevisits(c: Course, topicId: String, today: LocalDate): List<Question> {
+        val mine = c.allQuestions.filter { it.topicId == topicId }
+        val missed = mine.filter { it.id in missedQuestionIds }
+        val due = mine.filter { it.id !in missedQuestionIds && questionCards[it.id]?.let { card -> Srs.isDue(card, today) && card.dueIso.isNotEmpty() } == true }
+        return missed + due
+    }
+
+    /**
      * Questions due again today, longest overdue first. The review set comes
      * first and is skipped here: getting a wrong answer right is more urgent
      * than keeping a right one, and a question should not be asked twice in a day.

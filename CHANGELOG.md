@@ -3,6 +3,11 @@
 All notable changes to Two Tracks. Versions follow `version.properties`; the
 build number is appended by CI (for example `0.1.0 (build 12)`).
 
+## [0.103.0] - 2026-11-11
+### Fixed
+- A topic that says "Look again" can now be cleared from the topic itself. The badge is earned by that topic's questions being missed or due, and the only places to answer them were the course-wide review and the daily, both drawn across every topic and both capped — so a topic could say look again, be read again, and say it still. The lesson now carries a card for exactly the questions waiting on it.
+- A question in the review set is no longer counted as due as well, which made a topic with two bad answers read "2 missed · 2 due".
+
 ## [0.102.0] - 2026-11-11
 ### Added
 - Scrolling a lesson shows how far through it you are. The percentage comes while the thumb is moving and goes a moment after it stops, and a lesson that fits on one screen never shows it at all.

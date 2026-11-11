@@ -245,6 +245,13 @@ data class TopicUiState(
     val notes: Int = 0,
     /** What this reader has marked onto the lesson itself. */
     val marks: List<com.shahaabapps.core.model.LessonMark> = emptyList(),
+    /**
+     * How many of this topic's questions are waiting on it: missed and not
+     * put right, or brought back round by the schedule. This is what makes
+     * the topic say "look again" on the course page, and the card it draws
+     * here is the only place the badge can actually be cleared.
+     */
+    val waiting: Int = 0,
 )
 
 @HiltViewModel
@@ -345,14 +352,24 @@ class TopicViewModel @Inject constructor(
         )
     }
 
-    /** The counts and the marks together: combine has five typed slots. */
-    private val aside = combine(attached, marks) { counts, drawn -> counts to drawn }
+    /**
+     * Everything the lesson needs that is not the session, the reading or the
+     * player: the counts, the marks and the sittings on record. They travel
+     * together because combine has five typed slots and this is the fifth.
+     */
+    private val aside = combine(attached, marks, dataStore.quizAttempts) { counts, drawn, attempts ->
+        Triple(counts, drawn, attempts)
+    }
 
-    val uiState: StateFlow<TopicUiState> = combine(sessionStore.state, dataStore.topicProgress, message, player.state, aside) { state, progress, msg, now, (counts, drawn) ->
+    val uiState: StateFlow<TopicUiState> = combine(sessionStore.state, dataStore.topicProgress, message, player.state, aside) { state, progress, msg, now, (counts, drawn, attempts) ->
         val session = (state as? com.shahaabapps.twotracks.session.SessionState.Ready)?.session
         val course = Courses.byId(courseId) ?: return@combine TopicUiState(message = msg)
         val (module, topic) = Courses.topic(courseId, topicId) ?: return@combine TopicUiState(course = course, message = msg)
         val idx = module.topics.indexOf(topic)
+        val waiting = session?.let {
+            CourseProgress.of(it.myRole, course.id, progress, attempts)
+                .topicRevisits(course, topicId, Clock.today(it.me)).size
+        } ?: 0
         TopicUiState(
             course = course, module = module, topic = topic,
             learned = session != null && progress.any { it.owner == session.myRole && it.topicId == topicId },
@@ -363,6 +380,7 @@ class TopicViewModel @Inject constructor(
             files = counts.first,
             notes = counts.second,
             marks = drawn,
+            waiting = waiting,
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), TopicUiState())
 
@@ -412,7 +430,7 @@ class TopicViewModel @Inject constructor(
 }
 
 /** Which kind of sitting the quiz screen is running. */
-enum class QuizKind { MODULE, MOCK, REVIEW, DAILY }
+enum class QuizKind { MODULE, MOCK, REVIEW, DAILY, TOPIC }
 
 /** The quiz runs entirely in memory until the results page, then one attempt is written. */
 data class QuizUiState(
@@ -497,7 +515,21 @@ class QuizViewModel @Inject constructor(
                 }
                 course?.takeIf { due.isNotEmpty() }?.dailyModule(due) to QuizKind.DAILY
             }
-            else -> course?.modules?.firstOrNull { it.id == moduleId } to QuizKind.MODULE
+            else -> {
+                val checking = Courses.topicOfCheck(moduleId)
+                if (checking != null) {
+                    val topic = course?.let { Courses.topic(it.id, checking) }?.second
+                    val waiting = if (course != null && topic != null && session != null) {
+                        progressNow()?.topicRevisits(course, checking, Clock.today(session.me)).orEmpty()
+                    } else {
+                        emptyList()
+                    }
+                    val built = if (topic != null && waiting.isNotEmpty()) course?.topicCheckModule(topic, waiting) else null
+                    built to QuizKind.TOPIC
+                } else {
+                    course?.modules?.firstOrNull { it.id == moduleId } to QuizKind.MODULE
+                }
+            }
         }
         val quiz = module?.quiz
         _uiState.value = QuizUiState(

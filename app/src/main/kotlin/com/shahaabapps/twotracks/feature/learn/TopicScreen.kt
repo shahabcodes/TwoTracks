@@ -63,6 +63,8 @@ import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Lightbulb
 import androidx.compose.ui.platform.testTag
 import androidx.compose.material.icons.filled.AttachFile
+import androidx.compose.material.icons.filled.Refresh
+import com.shahaabapps.core.content.Courses
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.PushPin
 import androidx.compose.material.icons.filled.School
@@ -211,6 +213,9 @@ fun TopicContent(
                 }
                 state.listen?.let { listen -> item(key = KEY_LISTEN) { com.shahaabapps.twotracks.feature.listen.ListenCard(listen, onListen) } }
                 com.shahaabapps.core.content.Notes.forTopic(topic.id)?.let { sheet -> item(key = KEY_NOTES) { NotesCard(sheet, onOpenNotes) } }
+                if (state.waiting > 0) {
+                    item(key = KEY_CHECK) { TopicCheckCard(state.waiting) { onOpenQuiz(course.id, Courses.topicCheckId(topic.id)) } }
+                }
                 item(key = KEY_FILES) { TopicFilesCard(state.files, state.notes, onOpenFiles) }
                 if (course.speechLanguage != null && voiceMissing) {
                     item(key = KEY_VOICE) {
@@ -381,6 +386,7 @@ const val LESSON_INK_TOOLS = "lesson-ink-tools"
 const val KEY_TITLE = "title"
 const val KEY_LISTEN = "listen"
 const val KEY_NOTES = "notes"
+const val KEY_CHECK = "check"
 const val KEY_FILES = "files"
 const val KEY_VOICE = "voice"
 const val KEY_REFERENCES = "references"
@@ -1016,3 +1022,49 @@ private fun TopicFilesCard(files: Int, notes: Int, onOpen: () -> Unit) {
 }
 
 const val TOPIC_FILES_CARD = "topic-files-card"
+
+/**
+ * The questions waiting on this lesson, and the way to answer them.
+ *
+ * The course page puts "look again" on a topic when its questions are missed
+ * or due. Until this card, the only places those questions could be answered
+ * were the course-wide review and the daily, both drawn across every topic
+ * and both capped, so the badge sent you to a lesson that had no way of
+ * clearing it. You could look again as many times as you liked.
+ *
+ * It sits above the lesson rather than under it because it is why the badge
+ * sent you here, and reading first is a choice rather than a queue to get
+ * through.
+ */
+@Composable
+private fun TopicCheckCard(waiting: Int, onOpen: () -> Unit) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(16.dp))
+            .border(Spacing.rule, AppTheme.colors.warn, RoundedCornerShape(16.dp))
+            .clickable(role = Role.Button, onClickLabel = "Answer the questions waiting on this topic", onClick = onOpen)
+            .padding(horizontal = Spacing.md, vertical = Spacing.sm)
+            .testTag(TOPIC_CHECK_CARD),
+    ) {
+        Icon(
+            Icons.Filled.Refresh, contentDescription = null,
+            tint = AppTheme.colors.warn, modifier = Modifier.size(20.dp),
+        )
+        Column(modifier = Modifier.weight(1f).padding(start = Spacing.sm)) {
+            Text(
+                if (AppTheme.departures) "Look again" else "Worth going back over",
+                style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.SemiBold,
+            )
+            Text(
+                "$waiting question${if (waiting == 1) "" else "s"} on this topic " +
+                    if (waiting == 1) "is waiting. Answering it clears the topic." else "are waiting. Answering them clears the topic.",
+                style = MaterialTheme.typography.labelMedium, color = AppTheme.colors.secondaryLabel,
+            )
+        }
+        Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null, tint = AppTheme.colors.secondaryLabel)
+    }
+}
+
+const val TOPIC_CHECK_CARD = "topic-check-card"

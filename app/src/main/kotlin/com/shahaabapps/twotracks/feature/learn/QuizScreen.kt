@@ -90,6 +90,7 @@ private fun QuizUiState.label(): String = when (kind) {
     QuizKind.MOCK -> "Mock exam"
     QuizKind.REVIEW -> "Review"
     QuizKind.DAILY -> "Daily review"
+    QuizKind.TOPIC -> "Topic check"
     QuizKind.MODULE -> module?.let { "Module ${it.number} test" } ?: "Test"
 }
 
@@ -120,6 +121,7 @@ fun QuizContent(
                 val empty = when (state.kind) {
                     QuizKind.REVIEW -> "Nothing to review" to "Every question you have missed has since been answered correctly. Take a module test or the mock exam to find new gaps."
                     QuizKind.DAILY -> "Nothing due today" to "Every question you have met is still fresh. Read a topic or sit a test, and they will come back here when they are about to fade."
+                    QuizKind.TOPIC -> "Nothing waiting here" to "This topic has nothing missed and nothing due. It will come back when its questions are about to fade."
                     else -> null
                 }
                 if (empty != null) Column(modifier = Modifier.padding(horizontal = Spacing.listHorizontal, vertical = 28.dp), verticalArrangement = Arrangement.spacedBy(Spacing.md)) {
@@ -300,7 +302,9 @@ private fun OptionRow(text: String, index: Int, selected: Boolean, revealed: Boo
 @Composable
 private fun Results(state: QuizUiState, onRetake: () -> Unit, onOpenTopic: (String) -> Unit, onDone: () -> Unit) {
     val module = state.module ?: return
-    val keeping = state.kind == QuizKind.DAILY || state.kind == QuizKind.REVIEW
+    // A keeping sitting has no bar to clear: it is for holding on to what
+    // was known, so arriving at the end of it is the whole of it.
+    val keeping = state.kind == QuizKind.DAILY || state.kind == QuizKind.REVIEW || state.kind == QuizKind.TOPIC
     val done = state.passed || keeping
     Column(Modifier.fillMaxSize()) {
         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(start = Spacing.listHorizontal, top = 6.dp)) {
@@ -361,6 +365,7 @@ private fun Results(state: QuizUiState, onRetake: () -> Unit, onOpenTopic: (Stri
                     QuizKind.DAILY -> if (state.missedQuestions.isEmpty()) "All held. Each one comes back a little later than last time." else "${state.missedQuestions.size} slipped; those come back tomorrow, the rest later."
                     QuizKind.REVIEW -> if (state.missedQuestions.isEmpty()) "Every missed question is now right. The review set is empty." else "${state.missedQuestions.size} still to get right; they stay in the review set and come back next time."
                     QuizKind.MOCK -> if (state.passed) "Above the ${state.quiz?.passPercent}% the real exam asks for. The minutes count as practice." else "The real exam needs ${state.quiz?.passPercent}%. The missed questions below are in your review set; reread their topics and sit it again."
+                    QuizKind.TOPIC -> if (state.missedQuestions.isEmpty()) "That is this topic clear. It drops off the list until its questions come round again." else "${state.missedQuestions.size} still to get right. They stay on this topic, and it keeps asking you to look again until they are."
                     QuizKind.MODULE -> if (state.passed) "${module.title} is ticked. The minutes are in your hours." else "You need ${state.quiz?.passPercent}%. Read the weak topics below and try again; retakes are unlimited."
                 },
                 style = MaterialTheme.typography.bodyMedium, color = AppTheme.colors.secondaryLabel, modifier = Modifier.padding(top = 6.dp),

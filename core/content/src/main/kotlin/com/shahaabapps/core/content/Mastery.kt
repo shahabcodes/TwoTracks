@@ -93,7 +93,10 @@ fun Course.mastery(p: CourseProgress, today: LocalDate): Map<String, TopicMaster
         val cards = cardsByTopic[t.id].orEmpty()
         val held = cards.count { it.learned }
         val anyRight = cards.any { it.correct > 0 }
-        val due = cards.count { it.dueIso.isNotEmpty() && Srs.isDue(it, today) }
+        // A question in the review set is already counted as missed, and
+        // the daily skips it for the same reason. Counting it here as well
+        // made a topic with two bad answers read "2 missed · 2 due".
+        val due = cards.count { it.dueIso.isNotEmpty() && Srs.isDue(it, today) && it.itemId !in p.missedQuestionIds }
         val missed = missedByTopic[t.id] ?: 0
         val total = questionsPerTopic[t.id] ?: 0
         // Held only when every question the topic has was met and survived the
