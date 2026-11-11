@@ -3,6 +3,12 @@
 All notable changes to Two Tracks. Versions follow `version.properties`; the
 build number is appended by CI (for example `0.1.0 (build 12)`).
 
+## [0.101.0] - 2026-11-11
+### Added
+- A pen on the lesson itself. The button at the foot of a lesson takes it out, and then you can underline a sentence, ring a definition or work something out in the margin, in four inks and three nibs, with an eraser that takes a whole mark and an undo behind it. One finger draws and two fingers scroll; where there is a stylus, the pen draws and a finger still scrolls. Put the pen away and the lesson reads as it did.
+- Marks are kept against the lesson and come back next time it is opened. They are anchored to the block they were drawn on rather than to a position on the screen, so they stay on their own paragraph when the lesson is read on a tablet, turned sideways, or edited underneath them. They are yours: the two of you read the same lessons, and your partner sees their own marks, not these.
+- The bin clears a lesson's marks, and asks first — including about the ones further down the page that are not on screen when it is pressed.
+
 ## [0.100.1] - 2026-11-03
 ### Fixed
 - A PDF no longer shows the attachment pager under it. "1 / 2" floating at the foot of a document means the page to anybody who has ever used a reader, and it meant which of the lesson's files you were on; a document now shows its own page there instead, and the line under the file's name says "file 1 of 2" in words. The other attachments are a press of Back away. A picture, which has no pages to be confused with, keeps the arrows.

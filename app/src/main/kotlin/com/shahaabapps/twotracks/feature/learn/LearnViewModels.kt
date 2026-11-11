@@ -243,6 +243,8 @@ data class TopicUiState(
     val files: Int = 0,
     /** And how many pages of handwriting are kept on it. */
     val notes: Int = 0,
+    /** What this reader has marked onto the lesson itself. */
+    val marks: List<com.shahaabapps.core.model.LessonMark> = emptyList(),
 )
 
 @HiltViewModel
@@ -252,6 +254,9 @@ class TopicViewModel @Inject constructor(
     dataStore: CoupleDataStore,
     moduleFiles: com.shahaabapps.core.data.files.ModuleFilesRepository,
     inkNotes: com.shahaabapps.core.data.ink.InkNotesRepository,
+    private val lessonInk: com.shahaabapps.core.data.ink.LessonInkRepository,
+    private val sessions: SessionStore,
+    private val saver: LessonMarkSaver,
     private val actions: LearningActions,
     val speaker: Speaker,
     val recognizer: Recognizer,
@@ -279,7 +284,71 @@ class TopicViewModel @Inject constructor(
         }
     }
 
-    val uiState: StateFlow<TopicUiState> = combine(sessionStore.state, dataStore.topicProgress, message, player.state, attached) { state, progress, msg, now, counts ->
+    /**
+     * The marks on this lesson, held here rather than in the composition
+     * because they outlive the screen: they go to the couple's own space,
+     * and a lesson closed and reopened has to show them again.
+     */
+    private val marks = MutableStateFlow<List<com.shahaabapps.core.model.LessonMark>>(emptyList())
+
+    /** Each state before the last change, so a stroke can be taken back. */
+    private val markHistory = ArrayDeque<List<com.shahaabapps.core.model.LessonMark>>()
+
+    init {
+        viewModelScope.launch {
+            val session = sessions.current() ?: return@launch
+            val record = lessonInk.observe(session.coupleId, session.uid, topicId).first() ?: return@launch
+            saver.known(record)
+            when (val loaded = lessonInk.load(record)) {
+                is com.shahaabapps.core.common.AppResult.Success -> marks.value = loaded.data
+                is com.shahaabapps.core.common.AppResult.Failure ->
+                    android.util.Log.w("TopicInk", "loading the marks on $topicId failed", loaded.error)
+            }
+        }
+    }
+
+    fun mark(added: com.shahaabapps.core.model.LessonMark) = changeMarks(marks.value + added)
+
+    fun erase(taken: List<com.shahaabapps.core.model.LessonMark>) =
+        changeMarks(marks.value.filterNot { it in taken })
+
+    fun undoMark() {
+        val previous = markHistory.removeLastOrNull() ?: return
+        marks.value = previous
+        write(now = false)
+    }
+
+    fun clearMarks() = changeMarks(emptyList())
+
+    /** Writes at once: the pen going away, or the lesson closing. */
+    fun saveMarksNow() = write(now = true)
+
+    private fun changeMarks(next: List<com.shahaabapps.core.model.LessonMark>) {
+        markHistory.addLast(marks.value)
+        if (markHistory.size > MARK_UNDO_DEPTH) markHistory.removeFirst()
+        marks.value = next
+        write(now = false)
+    }
+
+    private fun write(now: Boolean) {
+        val session = sessions.current() ?: return
+        val s = uiState.value
+        val courseId = s.course?.id ?: return
+        val moduleId = s.module?.id ?: return
+        saver.save(
+            session.coupleId,
+            com.shahaabapps.core.model.LessonInk(
+                courseId = courseId, moduleId = moduleId, topicId = topicId, owner = session.uid,
+            ),
+            marks.value,
+            now = now,
+        )
+    }
+
+    /** The counts and the marks together: combine has five typed slots. */
+    private val aside = combine(attached, marks) { counts, drawn -> counts to drawn }
+
+    val uiState: StateFlow<TopicUiState> = combine(sessionStore.state, dataStore.topicProgress, message, player.state, aside) { state, progress, msg, now, (counts, drawn) ->
         val session = (state as? com.shahaabapps.twotracks.session.SessionState.Ready)?.session
         val course = Courses.byId(courseId) ?: return@combine TopicUiState(message = msg)
         val (module, topic) = Courses.topic(courseId, topicId) ?: return@combine TopicUiState(course = course, message = msg)
@@ -293,6 +362,7 @@ class TopicViewModel @Inject constructor(
             listen = listenCard(now),
             files = counts.first,
             notes = counts.second,
+            marks = drawn,
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), TopicUiState())
 
@@ -335,6 +405,10 @@ class TopicViewModel @Inject constructor(
         actions.recordSure(id, question.id, sure)
     }
     fun clearMessage() { message.value = null }
+
+    private companion object {
+        const val MARK_UNDO_DEPTH = 40
+    }
 }
 
 /** Which kind of sitting the quiz screen is running. */

@@ -15,6 +15,16 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.Role
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.material.icons.automirrored.filled.Undo
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Draw
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.draw.shadow
+import com.shahaabapps.core.model.LessonMark
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -118,6 +128,11 @@ fun TopicScreen(
             val c = state.course?.id; val m = state.module?.id; val t = state.topic?.id
             if (c != null && m != null && t != null) onOpenFiles(c, m, t)
         },
+        onMark = viewModel::mark,
+        onErase = viewModel::erase,
+        onUndoMark = viewModel::undoMark,
+        onClearMarks = viewModel::clearMarks,
+        onPenAway = viewModel::saveMarksNow,
     )
 }
 
@@ -140,6 +155,11 @@ fun TopicContent(
     onListen: () -> Unit,
     onOpenNotes: () -> Unit = {},
     onOpenFiles: () -> Unit = {},
+    onMark: (LessonMark) -> Unit = {},
+    onErase: (List<LessonMark>) -> Unit = {},
+    onUndoMark: () -> Unit = {},
+    onClearMarks: () -> Unit = {},
+    onPenAway: () -> Unit = {},
 ) {
     val snackbar = remember { SnackbarHostState() }
     LaunchedEffect(state.message) { state.message?.let { snackbar.showSnackbar(it); onMessageShown() } }
@@ -151,9 +171,25 @@ fun TopicContent(
         index = state.index, count = state.count, onBack = onBack,
     ) {
         if (topic == null || module == null || course == null) return@LessonScaffold
+        // The pen and what it is set to are the screen's own: they are how
+        // somebody is holding the lesson at this moment, not something to
+        // be remembered about it afterwards.
+        var pen by remember { mutableStateOf(false) }
+        var tool by remember { mutableStateOf(InkTool()) }
+        var clearing by remember { mutableStateOf(false) }
+        val listState = rememberLazyListState()
         Box {
-            LazyColumn(verticalArrangement = Arrangement.spacedBy(Spacing.md), contentPadding = PaddingValues(horizontal = Spacing.listHorizontal, vertical = Spacing.sm).let { PaddingValues(start = Spacing.listHorizontal, end = Spacing.listHorizontal, top = Spacing.sm, bottom = Spacing.xl * 2) }) {
-                item {
+            LazyColumn(
+                state = listState,
+                verticalArrangement = Arrangement.spacedBy(Spacing.md),
+                contentPadding = PaddingValues(start = Spacing.listHorizontal, end = Spacing.listHorizontal, top = Spacing.sm, bottom = Spacing.xl * 2),
+            ) {
+                // Every item is keyed, and the keys are what the marks are
+                // anchored to. They have to be stable for the same lesson
+                // across a rotation, a reflow and an edit to the content
+                // above them, which is why they are made from what the item
+                // is rather than from where it is in the list.
+                item(key = KEY_TITLE) {
                     Text(
                         topic.title,
                         style = if (AppTheme.departures) TextStyle(fontFamily = CondensedFamily, fontWeight = FontWeight.Bold, fontSize = 36.sp, lineHeight = 37.sp, color = AppTheme.colors.ink)
@@ -165,11 +201,11 @@ fun TopicContent(
                         style = MaterialTheme.typography.labelMedium, color = AppTheme.colors.secondaryLabel, modifier = Modifier.padding(top = 8.dp),
                     )
                 }
-                state.listen?.let { listen -> item { com.shahaabapps.twotracks.feature.listen.ListenCard(listen, onListen) } }
-                com.shahaabapps.core.content.Notes.forTopic(topic.id)?.let { sheet -> item { NotesCard(sheet, onOpenNotes) } }
-                item { TopicFilesCard(state.files, state.notes, onOpenFiles) }
+                state.listen?.let { listen -> item(key = KEY_LISTEN) { com.shahaabapps.twotracks.feature.listen.ListenCard(listen, onListen) } }
+                com.shahaabapps.core.content.Notes.forTopic(topic.id)?.let { sheet -> item(key = KEY_NOTES) { NotesCard(sheet, onOpenNotes) } }
+                item(key = KEY_FILES) { TopicFilesCard(state.files, state.notes, onOpenFiles) }
                 if (course.speechLanguage != null && voiceMissing) {
-                    item {
+                    item(key = KEY_VOICE) {
                         Text(
                             "${course.languageName} voice not installed, so the speaker buttons are off. Tap here to open the download page.",
                             style = MaterialTheme.typography.bodySmall, color = AppTheme.colors.warn,
@@ -177,11 +213,11 @@ fun TopicContent(
                         )
                     }
                 }
-                items(topic.blocks.size) { i -> BlockView(topic.blocks[i], speaker, recognizer, course.speechLanguage, onChecked, onConfidence) }
+                items(topic.blocks.size, key = { blockKey(it) }) { i -> BlockView(topic.blocks[i], speaker, recognizer, course.speechLanguage, onChecked, onConfidence) }
                 if (topic.references.isNotEmpty()) {
-                    item { ReferencesBlock(topic.references) }
+                    item(key = KEY_REFERENCES) { ReferencesBlock(topic.references) }
                 }
-                item {
+                item(key = KEY_FOOTER) {
                     Column(verticalArrangement = Arrangement.spacedBy(Spacing.sm), modifier = Modifier.padding(top = Spacing.md)) {
                         if (state.learned) {
                             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
@@ -206,10 +242,137 @@ fun TopicContent(
                     }
                 }
             }
+            // Over the lesson, and inert until the pen is out: a lesson
+            // being read has nothing between the finger and the text.
+            LessonInkLayer(
+                marks = state.marks,
+                pen = pen,
+                tool = tool,
+                listState = listState,
+                onMark = onMark,
+                onErase = onErase,
+            )
+
+            Column(
+                horizontalAlignment = Alignment.End,
+                verticalArrangement = Arrangement.spacedBy(Spacing.sm),
+                modifier = Modifier.align(Alignment.BottomEnd).padding(Spacing.md),
+            ) {
+                if (pen) {
+                    LessonInkTools(
+                        tool = tool,
+                        onTool = { tool = it },
+                        onUndo = onUndoMark,
+                        onClear = { clearing = true }.takeIf { state.marks.isNotEmpty() },
+                    )
+                }
+                PenButton(pen) {
+                    pen = !pen
+                    // Written the moment the pen goes away rather than a
+                    // second later: putting it down is the end of a thought,
+                    // and often the last thing done before leaving.
+                    if (!pen) onPenAway()
+                }
+            }
             SnackbarHost(snackbar, modifier = Modifier.align(Alignment.BottomCenter))
+        }
+        if (clearing) {
+            ClearMarksDialog(
+                onConfirm = { clearing = false; onClearMarks() },
+                onDismiss = { clearing = false },
+            )
         }
     }
 }
+
+/**
+ * The pen itself: out, or away.
+ *
+ * A single round button at the foot of the lesson, which is where a thumb
+ * already is. It is filled while the pen is out, because the difference
+ * between a drag that scrolls the lesson and a drag that draws on it is the
+ * one thing somebody must never have to guess at.
+ */
+@Composable
+private fun PenButton(pen: Boolean, onToggle: () -> Unit) {
+    Box(
+        contentAlignment = Alignment.Center,
+        modifier = Modifier
+            .size(52.dp)
+            .shadow(8.dp, CircleShape)
+            .clip(CircleShape)
+            .background(if (pen) AppTheme.colors.accent else AppTheme.colors.card)
+            .border(Spacing.rule, AppTheme.colors.separator, CircleShape)
+            .clickable(
+                role = Role.Button,
+                onClickLabel = if (pen) "Put the pen away" else "Mark up this lesson",
+                onClick = onToggle,
+            )
+            .testTag(LESSON_PEN),
+    ) {
+        Icon(
+            Icons.Filled.Draw,
+            contentDescription = null,
+            tint = if (pen) AppTheme.colors.onSolid else AppTheme.colors.ink,
+            modifier = Modifier.size(24.dp),
+        )
+    }
+}
+
+/** Ink, nib and eraser for marking up a lesson, as a floating strip. */
+@Composable
+private fun LessonInkTools(
+    tool: InkTool,
+    onTool: (InkTool) -> Unit,
+    onUndo: () -> Unit,
+    onClear: (() -> Unit)?,
+) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(6.dp),
+        modifier = Modifier
+            .shadow(8.dp, RoundedCornerShape(26.dp))
+            .clip(RoundedCornerShape(26.dp))
+            .background(AppTheme.colors.card)
+            .border(Spacing.rule, AppTheme.colors.separator, RoundedCornerShape(26.dp))
+            .padding(horizontal = 10.dp, vertical = 6.dp)
+            .testTag(LESSON_INK_TOOLS),
+    ) {
+        InkPalette(tool, onTool)
+        Box(Modifier.width(Spacing.rule).height(22.dp).background(AppTheme.colors.separator))
+        Box(
+            contentAlignment = Alignment.Center,
+            modifier = Modifier.size(34.dp).clip(CircleShape)
+                .clickable(role = Role.Button, onClickLabel = "Take back the last mark", onClick = onUndo),
+        ) {
+            Icon(Icons.AutoMirrored.Filled.Undo, contentDescription = null, tint = AppTheme.colors.secondaryLabel, modifier = Modifier.size(20.dp))
+        }
+        if (onClear != null) {
+            Box(
+                contentAlignment = Alignment.Center,
+                modifier = Modifier.size(34.dp).clip(CircleShape)
+                    .clickable(role = Role.Button, onClickLabel = "Clear every mark on this lesson", onClick = onClear),
+            ) {
+                Icon(Icons.Filled.Delete, contentDescription = null, tint = AppTheme.colors.secondaryLabel, modifier = Modifier.size(20.dp))
+            }
+        }
+    }
+}
+
+const val LESSON_PEN = "lesson-pen"
+const val LESSON_INK_TOOLS = "lesson-ink-tools"
+
+/** The keys the lesson's items carry, which its marks are anchored to. */
+const val KEY_TITLE = "title"
+const val KEY_LISTEN = "listen"
+const val KEY_NOTES = "notes"
+const val KEY_FILES = "files"
+const val KEY_VOICE = "voice"
+const val KEY_REFERENCES = "references"
+const val KEY_FOOTER = "footer"
+
+/** A block's key: its place among the blocks, which is what it is. */
+fun blockKey(index: Int) = "block-$index"
 
 @Composable
 fun BlockView(

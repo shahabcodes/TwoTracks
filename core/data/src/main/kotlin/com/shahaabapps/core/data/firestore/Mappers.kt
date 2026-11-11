@@ -21,6 +21,7 @@ import com.shahaabapps.core.model.LevelItem
 import com.shahaabapps.core.model.LevelItemKind
 import com.shahaabapps.core.model.Milestone
 import com.shahaabapps.core.model.InkNote
+import com.shahaabapps.core.model.LessonInk
 import com.shahaabapps.core.model.ModuleFile
 import com.shahaabapps.core.model.MilestoneStatus
 import com.shahaabapps.core.model.MockScore
@@ -235,6 +236,17 @@ object Mappers {
         id = id, courseId = str("courseId"), moduleId = str("moduleId"), topicId = str("topicId"),
         title = str("title"), path = str("path"), strokeCount = int("strokeCount"),
         createdBy = str("createdBy"), createdAtIso = str("createdAtIso"), updatedAtIso = str("updatedAtIso"),
+    )
+
+    fun LessonInk.toMap() = mapOf(
+        "courseId" to courseId, "moduleId" to moduleId, "topicId" to topicId, "owner" to owner,
+        "path" to path, "strokeCount" to strokeCount, "updatedAtIso" to updatedAtIso,
+    )
+
+    fun Doc.toLessonInk() = LessonInk(
+        id = id, courseId = str("courseId"), moduleId = str("moduleId"), topicId = str("topicId"),
+        owner = str("owner"), path = str("path"), strokeCount = int("strokeCount"),
+        updatedAtIso = str("updatedAtIso"),
     )
 
     fun BudgetItem.toMap() = mapOf(
