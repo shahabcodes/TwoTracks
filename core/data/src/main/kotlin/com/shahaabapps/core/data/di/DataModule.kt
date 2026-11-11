@@ -18,6 +18,8 @@ import com.shahaabapps.core.data.couple.CoupleRepository
 import com.shahaabapps.core.data.couple.FirebaseCoupleRepository
 import com.shahaabapps.core.data.files.FirebaseModuleFilesRepository
 import com.shahaabapps.core.data.ink.FirebaseInkNotesRepository
+import com.shahaabapps.core.data.ink.FirebaseLessonInkRepository
+import com.shahaabapps.core.data.ink.LessonInkRepository
 import com.shahaabapps.core.data.ink.InkNotesRepository
 import com.shahaabapps.core.data.files.ModuleFilesRepository
 import com.shahaabapps.core.data.study.FirebaseStudyRepository
@@ -89,4 +91,8 @@ interface DataBindsModule {
     @Binds
     @Singleton
     fun bindInkNotesRepository(impl: FirebaseInkNotesRepository): InkNotesRepository
+
+    @Binds
+    @Singleton
+    fun bindLessonInkRepository(impl: FirebaseLessonInkRepository): LessonInkRepository
 }

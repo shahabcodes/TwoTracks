@@ -133,8 +133,13 @@ class DesignPreviewActivity : ComponentActivity() {
                         "both" -> BothWeeksContent(state = Samples.both(), onBack = {})
                         "learn" -> LearnContent(LearnSamples.learn(), onOpenCourse = {}, onOpenTopic = { _, _ -> }, onOpenDeck = {}, onOpenQuiz = { _, _ -> })
                         "course" -> CourseContent(LearnSamples.germanId, LearnSamples.learn(), Samples.today, onBack = {}, onOpenTopic = { _, _ -> }, onOpenQuiz = { _, _ -> })
+                        // A lesson, optionally already marked up with a pen:
+                        //   --es screen topic [--es kind marked]
                         "topic" -> TopicContent(
-                            LearnSamples.topic(), speaker = null, voiceMissing = false, recognizer = null, onBack = {}, onOpenTopic = { _, _ -> }, onOpenQuiz = { _, _ -> },
+                            LearnSamples.topic().let {
+                                if (intent?.getStringExtra("kind") == "marked") it.copy(marks = SampleMarks.marks()) else it
+                            },
+                            speaker = null, voiceMissing = false, recognizer = null, onBack = {}, onOpenTopic = { _, _ -> }, onOpenQuiz = { _, _ -> },
                             onInstallVoice = {}, onChecked = { _, _, _, _ -> }, onConfidence = { _, _ -> }, onMarkLearned = {}, onUnlearn = {}, onMessageShown = {}, onListen = {},
                         )
                         // The files kept against a module: --es screen files

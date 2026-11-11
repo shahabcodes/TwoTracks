@@ -24,16 +24,7 @@ object InkCodec {
     fun encode(page: InkPage): String = buildString {
         append(HEADER).append('\n')
         append("size ").append(trim(page.width)).append(' ').append(trim(page.height)).append('\n')
-        for (stroke in page.strokes) {
-            if (stroke.isEmpty) continue
-            append("s ").append(stroke.colour).append(' ').append(trim(stroke.width))
-            var i = 0
-            while (i + 1 < stroke.points.size) {
-                append(' ').append(trim(stroke.points[i])).append(',').append(trim(stroke.points[i + 1]))
-                i += 2
-            }
-            append('\n')
-        }
+        for (stroke in page.strokes) appendStroke(stroke, "s")
     }
 
     fun decode(text: String): InkPage {
@@ -47,23 +38,7 @@ object InkCodec {
                     width = parts[1].toFloatOrNull() ?: width
                     height = parts[2].toFloatOrNull() ?: height
                 }
-                parts.size >= 4 && parts[0] == "s" -> {
-                    val points = ArrayList<Float>((parts.size - 3) * 2)
-                    for (i in 3 until parts.size) {
-                        val comma = parts[i].indexOf(',')
-                        if (comma <= 0) continue
-                        val x = parts[i].substring(0, comma).toFloatOrNull() ?: continue
-                        val y = parts[i].substring(comma + 1).toFloatOrNull() ?: continue
-                        points.add(x)
-                        points.add(y)
-                    }
-                    val stroke = InkStroke(
-                        colour = parts[1].removePrefix("#"),
-                        width = parts[2].toFloatOrNull() ?: 3f,
-                        points = points,
-                    )
-                    if (!stroke.isEmpty) strokes.add(stroke)
-                }
+                parts.size >= 4 && parts[0] == "s" -> readStroke(parts, 1)?.let { strokes.add(it) }
             }
         }
         return InkPage(width, height, strokes)
@@ -74,7 +49,7 @@ object InkCodec {
      * page unit is a fifth of a pixel on a phone, and the digits after it
      * are several hundred kilobytes of nothing across a page.
      */
-    private fun trim(value: Float): String {
+    internal fun trim(value: Float): String {
         val tenths = Math.round(value * 10f)
         if (tenths % 10 == 0) return (tenths / 10).toString()
         // Built from the absolute value and signed back: -0.5 rounds to -5
@@ -83,5 +58,45 @@ object InkCodec {
         val sign = if (tenths < 0) "-" else ""
         val size = Math.abs(tenths)
         return "$sign${size / 10}.${size % 10}"
+    }
+
+    /**
+     * One stroke as a line: a tag, the colour, the width, then the points.
+     *
+     * Shared with the lesson's marks, which write the same line with the
+     * block it belongs to in front of the colour. The two formats differ by
+     * one field, and a second copy of the coordinate writer is a second
+     * place for a page of somebody's handwriting to be written wrongly.
+     */
+    internal fun StringBuilder.appendStroke(stroke: InkStroke, vararg tags: String) {
+        if (stroke.isEmpty) return
+        for (tag in tags) append(tag).append(' ')
+        append(stroke.colour).append(' ').append(trim(stroke.width))
+        var i = 0
+        while (i + 1 < stroke.points.size) {
+            append(' ').append(trim(stroke.points[i])).append(',').append(trim(stroke.points[i + 1]))
+            i += 2
+        }
+        append('\n')
+    }
+
+    /** The reverse, reading from [at] — the colour — to the end of the line. */
+    internal fun readStroke(parts: List<String>, at: Int): InkStroke? {
+        if (parts.size < at + 3) return null
+        val points = ArrayList<Float>((parts.size - at - 2) * 2)
+        for (i in at + 2 until parts.size) {
+            val comma = parts[i].indexOf(',')
+            if (comma <= 0) continue
+            val x = parts[i].substring(0, comma).toFloatOrNull() ?: continue
+            val y = parts[i].substring(comma + 1).toFloatOrNull() ?: continue
+            points.add(x)
+            points.add(y)
+        }
+        val stroke = InkStroke(
+            colour = parts[at].removePrefix("#"),
+            width = parts[at + 1].toFloatOrNull() ?: 3f,
+            points = points,
+        )
+        return stroke.takeIf { !it.isEmpty }
     }
 }

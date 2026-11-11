@@ -353,7 +353,7 @@ fun InkNoteContent(
     }
 }
 
-/** The pen: four inks, a weight, and the eraser, as one strip at the foot. */
+/** The pen: the shared palette, as one strip at the foot of the page. */
 @Composable
 private fun InkTools(tool: InkTool, onTool: (InkTool) -> Unit, modifier: Modifier = Modifier) {
     Row(
@@ -361,59 +361,7 @@ private fun InkTools(tool: InkTool, onTool: (InkTool) -> Unit, modifier: Modifie
         horizontalArrangement = Arrangement.spacedBy(Spacing.sm, Alignment.CenterHorizontally),
         modifier = modifier.fillMaxWidth().padding(horizontal = Spacing.md, vertical = Spacing.sm),
     ) {
-        for (ink in INKS) {
-            val chosen = !tool.erasing && tool.colour == ink
-            Box(
-                modifier = Modifier
-                    .size(if (chosen) 30.dp else 26.dp)
-                    .clip(CircleShape)
-                    .background(colourOf(ink))
-                    .border(
-                        if (chosen) 2.dp else Spacing.rule,
-                        if (chosen) AppTheme.colors.accent else AppTheme.colors.separator,
-                        CircleShape,
-                    )
-                    .clickable(role = Role.Button, onClickLabel = "Write in ${NAMES[ink]}") {
-                        onTool(tool.copy(colour = ink, erasing = false))
-                    },
-            )
-        }
-        for (width in WIDTHS) {
-            val chosen = !tool.erasing && tool.width == width
-            Box(
-                contentAlignment = Alignment.Center,
-                modifier = Modifier
-                    .size(34.dp)
-                    .clip(CircleShape)
-                    .background(if (chosen) AppTheme.colors.fill else Color.Transparent)
-                    .clickable(role = Role.Button, onClickLabel = "A ${WIDTH_NAMES[width]} nib") {
-                        onTool(tool.copy(width = width, erasing = false))
-                    },
-            ) {
-                Box(
-                    modifier = Modifier
-                        .size((width * 2.2f).dp)
-                        .clip(CircleShape)
-                        .background(AppTheme.colors.ink),
-                )
-            }
-        }
-        Box(
-            contentAlignment = Alignment.Center,
-            modifier = Modifier
-                .size(38.dp)
-                .clip(CircleShape)
-                .background(if (tool.erasing) AppTheme.colors.fill else Color.Transparent)
-                .clickable(role = Role.Button, onClickLabel = "Rub out") {
-                    onTool(tool.copy(erasing = !tool.erasing))
-                },
-        ) {
-            Icon(
-                Icons.Filled.AutoFixNormal, contentDescription = null,
-                tint = if (tool.erasing) AppTheme.colors.accentText else AppTheme.colors.secondaryLabel,
-                modifier = Modifier.size(20.dp),
-            )
-        }
+        InkPalette(tool, onTool)
     }
 }
 
@@ -429,13 +377,5 @@ private fun InkAction(icon: ImageVector, label: String, onClick: () -> Unit) {
         Icon(icon, contentDescription = label, tint = AppTheme.colors.ink, modifier = Modifier.size(22.dp))
     }
 }
-
-/** Ink, red for marking, blue for working, and a highlighter's yellow. */
-private val INKS = listOf("1C1C20", "C0392B", "1F5FC4", "E3B505")
-private val NAMES = mapOf(
-    "1C1C20" to "ink", "C0392B" to "red", "1F5FC4" to "blue", "E3B505" to "yellow",
-)
-private val WIDTHS = listOf(2f, 3.2f, 6f)
-private val WIDTH_NAMES = mapOf(2f to "fine", 3.2f to "medium", 6f to "broad")
 
 const val INK_NOTE_SCREEN = "ink-note-screen"
