@@ -3,6 +3,10 @@
 All notable changes to Two Tracks. Versions follow `version.properties`; the
 build number is appended by CI (for example `0.1.0 (build 12)`).
 
+## [0.105.0] - 2026-11-12
+### Changed
+- The percentage read while you scroll a lesson is now a scroll rail down the edge of the page, instead of a pill over the text. The thumb shows where in the lesson the screen is and how long the lesson is; the rail filled in above it is how much is behind you. The percentage rides beside the thumb. As before, it comes while you scroll, goes a moment after, and never appears on a lesson that fits one screen.
+
 ## [0.104.0] - 2026-11-11
 ### Added
 - A lesson keeps a clock while you read it, in the corner of its header, and remembers what the reading took when you mark it learned. Open it again and it says so: "You read this in 20 min 30 sec last time."

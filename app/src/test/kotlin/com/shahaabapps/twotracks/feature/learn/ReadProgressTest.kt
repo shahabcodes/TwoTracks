@@ -103,3 +103,109 @@ class ReadProgressTest {
         assertEquals(100, past)
     }
 }
+
+/**
+ * The rail: the thumb's length and where it rides.
+ *
+ * The shape has to say two things at once — where in the lesson this screen
+ * is, and how much of it is behind the reader — and it only says them if the
+ * thumb's foot lands exactly where the read fraction does at both ends of
+ * the rail.
+ */
+class ReadRailTest {
+
+    private val rail = 1_000f
+    private val minThumb = 40f
+
+    @Test
+    fun `the thumb is as much of the rail as the screen is of the lesson`() {
+        val quarter = railFor(rail, share = 0.25f, read = 0f, minThumb = minThumb)
+
+        assertEquals(250f, quarter.thumbLength, 0.5f)
+    }
+
+    @Test
+    fun `an unscrolled lesson has the thumb at the top`() {
+        val at = railFor(rail, share = 0.25f, read = 0f, minThumb = minThumb)
+
+        assertEquals(0f, at.thumbTop, 0.01f)
+    }
+
+    @Test
+    fun `a finished lesson has the thumb resting on the foot of the rail`() {
+        // The whole promise of the shape: everything above the thumb is read,
+        // so at the end there is nothing of the rail left unfilled.
+        val at = railFor(rail, share = 0.25f, read = 1f, minThumb = minThumb)
+
+        assertEquals(rail, at.thumbTop + at.thumbLength, 0.01f)
+    }
+
+    @Test
+    fun `the thumb never gets too small to see`() {
+        // A forty-screen lesson would otherwise give it two pixels.
+        val at = railFor(rail, share = 0.002f, read = 0.5f, minThumb = minThumb)
+
+        assertEquals(minThumb, at.thumbLength, 0.01f)
+        // And it still has the whole rail to travel.
+        assertEquals((rail - minThumb) / 2f, at.thumbTop, 0.5f)
+    }
+
+    @Test
+    fun `a lesson on one screen fills the rail`() {
+        val at = railFor(rail, share = 1f, read = 0f, minThumb = minThumb)
+
+        assertEquals(rail, at.thumbLength, 0.01f)
+        assertEquals(0f, at.thumbTop, 0.01f)
+    }
+
+    @Test
+    fun `a rail with no height, and figures off the end of it, stay on the rail`() {
+        // A frame on rotation, and overscroll either way.
+        assertEquals(Rail(0f, 0f), railFor(0f, share = 0.5f, read = 0.5f, minThumb = minThumb))
+        val under = railFor(rail, share = 0.25f, read = -0.4f, minThumb = minThumb)
+        val over = railFor(rail, share = 0.25f, read = 1.4f, minThumb = minThumb)
+        assertEquals(0f, under.thumbTop, 0.01f)
+        assertEquals(rail, over.thumbTop + over.thumbLength, 0.01f)
+        // A thumb longer than the rail it is on is not drawn.
+        val wide = railFor(rail, share = 4f, read = 0.5f, minThumb = 4_000f)
+        assertEquals(rail, wide.thumbLength, 0.01f)
+    }
+
+    @Test
+    fun `the thumb moves down the rail as the reader moves down the lesson`() {
+        var last = -1f
+        for (step in 0..20) {
+            val at = railFor(rail, share = 0.25f, read = step / 20f, minThumb = minThumb)
+            assertTrue("the thumb went back up at $step", at.thumbTop >= last)
+            last = at.thumbTop
+        }
+    }
+
+    @Test
+    fun `a screenful of a twenty block lesson is a fifth of the rail`() {
+        // Four blocks of 300 on a 1200-tall screen: 1200 of 6000.
+        val visible = (0..4).map { Seen(it, it * 300, 300) }
+
+        assertEquals(0.2f, viewportShare(20, visible, 0, 1200), 0.01f)
+    }
+
+    @Test
+    fun `a lesson with nothing to scroll gives the whole rail to the thumb`() {
+        // Two short blocks, a tall screen; and the frames where nothing has
+        // been measured yet, where a stub of a thumb would be a lie about a
+        // length nobody knows.
+        assertEquals(1f, viewportShare(2, listOf(Seen(0, 0, 400), Seen(1, 410, 300)), 0, 1200), 0.01f)
+        assertEquals(1f, viewportShare(20, emptyList(), 0, 1200), 0.01f)
+        assertEquals(1f, viewportShare(0, emptyList(), 0, 1200), 0.01f)
+        assertEquals(1f, viewportShare(20, listOf(Seen(0, 0, 300)), 0, 0), 0.01f)
+        assertEquals(1f, viewportShare(20, listOf(Seen(0, 0, 0), Seen(1, 0, 0)), 0, 1200), 0.01f)
+    }
+
+    @Test
+    fun `one tall block gives a thumb shorter than the rail`() {
+        // A single table taller than the screen.
+        val share = viewportShare(10, listOf(Seen(2, -500, 2000)), 0, 1200)
+
+        assertTrue("one tall block gave a share of $share", share > 0f && share < 1f)
+    }
+}

@@ -1,16 +1,18 @@
 package com.shahaabapps.twotracks.feature.learn
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
-import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyListState
@@ -27,6 +29,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.text.font.FontWeight
@@ -73,14 +76,7 @@ internal fun readFraction(totalItems: Int, visible: List<Seen>, viewportStart: I
     // last block is fully on screen, so there is nothing below it, whatever
     // the estimate would otherwise say.
     if (last.index >= totalItems - 1 && last.offset + last.size <= viewportEnd) return 1f
-    // Pitch from the measured items' own tops, which quietly includes the
-    // gap between them; with one item on screen there is no pitch to take,
-    // so that item's height stands in for it.
-    val pitch = if (last.index > first.index) {
-        (last.offset - first.offset).toFloat() / (last.index - first.index)
-    } else {
-        first.size.toFloat()
-    }
+    val pitch = pitchOf(first, last)
     if (pitch <= 0f) return 0f
     val scrollable = pitch * totalItems - viewport
     // Short enough to fit: it is all in front of the reader at once.
@@ -93,27 +89,99 @@ internal fun readFraction(totalItems: Int, visible: List<Seen>, viewportStart: I
 internal fun readPercent(totalItems: Int, visible: List<Seen>, viewportStart: Int, viewportEnd: Int): Int =
     Math.round(readFraction(totalItems, visible, viewportStart, viewportEnd) * 100f)
 
-/** How long the readout stays after the scroll stops. */
-internal const val PROGRESS_LINGER_MS = 1_400L
+/**
+ * Pitch from the measured items' own tops, which quietly includes the gap
+ * between them. With one item on screen there is no pitch to take, so that
+ * item's own height stands in for it.
+ */
+private fun pitchOf(first: Seen, last: Seen): Float =
+    if (last.index > first.index) {
+        (last.offset - first.offset).toFloat() / (last.index - first.index)
+    } else {
+        first.size.toFloat()
+    }
 
 /**
- * The percentage read, shown while the lesson is being scrolled.
+ * How much of the whole lesson one screenful is, 0 to 1.
+ *
+ * This is what sets the length of the thumb, and so it is the part of the
+ * rail that says how long the lesson is: a short topic gets a thumb filling
+ * most of the rail, a long one a stub. Same estimate as [readFraction] and
+ * the same caveat — the unmeasured blocks are assumed to be like the
+ * measured ones — and it answers 1 whenever there is nothing to scroll,
+ * which is the honest answer for a lesson that is all on screen.
+ */
+internal fun viewportShare(totalItems: Int, visible: List<Seen>, viewportStart: Int, viewportEnd: Int): Float {
+    if (totalItems <= 0 || visible.isEmpty()) return 1f
+    val viewport = (viewportEnd - viewportStart).toFloat()
+    if (viewport <= 0f) return 1f
+    val pitch = pitchOf(visible.first(), visible.last())
+    if (pitch <= 0f) return 1f
+    val content = pitch * totalItems
+    return if (content <= viewport) 1f else (viewport / content).coerceIn(0f, 1f)
+}
+
+/** Where the thumb sits on the rail and how long it is, both in pixels. */
+internal data class Rail(val thumbTop: Float, val thumbLength: Float)
+
+/**
+ * The rail's geometry.
+ *
+ * The thumb is as long a part of the rail as the screen is of the lesson,
+ * and it travels the rail as the reader travels the lesson — so its top edge
+ * is nowhere near the read fraction, and its *bottom* edge is: at 100% the
+ * thumb is resting on the foot of the rail, with the whole rail above it
+ * filled. That is what makes one shape say both things at once, where the
+ * reader is and how much is behind them.
+ *
+ * A thumb is never shorter than [minThumb], because a forty-screen lesson
+ * would otherwise give it a couple of pixels and nothing to grab the eye.
+ */
+internal fun railFor(railLength: Float, share: Float, read: Float, minThumb: Float): Rail {
+    if (railLength <= 0f) return Rail(0f, 0f)
+    val wanted = railLength * share.coerceIn(0f, 1f)
+    val length = wanted.coerceAtLeast(minThumb.coerceAtMost(railLength)).coerceAtMost(railLength)
+    return Rail(thumbTop = (railLength - length) * read.coerceIn(0f, 1f), thumbLength = length)
+}
+
+/** How long the rail stays after the scroll stops. */
+internal const val PROGRESS_LINGER_MS = 1_400L
+
+/** The width of the rail, and the least of it the thumb may be. */
+private val RAIL_WIDTH = 5.dp
+private val RAIL_MIN_THUMB = 32.dp
+
+/**
+ * The scroll rail: where in the lesson this screen is, and how much of the
+ * lesson is behind it.
  *
  * It comes while the thumb is moving and goes a moment after it stops,
- * because that is the only time the question is being asked. A permanent
- * badge over the text would be one more thing on the page for every minute
- * of reading, to answer something wanted in the second after a long swipe:
- * how much of this is left.
+ * because that is the only time the question is being asked. A rail standing
+ * permanently down the edge of every lesson would be one more thing on the
+ * page for every minute of reading, to answer something wanted in the second
+ * after a long swipe: how much of this is left.
  *
- * A lesson that fits on one screen never shows it at all. "100%" over a page
- * that was never scrolled reads as an achievement when nothing has happened.
+ * A lesson that fits on one screen never shows it at all. A full rail over a
+ * page that was never scrolled reads as an achievement when nothing has
+ * happened.
  */
 @Composable
 internal fun BoxScope.ReadProgress(listState: LazyListState) {
-    val percent by remember(listState) {
+    val read by remember(listState) {
         derivedStateOf {
             val info = listState.layoutInfo
-            readPercent(
+            readFraction(
+                totalItems = info.totalItemsCount,
+                visible = info.visibleItemsInfo.map { Seen(it.index, it.offset, it.size) },
+                viewportStart = info.viewportStartOffset,
+                viewportEnd = info.viewportEndOffset,
+            )
+        }
+    }
+    val share by remember(listState) {
+        derivedStateOf {
+            val info = listState.layoutInfo
+            viewportShare(
                 totalItems = info.totalItemsCount,
                 visible = info.visibleItemsInfo.map { Seen(it.index, it.offset, it.size) },
                 viewportStart = info.viewportStartOffset,
@@ -139,54 +207,89 @@ internal fun BoxScope.ReadProgress(listState: LazyListState) {
         visible = showing,
         enter = fadeIn(),
         exit = fadeOut(),
-        modifier = Modifier.align(Alignment.TopCenter),
+        modifier = Modifier.align(Alignment.CenterEnd),
     ) {
-        ReadProgressPill(percent)
+        ReadRail(read = read, share = share)
     }
 }
 
-/** The readout itself: the number, and a track filled to it. */
+/**
+ * The rail itself: a track down the edge, the part of the lesson already
+ * behind the reader filled in, the thumb, and the percentage riding beside
+ * it.
+ */
 @Composable
-private fun ReadProgressPill(percent: Int) {
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(Spacing.sm),
+private fun ReadRail(read: Float, share: Float) {
+    val ink = AppTheme.colors.ink
+    // The thumb is where the finger put it, so it is never animated; the
+    // fill behind it is, which is what turns a jumped-to position into a
+    // visible amount read.
+    val filled by animateFloatAsState(targetValue = read, animationSpec = tween(220), label = "read")
+    BoxWithConstraints(
         modifier = Modifier
-            .padding(top = Spacing.sm)
-            .clip(RoundedCornerShape(20.dp))
-            .background(AppTheme.colors.ink.copy(alpha = 0.82f))
-            .padding(horizontal = 12.dp, vertical = 6.dp)
-            // One label for the whole thing: a screen reader has no use for
-            // a bar it cannot see, and "42" on its own means nothing.
-            .clearAndSetSemantics { contentDescription = "$percent percent of this topic read" },
+            .fillMaxHeight()
+            .padding(vertical = Spacing.lg, horizontal = 6.dp),
     ) {
+        val density = LocalDensity.current
+        val railPx = constraints.maxHeight.toFloat()
+        val minThumb = with(density) { RAIL_MIN_THUMB.toPx() }
+        val rail = railFor(railPx, share, read, minThumb)
+        val shown = railFor(railPx, share, filled, minThumb)
+        val percent = Math.round(read.coerceIn(0f, 1f) * 100f)
+        val thumbTop = with(density) { rail.thumbTop.toDp() }
+        val thumbLength = with(density) { rail.thumbLength.toDp() }
+        // Everything above the thumb's foot is read, which is the whole rail
+        // once the thumb is resting on the bottom of it.
+        val readTo = with(density) { (shown.thumbTop + shown.thumbLength).toDp() }
+        Box(
+            modifier = Modifier
+                .align(Alignment.TopEnd)
+                .width(RAIL_WIDTH)
+                .fillMaxHeight()
+                .clip(RoundedCornerShape(RAIL_WIDTH / 2))
+                .background(ink.copy(alpha = 0.10f))
+                // One label for the whole thing: a screen reader has no use
+                // for a bar it cannot see, and "42" on its own means nothing.
+                .clearAndSetSemantics { contentDescription = "$percent percent of this topic read" },
+        )
+        Box(
+            modifier = Modifier
+                .align(Alignment.TopEnd)
+                .width(RAIL_WIDTH)
+                .height(readTo)
+                .clip(RoundedCornerShape(RAIL_WIDTH / 2))
+                .background(ink.copy(alpha = 0.42f)),
+        )
+        Box(
+            modifier = Modifier
+                .align(Alignment.TopEnd)
+                .offset(y = thumbTop)
+                .width(RAIL_WIDTH)
+                .height(thumbLength)
+                .clip(RoundedCornerShape(RAIL_WIDTH / 2))
+                .background(ink.copy(alpha = 0.92f)),
+        )
+        // The number rides with the thumb rather than sitting in a corner,
+        // so the two are read as one thing. It is kept on the rail at both
+        // ends, where the thumb runs out of room before the label does.
+        val labelHeight = with(density) { 22.dp.toPx() }
+        val labelTop = (rail.thumbTop + rail.thumbLength / 2f - labelHeight / 2f)
+            .coerceIn(0f, (railPx - labelHeight).coerceAtLeast(0f))
         Text(
             "$percent%",
             style = MaterialTheme.typography.labelMedium.copy(
                 fontFamily = MonoFamily,
-                fontSize = 12.sp,
+                fontSize = 11.sp,
                 fontWeight = FontWeight.Bold,
             ),
             color = AppTheme.colors.groupedBackground,
-        )
-        Box(
             modifier = Modifier
-                .width(44.dp)
-                .height(3.dp)
-                .clip(RoundedCornerShape(2.dp))
-                .background(AppTheme.colors.groupedBackground.copy(alpha = 0.3f)),
-        ) {
-            // Nothing read draws no fill at all, rather than a sliver that
-            // would read as a little.
-            val read = percent.coerceIn(0, 100) / 100f
-            if (read > 0f) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth(read)
-                        .fillMaxHeight()
-                        .background(AppTheme.colors.groupedBackground.copy(alpha = 0.9f)),
-                )
-            }
-        }
+                .align(Alignment.TopEnd)
+                .offset(y = with(density) { labelTop.toDp() }, x = -(RAIL_WIDTH + 6.dp))
+                .clip(RoundedCornerShape(11.dp))
+                .background(ink.copy(alpha = 0.82f))
+                .padding(horizontal = 7.dp, vertical = 3.dp)
+                .clearAndSetSemantics { },
+        )
     }
 }
