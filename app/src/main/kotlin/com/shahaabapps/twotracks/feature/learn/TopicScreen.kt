@@ -285,7 +285,7 @@ fun TopicContent(
             // Over the lesson too, and for the same reason the ink layer is:
             // how far down a lesson somebody has got belongs to the scroll
             // and to this moment, not to the text or to the record.
-            ReadProgress(listState)
+            ReadProgress(listState, blocks = topic.blocks.size)
 
             Column(
                 horizontalAlignment = Alignment.End,
@@ -410,7 +410,10 @@ const val KEY_REFERENCES = "references"
 const val KEY_FOOTER = "footer"
 
 /** A block's key: its place among the blocks, which is what it is. */
-fun blockKey(index: Int) = "block-$index"
+/** The lesson's own blocks are keyed so the rail can count them apart from the cards around them. */
+const val BLOCK_KEY_PREFIX = "block-"
+
+fun blockKey(index: Int) = "$BLOCK_KEY_PREFIX$index"
 
 @Composable
 fun BlockView(

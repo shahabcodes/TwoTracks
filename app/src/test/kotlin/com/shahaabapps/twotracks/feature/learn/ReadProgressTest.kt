@@ -209,3 +209,79 @@ class ReadRailTest {
         assertTrue("one tall block gave a share of $share", share > 0f && share < 1f)
     }
 }
+
+/**
+ * Which block of the lesson the rail says you are on.
+ *
+ * The number beside the thumb is a count of the lesson's own blocks, not of
+ * the items in the list: the title, the listen card, the notes card, the
+ * check and the footer are around the lesson rather than part of it, and a
+ * reader counting paragraphs does not count them. They still have to be
+ * answered for, because somebody can be looking straight at one.
+ */
+class BlockNumberTest {
+
+    /** A lesson with three cards above eight blocks, then references and a footer. */
+    private fun lesson(): List<Seen> {
+        val keys = listOf(KEY_TITLE, KEY_NOTES, KEY_FILES) +
+            (0 until 8).map { blockKey(it) } + listOf(KEY_REFERENCES, KEY_FOOTER)
+        return keys.mapIndexed { i, key -> Seen(i, i * 300, 300, key) }
+    }
+
+    private fun onScreenAt(scrolled: Int): List<Seen> =
+        lesson().map { it.copy(offset = it.offset - scrolled) }.filter { it.offset + it.size > 0 && it.offset < 1200 }
+
+    @Test
+    fun `the block at the top of the screen is the one being counted`() {
+        // Scrolled to the top of the fourth block: three cards, then blocks.
+        assertEquals(4, blockNumber(onScreenAt(6 * 300), viewportStart = 0, blocks = 8))
+    }
+
+    @Test
+    fun `the cards above the lesson count as its first block`() {
+        // Nothing read yet: the title is at the top of the screen.
+        assertEquals(1, blockNumber(onScreenAt(0), viewportStart = 0, blocks = 8))
+        assertEquals(1, blockNumber(onScreenAt(300), viewportStart = 0, blocks = 8))
+    }
+
+    @Test
+    fun `the references and the footer count as its last`() {
+        assertEquals(8, blockNumber(onScreenAt(11 * 300), viewportStart = 0, blocks = 8))
+        assertEquals(8, blockNumber(onScreenAt(12 * 300), viewportStart = 0, blocks = 8))
+    }
+
+    @Test
+    fun `the count only ever goes forwards as the reader does`() {
+        var last = 0
+        for (scrolled in 0..(12 * 300) step 50) {
+            val n = blockNumber(onScreenAt(scrolled), viewportStart = 0, blocks = 8)
+            assertTrue("block $n came after $last at $scrolled", n >= last)
+            last = n
+        }
+        assertEquals(8, last)
+    }
+
+    @Test
+    fun `the count stays inside the lesson`() {
+        for (scrolled in 0..(12 * 300) step 50) {
+            val n = blockNumber(onScreenAt(scrolled), viewportStart = 0, blocks = 8)
+            assertTrue("block $n is not in a lesson of 8", n in 1..8)
+        }
+        // A key for a block the lesson no longer has, mid-reflow.
+        assertEquals(3, blockNumber(listOf(Seen(9, 0, 300, blockKey(40))), viewportStart = 0, blocks = 3))
+    }
+
+    @Test
+    fun `a lesson with no blocks to count says nothing`() {
+        assertEquals(0, blockNumber(onScreenAt(0), viewportStart = 0, blocks = 0))
+        assertEquals(0, blockNumber(emptyList(), viewportStart = 0, blocks = 8))
+    }
+
+    @Test
+    fun `a viewport that does not start at nought still counts from its own top`() {
+        // Content padding puts the top of the viewport above nought.
+        val visible = listOf(Seen(3, -40, 300, blockKey(0)), Seen(4, 260, 300, blockKey(1)))
+
+        assertEquals(2, blockNumber(visible, viewportStart = 260, blocks = 8))
+    }
+}

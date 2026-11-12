@@ -3,6 +3,10 @@
 All notable changes to Two Tracks. Versions follow `version.properties`; the
 build number is appended by CI (for example `0.1.0 (build 12)`).
 
+## [0.106.0] - 2026-11-12
+### Changed
+- The scroll rail now says which part of the lesson you are on — "4 of 8" — instead of a percentage. The rail itself still shows how much is behind you; the count says where you are in something you can picture. Only the lesson's own blocks are counted, not the cards around them.
+
 ## [0.105.0] - 2026-11-12
 ### Changed
 - The percentage read while you scroll a lesson is now a scroll rail down the edge of the page, instead of a pill over the text. The thumb shows where in the lesson the screen is and how long the lesson is; the rail filled in above it is how much is behind you. The percentage rides beside the thumb. As before, it comes while you scroll, goes a moment after, and never appears on a lesson that fits one screen.
