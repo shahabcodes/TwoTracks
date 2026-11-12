@@ -47,7 +47,33 @@ import kotlinx.coroutines.delay
  * The same three numbers Compose reports for a visible item, named so the
  * arithmetic below can be tested without a laid-out list.
  */
-internal data class Seen(val index: Int, val offset: Int, val size: Int)
+internal data class Seen(val index: Int, val offset: Int, val size: Int, val key: Any? = null)
+
+/**
+ * Which block of the lesson is at the top of the screen, counting from one,
+ * or 0 for a lesson with no blocks to count.
+ *
+ * The lesson's own blocks are what the reader thinks of as the lesson; the
+ * title, the cards and the footer around them are not, so they are not
+ * counted. They do have to be answered for, though, because somebody can be
+ * looking straight at one: above the blocks the answer is the first, below
+ * them the last. The blocks are found by their keys rather than by their
+ * place in the list, because what sits above them depends on the topic.
+ */
+internal fun blockNumber(visible: List<Seen>, viewportStart: Int, blocks: Int): Int {
+    if (blocks <= 0 || visible.isEmpty()) return 0
+    // The block at the top of the screen is the last one whose own top has
+    // gone past it — the one being read, not the one just leaving.
+    val top = visible.lastOrNull { it.offset <= viewportStart } ?: visible.first()
+    blockOrdinal(top.key)?.let { return (it + 1).coerceIn(1, blocks) }
+    return if (top.key == KEY_REFERENCES || top.key == KEY_FOOTER) blocks else 1
+}
+
+private fun blockOrdinal(key: Any?): Int? {
+    val name = key as? String ?: return null
+    if (!name.startsWith(BLOCK_KEY_PREFIX)) return null
+    return name.removePrefix(BLOCK_KEY_PREFIX).toIntOrNull()
+}
 
 /**
  * How far down a lesson the reader has got, 0 to 1.
@@ -166,7 +192,7 @@ private val RAIL_MIN_THUMB = 32.dp
  * happened.
  */
 @Composable
-internal fun BoxScope.ReadProgress(listState: LazyListState) {
+internal fun BoxScope.ReadProgress(listState: LazyListState, blocks: Int) {
     val read by remember(listState) {
         derivedStateOf {
             val info = listState.layoutInfo
@@ -175,6 +201,16 @@ internal fun BoxScope.ReadProgress(listState: LazyListState) {
                 visible = info.visibleItemsInfo.map { Seen(it.index, it.offset, it.size) },
                 viewportStart = info.viewportStartOffset,
                 viewportEnd = info.viewportEndOffset,
+            )
+        }
+    }
+    val block by remember(listState, blocks) {
+        derivedStateOf {
+            val info = listState.layoutInfo
+            blockNumber(
+                visible = info.visibleItemsInfo.map { Seen(it.index, it.offset, it.size, it.key) },
+                viewportStart = info.viewportStartOffset,
+                blocks = blocks,
             )
         }
     }
@@ -209,7 +245,7 @@ internal fun BoxScope.ReadProgress(listState: LazyListState) {
         exit = fadeOut(),
         modifier = Modifier.align(Alignment.CenterEnd),
     ) {
-        ReadRail(read = read, share = share)
+        ReadRail(read = read, share = share, block = block, blocks = blocks)
     }
 }
 
@@ -219,7 +255,7 @@ internal fun BoxScope.ReadProgress(listState: LazyListState) {
  * it.
  */
 @Composable
-private fun ReadRail(read: Float, share: Float) {
+private fun ReadRail(read: Float, share: Float, block: Int, blocks: Int) {
     val ink = AppTheme.colors.ink
     // The thumb is where the finger put it, so it is never animated; the
     // fill behind it is, which is what turns a jumped-to position into a
@@ -235,7 +271,8 @@ private fun ReadRail(read: Float, share: Float) {
         val minThumb = with(density) { RAIL_MIN_THUMB.toPx() }
         val rail = railFor(railPx, share, read, minThumb)
         val shown = railFor(railPx, share, filled, minThumb)
-        val percent = Math.round(read.coerceIn(0f, 1f) * 100f)
+        val counted = block in 1..blocks
+        val label = if (counted) "$block of $blocks" else null
         val thumbTop = with(density) { rail.thumbTop.toDp() }
         val thumbLength = with(density) { rail.thumbLength.toDp() }
         // Everything above the thumb's foot is read, which is the whole rail
@@ -250,7 +287,11 @@ private fun ReadRail(read: Float, share: Float) {
                 .background(ink.copy(alpha = 0.10f))
                 // One label for the whole thing: a screen reader has no use
                 // for a bar it cannot see, and "42" on its own means nothing.
-                .clearAndSetSemantics { contentDescription = "$percent percent of this topic read" },
+                .clearAndSetSemantics {
+                    contentDescription =
+                        if (counted) "Block $block of $blocks of this topic"
+                        else "${Math.round(read.coerceIn(0f, 1f) * 100f)} percent of this topic read"
+                },
         )
         Box(
             modifier = Modifier
@@ -269,27 +310,29 @@ private fun ReadRail(read: Float, share: Float) {
                 .clip(RoundedCornerShape(RAIL_WIDTH / 2))
                 .background(ink.copy(alpha = 0.92f)),
         )
-        // The number rides with the thumb rather than sitting in a corner,
+        // The count rides with the thumb rather than sitting in a corner,
         // so the two are read as one thing. It is kept on the rail at both
         // ends, where the thumb runs out of room before the label does.
-        val labelHeight = with(density) { 22.dp.toPx() }
-        val labelTop = (rail.thumbTop + rail.thumbLength / 2f - labelHeight / 2f)
-            .coerceIn(0f, (railPx - labelHeight).coerceAtLeast(0f))
-        Text(
-            "$percent%",
-            style = MaterialTheme.typography.labelMedium.copy(
-                fontFamily = MonoFamily,
-                fontSize = 11.sp,
-                fontWeight = FontWeight.Bold,
-            ),
-            color = AppTheme.colors.groupedBackground,
-            modifier = Modifier
-                .align(Alignment.TopEnd)
-                .offset(y = with(density) { labelTop.toDp() }, x = -(RAIL_WIDTH + 6.dp))
-                .clip(RoundedCornerShape(11.dp))
-                .background(ink.copy(alpha = 0.82f))
-                .padding(horizontal = 7.dp, vertical = 3.dp)
-                .clearAndSetSemantics { },
-        )
+        if (label != null) {
+            val labelHeight = with(density) { 22.dp.toPx() }
+            val labelTop = (rail.thumbTop + rail.thumbLength / 2f - labelHeight / 2f)
+                .coerceIn(0f, (railPx - labelHeight).coerceAtLeast(0f))
+            Text(
+                label,
+                style = MaterialTheme.typography.labelMedium.copy(
+                    fontFamily = MonoFamily,
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.Bold,
+                ),
+                color = AppTheme.colors.groupedBackground,
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .offset(y = with(density) { labelTop.toDp() }, x = -(RAIL_WIDTH + 6.dp))
+                    .clip(RoundedCornerShape(11.dp))
+                    .background(ink.copy(alpha = 0.82f))
+                    .padding(horizontal = 7.dp, vertical = 3.dp)
+                    .clearAndSetSemantics { },
+            )
+        }
     }
 }
